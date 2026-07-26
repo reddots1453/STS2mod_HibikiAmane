@@ -1,12 +1,19 @@
 # PLAN：Maiden & Succubus 完整模组框架
 
-> 版本：1.0  
-> 日期：2026-07-26  
-> 需求来源：`DesignDoc.md`（稳定需求ID版；初始内容基线`86d749d`）  
-> 目标游戏版本：STS2 v0.109.0  
+> 版本：1.0
+>
+> 日期：2026-07-26
+>
+> 需求来源：`DesignDoc.md`（稳定需求ID版；初始内容基线`86d749d`）
+>
+> 目标游戏版本：STS2 v0.109.0
+>
 > 当前阶段：M5代码实现完成，等待统一运行时验收
-> 更新协议：`docs/DESIGN_CHANGE_PROTOCOL.md`（DPP，开发迭代强制入口）  
-> 需求追踪：`docs/DESIGN_TRACEABILITY.md`  
+>
+> 更新协议：`docs/DESIGN_CHANGE_PROTOCOL.md`（DPP，开发迭代强制入口）
+>
+> 需求追踪：`docs/DESIGN_TRACEABILITY.md`
+>
 > DesignDoc初始Git基线：`86d749d`
 
 ---

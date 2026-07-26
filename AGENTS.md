@@ -42,4 +42,3 @@ git diff --word-diff=plain HEAD -- "mods/sts2_Maiden&Succubus/DesignDoc.md"
 - 文档同步提交只包含本Mod相关的DesignDoc、Plan、追踪与验收文档。
 - 不得重置、覆盖或丢弃用户尚未提交的DesignDoc修改。
 - 不得把仓库中其他项目的修改混入本Mod提交。
-

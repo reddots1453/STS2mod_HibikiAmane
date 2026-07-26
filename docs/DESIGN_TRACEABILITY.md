@@ -1,7 +1,9 @@
 # DesignDoc需求追踪矩阵
 
-> 本文件记录DesignDoc需求、Plan阶段、实现状态和验收入口之间的映射。  
-> 玩法规则以`DesignDoc.md`为准，技术方案以`PLAN_FRAMEWORK.md`为准。  
+> 本文件记录DesignDoc需求、Plan阶段、实现状态和验收入口之间的映射。
+>
+> 玩法规则以`DesignDoc.md`为准，技术方案以`PLAN_FRAMEWORK.md`为准。
+>
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
 ## 1. Git基线

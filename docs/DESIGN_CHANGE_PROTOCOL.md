@@ -1,7 +1,9 @@
 # DesignDoc → Plan → 实现更新协议
 
-> 协议代号：DPP（Design–Plan–Production Protocol）  
-> 适用范围：`sts2_Maiden&Succubus`的全部设计、计划、实现和验收工作  
+> 协议代号：DPP（Design–Plan–Production Protocol）
+>
+> 适用范围：`sts2_Maiden&Succubus`的全部设计、计划、实现和验收工作
+>
 > 核心地位：本协议是开发迭代的强制入口，不是可选的文档整理步骤
 
 ## 1. 权威关系
