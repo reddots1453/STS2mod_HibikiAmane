@@ -19,7 +19,7 @@
 |---|---|---|---|
 | `ABYSSAL_BATHS` | 深渊浴场 | 投身其中：获得2最大生命并失去3生命；之后可反复逗留，每次获得2最大生命，生命损失依次增加1。敬而远之：恢复10生命。 | 投身其中仅首次选择时`【MS·堕落+1】`；敬而远之`【MS·堕落-1】`。`【MS·新增选项｜堕落≤-3】净身：恢复全部生命。` `【MS·新增选项｜堕落≥+3】沉溺：连续结算前三次浸泡，共获得6最大生命并失去12生命。` |
 | `AMALGAMATOR` | 熔合者 | 移除2张基础打击并获得终极打击，或移除2张基础防御并获得终极防御。 | — |
-| `AROMA_OF_CHAOS` | 混沌芳香 | 放任自流：变化1张牌。维持理智：升级1张牌。 | 放任自流`【MS·堕落+1】`；维持理智`【MS·堕落-1】`。DesignDoc另有既存的±1欲望规则，不属于本次修正。 |
+| `AROMA_OF_CHAOS` | 混沌芳香 | 放任自流：变化1张牌。维持理智：升级1张牌。 | 放任自流`【MS·堕落+1】`；维持理智`【MS·堕落-1】`。 |
 | `BATTLEWORN_DUMMY` | 战痕累累的训练假人 | 选择三档之一并在3回合内击败假人；依难度分别获得随机药水、随机升级2张牌、随机遗物。超时无奖励。 | — |
 | `BRAIN_LEECH` | 脑蛭 | 分享知识：从5张本角色牌中选1张。把它扯下来：失去5生命，获得一次无色牌奖励。 | — |
 | `BUGSLAYER` | 害虫杀手 | 二选一获得事件牌“杀灭”或“压扁”。 | — |
@@ -74,6 +74,76 @@
 | `WHISPERING_HOLLOW` | 低语空谷 | 交换：支付50金币，获得2瓶随机药水。拥抱：变化1张牌并失去9生命。 | 拥抱树木`【MS·堕落+1】`。`【MS·新增选项｜堕落≤-2】净化树木：获得300金币，并将1张腐朽加入牌组。` `【MS·新增选项｜堕落≥+4】吸收灵魂：获得枯树灵魂。` |
 | `WOOD_CARVINGS` | 木雕 | 将1张基础牌变化为“啄击”；为1张牌附魔“蜿蜒”；或将1张基础牌变化为“环形韧性”。 | — |
 | `ZEN_WEAVER` | 修禅织网者 | 支付50金币获得2张“启迪”；支付125金币移除1张牌；支付250金币移除2张牌。 | — |
+
+## 原版事件池与必要触发条件
+
+下表记录事件正常进入候选池所需的全部已知条件，依据各幕`AllEvents`、`ModelDb.AllSharedEvents`、时间线解锁过滤以及事件自身的`IsAllowed`。其中：
+
+- “无额外状态条件”仍要求进入该事件所属幕的未知房间，并且事件已解锁。
+- “共享事件池”表示可加入所有幕的事件池；表中若有限定幕数，则以限定为准。
+- 多人游戏中，除非特别注明，涉及金币、生命、牌组、药水或遗物的条件必须由**所有玩家**同时满足。
+- 正常情况下，已经访问过的事件不会再次出现；当本幕所有独特事件均已耗尽时，原版会允许重复事件作为兜底。
+- 金币等随机结算数值可能在进入事件后变化。触发门槛记录`IsAllowed`实际使用的基准值，而非选项最终显示的随机价格。
+
+| ID | 原版事件池 | 必要触发条件 |
+|---|---|---|
+| `ABYSSAL_BATHS` | `UNDERDOCKS`专属 | 无额外状态条件。 |
+| `AMALGAMATOR` | `HIVE`专属 | 牌组中至少有2张可移除的基础“打击”标签牌，且至少有2张可移除的基础“防御”标签牌。 |
+| `AROMA_OF_CHAOS` | `OVERGROWTH`专属 | 无额外状态条件。 |
+| `BATTLEWORN_DUMMY` | `GLORY`专属 | 无额外状态条件。 |
+| `BRAIN_LEECH` | 共享事件池 | 仅第1或第2幕。 |
+| `BUGSLAYER` | `HIVE`专属 | 无额外状态条件。 |
+| `BYRDONIS_NEST` | `OVERGROWTH`专属 | 当前没有事件宠物。 |
+| `COLORFUL_PHILOSOPHERS` | `HIVE`专属 | 已在时间线中揭示`EVENT3_EPOCH`。 |
+| `COLOSSAL_FLOWER` | `HIVE`专属 | 当前生命至少为19。 |
+| `CRYSTAL_SPHERE` | 共享事件池 | 第2幕或更晚，且至少拥有100金币。 |
+| `DENSE_VEGETATION` | `OVERGROWTH`专属 | 无额外状态条件。 |
+| `DOLL_ROOM` | 共享事件池 | 仅第2幕。 |
+| `DOORS_OF_LIGHT_AND_DARK` | `UNDERDOCKS`专属 | 无额外状态条件。 |
+| `DROWNING_BEACON` | `UNDERDOCKS`专属 | 无额外状态条件。 |
+| `ENDLESS_CONVEYOR` | `UNDERDOCKS`专属 | 至少拥有105金币。 |
+| `FAKE_MERCHANT` | 共享事件池 | 第2幕或更晚；仅单人游戏；并且拥有至少100金币或至少1瓶“恶臭药水”。 |
+| `FIELD_OF_MAN_SIZED_HOLES` | `HIVE`专属 | 牌组中至少有1张可以被“完美契合”附魔的牌。 |
+| `GRAVE_OF_THE_FORGOTTEN` | `GLORY`专属 | 无额外状态条件。 |
+| `HUNGRY_FOR_MUSHROOMS` | `GLORY`专属 | 无额外状态条件。 |
+| `INFESTED_AUTOMATON` | `HIVE`专属 | 无额外状态条件。 |
+| `JUNGLE_MAZE_ADVENTURE` | `OVERGROWTH`专属 | 无额外状态条件。 |
+| `LOST_WISP` | `HIVE`专属 | 无额外状态条件。 |
+| `LUMINOUS_CHOIR` | `OVERGROWTH`专属 | 至少拥有149金币，且遗物奖池中仍有可获得的遗物。进入事件后贡品价格才会随机为100～149金币。 |
+| `MORPHIC_GROVE` | `OVERGROWTH`专属 | 至少拥有100金币。 |
+| `POTION_COURIER` | 共享事件池 | 第2幕或更晚。 |
+| `PUNCH_OFF` | `UNDERDOCKS`专属 | 总楼层数至少为6。 |
+| `RANWID_THE_ELDER` | 共享事件池 | 第2幕或更晚；至少拥有100金币、1瓶药水和1件可交易遗物。 |
+| `REFLECTIONS` | `GLORY`专属 | 已在时间线中揭示`EVENT2_EPOCH`。 |
+| `RELIC_TRADER` | 共享事件池 | 第2幕或更晚，且至少拥有5件可交易遗物。 |
+| `ROOM_FULL_OF_CHEESE` | 共享事件池 | 仅第1或第2幕。 |
+| `ROUND_TEA_PARTY` | `GLORY`专属 | 无额外状态条件。 |
+| `SAPPHIRE_SEED` | `OVERGROWTH`专属 | 无额外状态条件。 |
+| `SELF_HELP_BOOK` | 共享事件池 | 无额外状态条件。具体附魔选项仍取决于牌组中是否有对应类型的可附魔牌。 |
+| `SLIPPERY_BRIDGE` | 共享事件池 | 总楼层数大于6，且牌组中至少有1张可移除的牌。 |
+| `SPIRALING_WHIRLPOOL` | `UNDERDOCKS`专属 | 牌组中至少有1张可以被“螺旋”附魔的牌。 |
+| `SPIRIT_GRAFTER` | `HIVE`专属 | 无额外状态条件。 |
+| `STONE_OF_ALL_TIME` | 共享事件池 | 仅第2幕，且至少拥有1瓶药水。 |
+| `SUNKEN_STATUE` | `OVERGROWTH`、`UNDERDOCKS`共有 | 无额外状态条件。 |
+| `SUNKEN_TREASURY` | `UNDERDOCKS`专属 | 无额外状态条件。 |
+| `SYMBIOTE` | 共享事件池 | 第2幕或更晚。靠近选项能否使用仍取决于是否有可被“腐化”附魔的牌。 |
+| `TABLET_OF_TRUTH` | `OVERGROWTH`专属 | 无额外状态条件。 |
+| `TEA_MASTER` | 共享事件池 | 仅第1或第2幕，且至少拥有150金币。 |
+| `THE_FUTURE_OF_POTIONS` | 共享事件池 | 至少拥有2瓶药水。 |
+| `THE_LANTERN_KEY` | `HIVE`专属 | 无额外状态条件。 |
+| `THE_LEGENDS_WERE_TRUE` | 共享事件池 | 仅第1幕；牌组非空；当前生命至少为10。 |
+| `THIS_OR_THAT` | 共享事件池 | 无额外状态条件。 |
+| `TINKER_TIME` | `GLORY`专属 | 无额外状态条件。 |
+| `TRASH_HEAP` | `UNDERDOCKS`专属 | 已在时间线中揭示`EVENT1_EPOCH`；当前生命大于5。 |
+| `TRIAL` | `GLORY`专属 | 无额外状态条件。 |
+| `UNREST_SITE` | `OVERGROWTH`专属 | 当前生命不高于最大生命的70%。 |
+| `WAR_HISTORIAN_REPY` | 不进入普通事件池 | 自身`IsAllowed`恒为否。必须持有任务牌“灯火钥匙”，并在第3幕进入未知房间；该牌会把房间改为事件并将下一事件替换为本事件。 |
+| `WATERLOGGED_SCRIPTORIUM` | `UNDERDOCKS`专属 | 至少拥有65金币。 |
+| `WELCOME_TO_WONGOS` | 共享事件池 | 仅第2幕，且至少拥有100金币。 |
+| `WELLSPRING` | `OVERGROWTH`专属 | 无额外状态条件。 |
+| `WHISPERING_HOLLOW` | `OVERGROWTH`专属 | 至少拥有50金币。 |
+| `WOOD_CARVINGS` | `OVERGROWTH`专属 | 牌组中至少有1张可移除的基础牌。 |
+| `ZEN_WEAVER` | `HIVE`专属 | 至少拥有125金币。 |
 
 ## 原版标题、叙事描述与知识库初始选项
 
