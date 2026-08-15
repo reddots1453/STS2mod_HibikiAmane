@@ -33,7 +33,6 @@ public sealed class ShadowRend : MSCorruptCard
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
 }
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class SelfPleasure : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
@@ -50,7 +49,6 @@ public sealed class SelfPleasure : MSCorruptCard
     protected override void OnUpgrade() => DynamicVars.Cards.UpgradeValueBy(1);
 }
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class EarthRendingBlow : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>

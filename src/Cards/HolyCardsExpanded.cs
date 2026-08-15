@@ -117,7 +117,7 @@ public sealed class MomentaryGrace : MSHolyCard
 {
     public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new BlockVar(6, ValueProp.Move), new PowerVar<DexterityPower>(2)];
+        [new BlockVar(6, ValueProp.Move)];
 
     public MomentaryGrace()
         : base(1, CardType.Skill, CardRarity.Common, TargetType.Self)
@@ -129,19 +129,9 @@ public sealed class MomentaryGrace : MSHolyCard
         CardPlay cardPlay)
     {
         await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, cardPlay);
-        decimal dexterity = DynamicVars["DexterityPower"].BaseValue;
-        await PowerCmd.Apply<DexterityPower>(
-            choiceContext,
-            Owner.Creature,
-            dexterity,
-            Owner.Creature,
-            this);
-        await PowerCmd.Apply<RestoreDexterityAtTurnEndPower>(
-            choiceContext,
-            Owner.Creature,
-            dexterity,
-            Owner.Creature,
-            this);
+        CardModel mist = Owner.RunState.CreateCard<IceMist>(Owner);
+        if (IsUpgraded) CardCmd.Upgrade(mist);
+        await CardPileCmd.AddGeneratedCardToCombat(mist, PileType.Hand, Owner);
     }
 
     protected override void OnUpgrade()
@@ -150,7 +140,6 @@ public sealed class MomentaryGrace : MSHolyCard
     }
 }
 
-[RegisterCard(typeof(MSHolyCardPool))]
 public sealed class HolyDefensePrototype01 : MSHolyCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
@@ -237,8 +226,11 @@ public sealed class Worship : MSHolyCard
             this);
     }
 
-    protected override void OnUpgrade() =>
+    protected override void OnUpgrade()
+    {
         DynamicVars["DexterityPower"].UpgradeValueBy(1);
+        DynamicVars["PurificationPower"].UpgradeValueBy(1);
+    }
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]
@@ -248,7 +240,7 @@ public sealed class InwardDiscipline : MSHolyCard
         [new PowerVar<InwardDisciplinePower>(25)];
 
     public InwardDiscipline()
-        : base(1, CardType.Power, CardRarity.Uncommon, TargetType.Self)
+        : base(1, CardType.Power, CardRarity.Rare, TargetType.Self)
     {
     }
 
@@ -266,7 +258,6 @@ public sealed class InwardDiscipline : MSHolyCard
         DynamicVars["InwardDisciplinePower"].UpgradeValueBy(25);
 }
 
-[RegisterCard(typeof(MSHolyCardPool))]
 public sealed class Karma : MSHolyCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
@@ -300,7 +291,6 @@ public sealed class Karma : MSHolyCard
     protected override void OnUpgrade() => RemoveKeyword(CardKeyword.Exhaust);
 }
 
-[RegisterCard(typeof(MSHolyCardPool))]
 public sealed class BurningStake : MSHolyCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
@@ -331,7 +321,6 @@ public sealed class BurningStake : MSHolyCard
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(4);
 }
 
-[RegisterCard(typeof(MSHolyCardPool))]
 public sealed class FaithImpact : MSHolyCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>

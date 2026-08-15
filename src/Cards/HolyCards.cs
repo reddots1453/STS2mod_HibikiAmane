@@ -45,7 +45,7 @@ public sealed class PenanceSlash : MSHolyCard
             DynamicVars["Frail"].BaseValue, Owner.Creature, this);
     }
 
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(4);
+    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]
@@ -64,5 +64,5 @@ public sealed class DevoutBulwark : MSHolyCard
             DynamicVars.Weak.BaseValue, Owner.Creature, this);
     }
 
-    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(4);
+    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(3);
 }

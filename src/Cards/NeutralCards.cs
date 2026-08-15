@@ -49,7 +49,6 @@ public sealed class DoubleDefense : MSNeutralCard
     protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(2);
 }
 
-[RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class EvasiveFootwork : MSNeutralCard
 {
     public override bool GainsBlock => true;

@@ -75,5 +75,23 @@
 
   "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.title": "控制",
   "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.description": "受到 {Source} 的{ControlType}控制。对应类型的非随身牌临时变为【挣脱】；还需挣脱 [red]{Amount}[/red] 点。",
-  "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.smartDescription": "受到 {Source} 的{ControlType}控制。对应类型的非随身牌临时变为【挣脱】；还需挣脱 [red]{Amount}[/red] 点。"
+  "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.smartDescription": "受到 {Source} 的{ControlType}控制。对应类型的非随身牌临时变为【挣脱】；还需挣脱 [red]{Amount}[/red] 点。",
+  "MAIDEN_SUCCUBUS_POWER_BURNING_POWER.title": "燃烧",
+  "MAIDEN_SUCCUBUS_POWER_BURNING_POWER.description": "攻击前受到{Amount}点伤害。敌人的每段攻击分别结算。回合结束时减少1层。",
+  "MAIDEN_SUCCUBUS_POWER_BURNING_POWER.smartDescription": "攻击前受到{Amount}点伤害。敌人的每段攻击分别结算。回合结束时减少1层。",
+  "MAIDEN_SUCCUBUS_POWER_SCORCHING_MAGIC_POWER.title": "灼热的魔力",
+  "MAIDEN_SUCCUBUS_POWER_SCORCHING_MAGIC_POWER.description": "回合结束时，给予所有人{Amount}层燃烧。",
+  "MAIDEN_SUCCUBUS_POWER_SCORCHING_MAGIC_POWER.smartDescription": "回合结束时，给予所有人{Amount}层燃烧。",
+  "MAIDEN_SUCCUBUS_POWER_ABNORMAL_ADAPTATION_POWER.title": "异常适应",
+  "MAIDEN_SUCCUBUS_POWER_ABNORMAL_ADAPTATION_POWER.description": "本回合剩余{RemainingTriggers}次：抽到诅咒或状态牌时弃掉并抽2张牌。",
+  "MAIDEN_SUCCUBUS_POWER_ABNORMAL_ADAPTATION_POWER.smartDescription": "本回合剩余{RemainingTriggers}次：抽到诅咒或状态牌时弃掉并抽2张牌。",
+  "MAIDEN_SUCCUBUS_POWER_MASOCHISTIC_GIRL_POWER.title": "受虐少女",
+  "MAIDEN_SUCCUBUS_POWER_MASOCHISTIC_GIRL_POWER.description": "获得负面状态时，每层获得{Amount}点格挡。",
+  "MAIDEN_SUCCUBUS_POWER_MASOCHISTIC_GIRL_POWER.smartDescription": "获得负面状态时，每层获得{Amount}点格挡。",
+  "MAIDEN_SUCCUBUS_POWER_SANCTUARY_POWER.title": "圣域",
+  "MAIDEN_SUCCUBUS_POWER_SANCTUARY_POWER.description": "受到的生命损失减半。回合开始时减少1层。",
+  "MAIDEN_SUCCUBUS_POWER_SANCTUARY_POWER.smartDescription": "受到的生命损失减半。回合开始时减少1层。",
+  "MAIDEN_SUCCUBUS_POWER_BLIZZARD_ECHO_POWER.title": "暴风雪",
+  "MAIDEN_SUCCUBUS_POWER_BLIZZARD_ECHO_POWER.description": "接下来{Amount}个回合开始时，再次造成伤害并生成冰雾。",
+  "MAIDEN_SUCCUBUS_POWER_BLIZZARD_ECHO_POWER.smartDescription": "接下来{Amount}个回合开始时，再次造成伤害并生成冰雾。"
 }

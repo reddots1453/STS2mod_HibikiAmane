@@ -22,7 +22,7 @@ public sealed class BlasphemousDesire : MSCorruptCard
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<StrengthPower>(2), new DynamicVar("Desire", 5)];
+        [new PowerVar<StrengthPower>(3), new DynamicVar("Desire", 5)];
 
     public BlasphemousDesire()
         : base(0, CardType.Skill, CardRarity.Rare, TargetType.Self)
@@ -53,7 +53,6 @@ public sealed class BlasphemousDesire : MSCorruptCard
         DynamicVars["Desire"].UpgradeValueBy(2);
 }
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class DistractingClaw : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
@@ -230,7 +229,6 @@ public sealed class CursedTomb : MSCorruptCard
     protected override void OnUpgrade() => DynamicVars.Cards.UpgradeValueBy(1);
 }
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class MemoryKindling : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
@@ -254,7 +252,6 @@ public sealed class MemoryKindling : MSCorruptCard
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class PainfulRend : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
@@ -379,7 +376,6 @@ public sealed class BurningDesire : MSCorruptCard
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(1);
 }
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class AbyssalEcho : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
@@ -403,7 +399,6 @@ public sealed class AbyssalEcho : MSCorruptCard
     protected override void OnUpgrade() => AddKeyword(CardKeyword.Innate);
 }
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class WallArm : MSCorruptCard
 {
     public override bool GainsBlock => true;
@@ -476,11 +471,12 @@ public sealed class FearAura : MSCorruptCard
 public sealed class TentacleArmor : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<PlatingPower>(4)];
+        [new PowerVar<PlatingPower>(5)];
 
     public TentacleArmor()
         : base(1, CardType.Power, CardRarity.Rare, TargetType.Self)
     {
+        this.SecondaryCosts().Set(DesireResource.Id, 1);
     }
 
     protected override async Task OnPlay(

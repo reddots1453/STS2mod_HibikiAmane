@@ -23,7 +23,6 @@ using STS2RitsuLib.Interop.AutoRegistration;
 
 namespace MaidenSuccubus.Cards;
 
-[RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class Impermanence : MSNeutralCard
 {
     public override bool GainsBlock => true;
@@ -137,7 +136,7 @@ public sealed class SteadyGuard : MSNeutralCard
 {
     public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new BlockVar(13, ValueProp.Move), new DynamicVar("BonusBlock", 4)];
+        [new BlockVar(13, ValueProp.Move), new DynamicVar("BonusBlock", 5)];
 
     public SteadyGuard()
         : base(2, CardType.Skill, CardRarity.Common, TargetType.Self)
@@ -166,7 +165,6 @@ public sealed class SteadyGuard : MSNeutralCard
     protected override void OnUpgrade()
     {
         DynamicVars.Block.UpgradeValueBy(4);
-        DynamicVars["BonusBlock"].UpgradeValueBy(2);
     }
 }
 
@@ -222,7 +220,7 @@ public sealed class LubricatingOil : MSNeutralCard
 public sealed class JudgmentBlade : MSNeutralCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(7, ValueProp.Move), new DynamicVar("PerDebuff", 3)];
+        [new DamageVar(7, ValueProp.Move), new DynamicVar("PerDebuff", 5)];
 
     public JudgmentBlade()
         : base(1, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy)
