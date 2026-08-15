@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
@@ -34,25 +35,51 @@ public sealed class Stigma : MSHolyCard
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new PowerVar<CondemnationPower>(2), new PowerVar<WeakPower>(2)];
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
-    public Stigma() : base(0, CardType.Skill, CardRarity.Common, TargetType.AnyEnemy) { }
+    public Stigma() : base(0, CardType.Skill, CardRarity.Common, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
-        ArgumentNullException.ThrowIfNull(play.Target);
+        ArgumentNullException.ThrowIfNull(CombatState);
         List<CardModel> choices =
         [
             Owner.RunState.CreateCard<StigmaCondemnationChoice>(Owner),
             Owner.RunState.CreateCard<StigmaWeakChoice>(Owner)
         ];
         CardModel? choice = await CardSelectCmd.FromChooseACardScreen(context, choices, Owner, canSkip: false);
+        List<Creature> creatures = [Owner.Creature, .. CombatState.HittableEnemies];
+        List<CardModel> targets = [];
+        for (int i = 0; i < creatures.Count; i++)
+        {
+            StigmaTargetChoice targetChoice = Owner.RunState.CreateCard<StigmaTargetChoice>(Owner);
+            targetChoice.Configure(i, creatures[i].Name);
+            targets.Add(targetChoice);
+        }
+        StigmaTargetChoice? selectedTarget = await CardSelectCmd.FromChooseACardScreen(
+            context, targets, Owner, canSkip: false) as StigmaTargetChoice;
+        Creature target = creatures[Math.Clamp(selectedTarget?.TargetIndex ?? 0, 0, creatures.Count - 1)];
         if (choice is StigmaCondemnationChoice)
-            await CondemnationCmd.Apply(context, play.Target, DynamicVars["CondemnationPower"].BaseValue, Owner.Creature, this);
+            await CondemnationCmd.Apply(context, target, DynamicVars["CondemnationPower"].BaseValue, Owner.Creature, this);
         else
-            await PowerCmd.Apply<WeakPower>(context, play.Target, DynamicVars["WeakPower"].BaseValue, Owner.Creature, this);
+            await PowerCmd.Apply<WeakPower>(context, target, DynamicVars["WeakPower"].BaseValue, Owner.Creature, this);
     }
     protected override void OnUpgrade()
     {
         DynamicVars["CondemnationPower"].UpgradeValueBy(1);
         DynamicVars["WeakPower"].UpgradeValueBy(1);
+    }
+}
+
+[RegisterCard(typeof(MSGeneratedCardPool))]
+public sealed class StigmaTargetChoice : MSGeneratedCard
+{
+    public int TargetIndex { get; set; }
+    public override int MaxUpgradeLevel => 0;
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Unplayable];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new StringVar("Target")];
+    public StigmaTargetChoice() : base(-1, CardType.Skill, CardRarity.Token, TargetType.None) { }
+    public void Configure(int index, string display)
+    {
+        TargetIndex = index;
+        ((StringVar)DynamicVars["Target"]).StringValue = display;
     }
 }
 

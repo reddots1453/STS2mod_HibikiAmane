@@ -4,6 +4,8 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.Relics;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Rewards;
 using MegaCrit.Sts2.Core.Rooms;
@@ -80,7 +82,7 @@ public sealed class Blindfold : MSRelicTemplate
         BigIconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres");
 }
 
-/// <summary>EVENT-003 reward. Its gameplay effect is intentionally pending.</summary>
+/// <summary>EVENT-VANILLA-002 Whispering Hollow reward; STS1 Dead Branch semantics.</summary>
 [RegisterRelic(typeof(MSRelicPool))]
 public sealed class WitheredTreeSoul : MSRelicTemplate
 {
@@ -90,6 +92,22 @@ public sealed class WitheredTreeSoul : MSRelicTemplate
         IconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres",
         IconOutlinePath: "res://images/atlases/relic_outline_atlas.sprites/circlet.tres",
         BigIconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres");
+
+    public override async Task AfterCardExhausted(
+        PlayerChoiceContext context,
+        CardModel card,
+        bool causedByEthereal)
+    {
+        if (card.Owner != Owner || !CombatManager.Instance.IsInProgress) return;
+        List<CardModel> created = CardFactory.GetDistinctForCombat(
+            Owner,
+            Owner.Character.CardPool.GetUnlockedCards(Owner.UnlockState, Owner.RunState.CardMultiplayerConstraint),
+            1,
+            Owner.RunState.Rng.CombatCardGeneration).ToList();
+        if (created.FirstOrDefault() is not { } generated) return;
+        Flash();
+        await CardPileCmd.Add(generated, PileType.Hand);
+    }
 }
 
 /// <summary>RELIC-EVENT-002: first unblocked damage each player turn.</summary>

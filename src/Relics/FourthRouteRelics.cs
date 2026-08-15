@@ -26,6 +26,7 @@ using MaidenSuccubus.Acts;
 using MaidenSuccubus.Cards;
 using MaidenSuccubus.Commands;
 using MaidenSuccubus.Core.Desire;
+using MaidenSuccubus.Core.Routes;
 using MaidenSuccubus.Enchantments;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
@@ -117,6 +118,8 @@ public sealed class GreedRouteRelic : FourthRouteRelic
 public sealed class LustRouteRelic : FourthRouteRelic, ISecondaryResourceHookListener
 {
     private bool _used;
+    [SavedProperty]
+    public bool UsedThisCombat { get => _used; set { AssertMutable(); _used = value; } }
     public override FourthRouteQuest Quest => FourthRouteQuest.Lust;
     public async Task AfterSecondaryResourceChanged(SecondaryResourceChangeContext context)
     {
@@ -138,6 +141,8 @@ public sealed class LustRouteRelic : FourthRouteRelic, ISecondaryResourceHookLis
 public sealed class EnvyRouteRelic : FourthRouteRelic
 {
     private bool _used;
+    [SavedProperty]
+    public bool UsedThisWindow { get => _used; set { AssertMutable(); _used = value; } }
     public override FourthRouteQuest Quest => FourthRouteQuest.Envy;
     public override async Task AfterPowerAmountChanged(PlayerChoiceContext context, PowerModel power, decimal amount, Creature? applier, CardModel? cardSource)
     {
@@ -198,6 +203,10 @@ public sealed class SlothRouteRelic : FourthRouteRelic
 {
     private decimal _energySpent;
     private bool _triggered;
+    [SavedProperty]
+    public decimal EnergySpentThisTurn { get => _energySpent; set { AssertMutable(); _energySpent = Math.Max(0, value); } }
+    [SavedProperty]
+    public bool TriggeredForNextTurn { get => _triggered; set { AssertMutable(); _triggered = value; } }
     public override FourthRouteQuest Quest => FourthRouteQuest.Sloth;
     public override Task AfterCardPlayed(PlayerChoiceContext context, CardPlay cardPlay)
     {
@@ -279,7 +288,7 @@ public sealed class BenevolenceRouteRelic : FourthRouteRelic
         if (Stage == 4) return;
         int count = Stage >= 3 ? 3 : 2;
         if (Stage >= 3) BlessedRewardsRemaining = count;
-        CardCreationOptions options = new([Owner.Character.CardPool], CardCreationSource.Other, CardRarityOddsType.RegularEncounter);
+        CardCreationOptions options = new(AllMaidenSuccubusCards.Pools, CardCreationSource.Other, CardRarityOddsType.RegularEncounter);
         List<Reward> rewards = [];
         for (int i = 0; i < count; i++) rewards.Add(new CardReward(options, 3, Owner));
         await RewardsCmd.OfferCustom(Owner, rewards);
@@ -333,7 +342,11 @@ public sealed class PatienceRouteRelic : FourthRouteRelic
         player == Owner && Stage >= 3 ? CreateHoly() : Task.CompletedTask;
     private async Task CreateHoly()
     {
-        List<CardModel> pool = ModelDb.CardPool<MSHolyCardPool>().GetUnlockedCards(Owner.UnlockState, Owner.RunState.CardMultiplayerConstraint).ToList();
+        List<CardModel> pool = ModelDb.CardPool<MSHolyCardPool>()
+            .GetUnlockedCards(Owner.UnlockState, Owner.RunState.CardMultiplayerConstraint)
+            .Where(card => (card.Rarity is CardRarity.Common or CardRarity.Uncommon or CardRarity.Rare)
+                && card.CanBeGeneratedInCombat)
+            .ToList();
         CardModel canonical = pool[Owner.RunState.Rng.CombatCardGeneration.NextInt(pool.Count)];
         CardModel card = Owner.RunState.CreateCard(canonical, Owner);
         if (Stage >= 2) CardCmd.Upgrade(card);

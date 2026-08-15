@@ -21,9 +21,6 @@ public static class MvpPatchPolicy
     [
         "BossBlessingPatch",
         "BlindfoldIntentPatch",
-        "FourthActPatch",
-        "FourthActCreationPatch",
-        "FourthActRoutePatch",
         "IntentAdapterPatch",
         "MerchantInvasionCursePatch",
         "PortableRetainPatch",

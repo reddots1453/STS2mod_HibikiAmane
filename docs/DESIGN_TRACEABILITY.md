@@ -14,7 +14,7 @@
 | 基线日期 | 2026-07-26 |
 | 基线用途 | 保存加入索引和治理协议前的908行DesignDoc |
 | 本次变更前DesignDoc基线 | `d067a56` |
-| 当前同步状态 | 2026-08-16：已同步DesignDoc `8726ee6`；旧版MVP结论撤销，完整内容进入重新实现 |
+| 当前同步状态 | 2026-08-16：已同步DesignDoc `f921bf1`；当前DesignDoc相对该Git基线无未同步修改，MVP代码已完成静态交付审计 |
 
 后续每次同步完成后，应将“当前同步状态”更新为对应提交ID和涉及的需求ID。
 
@@ -44,7 +44,7 @@
 | 需求ID | DesignDoc范围 | 设计成熟度 | Plan阶段 | 交付状态 | 验收入口 |
 |---|---|---:|---|---|---|
 | `DOC-SCOPE-001` | 文档定位与框架范围 | READY | 全阶段 | IMPLEMENTED | 文档审查 |
-| `DOC-MVP-001` | 当前角色MVP与下一轮边界 | READY | MVP-0～MVP-5 | IN_PROGRESS | DesignDoc/Plan范围审查 |
+| `DOC-MVP-001` | 当前角色MVP与下一轮边界 | READY | MVP-0～MVP-5 | IMPLEMENTED；运行时待验收 | DesignDoc/Plan范围审查与MVP统一清单 |
 | `DBG-PORT-001`～`DBG-OUT-001` | 类尖塔设计理念 | READY | 内容填充 | READY | 内容评审 |
 | `START-001` | 响木天音60HP；普通开局0/0；4打击4防御1变身 | READY | MVP-1 | IMPLEMENTED | 新Run初始状态/牌组/遗物 |
 | `START-002` | 外观、解锁、初始遗物选择 | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
@@ -53,11 +53,11 @@
 | `SYS-COR-003` | 路线奖励概率 | READY | M1 | IMPLEMENTED | M1路线奖励 |
 | `SYS-SEA-001` | 封印区、跨战斗快照和火堆移除 | READY | M1 | IMPLEMENTED | REST-3/封印回归 |
 | `SYS-COR-004` | 事件门槛和遗物阈值 | OPEN | MVP-3/内容填充 | IMPLEMENTED（5个MVP事件门槛） | 5个原版事件门槛；其余阈值内容继续填充 |
-| `ACT4-001` | 第四层任务、路线遗物成长与章节流程 | OPEN（无争议框架进入MVP） | MVP-4 | READY（旧无条件入口作废） | 路线状态/商店/火堆/Boss占位/条件进入/存读档 |
+| `ACT4-001` | 第四层任务、路线遗物成长与章节流程 | OPEN（无争议框架进入MVP） | MVP-4 | IMPLEMENTED（流程框架） | 路线状态/商店/火堆/Boss占位/条件进入/存读档 |
 | `SYS-DES-001` | 跨战斗欲望资源和UI | READY | M2 | IMPLEMENTED | M2回归 |
 | `SYS-DES-002A` | 10点欲望与高潮平复 | READY | MVP | IMPLEMENTED | M2核心回归 |
 | `SYS-DES-002B` | 5/8点欲望与控制联动 | READY | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
-| `SYS-DES-003A` | 卡牌/遗物/事件/火堆等欲望来源 | OPEN | MVP内容填充 | READY（框架） | MVP卡牌与Run回归 |
+| `SYS-DES-003A` | 卡牌/遗物/事件/火堆等欲望来源 | OPEN | MVP内容填充 | IMPLEMENTED（MVP来源） | MVP卡牌与Run回归 |
 | `SYS-DES-003B` | 怪物意图增加欲望 | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 | `SYS-TRF-001`～`SYS-TRF-002` | 变身、魔装与魔装保护 | READY | MVP-1 | IMPLEMENTED | 战斗初始化、变身、逐段伤害、层数归零、状态图标、存读档 |
 | `SYS-TRF-003` | 色情攻击与魔装联动 | OPEN | 下一轮 | DEFERRED | 不进入MVP验收 |
@@ -67,11 +67,11 @@
 | `SYS-INV-001` | 侵犯意图、诅咒来源和晕眩 | READY | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 | `SYS-INV-002` | 商店特殊移除和返金 | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 | `SYS-DES-INTENT-001` | 怪物增加欲望意图 | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
-| `SYS-ENC-001` | 战斗中临时附魔 | READY | MVP-2 | IMPLEMENTED（框架；正式来源补充中） | 永久附魔拒绝、战斗副本隔离、战斗结束回收 |
+| `SYS-ENC-001` | 战斗中临时附魔 | READY | MVP-2 | IMPLEMENTED | 永久附魔拒绝、战斗副本隔离、正式来源、战斗结束回收 |
 | `KW-PORTABLE-001` | 随身 | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 | `KW-CONDEMNATION-001` | 断罪与审判 | READY | MVP-2 | IMPLEMENTED | 层数/审判/清除/保留规则 |
 | `KW-PURIFICATION-001` | 净化 | READY | MVP-2 | IMPLEMENTED | 获得/消耗/卡牌联动 |
-| `SYS-SCR-001` | 六种圣言及持续Power | READY | MVP-2 | IMPLEMENTED（卡牌来源补充中） | 六牌、选择生成、触发与升级 |
+| `SYS-SCR-001` | 六种圣言及持续Power | READY | MVP-2 | IMPLEMENTED | 六牌、选择生成、触发与升级 |
 | `SYS-BLS-001` | Boss后光明/黑暗恩赐 | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 
 ## 3. 内容章节追踪
@@ -111,11 +111,11 @@
 
 | ID范围 | 当前交付 | 下一验收 |
 |---|---|---|
-| `CARD-N-100～399` | IN_PROGRESS：基础、天平及多张机制牌已实现 | 继续补齐意图、运转、延迟、附魔和留存组；核对百科与奖励池 |
-| `CARD-C-100～599、800～899` | IN_PROGRESS：欲望、状态、灼烧、破碎及部分消耗牌已实现 | 补齐剩余欲望、消耗、力量导出和体系外卡 |
-| `CARD-C-600～799` | IN_PROGRESS/DEFERRED混合 | 实现C600临时附魔完整牌；C700性技/控制依赖延期 |
-| `CARD-H-100～599、800～899、950～999` | IN_PROGRESS：低欲望、防御、减益/增益及暴风雪等已实现 | 补齐剩余大牌组、附魔和回合操作牌 |
-| `CARD-H-600～799、900～949` | IN_PROGRESS/DEFERRED混合 | 断罪与六圣言框架已实现；补齐正式来源与H930附魔牌；H900控制应对延期 |
+| `CARD-N-100～399` | IMPLEMENTED：36张MVP合格牌进入中立奖励池 | 百科、奖励、升级、保存读取运行时验收 |
+| `CARD-C-100～599、800～899` | IMPLEMENTED：52张MVP合格牌进入堕落奖励池 | 欲望、状态、燃烧、消耗、力量/破碎及附魔逐组验收 |
+| `CARD-C-600～799` | IMPLEMENTED/DEFERRED混合：C600完整牌已实现；C700性技/控制依赖延期 | 确认延期牌不出现在百科奖励池 |
+| `CARD-H-100～599、800～899、950～999` | IMPLEMENTED：43张MVP合格牌进入圣洁奖励池 | 低欲望、防御、增减益、回合操作逐组验收 |
+| `CARD-H-600～799、900～949` | IMPLEMENTED/DEFERRED混合：断罪、六圣言及H930完整附魔牌已实现；H900拘束应对延期 | 确认六圣言生成与延期牌隔离 |
 
 当前已具备完整示例规则的事件条目为：
 
@@ -127,7 +127,7 @@
 
 - `RELIC-START-001`、`RELIC-START-002`仍为`OPEN`；
 - `RELIC-START-003`已经由当前初始遗物样本实现，状态为`IMPLEMENTED`；
-- `RELIC-START-004`规则完整，状态为`READY`。
+- `RELIC-START-004`双向棱镜已实现，状态为`IMPLEMENTED`，待奖励概率与重掷运行时验收。
 
 ## 4. 状态解释
 

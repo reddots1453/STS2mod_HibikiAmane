@@ -26,16 +26,12 @@ public sealed class AllCurseBite : MSCorruptCard
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
-        HashSet<CardPoolModel> excluded =
-        [
-            ModelDb.CardPool<MSNeutralCardPool>(),
-            ModelDb.CardPool<MSCorruptCardPool>(),
-            ModelDb.CardPool<MSHolyCardPool>(),
-            ModelDb.CardPool<MSGeneratedCardPool>()
-        ];
-        IEnumerable<CardModel> candidates = ModelDb.AllCards.Where(card =>
-            !excluded.Contains(card.Pool)
-            && card.Keywords.Contains(CardKeyword.Exhaust)
+        IEnumerable<CardModel> candidates = ModelDb.AllCharacters
+            .Where(character => character.GetType() != Owner.Character.GetType())
+            .SelectMany(character => character.CardPool.GetUnlockedCards(
+                Owner.UnlockState, Owner.RunState.CardMultiplayerConstraint))
+            .Where(card =>
+            card.Keywords.Contains(CardKeyword.Exhaust)
             && card.CanBeGeneratedInCombat);
         List<CardModel> choices = CardFactory.GetDistinctForCombat(
             Owner, candidates, 3, Owner.RunState.Rng.CombatCardGeneration).ToList();
@@ -47,6 +43,7 @@ public sealed class AllCurseBite : MSCorruptCard
         CardModel? selected = await CardSelectCmd.FromChooseACardScreen(context, choices, Owner, canSkip: false);
         if (selected == null) return;
         selected.SetToFreeThisTurn();
+        selected.SecondaryCosts().Set(DesireResource.Id, 0);
         await CardPileCmd.AddGeneratedCardToCombat(selected, PileType.Hand, Owner);
     }
     protected override void OnUpgrade() { }

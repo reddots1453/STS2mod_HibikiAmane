@@ -49,12 +49,13 @@ public static class RestSiteSealPatch
         Player __1,
         ref bool __result)
     {
-        if (!RestSiteActionPolicy.ConsumePreserveRemainingOptions(__1))
+        bool suppressOriginal = false;
+        Safe.Run(() =>
         {
-            return true;
-        }
-
-        __result = false;
-        return false;
+            if (!RestSiteActionPolicy.ConsumePreserveRemainingOptions(__1)) return;
+            suppressOriginal = true;
+        }, nameof(KeepNormalActionAfterRemoval));
+        if (suppressOriginal) __result = false;
+        return !suppressOriginal;
     }
 }

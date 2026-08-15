@@ -61,7 +61,9 @@ public static class FourthRouteStarterUpgradePatch
     [HarmonyPrefix]
     public static void Prefix(CardModel card, out bool __state)
     {
-        __state = card.IsUpgradable;
+        bool wasUpgradable = false;
+        Safe.Run(() => wasUpgradable = card.IsUpgradable, "FourthRoute.StarterUpgrade.Before");
+        __state = wasUpgradable;
     }
 
     [HarmonyPostfix]

@@ -9,8 +9,20 @@ using MegaCrit.Sts2.Core.ValueProps;
 using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Content;
 using MaidenSuccubus.Relics;
+using MegaCrit.Sts2.Core.Saves.Runs;
 
 namespace MaidenSuccubus.Enchantments;
+
+/// <summary>
+/// Registered identity for the deferred event enchantment. DOC-MVP-001
+/// requires recognition but explicitly forbids a source or runtime effect
+/// until its permanent-removal lifecycle is specified.
+/// </summary>
+[RegisterEnchantment]
+public sealed class EnergyOverloadEnchantment : ModEnchantmentTemplate
+{
+    public override bool HasExtraCardText => true;
+}
 
 [RegisterEnchantment]
 public sealed class ChargeEnchantment : ModEnchantmentTemplate
@@ -104,6 +116,8 @@ public sealed class IronWallEnchantment : CombatOnlyEnchantmentTemplate
 public sealed class WrathEnchantment : ModEnchantmentTemplate
 {
     private bool _used;
+    [SavedProperty]
+    public bool UsedThisCombat { get => _used; set { AssertMutable(); _used = value; } }
     public override bool HasExtraCardText => true;
     public override bool CanEnchantCardType(CardType cardType) => cardType == CardType.Attack;
 

@@ -10,7 +10,6 @@ using MaidenSuccubus.Core.Desire;
 
 namespace MaidenSuccubus.Cards;
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class ShadowRend : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>

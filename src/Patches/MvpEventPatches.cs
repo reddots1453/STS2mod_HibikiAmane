@@ -277,7 +277,7 @@ public static class SymbioteMvpPatch
         if (!MvpEventRules.Applies(__instance)) return original;
         int c = MvpEventRules.Corruption(__instance);
         bool canEnchantTwo = __instance.Owner!.Deck.Cards.Count(card =>
-            ModelDb.Enchantment<Corrupted>().CanEnchant(card)) >= 2;
+            card.Enchantment == null && ModelDb.Enchantment<Corrupted>().CanEnchant(card)) >= 2;
         List<EventOption> options = original.ToList();
         options.Add(ThresholdEventOptionFactory.LockedOr(__instance, c <= -3,
             () => MvpEventRules.PurifySymbiote(__instance), "SYMBIOTE.pages.INITIAL.options.MS_PURIFY"));

@@ -32,6 +32,7 @@ public static class FrameworkSelfTests
         AssertDesireDefinition();
         AssertControlTypes();
         AssertFourthActRoutes();
+        AssertFourthRouteQuests();
 
         var normalized = RouteRewardProbabilities.Calculate(
             corruption: 5,
@@ -68,6 +69,45 @@ public static class FrameworkSelfTests
             FourthActRouteService.DefaultForBand(CorruptionBand.Corrupt)
                 == FourthActRoute.Corrupt,
             "fourth act corrupt route");
+    }
+
+    private static void AssertFourthRouteQuests()
+    {
+        FourthRouteQuest[] all = FourthRouteProgressService.DarkQuests
+            .Concat(FourthRouteProgressService.LightQuests)
+            .ToArray();
+        AssertBoolean(true, FourthRouteProgressService.DarkQuests.Length == 7,
+            "seven dark route quests");
+        AssertBoolean(true, FourthRouteProgressService.LightQuests.Length == 7,
+            "seven light route quests");
+        AssertBoolean(true, all.Distinct().Count() == 14,
+            "fourteen unique route quests");
+        AssertBoolean(true, Enum.GetValues<FourthRouteQuest>().All(all.Contains),
+            "all route quests assigned an alignment");
+
+        IReadOnlyDictionary<FourthRouteQuest, int> targets =
+            new Dictionary<FourthRouteQuest, int>
+            {
+                [FourthRouteQuest.Pride] = 3,
+                [FourthRouteQuest.Greed] = 1,
+                [FourthRouteQuest.Lust] = 3,
+                [FourthRouteQuest.Envy] = 2,
+                [FourthRouteQuest.Gluttony] = 3,
+                [FourthRouteQuest.Wrath] = 4,
+                [FourthRouteQuest.Sloth] = 2,
+                [FourthRouteQuest.Humility] = 2,
+                [FourthRouteQuest.Generosity] = 1,
+                [FourthRouteQuest.Chastity] = 3,
+                [FourthRouteQuest.Benevolence] = 5,
+                [FourthRouteQuest.Temperance] = 2,
+                [FourthRouteQuest.Patience] = 5,
+                [FourthRouteQuest.Diligence] = 3,
+            };
+        foreach ((FourthRouteQuest quest, int target) in targets)
+        {
+            AssertBoolean(true, FourthRouteProgressService.TargetFor(quest) == target,
+                $"{quest} quest target");
+        }
     }
 
     private static void AssertControlTypes()

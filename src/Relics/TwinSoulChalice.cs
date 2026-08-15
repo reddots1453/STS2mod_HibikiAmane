@@ -27,6 +27,7 @@ namespace MaidenSuccubus.Relics;
 [RegisterRelic(typeof(MSRelicPool))]
 public sealed class TwinSoulChalice : ModRelicTemplate
 {
+    private bool _choosingFourthRouteQuest;
     public override RelicRarity Rarity => RelicRarity.Starter;
 
     protected override IEnumerable<DynamicVar> CanonicalVars =>
@@ -39,8 +40,23 @@ public sealed class TwinSoulChalice : ModRelicTemplate
 
     public override async Task BeforeCombatStart()
     {
-        if (Owner.RunState is not RunState runState) return;
-        if (!FourthRouteProgressService.TryGetQuest(runState, out _))
+        if (Owner.RunState is not RunState) return;
+        await EnsureFourthRouteQuestSelected();
+        await FourthRouteProgressService.CheckThresholdQuest(Owner);
+    }
+
+    public override async Task AfterRoomEntered(AbstractRoom room)
+    {
+        await EnsureFourthRouteQuestSelected();
+        await FourthRouteProgressService.CheckThresholdQuest(Owner);
+    }
+
+    private async Task EnsureFourthRouteQuestSelected()
+    {
+        if (_choosingFourthRouteQuest || Owner.RunState is not RunState runState
+            || FourthRouteProgressService.TryGetQuest(runState, out _)) return;
+        _choosingFourthRouteQuest = true;
+        try
         {
             var rng = Owner.RunState.Rng.Niche;
             FourthRouteQuest dark = FourthRouteProgressService.DarkQuests[rng.NextInt(7)];
@@ -51,7 +67,10 @@ public sealed class TwinSoulChalice : ModRelicTemplate
             if (selected != null && Enum.TryParse(selected.QuestId, out FourthRouteQuest quest))
                 FourthRouteProgressService.SelectQuest(runState, quest);
         }
-        await FourthRouteProgressService.CheckThresholdQuest(Owner);
+        finally
+        {
+            _choosingFourthRouteQuest = false;
+        }
     }
 
     public override async Task AfterCombatVictory(CombatRoom _)

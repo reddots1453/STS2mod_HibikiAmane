@@ -55,7 +55,6 @@ public sealed class FocusedSlash : MSHolyCard
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(10);
 }
 
-[RegisterCard(typeof(MSHolyCardPool))]
 public sealed class Suppression : MSHolyCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
