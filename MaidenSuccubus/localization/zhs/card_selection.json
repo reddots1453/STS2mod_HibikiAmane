@@ -1,3 +1,4 @@
 {
-  "MAIDEN_SUCCUBUS_REMOVE_SEALED": "确认移除所有被封印的卡牌（共 {Amount} 张）"
+  "MAIDEN_SUCCUBUS_REMOVE_SEALED": "确认移除所有被封印的卡牌（共 {Amount} 张）",
+  "MAIDEN_SUCCUBUS_TO_DRAW_TOP": "选择置于抽牌堆顶的牌。"
 }

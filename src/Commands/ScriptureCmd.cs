@@ -39,6 +39,20 @@ public static class ScriptureCmd
                 $"Transforming {combatCard.Id} into {typeof(TScripture).Name} failed.");
     }
 
+    public static Task<CardModel> TransformToRandomScripture(CardModel combatCard)
+    {
+        int index = combatCard.Owner.RunState.Rng.CombatCardGeneration.NextInt(6);
+        return index switch
+        {
+            0 => TransformCombatCard<GuardianScripture>(combatCard),
+            1 => TransformCombatCard<NimbleScripture>(combatCard),
+            2 => TransformCombatCard<PunishmentScripture>(combatCard),
+            3 => TransformCombatCard<WisdomScripture>(combatCard),
+            4 => TransformCombatCard<VitalityScripture>(combatCard),
+            _ => TransformCombatCard<BlissScripture>(combatCard),
+        };
+    }
+
     public static Task<TPower?> Apply<TPower>(
         PlayerChoiceContext choiceContext,
         Creature target,
