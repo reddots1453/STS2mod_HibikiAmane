@@ -43,7 +43,6 @@ public static class MaidenSuccubusStartRegistry
         [typeof(TwinSoulChalice), typeof(BalancedLens)];
 }
 
-[RegisterCharacter]
 public sealed class HolyMaidenCharacter : MaidenSuccubusCharacter
 {
     public override MaidenSuccubusStartProfileId StartProfileId =>
@@ -54,7 +53,6 @@ public sealed class HolyMaidenCharacter : MaidenSuccubusCharacter
     public override Color MapDrawingColor => NameColor;
 }
 
-[RegisterCharacter]
 public sealed class SuccubusCharacter : MaidenSuccubusCharacter
 {
     public override MaidenSuccubusStartProfileId StartProfileId =>

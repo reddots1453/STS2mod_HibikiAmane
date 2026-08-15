@@ -170,7 +170,6 @@ public sealed class SteadyGuard : MSNeutralCard
     }
 }
 
-[RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class CloseQuartersBlade : MSNeutralCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
@@ -198,7 +197,6 @@ public sealed class CloseQuartersBlade : MSNeutralCard
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(4);
 }
 
-[RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class LubricatingOil : MSNeutralCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
@@ -317,17 +315,10 @@ public sealed class Fusion : MSNeutralCard
         PlayerChoiceContext choiceContext,
         CardPlay cardPlay)
     {
-        IEnumerable<CardModel> candidates =
-            ModelDb.CardPool<MSCorruptCardPool>()
-                .GetUnlockedCards(Owner.UnlockState, Owner.RunState.CardMultiplayerConstraint)
-                .Concat(ModelDb.CardPool<MSHolyCardPool>()
-                    .GetUnlockedCards(Owner.UnlockState, Owner.RunState.CardMultiplayerConstraint));
-        List<CardModel> choices = CardFactory.GetDistinctForCombat(
-                Owner,
-                candidates,
-                2,
-                Owner.RunState.Rng.CombatCardGeneration)
-            .ToList();
+        List<CardModel> choices = [];
+        AddOneFromPool<MSNeutralCardPool>(choices);
+        AddOneFromPool<MSCorruptCardPool>(choices);
+        AddOneFromPool<MSHolyCardPool>(choices);
         if (IsUpgraded)
         {
             foreach (CardModel choice in choices.Where(card => card.IsUpgradable))
@@ -352,5 +343,25 @@ public sealed class Fusion : MSNeutralCard
 
     protected override void OnUpgrade()
     {
+    }
+
+    private void AddOneFromPool<TPool>(ICollection<CardModel> choices)
+        where TPool : CardPoolModel
+    {
+        IEnumerable<CardModel> candidates = ModelDb.CardPool<TPool>()
+            .GetUnlockedCards(
+                Owner.UnlockState,
+                Owner.RunState.CardMultiplayerConstraint)
+            .Where(card => card.GetType() != GetType());
+        CardModel? generated = CardFactory.GetDistinctForCombat(
+                Owner,
+                candidates,
+                1,
+                Owner.RunState.Rng.CombatCardGeneration)
+            .FirstOrDefault();
+        if (generated != null)
+        {
+            choices.Add(generated);
+        }
     }
 }

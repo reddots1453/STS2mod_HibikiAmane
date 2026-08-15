@@ -87,7 +87,7 @@ public sealed class DesireWard : MSHolyCard
         [new DamageVar(8, ValueProp.Move)];
 
     public DesireWard()
-        : base(1, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy)
+        : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy)
     {
     }
 
@@ -371,7 +371,7 @@ public sealed class SunDance : MSHolyCard
         [CardKeyword.Exhaust];
 
     public SunDance()
-        : base(0, CardType.Skill, CardRarity.Uncommon, TargetType.Self)
+        : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self)
     {
     }
 
@@ -547,7 +547,7 @@ public sealed class FinalJudgment : MSHolyCard
         [new DynamicVar("Condemnation", 1)];
 
     public FinalJudgment()
-        : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy)
+        : base(0, CardType.Skill, CardRarity.Uncommon, TargetType.AnyEnemy)
     {
     }
 
@@ -580,25 +580,29 @@ public sealed class FinalJudgment : MSHolyCard
                 force: true);
         }
 
-        decimal splashDamage =
-            judgedLayers * CondemnationPower.DamagePerLayer;
-        foreach (var enemy in CombatState.HittableEnemies
-                     .Where(enemy => enemy != cardPlay.Target)
-                     .ToArray())
+        if (await Commands.OverdraftCmd.Offer(choiceContext, this, 1))
         {
-            await CreatureCmd.Damage(
-                choiceContext,
-                enemy,
-                splashDamage,
-                ValueProp.Move | ValueProp.Unpowered,
-                Owner.Creature,
-                this,
-                cardPlay);
+            decimal splashDamage =
+                judgedLayers * CondemnationPower.DamagePerLayer;
+            foreach (var enemy in CombatState.HittableEnemies
+                         .Where(enemy => enemy != cardPlay.Target)
+                         .ToArray())
+            {
+                await CreatureCmd.Damage(
+                    choiceContext,
+                    enemy,
+                    splashDamage,
+                    ValueProp.Move | ValueProp.Unpowered,
+                    Owner.Creature,
+                    this,
+                    cardPlay);
+            }
         }
     }
 
     protected override void OnUpgrade()
     {
+        AddKeyword(CardKeyword.Retain);
     }
 }
 

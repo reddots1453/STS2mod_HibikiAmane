@@ -14,7 +14,7 @@
 | 基线日期 | 2026-07-26 |
 | 基线用途 | 保存加入索引和治理协议前的908行DesignDoc |
 | 本次变更前DesignDoc基线 | `d067a56` |
-| 当前同步状态 | 2026-08-07：角色MVP范围收缩；延期体系与核心机制完成拆分 |
+| 当前同步状态 | 2026-08-16：已同步DesignDoc `8726ee6`；旧版MVP结论撤销，完整内容进入重新实现 |
 
 后续每次同步完成后，应将“当前同步状态”更新为对应提交ID和涉及的需求ID。
 
@@ -44,57 +44,63 @@
 | 需求ID | DesignDoc范围 | 设计成熟度 | Plan阶段 | 交付状态 | 验收入口 |
 |---|---|---:|---|---|---|
 | `DOC-SCOPE-001` | 文档定位与框架范围 | READY | 全阶段 | IMPLEMENTED | 文档审查 |
-| `DOC-MVP-001` | 当前角色MVP与下一轮边界 | READY | MVP收口 | IMPLEMENTED | DesignDoc/Plan范围审查 |
+| `DOC-MVP-001` | 当前角色MVP与下一轮边界 | READY | MVP-0～MVP-5 | IN_PROGRESS | DesignDoc/Plan范围审查 |
 | `DBG-PORT-001`～`DBG-OUT-001` | 类尖塔设计理念 | READY | 内容填充 | READY | 内容评审 |
-| `START-001` | 普通开局为0；圣女/魅魔开局为±3 | READY | 普通开局MVP；额外开局下一轮 | IMPLEMENTED（框架） | MVP只验普通开局 |
+| `START-001` | 响木天音60HP；普通开局0/0；4打击4防御1变身 | READY | MVP-1 | READY（旧开局作废） | 新Run初始状态/牌组/遗物 |
 | `START-002` | 外观、解锁、初始遗物选择 | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 | `SYS-COR-001` | 堕落范围、UI和角色隔离 | READY | M0/M1 | IMPLEMENTED | M0/M1回归 |
 | `SYS-COR-002` | 堕落增减与每Run一次行为 | OPEN | M0～内容填充 | IMPLEMENTED（框架） | 控制台/事件回归 |
 | `SYS-COR-003` | 路线奖励概率 | READY | M1 | IMPLEMENTED | M1路线奖励 |
 | `SYS-SEA-001` | 封印区、跨战斗快照和火堆移除 | READY | M1 | IMPLEMENTED | REST-3/封印回归 |
 | `SYS-COR-004` | 事件门槛和遗物阈值 | OPEN | 下一轮内容填充 | DEFERRED | 不进入MVP验收 |
-| `ACT4-001` | 第四幕与路线Boss | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
+| `ACT4-001` | 第四层任务、路线遗物成长与章节流程 | OPEN（无争议框架进入MVP） | MVP-4 | READY（旧无条件入口作废） | 路线状态/商店/火堆/Boss占位/条件进入/存读档 |
 | `SYS-DES-001` | 跨战斗欲望资源和UI | READY | M2 | IMPLEMENTED | M2回归 |
 | `SYS-DES-002A` | 10点欲望与高潮平复 | READY | MVP | IMPLEMENTED | M2核心回归 |
 | `SYS-DES-002B` | 5/8点欲望与控制联动 | READY | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 | `SYS-DES-003A` | 卡牌/遗物/事件/火堆等欲望来源 | OPEN | MVP内容填充 | READY（框架） | MVP卡牌与Run回归 |
 | `SYS-DES-003B` | 怪物意图增加欲望 | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
+| `SYS-TRF-001`～`SYS-TRF-002` | 变身、魔装与魔装保护 | READY | MVP-1 | READY | 战斗初始化、变身、逐段伤害、层数归零、状态图标、存读档 |
+| `SYS-TRF-003` | 色情攻击与魔装联动 | OPEN | 下一轮 | DEFERRED | 不进入MVP验收 |
+| `KW-OVERDRAFT-001` | 透支的条件确认与魔装支付 | READY | MVP-1/MVP-2 | READY | 足额/不足/拒绝/支付至0/保存载入 |
 | `SYS-CTL-001` | 控制格挡、Power与挣脱 | READY | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 | `SYS-CTL-002` | 弱怪晕眩/强怪低威胁恢复策略 | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 | `SYS-INV-001` | 侵犯意图、诅咒来源和晕眩 | READY | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 | `SYS-INV-002` | 商店特殊移除和返金 | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 | `SYS-DES-INTENT-001` | 怪物增加欲望意图 | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
-| `SYS-ENC-001` | 战斗中临时附魔 | READY | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
+| `SYS-ENC-001` | 战斗中临时附魔 | READY | MVP-2 | READY（旧样本需重审） | 永久附魔拒绝、战斗副本隔离、战斗结束回收 |
 | `KW-PORTABLE-001` | 随身 | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
-| `KW-CONDEMNATION-001` | 断罪与审判 | READY | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
-| `KW-PURIFICATION-001` | 净化 | READY | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
-| `SYS-SCR-001` | 六种圣言及持续Power | READY | 下一轮 | DEFERRED（样本保留） | 不进入MVP验收 |
+| `KW-CONDEMNATION-001` | 断罪与审判 | READY | MVP-2 | READY（旧实现需按新版回归） | 层数/审判/清除/保留规则 |
+| `KW-PURIFICATION-001` | 净化 | READY | MVP-2 | READY（旧实现需按新版回归） | 获得/消耗/卡牌联动 |
+| `SYS-SCR-001` | 六种圣言及持续Power | READY | MVP-2 | READY（旧实现需按新版回归） | 六牌、选择生成、触发与升级 |
 | `SYS-BLS-001` | Boss后光明/黑暗恩赐 | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 
 ## 3. 内容章节追踪
 
 | ID范围 | 内容分类 | 当前成熟度 | 实现策略 |
 |---|---|---:|---|
-| `CARD-C-100～199` | 堕落欲望体系 | OPEN | MVP优先；单卡闭合后纳入资格清单 |
-| `CARD-C-200～599、800～899` | 堕落原版机制体系 | OPEN | 不依赖延期机制的单卡可进入MVP |
-| `CARD-C-600～699` | 临时附魔体系 | OPEN | 下一轮；框架保留 |
+| `CARD-C-100～199` | 堕落欲望体系 | OPEN/READY（逐卡） | MVP-2；除明确未完成项外全部实现 |
+| `CARD-C-200～599、800～899` | 堕落完整机制体系 | OPEN/READY（逐卡） | 除明确未完成项外全部进入MVP-2 |
+| `CARD-C-600～699` | 临时附魔体系 | OPEN/READY（逐卡） | 效果完整卡牌进入MVP-2 |
 | `CARD-C-700～799` | 性技/控制利用 | DRAFT | 下一轮，不进入MVP |
 | `CARD-H-100～199` | 低欲望超模与降欲望 | OPEN | 逐卡填充 |
-| `CARD-H-200～599、800～899、950～999` | 圣洁原版机制体系 | OPEN | 不依赖延期机制的单卡可进入MVP |
-| `CARD-H-600～699` | 断罪体系 | OPEN | 下一轮；框架保留 |
-| `CARD-H-700～799` | 圣言体系 | OPEN | 下一轮；六种样本保留 |
+| `CARD-H-200～599、800～899、950～999` | 圣洁完整机制体系 | OPEN/READY（逐卡） | MVP-2；断罪/净化/圣言/附魔牌进入MVP |
+| `CARD-H-600～699` | 断罪体系 | READY（逐卡） | 全部进入MVP-2 |
+| `CARD-H-700～799` | 圣言体系 | READY（逐卡） | 六圣言及生成/触发牌全部进入MVP-2 |
 | `CARD-H-900～949` | 控制应对与临时附魔 | DRAFT/OPEN | 下一轮，不进入MVP |
 | `CARD-H-950～999` | 圣洁体系外卡 | OPEN | 逐卡填充 |
 | `CARD-N-100～199` | 天平与过渡数值 | OPEN | 现有样本继续作为回归基线 |
 | `CARD-N-200～299` | 打击、防御与随身 | OPEN | 原版机制牌可进MVP；随身/控制牌转下一轮 |
 | `CARD-N-300～399` | 路线桥梁卡 | OPEN | 逐卡填充 |
-| `STATUS-001～099` | 通用状态牌 | DRAFT/OPEN | 完整条目达到READY后实现 |
-| `CURSE-001～099` | 通用诅咒牌 | DRAFT/OPEN | 完整条目达到READY后实现 |
-| `CURSE-INV-001～099` | 侵犯注入诅咒 | OPEN | 下一轮；“精液”样本保留 |
-| `RELIC-START-001～099` | 初始遗物 | OPEN | `RELIC-START-003`样本已实现 |
+| `ENCH-INFECTION/NECROMANCY/ENERGY-OVERLOAD-001` | 新增附魔 | OPEN/READY | 全部注册；仅规则完整且有MVP来源者启用 |
+| `STATUS-001～099` | 通用状态牌 | OPEN/READY | 只注册效果完整条目并实现效果 |
+| `CURSE-001～099` | 通用诅咒牌 | OPEN/READY | 全部注册；未完成项无效果/来源 |
+| `CURSE-INV-001～099` | 侵犯注入诅咒 | OPEN | 全部注册；MVP无生成来源和未决运行时效果 |
+| `RELIC-START-001～099` | 初始遗物 | OPEN | `RELIC-START-003`为MVP默认，重新回归效果 |
 | `RELIC-CHAR-001～099` | 角色专属遗物 | DRAFT | 下一轮，不进入MVP |
-| `RELIC-EVENT-001～099` | 事件遗物 | OPEN | 下一轮内容填充 |
-| `EVENT-001～899` | 正式事件 | OPEN | 下一轮内容填充 |
+| `RELIC-EVENT-001～099` | 事件遗物 | OPEN/READY | `EVENT-VANILLA-002`直接依赖项进入MVP，其余延期 |
+| `EVENT-VANILLA-001` | 15个原版事件选项堕落变化 | READY | MVP-3；必须在原选项完整成功后结算 |
+| `EVENT-VANILLA-002` | 5个原版事件门槛选项 | READY | MVP-3；按门槛、奖励和副作用完整实现 |
+| `EVENT-CARD-001` | 平静之心事件卡 | READY | MVP-3；事件专属，不进入普通奖励池 |
 | `EVENT-EASTER-001` | 炉石传说彩蛋 | DEPRECATED | 不实现 |
 | `MON-001～899` | 普通/精英敌人 | DRAFT | 下一轮；MVP使用原版敌人且不注入Adapter |
 | `MON-BOSS-C-001` | 堕落路线最终Boss | DRAFT | 下一轮，不进入MVP |

@@ -1,4 +1,10 @@
 {
+  "MAIDEN_SUCCUBUS_POWER_MAGIC_ARMOR_POWER.title": "魔装",
+  "MAIDEN_SUCCUBUS_POWER_MAGIC_ARMOR_POWER.description": "当前拥有{Amount}层魔装。每回合开始时获得等量的魔装保护。魔装降至0时立即解除变身。",
+  "MAIDEN_SUCCUBUS_POWER_MAGIC_ARMOR_PROTECTION_POWER.title": "魔装保护",
+  "MAIDEN_SUCCUBUS_POWER_MAGIC_ARMOR_PROTECTION_POWER.description": "本回合剩余{Amount}次保护。敌人的一次攻击即将造成生命损失时，消耗1次保护和1层魔装，使该次生命损失变为0。",
+  "MAIDEN_SUCCUBUS_POWER_SHATTER_POWER.title": "破碎",
+  "MAIDEN_SUCCUBUS_POWER_SHATTER_POWER.description": "受到的攻击伤害增加{Amount}点。回合结束时减少1层。",
   "MAIDEN_SUCCUBUS_POWER_DESIRE_STUN_POWER.title": "高潮平复",
   "MAIDEN_SUCCUBUS_POWER_DESIRE_STUN_POWER.description": "本回合无法打出手牌。",
   "MAIDEN_SUCCUBUS_POWER_DESIRE_STUN_POWER.smartDescription": "本回合无法打出手牌。",

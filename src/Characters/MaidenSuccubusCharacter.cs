@@ -42,7 +42,7 @@ public class MaidenSuccubusCharacter
 
     public override CharacterGender Gender => CharacterGender.Feminine;
 
-    public override int StartingHp => 75;
+    public override int StartingHp => 60;
     public override int StartingGold => 99;
 
     // 占位：继承 Ironclad 的所有视觉资源（模型、能量表盘、商店、火堆等）
@@ -52,13 +52,13 @@ public class MaidenSuccubusCharacter
     // 骨架阶段不实现时间线小故事
     public override bool RequiresEpochAndTimeline => false;
 
-    // 首个中立开局：三张中立牌组成 10 张基础卡组。
+    // DOC-MVP-001：唯一普通开局，4打击、4防御、1张圣洁基础牌“变身”。
     [Obsolete("RitsuLib legacy override; migrate with the starter-registration milestone.")]
     protected override IEnumerable<StartingDeckEntry> StartingDeckEntries =>
     [
-        new(typeof(BalanceBlade), 5),
-        new(typeof(DoubleDefense), 4),
-        new(typeof(EvasiveFootwork), 1),
+        new(typeof(MaidenStrike), 4),
+        new(typeof(MaidenDefend), 4),
+        new(typeof(Transform), 1),
     ];
 
     // 起始遗物占位：燃烧之血

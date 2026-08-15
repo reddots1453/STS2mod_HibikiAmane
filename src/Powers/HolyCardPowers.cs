@@ -133,13 +133,18 @@ public sealed class HolyRadiancePower : ModPowerTemplate
         try
         {
             Flash();
-            foreach (Creature enemy in Owner.CombatState.HittableEnemies)
+            IReadOnlyList<Creature> enemies = Owner.CombatState.HittableEnemies;
+            if (enemies.Count > 0)
             {
-                await PowerCmd.Apply<WeakPower>(
+                Creature enemy = enemies[
+                    Owner.CombatState.RunState.Rng.CombatTargets.NextInt(enemies.Count)];
+                await CreatureCmd.Damage(
                     choiceContext,
                     enemy,
                     Amount,
+                    ValueProp.Move | ValueProp.Unpowered,
                     Owner,
+                    null,
                     null);
             }
         }

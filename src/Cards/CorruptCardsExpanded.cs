@@ -290,13 +290,13 @@ public sealed class PainfulRend : MSCorruptCard
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class PriceOfStrength : MSCorruptCard
 {
+    public override IEnumerable<CardKeyword> CanonicalKeywords =>
+        [CardKeyword.Ethereal];
+
     protected override IEnumerable<DynamicVar> CanonicalVars =>
     [
         new PowerVar<StrengthPower>(4),
-        new DynamicVar("Delay", 3),
-        new DamageVar(
-            30,
-            ValueProp.Unblockable | ValueProp.Unpowered | ValueProp.Move),
+        new PowerVar<ShatterPower>(4),
     ];
 
     public PriceOfStrength()
@@ -314,22 +314,17 @@ public sealed class PriceOfStrength : MSCorruptCard
             DynamicVars["StrengthPower"].BaseValue,
             Owner.Creature,
             this);
-        DelayedStrengthPricePower? power =
-            await PowerCmd.Apply<DelayedStrengthPricePower>(
-                choiceContext,
-                Owner.Creature,
-                DynamicVars["Delay"].BaseValue,
-                Owner.Creature,
-                this);
-        if (power != null)
-        {
-            power.Damage = DynamicVars.Damage.IntValue;
-        }
+        await PowerCmd.Apply<ShatterPower>(
+            choiceContext,
+            Owner.Creature,
+            DynamicVars["ShatterPower"].BaseValue,
+            Owner.Creature,
+            this);
     }
 
     protected override void OnUpgrade()
     {
-        DynamicVars["Delay"].UpgradeValueBy(1);
+        RemoveKeyword(CardKeyword.Ethereal);
     }
 }
 
@@ -339,6 +334,7 @@ public sealed class Coronation : MSCorruptCard
     public Coronation()
         : base(1, CardType.Power, CardRarity.Rare, TargetType.Self)
     {
+        this.SecondaryCosts().Set(DesireResource.Id, 1);
     }
 
     protected override Task OnPlay(
@@ -351,7 +347,7 @@ public sealed class Coronation : MSCorruptCard
             Owner.Creature,
             this);
 
-    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
+    protected override void OnUpgrade() => AddKeyword(CardKeyword.Innate);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]
@@ -363,6 +359,7 @@ public sealed class BurningDesire : MSCorruptCard
     public BurningDesire()
         : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy)
     {
+        this.SecondaryCosts().Set(DesireResource.Id, 1);
     }
 
     protected override Task OnPlay(
@@ -453,11 +450,7 @@ public sealed class FearAura : MSCorruptCard
         CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(CombatState);
-        int ownerStrength = Math.Max(
-            0,
-            Owner.Creature.Powers.OfType<StrengthPower>().Sum(p => p.Amount));
-        int repeats = 1 + ownerStrength / 3;
-        decimal loss = DynamicVars["StrengthPower"].BaseValue * repeats;
+        decimal loss = DynamicVars["StrengthPower"].BaseValue;
         foreach (var enemy in CombatState.HittableEnemies)
         {
             await PowerCmd.Apply<StrengthPower>(

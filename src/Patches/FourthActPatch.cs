@@ -10,7 +10,7 @@ namespace MaidenSuccubus.Patches;
 
 public static class FourthActRunAdapter
 {
-    public static bool Enabled { get; set; } = true;
+    public static bool Enabled { get; set; } = false;
 
     private static readonly PropertyInfo ActsProperty =
         AccessTools.Property(typeof(RunState), nameof(RunState.Acts));

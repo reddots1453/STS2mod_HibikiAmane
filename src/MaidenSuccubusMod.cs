@@ -11,6 +11,7 @@ using MaidenSuccubus.Debugging;
 using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Core.Intents;
 using MaidenSuccubus.Patches;
+using MaidenSuccubus.Core.Features;
 
 namespace MaidenSuccubus;
 
@@ -29,7 +30,10 @@ public static class MaidenSuccubusMod
         RitsuLibFramework.EnsureGodotScriptsRegistered(assembly, Logger);
         RegisterRunSavedData();
         DesireResource.Register();
-        VanillaIntentAdapters.Register();
+        if (MvpFeatureFlags.EnemyIntentExtensions)
+        {
+            VanillaIntentAdapters.Register();
+        }
         ModTypeDiscoveryHub.RegisterModAssembly(ModId, assembly);
         FrameworkSelfTests.Run(Logger);
 
@@ -40,17 +44,25 @@ public static class MaidenSuccubusMod
             bool hasAttr = type.GetCustomAttributes(typeof(HarmonyPatch), false).Length > 0
                 || type.GetMethods().Any(m => m.GetCustomAttributes(typeof(HarmonyPatch), false).Length > 0);
             if (!hasAttr) continue;
+            if (!MvpPatchPolicy.ShouldInstall(type))
+            {
+                Logger.Info($"MVP feature gate skipped deferred patch: {type.FullName}");
+                continue;
+            }
             try { harmony.CreateClassProcessor(type).Patch(); patchCount++; }
             catch (Exception ex) { Logger.Warn($"Harmony failed: {type.Name}: {ex.Message}"); }
         }
-        try
+        if (MvpFeatureFlags.ControlAndInvasion)
         {
-            int cardEffects = EscapeEffectPatcher.Install(harmony);
-            Logger.Info($"Escape projection patched {cardEffects} concrete card effects.");
-        }
-        catch (Exception ex)
-        {
-            Logger.Warn($"Escape projection patching failed: {ex}");
+            try
+            {
+                int cardEffects = EscapeEffectPatcher.Install(harmony);
+                Logger.Info($"Escape projection patched {cardEffects} concrete card effects.");
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"Escape projection patching failed: {ex}");
+            }
         }
         Logger.Info($"Maiden & Succubus ready — {patchCount} patches applied");
     }
