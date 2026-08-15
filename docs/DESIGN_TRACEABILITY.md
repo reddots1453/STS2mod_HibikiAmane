@@ -13,8 +13,8 @@
 | 初始DesignDoc基线 | `86d749d` |
 | 基线日期 | 2026-07-26 |
 | 基线用途 | 保存加入索引和治理协议前的908行DesignDoc |
-| 当前DesignDoc同步提交 | `496959b` |
-| 当前同步状态 | DPP协议、稳定ID索引、Plan映射与长期约束已建立 |
+| 当前DesignDoc同步提交 | 工作区待提交（基线`d067a56`） |
+| 当前同步状态 | 2026-08-16重大变更已审阅；M9单人MVP已同步并实现 |
 
 后续每次同步完成后，应将“当前同步状态”更新为对应提交ID和涉及的需求ID。
 
@@ -30,8 +30,8 @@
 | `SYS-COR-002` | 堕落增减与每Run一次行为 | OPEN | M0～内容填充 | IMPLEMENTED（框架） | 控制台/事件回归 |
 | `SYS-COR-003` | 路线奖励概率 | READY | M1 | IMPLEMENTED | M1路线奖励 |
 | `SYS-SEA-001` | 封印区、跨战斗快照和火堆移除 | READY | M1 | IMPLEMENTED | REST-3/封印回归 |
-| `SYS-COR-004` | 事件门槛和遗物阈值 | OPEN | 内容填充 | READY | 待内容验收 |
-| `ACT4-001` | 第四幕与路线Boss | OPEN | M6 | READY（框架） | ACT4-1～4 |
+| `SYS-COR-004` | 事件门槛和遗物阈值 | OPEN | M9/内容填充 | IMPLEMENTED（MVP内容） | `MVP_MANUAL_TEST_CHECKLIST` D/E |
+| `ACT4-001` | 第四幕与路线Boss | OPEN | M6 | IMPLEMENTED（框架） | `M6_MANUAL_TEST_CHECKLIST` A～C |
 | `SYS-DES-001` | 跨战斗欲望资源和UI | READY | M2 | IMPLEMENTED | M2回归 |
 | `SYS-DES-002` | 5/8/10阈值与高潮平复 | READY | M2/M4 | IMPLEMENTED | M2/M4回归 |
 | `SYS-DES-003` | 欲望来源与事件门槛 | OPEN | 内容填充 | READY（框架） | 待内容验收 |
@@ -75,15 +75,25 @@
 | `STATUS-001～099` | 通用状态牌 | DRAFT/OPEN | 完整条目达到READY后实现 |
 | `CURSE-001～099` | 通用诅咒牌 | DRAFT/OPEN | 完整条目达到READY后实现 |
 | `CURSE-INV-001～099` | 侵犯注入诅咒 | OPEN | “精液”样本已实现 |
-| `RELIC-START-001～099` | 初始遗物 | OPEN | `RELIC-START-003`样本已实现 |
+| `RELIC-START-001～099` | 初始遗物 | OPEN | `RELIC-START-003/004`已实现；001/002待设计 |
 | `RELIC-CHAR-001～099` | 角色专属遗物 | DRAFT | 不进入正式实现 |
-| `RELIC-EVENT-001～099` | 事件遗物 | OPEN | 逐件填充 |
-| `EVENT-001～899` | 正式事件 | OPEN | 事件达到READY后分配独立ID |
+| `RELIC-EVENT-001～099` | 事件遗物 | OPEN | `RELIC-EVENT-001/002`已实现，待运行时验收 |
+| `EVENT-001～899` | 正式事件 | OPEN | `EVENT-001/002/003`已通过原版事件扩展实现 |
 | `EVENT-EASTER-001` | 炉石传说彩蛋 | DEPRECATED | 不实现 |
 | `MON-001～899` | 普通/精英敌人 | DRAFT | 先使用M4敌人Adapter框架 |
 | `MON-BOSS-C-001` | 堕落路线最终Boss | DRAFT | 不进入正式实现 |
 | `MP-001` | 每玩家资源独立 | READY | M7 | READY |
 | `MP-002～099` | 控制目标、协助挣脱等 | OPEN | 等待设计补充 |
+
+### M8卡牌内容交付状态
+
+| ID范围 | 当前交付 | 下一验收 |
+|---|---|---|
+| `CARD-N-100～399` | M8.1已实现全部已命名闭合条目；名称缺失的“拾起时复制”卡待M8.2技术ID | 百科、奖励池、基本功标签与融汇免费化 |
+| `CARD-C-100～699、800～899` | M8.1已实现首批已命名闭合条目；力量的代价已同步新版数值；其余复杂条目待M8.2/M8.3 | 欲望支付、消耗监听、力量恢复、复制入堆 |
+| `CARD-C-700～799` | 未实现 | 维持`DRAFT`，等待DesignDoc转为可实施状态 |
+| `CARD-H-100～899、950～999` | M8.1已实现首批已命名闭合条目及六张圣言；新版两张防御牌与终末审判已实现；其余复杂条目待M8.2/M8.3 | `MVP_MANUAL_TEST_CHECKLIST` C及圣言回归 |
+| `CARD-H-900～929` | 未实现 | 描述未完成，维持`DRAFT` |
 
 当前已具备完整示例规则的事件条目为：
 
