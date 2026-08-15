@@ -24,9 +24,54 @@ public abstract class MSInvasionCurseTemplate :
     public override CardAssetProfile AssetProfile => new(
         PortraitPath: "res://images/atlases/card_atlas.sprites/beta.tres");
 
-    protected MSInvasionCurseTemplate()
-        : base(1, CardType.Curse, CardRarity.Curse, TargetType.None, true) { }
+    protected MSInvasionCurseTemplate(int cost = 1)
+        : base(cost, CardType.Curse, CardRarity.Curse, TargetType.None, true) { }
 }
 
 [RegisterCard(typeof(MSInvasionCursePool))]
 public sealed class SemenCurse : MSInvasionCurseTemplate;
+
+[RegisterCard(typeof(MSInvasionCursePool))] public sealed class FoulSlimeCurse : MSInvasionCurseTemplate;
+[RegisterCard(typeof(MSInvasionCursePool))] public sealed class AphrodisiacCurse : MSInvasionCurseTemplate;
+[RegisterCard(typeof(MSInvasionCursePool))] public sealed class SporeMucusCurse : MSInvasionCurseTemplate;
+[RegisterCard(typeof(MSInvasionCursePool))] public sealed class ParalyticSlimeCurse : MSInvasionCurseTemplate;
+[RegisterCard(typeof(MSInvasionCursePool))] public sealed class CorrosiveSlimeCurse : MSInvasionCurseTemplate;
+[RegisterCard(typeof(MSInvasionCursePool))] public sealed class InsectEggCurse : MSInvasionCurseTemplate;
+[RegisterCard(typeof(MSInvasionCursePool))] public sealed class ParasiticEggCurse : MSInvasionCurseTemplate;
+[RegisterCard(typeof(MSInvasionCursePool))] public sealed class InkFluidCurse : MSInvasionCurseTemplate;
+[RegisterCard(typeof(MSInvasionCursePool))] public sealed class ScorchingFluidCurse : MSInvasionCurseTemplate;
+[RegisterCard(typeof(MSInvasionCursePool))] public sealed class EctoplasmResidueCurse : MSInvasionCurseTemplate;
+[RegisterCard(typeof(MSInvasionCursePool))] public sealed class MagicResidueCurse : MSInvasionCurseTemplate;
+[RegisterCard(typeof(MSInvasionCursePool))] public sealed class VineSeedCurse : MSInvasionCurseTemplate;
+[RegisterCard(typeof(MSInvasionCursePool))]
+public sealed class SludgeSemenCurse : MSInvasionCurseTemplate
+{
+    public SludgeSemenCurse() : base(2) { }
+}
+[RegisterCard(typeof(MSInvasionCursePool))] public sealed class DeepSeaSlimeCurse : MSInvasionCurseTemplate;
+[RegisterCard(typeof(MSInvasionCursePool))] public sealed class ExperimentalLiquidCurse : MSInvasionCurseTemplate;
+[RegisterCard(typeof(MSInvasionCursePool))]
+public sealed class RoyalEssenceCurse : MSInvasionCurseTemplate
+{
+    public RoyalEssenceCurse() : base(2) { }
+}
+
+public abstract class MSEventCurseTemplate : ModCardTemplate
+{
+    public override int MaxUpgradeLevel => 0;
+    public override bool CanBeGeneratedByModifiers => false;
+    public override CardPoolModel Pool => ModelDb.CardPool<MSGeneratedCardPool>();
+    public override CardAssetProfile AssetProfile => new(
+        PortraitPath: "res://images/atlases/card_atlas.sprites/beta.tres");
+    protected MSEventCurseTemplate(int cost = -1)
+        : base(cost, CardType.Curse, CardRarity.Curse, TargetType.None, true) { }
+}
+
+[RegisterCard(typeof(MSGeneratedCardPool))] public sealed class LewdMarkMinorCurse : MSEventCurseTemplate;
+[RegisterCard(typeof(MSGeneratedCardPool))] public sealed class LewdMarkSpreadCurse : MSEventCurseTemplate;
+[RegisterCard(typeof(MSGeneratedCardPool))] public sealed class LewdMarkCompleteCurse : MSEventCurseTemplate;
+[RegisterCard(typeof(MSGeneratedCardPool))] public sealed class TransparentOutfitCurse : MSEventCurseTemplate;
+[RegisterCard(typeof(MSGeneratedCardPool))] public sealed class InfatuationCurse : MSEventCurseTemplate { public InfatuationCurse() : base(2) { } }
+[RegisterCard(typeof(MSGeneratedCardPool))] public sealed class HypnosisCurse : MSEventCurseTemplate;
+[RegisterCard(typeof(MSGeneratedCardPool))] public sealed class GagCurse : MSEventCurseTemplate { public GagCurse() : base(2) { } }
+[RegisterCard(typeof(MSGeneratedCardPool))] public sealed class ClimaxBanCurse : MSEventCurseTemplate;

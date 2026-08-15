@@ -147,5 +147,8 @@
   "MAIDEN_SUCCUBUS_POWER_CHAIN_DESTRUCTION_POWER.smartDescription": "每消耗5张牌，使下一张牌重放1次。",
   "MAIDEN_SUCCUBUS_POWER_CURSE_CORRIDOR_POWER.title": "万咒回廊",
   "MAIDEN_SUCCUBUS_POWER_CURSE_CORRIDOR_POWER.description": "回合开始时改为从消耗牌堆抽牌，并额外抽1张。",
-  "MAIDEN_SUCCUBUS_POWER_CURSE_CORRIDOR_POWER.smartDescription": "回合开始时改为从消耗牌堆抽牌，并额外抽1张。"
+  "MAIDEN_SUCCUBUS_POWER_CURSE_CORRIDOR_POWER.smartDescription": "回合开始时改为从消耗牌堆抽牌，并额外抽1张。",
+  "MAIDEN_SUCCUBUS_POWER_SELF_IMPORTANT_POWER.title": "自负",
+  "MAIDEN_SUCCUBUS_POWER_SELF_IMPORTANT_POWER.description": "每次失去生命值时，失去1层自负和1点力量。",
+  "MAIDEN_SUCCUBUS_POWER_SELF_IMPORTANT_POWER.smartDescription": "每次失去生命值时，失去1层自负和1点力量。"
 }

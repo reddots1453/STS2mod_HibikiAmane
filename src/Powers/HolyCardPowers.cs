@@ -48,24 +48,25 @@ public sealed class PreventNextDesireGainPower :
     ModPowerTemplate,
     ISecondaryResourceHookListener
 {
-    private bool _consumed;
     public override PowerType Type => PowerType.Buff;
-    public override PowerStackType StackType => PowerStackType.Single;
+    public override PowerStackType StackType => PowerStackType.Counter;
 
     public bool ShouldGainSecondaryResource(
         SecondaryResourceContext context,
         decimal amount)
     {
-        if (_consumed
-            || amount <= 0
+        if (amount <= 0
             || context.Definition.Id != DesireResource.Id
             || context.Player.Creature != Owner)
         {
             return true;
         }
-        _consumed = true;
         Flash();
-        TaskHelper.RunSafely(PowerCmd.Remove(this));
+        if (Amount > 1)
+            TaskHelper.RunSafely(PowerCmd.Apply<PreventNextDesireGainPower>(
+                new BlockingPlayerChoiceContext(), Owner, -1, Owner, null));
+        else
+            TaskHelper.RunSafely(PowerCmd.Remove(this));
         return false;
     }
 }

@@ -17,7 +17,7 @@ public static class FourthActRunAdapter
 
     public static bool EnsurePresent(RunState runState)
     {
-        if (!Enabled
+        if ((!Enabled && !FourthRouteProgressService.CanEnterFourthAct(runState))
             || !runState.Players.Any(p => p.Character is MaidenSuccubusCharacter)
             || runState.Acts.Any(a => a is MaidenSuccubusFourthAct))
         {

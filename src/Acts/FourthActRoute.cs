@@ -2,6 +2,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Core.Corruption;
 using System.Runtime.CompilerServices;
+using MaidenSuccubus.Data;
 
 namespace MaidenSuccubus.Acts;
 
@@ -42,8 +43,17 @@ public static class FourthActRouteService
             _ => FourthActRoute.Neutral,
         };
 
-    public static FourthActRoute Resolve(RunState runState) =>
-        Resolve(CorruptionQuery.GetBand(runState), runState);
+    public static FourthActRoute Resolve(RunState runState)
+    {
+        if (FourthRouteProgressService.TryGetQuest(runState, out FourthRouteQuest quest)
+            && M5Progress.Handle.Get(runState).FourthRouteRelicStage >= 4)
+        {
+            return FourthRouteProgressService.AlignmentOf(quest) == FourthRouteAlignment.Dark
+                ? FourthActRoute.Holy
+                : FourthActRoute.Corrupt;
+        }
+        return Resolve(CorruptionQuery.GetBand(runState), runState);
+    }
 
     public static FourthActRoute Resolve(CorruptionBand band, RunState runState) =>
         band switch

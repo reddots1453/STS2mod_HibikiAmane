@@ -6,6 +6,7 @@ using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
 using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Content;
+using MegaCrit.Sts2.Core.Localization.DynamicVars;
 
 namespace MaidenSuccubus.Cards;
 
@@ -68,4 +69,21 @@ public sealed class IceMist : MSGeneratedCard
             context, Owner.Creature, amount, Owner.Creature, this);
     }
     protected override void OnUpgrade() => DynamicVars["DexterityPower"].UpgradeValueBy(1);
+}
+
+[RegisterCard(typeof(MSGeneratedCardPool))]
+public sealed class FourthRouteQuestChoice : MSGeneratedCard
+{
+    public string QuestId { get; set; } = string.Empty;
+    public override int MaxUpgradeLevel => 0;
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Unplayable];
+    protected override IEnumerable<DynamicVar> CanonicalVars =>
+        [new StringVar("QuestName"), new StringVar("QuestText")];
+    public FourthRouteQuestChoice() : base(-1, CardType.Skill, CardRarity.Token, TargetType.None) { }
+    public void Configure(string id, string name, string text)
+    {
+        QuestId = id;
+        ((StringVar)DynamicVars["QuestName"]).StringValue = name;
+        ((StringVar)DynamicVars["QuestText"]).StringValue = text;
+    }
 }

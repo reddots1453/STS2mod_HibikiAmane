@@ -32,7 +32,13 @@ public static class CombatEnchantmentCmd
     public static T ApplyVanilla<T>(CardModel card, decimal amount)
         where T : EnchantmentModel
     {
-        if (typeof(T) != typeof(Sharp) && typeof(T) != typeof(Nimble))
+        if (typeof(T) != typeof(Sharp)
+            && typeof(T) != typeof(Nimble)
+            && typeof(T) != typeof(Swift)
+            && typeof(T) != typeof(Glam)
+            && typeof(T) != typeof(TezcatarasEmber)
+            && typeof(T) != typeof(Instinct)
+            && typeof(T) != typeof(Clone))
         {
             throw new InvalidOperationException(
                 $"Vanilla enchantment {typeof(T).Name} has not been audited for combat-only use.");
@@ -52,7 +58,8 @@ public static class CombatEnchantmentCmd
     {
         if (typeof(T) != typeof(InfectionEnchantment)
             && typeof(T) != typeof(ChargeEnchantment)
-            && typeof(T) != typeof(NecromancyEnchantment))
+            && typeof(T) != typeof(NecromancyEnchantment)
+            && typeof(T) != typeof(SoulLinkEnchantment))
         {
             throw new InvalidOperationException(
                 $"Registered enchantment {typeof(T).Name} has not been audited for combat-only use.");
