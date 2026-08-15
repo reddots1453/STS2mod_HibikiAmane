@@ -1,0 +1,6 @@
+{
+  "OPTION_MAIDEN_SUCCUBUS_REMOVE_SEALED.name": "解除封印",
+  "OPTION_MAIDEN_SUCCUBUS_REMOVE_SEALED.description": "确认并移除牌组中当前被封印的所有卡牌。此操作不会消耗本次休息处行动。",
+  "OPTION_MAIDEN_SUCCUBUS_MASTURBATE.name": "自慰",
+  "OPTION_MAIDEN_SUCCUBUS_MASTURBATE.description": "将欲望降低至3点。此操作会消耗本次休息处行动。"
+}

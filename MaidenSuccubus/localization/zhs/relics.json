@@ -1,0 +1,23 @@
+{
+  "MAIDEN_SUCCUBUS_RELIC_TWIN_SOUL_CHALICE.title": "双魂圣杯",
+  "MAIDEN_SUCCUBUS_RELIC_TWIN_SOUL_CHALICE.description": "战斗胜利时：堕落值在 [purple]-3[/purple] 至 [purple]3[/purple] 之间，恢复 [green]{Heal}[/green] 点生命；堕落值不低于 [purple]4[/purple]，获得 [green]{MaxHp}[/green] 点最大生命；堕落值不高于 [purple]-4[/purple]，恢复 [green]{Heal}[/green] 点生命并额外获得 [blue]{Cards}[/blue] 次卡牌奖励。",
+  "MAIDEN_SUCCUBUS_RELIC_TWIN_SOUL_CHALICE.flavor": "同一只杯中，盛着祷告与诱惑。",
+  "MAIDEN_SUCCUBUS_RELIC_LIGHT_BLESSING_PLACEHOLDER.title": "光明恩赐（占位）",
+  "MAIDEN_SUCCUBUS_RELIC_LIGHT_BLESSING_PLACEHOLDER.description": "女神的光明恩赐。获得时，堕落值降低1点。此遗物为待填充内容的安全占位。",
+  "MAIDEN_SUCCUBUS_RELIC_LIGHT_BLESSING_PLACEHOLDER.flavor": "尚未刻下名字的祝福。",
+  "MAIDEN_SUCCUBUS_RELIC_DARK_BLESSING_PLACEHOLDER.title": "黑暗恩赐（占位）",
+  "MAIDEN_SUCCUBUS_RELIC_DARK_BLESSING_PLACEHOLDER.description": "女神的黑暗恩赐。获得时，堕落值增加1点。此遗物为待填充内容的安全占位。",
+  "MAIDEN_SUCCUBUS_RELIC_DARK_BLESSING_PLACEHOLDER.flavor": "尚未刻下名字的诱惑。",
+  "MAIDEN_SUCCUBUS_RELIC_BALANCED_LENS.title": "双向棱镜",
+  "MAIDEN_SUCCUBUS_RELIC_BALANCED_LENS.description": "[gold]堕落[/gold]牌与[gold]圣洁[/gold]牌出现率各提高20%。\n堕落值在-1至1时，可重掷卡牌奖励；不低于2时，堕落牌出现率再提高20%；不高于-2时，圣洁牌出现率再提高20%。",
+  "MAIDEN_SUCCUBUS_RELIC_BALANCED_LENS.flavor": "它不会替你选择方向，只会让每条方向更清晰。",
+  "MAIDEN_SUCCUBUS_RELIC_BLINDFOLD.title": "眼罩",
+  "MAIDEN_SUCCUBUS_RELIC_BLINDFOLD.description": "无法看到敌人的意图。",
+  "MAIDEN_SUCCUBUS_RELIC_BLINDFOLD.flavor": "看不见危险，并不代表危险不存在。",
+  "MAIDEN_SUCCUBUS_RELIC_WITHERED_TREE_SOUL.title": "枯树灵魂",
+  "MAIDEN_SUCCUBUS_RELIC_WITHERED_TREE_SOUL.description": "从低语空谷中吸收的灵魂。其具体效果尚待设计。",
+  "MAIDEN_SUCCUBUS_RELIC_WITHERED_TREE_SOUL.flavor": "它仍在低语。",
+  "MAIDEN_SUCCUBUS_RELIC_VIBRATOR.title": "跳蛋",
+  "MAIDEN_SUCCUBUS_RELIC_VIBRATOR.description": "每回合首次受到未被格挡的伤害时，获得1点[gold]欲望[/gold]。",
+  "MAIDEN_SUCCUBUS_RELIC_VIBRATOR.flavor": "每一次震动都提醒着身体的存在。"
+}

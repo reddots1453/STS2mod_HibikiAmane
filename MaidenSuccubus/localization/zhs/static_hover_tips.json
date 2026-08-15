@@ -1,0 +1,8 @@
+{
+  "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.title": "堕落值",
+  "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.description": "圣洁与堕落的平衡，范围为 [purple]-5[/purple] 至 [purple]+5[/purple]。\n[purple]-5[/purple]：战斗结束时失去 1 点欲望。\n[purple]-3[/purple] 或更低：堕落牌被封印，不进入下一场战斗；可在火堆移除全部封印牌。\n[purple]+3[/purple] 或更高：圣洁牌被封印，不进入下一场战斗；可在火堆移除全部封印牌。\n[purple]+5[/purple]：战斗结束时获得 1 点欲望。",
+  "MAIDENSUCCUBUS_SEALED_CARD.title": "封印",
+  "MAIDENSUCCUBUS_SEALED_CARD.description": "这张牌仍在永久牌组中，但按当前堕落值不会进入下一场战斗。战斗中堕落值变化不会改变当前战斗牌堆。",
+  "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.title": "欲望",
+  "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.description": "跨战斗保留。部分卡牌会获得或消耗欲望。通常达到 10 点时会立即结算高潮平复。"
+}

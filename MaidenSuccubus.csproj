@@ -1,0 +1,90 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <AssemblyName>MaidenSuccubus</AssemblyName>
+    <RootNamespace>MaidenSuccubus</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GodotProjectDir>$(MSBuildProjectDirectory)</GodotProjectDir>
+
+    <!-- Output directly to mod folder -->
+    <OutputPath>.\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+
+    <Sts2Dir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\..\..'))</Sts2Dir>
+    <InstalledModDir>$(Sts2Dir)\mods\MaidenSuccubus</InstalledModDir>
+    <RitsuLibDeployDir>$(Sts2Dir)\mods\STS2-RitsuLib</RitsuLibDeployDir>
+  </PropertyGroup>
+
+  <!-- Portable PDB is required for debugger hot reload. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <Optimize>false</Optimize>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <Optimize>true</Optimize>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="GodotProjectDir" />
+    <Reference Include="sts2">
+      <HintPath>$(Sts2Dir)\data_sts2_windows_x86_64\sts2.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="GodotSharp">
+      <HintPath>$(Sts2Dir)\data_sts2_windows_x86_64\GodotSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(Sts2Dir)\data_sts2_windows_x86_64\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <PackageReference Include="STS2.RitsuLib" Version="0.4.64" />
+  </ItemGroup>
+
+  <Target Name="CopyModForDebug" AfterTargets="Build"
+          Condition="'$(Configuration)' == 'Debug' and '$(DeployMod)' != 'false'">
+    <MakeDir Directories="$(InstalledModDir)" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(InstalledModDir)" />
+    <Copy SourceFiles="$(TargetDir)$(TargetName).pdb"
+          DestinationFolder="$(InstalledModDir)"
+          Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\MaidenSuccubus.json"
+          DestinationFolder="$(InstalledModDir)" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\steam_appid.txt"
+          DestinationFolder="$(Sts2Dir)"
+          SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <ModAssets Include="$(MSBuildProjectDirectory)\MaidenSuccubus\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ModAssets)"
+          DestinationFiles="@(ModAssets->'$(InstalledModDir)\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+    <!-- Debug builds do not carry a PCK. Mirror resources beside the executable
+         so Godot can resolve res://MaidenSuccubus/... during local development. -->
+    <Copy SourceFiles="@(ModAssets)"
+          DestinationFiles="@(ModAssets->'$(Sts2Dir)\MaidenSuccubus\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="ValidateModArtifact" AfterTargets="Build">
+    <Error Condition="!Exists('$(TargetPath)')"
+           Text="Mod assembly was not produced: $(TargetPath)" />
+    <Error Condition="!Exists('$(MSBuildProjectDirectory)\MaidenSuccubus.json')"
+           Text="Mod manifest is missing." />
+    <Error Condition="!Exists('$(MSBuildProjectDirectory)\MaidenSuccubus\localization\zhs\cards.json')"
+           Text="Chinese card localization is missing." />
+    <Message Importance="high"
+             Text="Validated $(Configuration) mod artifact and required manifest/localization inputs." />
+  </Target>
+
+</Project>

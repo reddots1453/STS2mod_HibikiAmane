@@ -1,0 +1,14 @@
+{
+  "id": "MaidenSuccubus",
+  "name": "圣女与魅魔 (Maiden & Succubus)",
+  "author": "reddots",
+  "description": "圣洁与堕落的双路线角色 mod。通过圣洁/堕落平衡条与欲望计量条驱动玩法分支，包含中立/堕落/圣洁三个卡池。",
+  "version": "0.1.0",
+  "min_game_version": "0.107.1",
+  "has_dll": true,
+  "has_pck": false,
+  "dependencies": [
+    { "id": "STS2-RitsuLib", "min_version": "0.4.64" }
+  ],
+  "affects_gameplay": true
+}

@@ -1,0 +1,8 @@
+{
+  "MAIDENSUCCUBUS_CONTROL.title": "控制",
+  "MAIDENSUCCUBUS_CONTROL.description": "若格挡达到左侧数值，消耗等量格挡并阻止控制；否则不消耗格挡，并使对应类型卡牌临时变为【挣脱】。右下角为所需挣脱值。",
+  "MAIDENSUCCUBUS_INVASION.title": "侵犯",
+  "MAIDENSUCCUBUS_INVASION.description": "造成伤害，并向牌组永久加入一张带来源记录的诅咒。随后该敌人进入晕眩。",
+  "MAIDENSUCCUBUS_DESIRE.title": "诱惑",
+  "MAIDENSUCCUBUS_DESIRE.description": "增加玩家的欲望值。每个敌人的使用次数受其意图策略限制。"
+}

@@ -1,0 +1,192 @@
+using MegaCrit.Sts2.Core.Logging;
+using MaidenSuccubus.Core.Routes;
+using MaidenSuccubus.Core.Rewards;
+using MaidenSuccubus.Core.Corruption;
+using MaidenSuccubus.Core.Seals;
+using MaidenSuccubus.Core.Desire;
+using STS2RitsuLib.Combat.SecondaryResources;
+using MaidenSuccubus.Core.Control;
+using MegaCrit.Sts2.Core.Entities.Cards;
+using MaidenSuccubus.Acts;
+
+namespace MaidenSuccubus.Debugging;
+
+public static class FrameworkSelfTests
+{
+    public static void Run(Logger logger)
+    {
+#if DEBUG
+        AssertProbabilities(0, 0.10m, 0.10m, 0.80m);
+        AssertProbabilities(1, 0.10m, 0.15m, 0.75m);
+        AssertProbabilities(-1, 0.15m, 0.10m, 0.75m);
+        AssertProbabilities(2, 0.10m, 0.20m, 0.70m);
+        AssertProbabilities(-2, 0.20m, 0.10m, 0.70m);
+        AssertProbabilities(3, 0.05m, 0.25m, 0.70m);
+        AssertProbabilities(-3, 0.25m, 0.05m, 0.70m);
+        AssertProbabilities(4, 0.00m, 0.35m, 0.65m);
+        AssertProbabilities(-4, 0.35m, 0.00m, 0.65m);
+        AssertProbabilities(5, 0.00m, 0.50m, 0.50m);
+        AssertProbabilities(-5, 0.50m, 0.00m, 0.50m);
+        AssertRouteRolls();
+        AssertSealRules();
+        AssertDesireDefinition();
+        AssertControlTypes();
+        AssertFourthActRoutes();
+
+        var normalized = RouteRewardProbabilities.Calculate(
+            corruption: 5,
+            holyBonus: 0.20m,
+            corruptBonus: 0.50m);
+        AssertClose(1m, normalized.Total, "normalized.Total");
+        if (normalized.Holy < 0m
+            || normalized.Corrupt < 0m
+            || normalized.Neutral < 0m)
+        {
+            throw new InvalidOperationException(
+                "Route probability normalization produced a negative value.");
+        }
+
+        logger.Info(
+            "Framework self-tests passed: route rewards, combat seals, desire, control, and Fourth Act routing");
+#endif
+    }
+
+    private static void AssertFourthActRoutes()
+    {
+        AssertBoolean(
+            true,
+            FourthActRouteService.DefaultForBand(CorruptionBand.Holy)
+                == FourthActRoute.Holy,
+            "fourth act holy route");
+        AssertBoolean(
+            true,
+            FourthActRouteService.DefaultForBand(CorruptionBand.Neutral)
+                == FourthActRoute.Neutral,
+            "fourth act neutral route");
+        AssertBoolean(
+            true,
+            FourthActRouteService.DefaultForBand(CorruptionBand.Corrupt)
+                == FourthActRoute.Corrupt,
+            "fourth act corrupt route");
+    }
+
+    private static void AssertControlTypes()
+    {
+        AssertBoolean(true, ControlType.Attack.Matches(CardType.Attack), "attack control");
+        AssertBoolean(true, ControlType.Skill.Matches(CardType.Skill), "skill control");
+        AssertBoolean(true, ControlType.Power.Matches(CardType.Power), "power control");
+        AssertBoolean(false, ControlType.Attack.Matches(CardType.Skill), "control orthogonality");
+    }
+
+    private static void AssertDesireDefinition()
+    {
+        var definition = DesireResource.Definition;
+        AssertBoolean(
+            true,
+            !string.IsNullOrWhiteSpace(definition.Id),
+            "desire resource id");
+        AssertBoolean(
+            true,
+            definition.DefaultAmount == 0
+                && definition.BaseMaxAmount == 10
+                && definition.MinAmount == 0
+                && definition.PersistencePolicy
+                    == SecondaryResourcePersistencePolicy.Run
+                && definition.TurnStartPolicy
+                    == SecondaryResourceTurnStartPolicy.None,
+            "desire resource definition");
+    }
+
+    private static void AssertSealRules()
+    {
+        AssertBoolean(
+            true,
+            CombatSealQuery.IsSealed(
+                CorruptionBand.Holy,
+                RouteCardKind.Corrupt),
+            "holy band seals corrupt");
+        AssertBoolean(
+            false,
+            CombatSealQuery.IsSealed(
+                CorruptionBand.Holy,
+                RouteCardKind.Holy),
+            "holy band keeps holy");
+        AssertBoolean(
+            true,
+            CombatSealQuery.IsSealed(
+                CorruptionBand.Corrupt,
+                RouteCardKind.Holy),
+            "corrupt band seals holy");
+
+        foreach (RouteCardKind route in Enum.GetValues<RouteCardKind>())
+        {
+            AssertBoolean(
+                false,
+                CombatSealQuery.IsSealed(CorruptionBand.Neutral, route),
+                $"neutral band keeps {route}");
+        }
+    }
+
+    private static void AssertRouteRolls()
+    {
+        var probabilities = RouteRewardProbabilities.Calculate(0);
+        AssertRoute(
+            RouteCardKind.Holy,
+            RouteCardRewardService.RollRoute(probabilities, 0.05f),
+            "route roll holy");
+        AssertRoute(
+            RouteCardKind.Corrupt,
+            RouteCardRewardService.RollRoute(probabilities, 0.15f),
+            "route roll corrupt");
+        AssertRoute(
+            RouteCardKind.Neutral,
+            RouteCardRewardService.RollRoute(probabilities, 0.50f),
+            "route roll neutral");
+    }
+
+    private static void AssertProbabilities(
+        int corruption,
+        decimal holy,
+        decimal corrupt,
+        decimal neutral)
+    {
+        var actual = RouteRewardProbabilities.Calculate(corruption);
+        AssertClose(holy, actual.Holy, $"{corruption}.Holy");
+        AssertClose(corrupt, actual.Corrupt, $"{corruption}.Corrupt");
+        AssertClose(neutral, actual.Neutral, $"{corruption}.Neutral");
+        AssertClose(1m, actual.Total, $"{corruption}.Total");
+    }
+
+    private static void AssertClose(decimal expected, decimal actual, string name)
+    {
+        if (Math.Abs(expected - actual) > 0.000001m)
+        {
+            throw new InvalidOperationException(
+                $"Self-test failed for {name}: expected {expected}, actual {actual}.");
+        }
+    }
+
+    private static void AssertRoute(
+        RouteCardKind expected,
+        RouteCardKind actual,
+        string name)
+    {
+        if (expected != actual)
+        {
+            throw new InvalidOperationException(
+                $"Self-test failed for {name}: expected {expected}, actual {actual}.");
+        }
+    }
+
+    private static void AssertBoolean(
+        bool expected,
+        bool actual,
+        string name)
+    {
+        if (expected != actual)
+        {
+            throw new InvalidOperationException(
+                $"Self-test failed for {name}: expected {expected}, actual {actual}.");
+        }
+    }
+}

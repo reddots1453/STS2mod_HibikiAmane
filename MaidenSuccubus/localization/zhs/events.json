@@ -1,0 +1,12 @@
+{
+  "WHISPERING_HOLLOW.pages.INITIAL.options.MS_PURIFY.title": "净化树木",
+  "WHISPERING_HOLLOW.pages.INITIAL.options.MS_PURIFY.description": "获得300金币。将1张[gold]腐朽[/gold]加入你的牌组。",
+  "WHISPERING_HOLLOW.pages.INITIAL.options.MS_PURIFY_LOCKED.title": "[需要堕落值-2或更低] 净化树木",
+  "WHISPERING_HOLLOW.pages.INITIAL.options.MS_PURIFY_LOCKED.description": "你的信仰还不足以净化它。",
+  "WHISPERING_HOLLOW.pages.INITIAL.options.MS_ABSORB.title": "吸收灵魂",
+  "WHISPERING_HOLLOW.pages.INITIAL.options.MS_ABSORB.description": "获得遗物[gold]枯树灵魂[/gold]。",
+  "WHISPERING_HOLLOW.pages.INITIAL.options.MS_ABSORB_LOCKED.title": "[需要堕落值+4或更高] 吸收灵魂",
+  "WHISPERING_HOLLOW.pages.INITIAL.options.MS_ABSORB_LOCKED.description": "你还无法吞下这株树中的灵魂。",
+  "WHISPERING_HOLLOW.pages.MS_PURIFY.description": "圣洁的光芒烧尽了低语。金币从枯萎的枝干中滚落，而腐朽的痕迹留在了你的牌组里。",
+  "WHISPERING_HOLLOW.pages.MS_ABSORB.description": "你将树中的低语尽数吸入体内。空洞归于寂静，只剩一团枯萎的灵魂随你同行。"
+}
