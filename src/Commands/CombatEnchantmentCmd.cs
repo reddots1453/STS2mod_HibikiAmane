@@ -50,7 +50,9 @@ public static class CombatEnchantmentCmd
     public static T ApplyAudited<T>(CardModel card, decimal amount)
         where T : EnchantmentModel
     {
-        if (typeof(T) != typeof(InfectionEnchantment))
+        if (typeof(T) != typeof(InfectionEnchantment)
+            && typeof(T) != typeof(ChargeEnchantment)
+            && typeof(T) != typeof(NecromancyEnchantment))
         {
             throw new InvalidOperationException(
                 $"Registered enchantment {typeof(T).Name} has not been audited for combat-only use.");
