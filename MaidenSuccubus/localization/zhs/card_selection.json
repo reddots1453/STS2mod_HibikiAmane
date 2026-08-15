@@ -1,4 +1,5 @@
 {
   "MAIDEN_SUCCUBUS_REMOVE_SEALED": "确认移除所有被封印的卡牌（共 {Amount} 张）",
-  "MAIDEN_SUCCUBUS_TO_DRAW_TOP": "选择置于抽牌堆顶的牌。"
+  "MAIDEN_SUCCUBUS_TO_DRAW_TOP": "选择置于抽牌堆顶的牌。",
+  "MAIDEN_SUCCUBUS_TO_PLAY_FROM_EXHAUST": "选择要从消耗堆打出的牌。"
 }

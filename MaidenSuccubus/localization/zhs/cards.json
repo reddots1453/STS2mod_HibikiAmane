@@ -245,5 +245,21 @@
   "MAIDEN_SUCCUBUS_CARD_MEMORY_IMPRINT.title": "记忆的刻印",
   "MAIDEN_SUCCUBUS_CARD_MEMORY_IMPRINT.description": "回合开始时，将弃牌堆中的1张牌置于抽牌堆顶。",
   "MAIDEN_SUCCUBUS_CARD_TACTICAL_ANALYZER.title": "战术分析仪",
-  "MAIDEN_SUCCUBUS_CARD_TACTICAL_ANALYZER.description": "抽{Cards:diff()}张牌。\n升级1张手牌并给予[gold]保留[/gold]。"
+  "MAIDEN_SUCCUBUS_CARD_TACTICAL_ANALYZER.description": "抽{Cards:diff()}张牌。\n升级1张手牌并给予[gold]保留[/gold]。",
+  "MAIDEN_SUCCUBUS_CARD_MIMIC_PROLIFERATION.title": "拟态增殖",
+  "MAIDEN_SUCCUBUS_CARD_MIMIC_PROLIFERATION.description": "消耗1张手牌。\n将它的{Cards:diff()}张复制加入手牌。",
+  "MAIDEN_SUCCUBUS_CARD_MIASMA_FRENZY.title": "瘴气狂化",
+  "MAIDEN_SUCCUBUS_CARD_MIASMA_FRENZY.description": "消耗手牌中的所有攻击牌。\n每消耗1张，获得1点[gold]力量[/gold]。\n[gold]消耗[/gold]。",
+  "MAIDEN_SUCCUBUS_CARD_MAGIC_EXCESS.title": "魔力过剩",
+  "MAIDEN_SUCCUBUS_CARD_MAGIC_EXCESS.description": "消耗至多4张手牌。\n如果消耗了4张，抽牌直到手牌上限。\n[gold]消耗[/gold]。",
+  "MAIDEN_SUCCUBUS_CARD_DESTRUCTION_REACTION.title": "破坏的反动",
+  "MAIDEN_SUCCUBUS_CARD_DESTRUCTION_REACTION.description": "抽{Cards:diff()}张牌，消耗其中1张。",
+  "MAIDEN_SUCCUBUS_CARD_THOUSAND_CURSE_SCYTHE.title": "千咒之大镰",
+  "MAIDEN_SUCCUBUS_CARD_THOUSAND_CURSE_SCYTHE.description": "造成{Damage:diff()}点伤害。\n消耗牌堆每有1张牌，耗能减少1费。",
+  "MAIDEN_SUCCUBUS_CARD_DESIRE_RECYCLE.title": "欲念回收",
+  "MAIDEN_SUCCUBUS_CARD_DESIRE_RECYCLE.description": "每当花费欲望的牌被消耗时，获得1点[gold]欲望[/gold]并抽1张牌。",
+  "MAIDEN_SUCCUBUS_CARD_REFLECTIVE_BARRIER.title": "反射屏障",
+  "MAIDEN_SUCCUBUS_CARD_REFLECTIVE_BARRIER.description": "获得{Block}点[gold]格挡[/gold]。\n当这张牌被消耗时，再获得{Block}点[gold]格挡[/gold]。",
+  "MAIDEN_SUCCUBUS_CARD_SUPER_REGENERATION.title": "超再生",
+  "MAIDEN_SUCCUBUS_CARD_SUPER_REGENERATION.description": "从消耗堆选择打出1张牌。\n[gold]消耗[/gold]。"
 }

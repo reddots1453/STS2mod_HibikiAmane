@@ -123,5 +123,8 @@
   "MAIDEN_SUCCUBUS_POWER_SOUL_PURIFICATION_POWER.smartDescription": "打出圣言后将其消耗并抽{Amount}张牌。",
   "MAIDEN_SUCCUBUS_POWER_MEMORY_IMPRINT_POWER.title": "记忆的刻印",
   "MAIDEN_SUCCUBUS_POWER_MEMORY_IMPRINT_POWER.description": "回合开始时，将弃牌堆中的1张牌置于抽牌堆顶。",
-  "MAIDEN_SUCCUBUS_POWER_MEMORY_IMPRINT_POWER.smartDescription": "回合开始时，将弃牌堆中的1张牌置于抽牌堆顶。"
+  "MAIDEN_SUCCUBUS_POWER_MEMORY_IMPRINT_POWER.smartDescription": "回合开始时，将弃牌堆中的1张牌置于抽牌堆顶。",
+  "MAIDEN_SUCCUBUS_POWER_DESIRE_RECYCLE_POWER.title": "欲念回收",
+  "MAIDEN_SUCCUBUS_POWER_DESIRE_RECYCLE_POWER.description": "花费欲望的牌被消耗时，获得{Amount}点欲望并抽{Amount}张牌。",
+  "MAIDEN_SUCCUBUS_POWER_DESIRE_RECYCLE_POWER.smartDescription": "花费欲望的牌被消耗时，获得{Amount}点欲望并抽{Amount}张牌。"
 }
