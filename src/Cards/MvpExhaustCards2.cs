@@ -37,6 +37,9 @@ public sealed class Ignite : MSCorruptCard
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class BlackVortex : MSCorruptCard
 {
+    protected override IEnumerable<MegaCrit.Sts2.Core.HoverTips.IHoverTip>
+        CardSpecificHoverTips =>
+        [CardHoverTipSupport.Static("MAIDENSUCCUBUS_OVERDRAFT")];
     public BlackVortex() : base(2, CardType.Skill, CardRarity.Rare, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
@@ -78,7 +81,7 @@ public sealed class GrudgeFire : MSCorruptCard
     {
         ArgumentNullException.ThrowIfNull(play.Target);
         return DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
-            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_fire").Execute(context);
+            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
     }
     public override Task AfterCardExhausted(PlayerChoiceContext context, CardModel card, bool causedByEthereal)
     {

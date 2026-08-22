@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models.Enchantments;
@@ -52,6 +53,8 @@ public sealed class AllCurseBite : MSCorruptCard
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class CurseInfection : MSCorruptCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [CardHoverTipSupport.Static("MAIDENSUCCUBUS_CURSE_INFECTION")];
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     public CurseInfection() : base(2, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
 
@@ -59,10 +62,7 @@ public sealed class CurseInfection : MSCorruptCard
     {
         if (card != this) return;
         await CardPileCmd.Draw(context, 2, Owner);
-        CardModel? next = PileType.Hand.GetPile(Owner).Cards
-            .Where(candidate => candidate.Enchantment == null)
-            .ToList().StableShuffle(Owner.RunState.Rng.CombatCardSelection).FirstOrDefault();
-        if (next != null) CombatEnchantmentCmd.Apply<CurseInfectionEnchantment>(next, 1);
+        CurseInfectionStatus.TryApplyToRandomHandCard(Owner);
     }
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) => Task.CompletedTask;
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
@@ -71,6 +71,8 @@ public sealed class CurseInfection : MSCorruptCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class ForgeCharge : MSHolyCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        HoverTipFactory.FromEnchantment<ChargeEnchantment>(DynamicVars["Charge"].IntValue);
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override IEnumerable<MegaCrit.Sts2.Core.Localization.DynamicVars.DynamicVar> CanonicalVars =>
         [new MegaCrit.Sts2.Core.Localization.DynamicVars.DynamicVar("Charge", 2)];
@@ -92,6 +94,8 @@ public sealed class ForgeCharge : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class YarusMemory : MSHolyCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        HoverTipFactory.FromEnchantment<SoulLinkEnchantment>();
     [SavedProperty] public bool LinkedOnPickup { get; set; }
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Innate];
     public YarusMemory() : base(1, CardType.Power, CardRarity.Rare, TargetType.Self) { }
@@ -122,9 +126,21 @@ public sealed class EnchantmentChoiceCard : MSGeneratedCard
 {
     public string ChoiceId { get; set; } = string.Empty;
     public override int MaxUpgradeLevel => 0;
-    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Unplayable];
     protected override IEnumerable<DynamicVar> CanonicalVars => [new StringVar("Enchant")];
     public EnchantmentChoiceCard() : base(-1, CardType.Skill, CardRarity.Token, TargetType.None) { }
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips => ChoiceId switch
+    {
+        "swift" => HoverTipFactory.FromEnchantment<Swift>(4),
+        "charge" => HoverTipFactory.FromEnchantment<ChargeEnchantment>(3),
+        "glam" => HoverTipFactory.FromEnchantment<Glam>(),
+        "ember" => HoverTipFactory.FromEnchantment<TezcatarasEmber>(),
+        "instinct" => HoverTipFactory.FromEnchantment<Instinct>(),
+        "proliferation" => HoverTipFactory.FromEnchantment<ProliferationEnchantment>(),
+        "iron_wall" => HoverTipFactory.FromEnchantment<IronWallEnchantment>(),
+        "nimble" => HoverTipFactory.FromEnchantment<Nimble>(8),
+        "sharp" => HoverTipFactory.FromEnchantment<Sharp>(8),
+        _ => [],
+    };
     public void Configure(string id, string display)
     {
         ChoiceId = id;
@@ -137,6 +153,16 @@ public sealed class BeyondReasonForge : MSNeutralCard
 {
     private sealed record Option(string Id, string Display, Func<CardModel, bool> CanApply);
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        HoverTipFactory.FromEnchantment<Swift>(4)
+            .Concat(HoverTipFactory.FromEnchantment<ChargeEnchantment>(3))
+            .Concat(HoverTipFactory.FromEnchantment<Glam>())
+            .Concat(HoverTipFactory.FromEnchantment<TezcatarasEmber>())
+            .Concat(HoverTipFactory.FromEnchantment<Instinct>())
+            .Concat(HoverTipFactory.FromEnchantment<ProliferationEnchantment>())
+            .Concat(HoverTipFactory.FromEnchantment<IronWallEnchantment>())
+            .Concat(HoverTipFactory.FromEnchantment<Nimble>(8))
+            .Concat(HoverTipFactory.FromEnchantment<Sharp>(8));
     public BeyondReasonForge() : base(1, CardType.Skill, CardRarity.Rare, TargetType.Self) { }
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
@@ -173,7 +199,7 @@ public sealed class BeyondReasonForge : MSNeutralCard
         Vanilla<Glam>("glam", "华彩"),
         Vanilla<TezcatarasEmber>("ember", "特兹卡塔拉的余烬"),
         Vanilla<Instinct>("instinct", "本能"),
-        Vanilla<Clone>("clone", "增殖"),
+        Custom<ProliferationEnchantment>("proliferation", "增殖"),
         Custom<IronWallEnchantment>("iron_wall", "铁壁"),
         Vanilla<Nimble>("nimble", "灵巧：8"),
         Vanilla<Sharp>("sharp", "锋利：8")
@@ -193,7 +219,7 @@ public sealed class BeyondReasonForge : MSNeutralCard
             case "glam": CombatEnchantmentCmd.ApplyVanilla<Glam>(card, 1); break;
             case "ember": CombatEnchantmentCmd.ApplyVanilla<TezcatarasEmber>(card, 1); break;
             case "instinct": CombatEnchantmentCmd.ApplyVanilla<Instinct>(card, 1); break;
-            case "clone": CombatEnchantmentCmd.ApplyVanilla<Clone>(card, 1); break;
+            case "proliferation": CombatEnchantmentCmd.Apply<ProliferationEnchantment>(card, 1); break;
             case "iron_wall": CombatEnchantmentCmd.Apply<IronWallEnchantment>(card, 1); break;
             case "nimble": CombatEnchantmentCmd.ApplyVanilla<Nimble>(card, 8); break;
             case "sharp": CombatEnchantmentCmd.ApplyVanilla<Sharp>(card, 8); break;

@@ -30,9 +30,9 @@ public static class DesireResource
                 turnStartPolicy: SecondaryResourceTurnStartPolicy.None,
                 persistencePolicy: SecondaryResourcePersistencePolicy.Run,
                 smallIconPath:
-                    "res://MaidenSuccubus/images/ui/desire_resource.png",
+                    "res://images/packed/sprite_fonts/star_icon.png",
                 largeIconPath:
-                    "res://MaidenSuccubus/images/ui/desire_resource.png",
+                    "res://images/packed/sprite_fonts/star_icon.png",
                 locTable: "static_hover_tips",
                 titleKey:
                     "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.title",
@@ -47,12 +47,16 @@ public static class DesireResource
                     Definition,
                     SecondaryResourceCardCostUiStyle.Default with
                     {
-                        IconSize = new Vector2(42f, 42f),
-                        FontSize = 24,
+                        ReserveVanillaStarCostSlot = true,
+                        // The DesignDoc defines the two independent X-cost
+                        // variables as energy X and Desire Y.
+                        FormatCost = line => line.CostsX
+                            ? "Y"
+                            : line.Cost.ToString(),
                     });
-                TextureRect energyIcon =
-                    parent.GetNode<TextureRect>("%EnergyIcon");
-                ui.Position = energyIcon.Position + new Vector2(0f, 72f);
+                TextureRect starIcon =
+                    parent.GetNode<TextureRect>("%StarIcon");
+                ui.Position = starIcon.Position;
                 return ui;
             },
             context => context.Node.Refresh(context));

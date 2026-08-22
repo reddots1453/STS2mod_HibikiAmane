@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
@@ -56,7 +57,7 @@ public sealed class LightArrow : MSHolyCard
         ArgumentNullException.ThrowIfNull(play.Target);
         int layers = Core.Powers.PowerLayerQuery.CountDebuffLayers(play.Target);
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
-            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_magic").Execute(context);
+            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         if (layers > 0) await CardPileCmd.Draw(context, layers, Owner);
     }
     protected override void OnUpgrade() => RemoveKeyword(CardKeyword.Exhaust);
@@ -81,14 +82,16 @@ public sealed class TerminalSanctuary : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class Blizzard : MSHolyCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [HoverTipFactory.FromCard<IceMist>()];
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(6, ValueProp.Move)];
     public Blizzard() : base(2, CardType.Attack, CardRarity.Uncommon, TargetType.AllEnemies) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(CombatState);
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
-            .TargetingAllOpponents(CombatState).WithHitFx("vfx/vfx_attack_ice").Execute(context);
-        await CardPileCmd.AddGeneratedCardToCombat(Owner.RunState.CreateCard<IceMist>(Owner), PileType.Hand, Owner);
+            .TargetingAllOpponents(CombatState).WithHitFx("vfx/vfx_attack_slash").Execute(context);
+        await CardPileCmd.AddGeneratedCardToCombat(CombatState.CreateCard<IceMist>(Owner), PileType.Hand, Owner);
         BlizzardEchoPower echo = (BlizzardEchoPower)ModelDb.Power<BlizzardEchoPower>().ToMutable();
         echo.Damage = DynamicVars.Damage.BaseValue;
         await PowerCmd.Apply(context, echo, Owner.Creature, 2, Owner.Creature, this);

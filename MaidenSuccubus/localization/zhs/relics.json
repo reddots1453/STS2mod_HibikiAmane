@@ -1,6 +1,8 @@
 {
   "MAIDEN_SUCCUBUS_RELIC_TWIN_SOUL_CHALICE.title": "双魂圣杯",
-  "MAIDEN_SUCCUBUS_RELIC_TWIN_SOUL_CHALICE.description": "战斗胜利时：堕落值在 [purple]-3[/purple] 至 [purple]3[/purple] 之间，恢复 [green]{Heal}[/green] 点生命；堕落值不低于 [purple]4[/purple]，获得 [green]{MaxHp}[/green] 点最大生命；堕落值不高于 [purple]-4[/purple]，恢复 [green]{Heal}[/green] 点生命并额外获得 [blue]{Cards}[/blue] 次卡牌奖励。",
+  "MAIDEN_SUCCUBUS_RELIC_TWIN_SOUL_CHALICE.description": "战斗胜利时，恢复 [green]{Heal}[/green] 点生命。堕落值≥4或≤-4：[gold]升变[/gold]。",
+  "MAIDEN_SUCCUBUS_RELIC_TWIN_SOUL_CHALICE.descriptionCorrupt": "战斗胜利时，获得 [green]{MaxHp}[/green] 点最大生命。堕落值＜4：[gold]升变[/gold]。",
+  "MAIDEN_SUCCUBUS_RELIC_TWIN_SOUL_CHALICE.descriptionHoly": "战斗胜利时，恢复 [green]{Heal}[/green] 点生命，并额外获得 [blue]{Cards}[/blue] 次卡牌奖励。堕落值＞-4：[gold]升变[/gold]。",
   "MAIDEN_SUCCUBUS_RELIC_TWIN_SOUL_CHALICE.flavor": "同一只杯中，盛着祷告与诱惑。",
   "MAIDEN_SUCCUBUS_RELIC_LIGHT_BLESSING_PLACEHOLDER.title": "光明恩赐（占位）",
   "MAIDEN_SUCCUBUS_RELIC_LIGHT_BLESSING_PLACEHOLDER.description": "女神的光明恩赐。获得时，堕落值降低1点。此遗物为待填充内容的安全占位。",

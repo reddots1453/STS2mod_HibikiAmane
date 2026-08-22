@@ -19,10 +19,20 @@ public sealed class MentalUnityPower : ModPowerTemplate
 {
     public override PowerType Type => PowerType.Debuff;
     public override PowerStackType StackType => PowerStackType.Counter;
-    public override Task BeforeAttack(AttackCommand command)
+    public override Task BeforeDamageReceived(
+        PlayerChoiceContext context,
+        Creature target,
+        decimal amount,
+        ValueProp props,
+        Creature? dealer,
+        CardModel? cardSource)
     {
         Creature? beneficiary = Applier;
-        if (command.Attacker != Owner || beneficiary is null || beneficiary.IsDead)
+        if (target != beneficiary
+            || dealer != Owner
+            || !props.IsPoweredAttack()
+            || beneficiary is null
+            || beneficiary.IsDead)
             return Task.CompletedTask;
         return CreatureCmd.GainBlock(beneficiary, Amount, ValueProp.Unpowered, null);
     }
@@ -111,7 +121,7 @@ public sealed class LullabyPower : ModPowerTemplate
     {
         if (player.Creature != Owner) return;
         await CardPileCmd.AddGeneratedCardToCombat(
-            player.RunState.CreateCard<DrowsyStatus>(player), PileType.Hand, player);
+            Owner.CombatState!.CreateCard<DrowsyStatus>(player), PileType.Hand, player);
         int handSize = PileType.Hand.GetPile(player).Cards.Count;
         await CreatureCmd.GainBlock(Owner, handSize * Amount, ValueProp.Unpowered, null);
     }

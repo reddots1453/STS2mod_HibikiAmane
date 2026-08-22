@@ -50,6 +50,26 @@ function Assert-Localization(
     }
 }
 
+function Assert-IdentityHash(
+    [string]$Name,
+    [object[]]$Items,
+    [string]$ExpectedHash
+) {
+    $identity = (@($Items | Sort-Object) -join "`n")
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $bytes = [System.Text.UTF8Encoding]::new($false).GetBytes($identity)
+        $actualHash = ([System.BitConverter]::ToString(
+            $sha.ComputeHash($bytes))).Replace("-", "").ToLowerInvariant()
+    }
+    finally {
+        $sha.Dispose()
+    }
+    if ($actualHash -ne $ExpectedHash) {
+        throw "$Name identities changed. Actual types:`n$($Items -join "`n")"
+    }
+}
+
 $cardsRoot = Join-Path $ProjectDir "src\Cards"
 $relicsRoot = Join-Path $ProjectDir "src\Relics"
 $enchantmentsRoot = Join-Path $ProjectDir "src\Enchantments"
@@ -61,7 +81,12 @@ $poolExpectations = [ordered]@{
     MSHolyCardPool = 43
     MSScriptureCardPool = 6
     MSInvasionCursePool = 17
-    MSGeneratedCardPool = 20
+    MSGeneratedCardPool = 22
+}
+$formalPoolIdentityHashes = @{
+    MSNeutralCardPool = "77844c337365a4972197d0223f47e9f059766830d1821219ccbf95fb497d0464"
+    MSCorruptCardPool = "3eda58611787d33279cdc81c22a876f97f54537cf9f8265c14a4d4930a7bd030"
+    MSHolyCardPool = "89e778384dc9a7f3f3b1bda17fe237fd8171095142b091f97e1e05e27de89443"
 }
 $allCards = [System.Collections.Generic.List[string]]::new()
 foreach ($entry in $poolExpectations.GetEnumerator()) {
@@ -69,6 +94,9 @@ foreach ($entry in $poolExpectations.GetEnumerator()) {
     [object[]]$types = @(Find-RegisteredTypes $cardsRoot $pattern)
     Assert-Count $entry.Key $types $entry.Value
     $allCards.AddRange([string[]]$types)
+    if ($formalPoolIdentityHashes.ContainsKey($entry.Key)) {
+        Assert-IdentityHash $entry.Key $types $formalPoolIdentityHashes[$entry.Key]
+    }
 }
 
 [object[]]$relics = @(Find-RegisteredTypes $relicsRoot '\[RegisterRelic\([^\]]+\)\]\s*(?:public\s+)?sealed\s+class\s+(\w+)')
@@ -83,4 +111,4 @@ Assert-Localization "CARD" $allCards.ToArray() $cardLoc @("title", "description"
 Assert-Localization "RELIC" $relics $relicLoc @("title", "description", "flavor")
 Assert-Localization "ENCHANTMENT" $enchantments $enchantmentLoc @("title", "description", "extraCardText")
 
-Write-Host "Validated MVP content: neutral=36, corrupt=52, holy=43, scriptures=6, invasion-curses=17, generated=20, relics=22, enchantments=8."
+Write-Host "Validated MVP content: neutral=36, corrupt=52, holy=43, scriptures=6, invasion-curses=17, generated=22, relics=22, enchantments=8."

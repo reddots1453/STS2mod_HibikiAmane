@@ -2,15 +2,19 @@ using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Cards.Scriptures;
 using MaidenSuccubus.Commands;
+using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Core.Powers;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
+using STS2RitsuLib.Combat.SecondaryResources;
 using STS2RitsuLib.Interop.AutoRegistration;
 
 namespace MaidenSuccubus.Cards;
@@ -55,30 +59,6 @@ public sealed class FocusedSlash : MSHolyCard
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(10);
 }
 
-public sealed class Suppression : MSHolyCard
-{
-    public override IEnumerable<CardKeyword> CanonicalKeywords =>
-        [CardKeyword.Exhaust];
-    protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DynamicVar("DesireLoss", 2), new CardsVar(1)];
-
-    public Suppression()
-        : base(1, CardType.Skill, CardRarity.Common, TargetType.Self)
-    {
-    }
-
-    protected override async Task OnPlay(
-        PlayerChoiceContext choiceContext,
-        CardPlay cardPlay)
-    {
-        await Data.Desire.Modify(Owner, -DynamicVars["DesireLoss"].IntValue);
-        await CardPileCmd.Draw(choiceContext, DynamicVars.Cards.IntValue, Owner);
-    }
-
-    protected override void OnUpgrade() =>
-        DynamicVars["DesireLoss"].UpgradeValueBy(1);
-}
-
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class DesireWard : MSHolyCard
 {
@@ -114,6 +94,8 @@ public sealed class DesireWard : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class MomentaryGrace : MSHolyCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [HoverTipFactory.FromCard<IceMist>(IsUpgraded)];
     public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new BlockVar(6, ValueProp.Move)];
@@ -128,7 +110,7 @@ public sealed class MomentaryGrace : MSHolyCard
         CardPlay cardPlay)
     {
         await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, cardPlay);
-        CardModel mist = Owner.RunState.CreateCard<IceMist>(Owner);
+        CardModel mist = CombatState!.CreateCard<IceMist>(Owner);
         if (IsUpgraded) CardCmd.Upgrade(mist);
         await CardPileCmd.AddGeneratedCardToCombat(mist, PileType.Hand, Owner);
     }
@@ -255,101 +237,6 @@ public sealed class InwardDiscipline : MSHolyCard
 
     protected override void OnUpgrade() =>
         DynamicVars["InwardDisciplinePower"].UpgradeValueBy(25);
-}
-
-public sealed class Karma : MSHolyCard
-{
-    public override IEnumerable<CardKeyword> CanonicalKeywords =>
-        [CardKeyword.Exhaust];
-    protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(4, ValueProp.Move)];
-
-    public Karma()
-        : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy)
-    {
-    }
-
-    protected override async Task OnPlay(
-        PlayerChoiceContext choiceContext,
-        CardPlay cardPlay)
-    {
-        ArgumentNullException.ThrowIfNull(cardPlay.Target);
-        await DamageCmd.Attack(DynamicVars.Damage.BaseValue)
-            .FromCard(this, cardPlay)
-            .Targeting(cardPlay.Target)
-            .WithHitFx("vfx/vfx_attack_slash")
-            .Execute(choiceContext);
-        int layers = CombatState?.HittableEnemies
-            .Sum(PowerLayerQuery.CountDebuffLayers) ?? 0;
-        if (layers > 0)
-        {
-            await CardPileCmd.Draw(choiceContext, layers, Owner);
-        }
-    }
-
-    protected override void OnUpgrade() => RemoveKeyword(CardKeyword.Exhaust);
-}
-
-public sealed class BurningStake : MSHolyCard
-{
-    protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(12, ValueProp.Move), new EnergyVar(2)];
-
-    public BurningStake()
-        : base(2, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy)
-    {
-    }
-
-    protected override async Task OnPlay(
-        PlayerChoiceContext choiceContext,
-        CardPlay cardPlay)
-    {
-        ArgumentNullException.ThrowIfNull(cardPlay.Target);
-        bool debuffed = PowerLayerQuery.CountDebuffLayers(cardPlay.Target) > 0;
-        await DamageCmd.Attack(DynamicVars.Damage.BaseValue)
-            .FromCard(this, cardPlay)
-            .Targeting(cardPlay.Target)
-            .WithHitFx("vfx/vfx_attack_slash")
-            .Execute(choiceContext);
-        if (debuffed)
-        {
-            await PlayerCmd.GainEnergy(DynamicVars.Energy.IntValue, Owner);
-        }
-    }
-
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(4);
-}
-
-public sealed class FaithImpact : MSHolyCard
-{
-    protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(7, ValueProp.Move), new DynamicVar("PerBuff", 2)];
-
-    public FaithImpact()
-        : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy)
-    {
-    }
-
-    protected override Task OnPlay(
-        PlayerChoiceContext choiceContext,
-        CardPlay cardPlay)
-    {
-        ArgumentNullException.ThrowIfNull(cardPlay.Target);
-        decimal damage = DynamicVars.Damage.BaseValue
-            + PowerLayerQuery.CountBuffLayers(Owner.Creature)
-            * DynamicVars["PerBuff"].BaseValue;
-        return DamageCmd.Attack(damage)
-            .FromCard(this, cardPlay)
-            .Targeting(cardPlay.Target)
-            .WithHitFx("vfx/vfx_attack_slash")
-            .Execute(choiceContext);
-    }
-
-    protected override void OnUpgrade()
-    {
-        DynamicVars.Damage.UpgradeValueBy(3);
-        DynamicVars["PerBuff"].UpgradeValueBy(1);
-    }
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]
@@ -512,13 +399,24 @@ public sealed class OriginalSinBrand : MSHolyCard
                 this);
         }
 
+        var discardPile = PileType.Discard.GetPile(Owner);
+        int selectionCount = Math.Min(
+            DynamicVars.Cards.IntValue,
+            discardPile.Cards.Count);
+        if (selectionCount <= 0)
+        {
+            return;
+        }
+
         CardModel[] selected = (await CardSelectCmd.FromSimpleGrid(
             choiceContext,
-            PileType.Discard.GetPile(Owner).Cards,
+            discardPile.Cards,
             Owner,
             new CardSelectorPrefs(
-                SelectionScreenPrompt,
-                DynamicVars.Cards.IntValue))).ToArray();
+                new LocString(
+                    "card_selection",
+                    "MAIDEN_SUCCUBUS_TO_HAND_FROM_DISCARD"),
+                selectionCount))).ToArray();
         foreach (CardModel card in selected)
         {
             await CardPileCmd.Add(card, PileType.Hand);
@@ -531,6 +429,8 @@ public sealed class OriginalSinBrand : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class FinalJudgment : MSHolyCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [CardHoverTipSupport.Static("MAIDENSUCCUBUS_OVERDRAFT")];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new DynamicVar("Condemnation", 1)];
 
@@ -597,6 +497,9 @@ public sealed class FinalJudgment : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class Chant : MSHolyCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        ScriptureCardPreview.All();
+
     public Chant()
         : base(1, CardType.Skill, CardRarity.Common, TargetType.Self)
     {
@@ -650,6 +553,12 @@ public sealed class Chant : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class Gospel : MSHolyCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+    [
+        HoverTipFactory.FromCard<GuardianScripture>(IsUpgraded),
+        HoverTipFactory.FromCard<PunishmentScripture>(IsUpgraded),
+    ];
+
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [CardKeyword.Exhaust];
 

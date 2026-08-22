@@ -3,14 +3,17 @@ using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Commands;
+using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
+using STS2RitsuLib.Combat.SecondaryResources;
 using STS2RitsuLib.Interop.AutoRegistration;
 
 namespace MaidenSuccubus.Cards;
@@ -19,7 +22,10 @@ namespace MaidenSuccubus.Cards;
 public sealed class Tranquilizer : MSHolyCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("DesireLoss", 2), new CardsVar(1)];
+    protected override IEnumerable<DynamicVar> CanonicalVars =>
+        [SecondaryResourceVars.ForLocal(
+            "DesireLoss", MaidenSuccubusMod.ModId, DesireResource.LocalId, 2),
+            new CardsVar(1)];
     public Tranquilizer() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
@@ -74,7 +80,7 @@ public sealed class StigmaTargetChoice : MSGeneratedCard
     public int TargetIndex { get; set; }
     public override int MaxUpgradeLevel => 0;
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Unplayable];
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new StringVar("Target")];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new StringVar("Target", "选择目标")];
     public StigmaTargetChoice() : base(-1, CardType.Skill, CardRarity.Token, TargetType.None) { }
     public void Configure(int index, string display)
     {
@@ -109,6 +115,8 @@ public sealed class EternalDamnation : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class ForgeNimble : MSHolyCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        HoverTipFactory.FromEnchantment<Nimble>();
     public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(5, ValueProp.Move)];
     public ForgeNimble() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
@@ -144,6 +152,8 @@ public sealed class Rest : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class MultipleReproduction : MSHolyCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [CardHoverTipSupport.Static("MAIDENSUCCUBUS_OVERDRAFT")];
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     public MultipleReproduction() : base(2, CardType.Skill, CardRarity.Rare, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)

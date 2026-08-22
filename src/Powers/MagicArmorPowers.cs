@@ -27,8 +27,9 @@ public sealed class MagicArmorPower : ModPowerTemplate
             return;
         }
 
-        // Protection is snapshotted only at turn start. Gaining magic armor
-        // later in the turn deliberately does not add protection charges.
+        // At the start of each player turn, protection is refreshed to the
+        // exact current armor amount. Multi-hit attacks can therefore consume
+        // more than one layer during the same turn.
         MagicArmorProtectionPower? current =
             Owner.GetPower<MagicArmorProtectionPower>();
         if (current is null)
@@ -79,6 +80,8 @@ public sealed class MagicArmorProtectionPower : ModPowerTemplate
 
         _preventedThisHit = false;
         Flash();
+        VfxCmd.PlayOnCreatureCenter(Owner, "vfx/vfx_block");
+        await CreatureCmd.TriggerAnim(Owner, "Hit", 0f);
         await PowerCmd.Decrement(this);
 
         MagicArmorPower? armor = Owner.GetPower<MagicArmorPower>();
@@ -87,8 +90,7 @@ public sealed class MagicArmorProtectionPower : ModPowerTemplate
             await PowerCmd.Decrement(armor);
         }
 
-        // Reaching zero armor ends transformation immediately and invalidates
-        // all unused charges from the start-of-turn snapshot.
+        // Reaching zero armor ends transformation immediately.
         if (Owner.GetPower<MagicArmorPower>() is null)
         {
             await PowerCmd.Remove<MagicArmorProtectionPower>(Owner);
@@ -104,16 +106,52 @@ public static class MagicArmorCmd
     public static int GetAmount(Player player) =>
         player.Creature.GetPower<MagicArmorPower>()?.Amount ?? 0;
 
-    public static Task Transform(
+    public static async Task Transform(
         PlayerChoiceContext choiceContext,
         Player player,
-        CardModel? source = null) =>
-        PowerCmd.Apply<MagicArmorPower>(
+        CardModel? source = null)
+    {
+        MagicArmorPower? previousArmor =
+            player.Creature.GetPower<MagicArmorPower>();
+        bool wasAlreadyTransformed = previousArmor is not null;
+
+        await PowerCmd.Apply<MagicArmorPower>(
             choiceContext,
             player.Creature,
             3,
             player.Creature,
             source);
+
+        // The initial transformation must be protective immediately. Gaining
+        // more armor while already transformed does not replenish protection
+        // generated for the current turn.
+        if (wasAlreadyTransformed)
+        {
+            return;
+        }
+
+        int armorAmount = GetAmount(player);
+        MagicArmorProtectionPower? protection =
+            player.Creature.GetPower<MagicArmorProtectionPower>();
+        if (protection is null)
+        {
+            await PowerCmd.Apply<MagicArmorProtectionPower>(
+                choiceContext,
+                player.Creature,
+                armorAmount,
+                player.Creature,
+                source);
+        }
+        else if (protection.Amount != armorAmount)
+        {
+            await PowerCmd.ModifyAmount(
+                choiceContext,
+                protection,
+                armorAmount - protection.Amount,
+                player.Creature,
+                source);
+        }
+    }
 
     public static async Task<bool> TrySpend(
         PlayerChoiceContext choiceContext,

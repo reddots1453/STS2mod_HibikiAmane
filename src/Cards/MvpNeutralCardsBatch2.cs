@@ -1,9 +1,11 @@
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
+using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
@@ -31,7 +33,7 @@ public sealed class MentalUnity : MSNeutralCard
     {
         ArgumentNullException.ThrowIfNull(play.Target);
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
-            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_magic").Execute(context);
+            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         if (play.Target.IsAlive)
             await PowerCmd.Apply<MentalUnityPower>(context, play.Target,
                 DynamicVars["MentalUnityPower"].BaseValue, Owner.Creature, this);
@@ -47,6 +49,8 @@ public sealed class MentalUnity : MSNeutralCard
 public sealed class ObstructingShot : MSNeutralCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [StunIntent.GetStaticHoverTip()];
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(3, ValueProp.Move)];
     public ObstructingShot() : base(1, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
@@ -54,7 +58,7 @@ public sealed class ObstructingShot : MSNeutralCard
         ArgumentNullException.ThrowIfNull(play.Target);
         bool shouldStun = play.Target.Monster?.IntendsToAttack == false;
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
-            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_projectile").Execute(context);
+            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         if (shouldStun && play.Target.IsAlive) await CreatureCmd.Stun(play.Target);
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
@@ -92,7 +96,7 @@ public sealed class MindsEye : MSNeutralCard
         ArgumentNullException.ThrowIfNull(play.Target);
         bool attacking = play.Target.Monster?.IntendsToAttack == true;
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
-            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_magic").Execute(context);
+            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         if (!play.Target.IsAlive) return;
         if (attacking)
             await PowerCmd.Apply<WeakPower>(context, play.Target, DynamicVars["WeakPower"].BaseValue, Owner.Creature, this);
@@ -132,7 +136,13 @@ public sealed class UltimateFlare : MSNeutralCard
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         UltimateFlarePower power = (UltimateFlarePower)ModelDb.Power<UltimateFlarePower>().ToMutable();
-        power.Damage = DynamicVars.Damage.BaseValue;
+        decimal damage = DynamicVars.Damage.BaseValue;
+        if (Enchantment is { } enchantment)
+        {
+            damage += enchantment.EnchantDamageAdditive(damage, DynamicVars.Damage.Props);
+            damage *= enchantment.EnchantDamageMultiplicative(damage, DynamicVars.Damage.Props);
+        }
+        power.Damage = damage;
         return PowerCmd.Apply(context, power, Owner.Creature, 1, Owner.Creature, this);
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(8);
@@ -161,6 +171,8 @@ public sealed class ResonanceArmor : MSNeutralCard
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class Lullaby : MSNeutralCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [HoverTipFactory.FromCard<DrowsyStatus>()];
     protected override IEnumerable<DynamicVar> CanonicalVars => [new PowerVar<LullabyPower>(2)];
     public Lullaby() : base(2, CardType.Power, CardRarity.Rare, TargetType.Self) { }
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>

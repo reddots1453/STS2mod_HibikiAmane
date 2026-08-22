@@ -29,7 +29,7 @@ public sealed class ChargeEnchantment : ModEnchantmentTemplate
 {
     public override bool HasExtraCardText => true;
     public override bool ShowAmount => true;
-    public override bool CanEnchantCardType(CardType cardType) => cardType == CardType.Skill;
+    public override bool CanEnchantCardType(CardType cardType) => true;
 
     public override async Task OnPlay(PlayerChoiceContext context, CardPlay? cardPlay)
     {
@@ -72,28 +72,6 @@ public sealed class SoulLinkEnchantment : ModEnchantmentTemplate
 }
 
 [RegisterEnchantment]
-public sealed class CurseInfectionEnchantment : CombatOnlyEnchantmentTemplate
-{
-    public override bool HasExtraCardText => true;
-
-    public override async Task AfterCardExhausted(
-        PlayerChoiceContext context,
-        CardModel card,
-        bool causedByEthereal)
-    {
-        if (card != Card) return;
-        await CardPileCmd.Draw(context, 2, card.Owner);
-        CardModel? next = PileType.Hand.GetPile(card.Owner).Cards
-            .Where(candidate => candidate.Enchantment == null)
-            .ToList()
-            .StableShuffle(card.Owner.RunState.Rng.CombatCardSelection)
-            .FirstOrDefault();
-        if (next != null)
-            MaidenSuccubus.Commands.CombatEnchantmentCmd.Apply<CurseInfectionEnchantment>(next, 1);
-    }
-}
-
-[RegisterEnchantment]
 public sealed class IronWallEnchantment : CombatOnlyEnchantmentTemplate
 {
     public override bool HasExtraCardText => true;
@@ -109,6 +87,20 @@ public sealed class IronWallEnchantment : CombatOnlyEnchantmentTemplate
     {
         if (cardSource == Card && dealer == Card.Owner.Creature && result.UnblockedDamage > 0)
             await CreatureCmd.GainBlock(Card.Owner.Creature, result.UnblockedDamage, ValueProp.Move, null);
+    }
+}
+
+[RegisterEnchantment]
+public sealed class ProliferationEnchantment : CombatOnlyEnchantmentTemplate
+{
+    public override bool HasExtraCardText => true;
+
+    public override async Task OnPlay(PlayerChoiceContext context, CardPlay? cardPlay)
+    {
+        if (cardPlay?.Card != Card || Card.CombatState is null)
+            return;
+        CardModel copy = Card.CreateClone();
+        await CardPileCmd.Add(copy, PileType.Draw, CardPilePosition.Random);
     }
 }
 

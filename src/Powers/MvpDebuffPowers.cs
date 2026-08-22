@@ -6,7 +6,9 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Powers;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
+using MaidenSuccubus.Cards;
 using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Content;
 
@@ -117,6 +119,13 @@ public sealed class BurningPower : ModPowerTemplate
         IEnumerable<Creature> participants)
     {
         if (side == Owner.Side)
-            await PowerCmd.TickDownDuration(this);
+            await PowerCmd.ModifyAmount(choiceContext, this, -1, Owner, null);
     }
+}
+
+[RegisterPower]
+public sealed class FearAuraStrengthLossPower : TemporaryStrengthPower
+{
+    public override AbstractModel OriginModel => ModelDb.Card<FearAura>();
+    protected override bool IsPositive => false;
 }

@@ -22,7 +22,7 @@ public abstract class MSInvasionCurseTemplate :
         [CardKeyword.Exhaust];
 
     public override CardAssetProfile AssetProfile => new(
-        PortraitPath: "res://images/atlases/card_atlas.sprites/beta.tres");
+        PortraitPath: "res://images/packed/card_portraits/ironclad/bash.png");
 
     protected MSInvasionCurseTemplate(int cost = 1)
         : base(cost, CardType.Curse, CardRarity.Curse, TargetType.None, true) { }
@@ -62,16 +62,41 @@ public abstract class MSEventCurseTemplate : ModCardTemplate
     public override bool CanBeGeneratedByModifiers => false;
     public override CardPoolModel Pool => ModelDb.CardPool<MSGeneratedCardPool>();
     public override CardAssetProfile AssetProfile => new(
-        PortraitPath: "res://images/atlases/card_atlas.sprites/beta.tres");
+        PortraitPath: "res://images/packed/card_portraits/ironclad/bash.png");
     protected MSEventCurseTemplate(int cost = -1)
         : base(cost, CardType.Curse, CardRarity.Curse, TargetType.None, true) { }
 }
 
-[RegisterCard(typeof(MSGeneratedCardPool))] public sealed class LewdMarkMinorCurse : MSEventCurseTemplate;
-[RegisterCard(typeof(MSGeneratedCardPool))] public sealed class LewdMarkSpreadCurse : MSEventCurseTemplate;
-[RegisterCard(typeof(MSGeneratedCardPool))] public sealed class LewdMarkCompleteCurse : MSEventCurseTemplate;
-[RegisterCard(typeof(MSGeneratedCardPool))] public sealed class TransparentOutfitCurse : MSEventCurseTemplate;
-[RegisterCard(typeof(MSGeneratedCardPool))] public sealed class InfatuationCurse : MSEventCurseTemplate { public InfatuationCurse() : base(2) { } }
+[RegisterCard(typeof(MSGeneratedCardPool))]
+public sealed class LewdMarkMinorCurse : MSEventCurseTemplate
+{
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Unplayable];
+}
+
+[RegisterCard(typeof(MSGeneratedCardPool))]
+public sealed class LewdMarkSpreadCurse : MSEventCurseTemplate
+{
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Unplayable];
+}
+
+[RegisterCard(typeof(MSGeneratedCardPool))]
+public sealed class LewdMarkCompleteCurse : MSEventCurseTemplate
+{
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Unplayable, CardKeyword.Retain];
+}
+
+[RegisterCard(typeof(MSGeneratedCardPool))]
+public sealed class TransparentOutfitCurse : MSEventCurseTemplate
+{
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Unplayable];
+}
+
+[RegisterCard(typeof(MSGeneratedCardPool))]
+public sealed class InfatuationCurse : MSEventCurseTemplate
+{
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
+    public InfatuationCurse() : base(2) { }
+}
 [RegisterCard(typeof(MSGeneratedCardPool))] public sealed class HypnosisCurse : MSEventCurseTemplate;
 [RegisterCard(typeof(MSGeneratedCardPool))] public sealed class GagCurse : MSEventCurseTemplate { public GagCurse() : base(2) { } }
 [RegisterCard(typeof(MSGeneratedCardPool))] public sealed class ClimaxBanCurse : MSEventCurseTemplate;

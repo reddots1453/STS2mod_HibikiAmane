@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Models;
+using MaidenSuccubus.Pools;
 
 namespace MaidenSuccubus.Core.Routes;
 
@@ -9,6 +10,18 @@ public static class RouteCardQuery
         if (card is IMaidenSuccubusRouteCard routeCard)
         {
             routeKind = routeCard.RouteKind;
+            return true;
+        }
+
+        routeKind = card.Pool switch
+        {
+            MSCorruptCardPool => RouteCardKind.Corrupt,
+            MSHolyCardPool => RouteCardKind.Holy,
+            MSNeutralCardPool => RouteCardKind.Neutral,
+            _ => default,
+        };
+        if (card.Pool is MSCorruptCardPool or MSHolyCardPool or MSNeutralCardPool)
+        {
             return true;
         }
 

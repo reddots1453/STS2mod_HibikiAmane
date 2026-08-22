@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MaidenSuccubus.Powers;
+using MaidenSuccubus.Cards;
 
 namespace MaidenSuccubus.Commands;
 
@@ -18,12 +19,18 @@ public static class OverdraftCmd
             return false;
         }
 
-        CardModel? accepted = await CardSelectCmd.FromChooseACardScreen(
+        OverdraftAcceptChoice accept =
+            source.CombatState!.CreateCard<OverdraftAcceptChoice>(source.Owner);
+        accept.Configure(armorCost);
+        OverdraftDeclineChoice decline =
+            source.CombatState.CreateCard<OverdraftDeclineChoice>(source.Owner);
+
+        CardModel? selected = await CardSelectCmd.FromChooseACardScreen(
             choiceContext,
-            [source],
+            [accept, decline],
             source.Owner,
-            canSkip: true);
-        return accepted is not null
+            canSkip: false);
+        return selected == accept
             && await MagicArmorCmd.TrySpend(
                 choiceContext,
                 source.Owner,

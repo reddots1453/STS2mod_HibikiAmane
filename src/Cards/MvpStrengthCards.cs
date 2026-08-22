@@ -3,11 +3,13 @@ using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Models.Powers;
+using MegaCrit.Sts2.Core.Saves.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Commands;
 using MaidenSuccubus.Pools;
@@ -19,20 +21,32 @@ namespace MaidenSuccubus.Cards;
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class DarkStorm : MSCorruptCard
 {
+    [SavedProperty]
+    public bool EnchantedOnPickup { get; set; }
+
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        HoverTipFactory.FromEnchantment<Glam>();
+
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new DamageVar(7, ValueProp.Move), new PowerVar<VulnerablePower>(1)];
 
     public DarkStorm() : base(2, CardType.Attack, CardRarity.Uncommon, TargetType.AllEnemies) { }
 
-    public override void AfterCreated()
+    public override Task AfterCardChangedPiles(
+        CardModel card,
+        PileType oldPileType,
+        AbstractModel? source)
     {
-        if (Enchantment != null)
-            return;
-
-        Glam glam = (Glam)ModelDb.Enchantment<Glam>().ToMutable();
-        EnchantInternal(glam, 1m);
-        glam.ModifyCard();
-        FinalizeUpgradeInternal();
+        if (card == this
+            && !EnchantedOnPickup
+            && oldPileType == PileType.None
+            && card.Pile?.Type == PileType.Deck)
+        {
+            EnchantedOnPickup = true;
+            if (Enchantment == null)
+                CardCmd.Enchant<Glam>(this, 1);
+        }
+        return Task.CompletedTask;
     }
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
@@ -40,7 +54,7 @@ public sealed class DarkStorm : MSCorruptCard
         ArgumentNullException.ThrowIfNull(CombatState);
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
             .TargetingAllOpponents(CombatState)
-            .WithHitFx("vfx/vfx_attack_magic")
+            .WithHitFx("vfx/vfx_attack_slash")
             .Execute(context);
         foreach (var enemy in CombatState.HittableEnemies.ToArray())
         {
@@ -77,6 +91,8 @@ public sealed class CurseWedge : MSCorruptCard
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class SharpForge : MSCorruptCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        HoverTipFactory.FromEnchantment<Sharp>(DynamicVars["Sharp"].IntValue);
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new DamageVar(8, ValueProp.Move), new DynamicVar("Sharp", 2)];
 

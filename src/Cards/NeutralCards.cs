@@ -15,26 +15,32 @@ namespace MaidenSuccubus.Cards;
 public sealed class BalanceBlade : MSNeutralCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(17, ValueProp.Move), new DynamicVar("Penalty", 3)];
+    [
+        new CalculationBaseVar(17),
+        new ExtraDamageVar(-3),
+        new CalculatedDamageVar(ValueProp.Move).WithMultiplier(
+            static (card, _) => Math.Abs(
+                CorruptionQuery.Get((RunState)card.Owner.RunState))),
+    ];
 
     public BalanceBlade() : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
 
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target);
-        decimal damage = Math.Max(0, DynamicVars.Damage.BaseValue
-            - Math.Abs(CorruptionQuery.Get((RunState)Owner.RunState))
-            * DynamicVars["Penalty"].BaseValue);
-        await DamageCmd.Attack(damage).FromCard(this, cardPlay).Targeting(cardPlay.Target)
+        await DamageCmd.Attack(DynamicVars.CalculatedDamage)
+            .FromCard(this, cardPlay).Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_slash").Execute(choiceContext);
     }
 
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(4);
+    protected override void OnUpgrade() =>
+        DynamicVars.CalculationBase.UpgradeValueBy(4);
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class DoubleDefense : MSNeutralCard
 {
+    protected override HashSet<CardTag> CanonicalTags => [CardTag.Defend];
     public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(4, ValueProp.Move)];
 
@@ -47,21 +53,4 @@ public sealed class DoubleDefense : MSNeutralCard
     }
 
     protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(2);
-}
-
-public sealed class EvasiveFootwork : MSNeutralCard
-{
-    public override bool GainsBlock => true;
-    protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new BlockVar(4, ValueProp.Move), new CardsVar(2)];
-
-    public EvasiveFootwork() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
-
-    protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
-    {
-        await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, cardPlay);
-        await CardPileCmd.Draw(choiceContext, DynamicVars.Cards.BaseValue, Owner);
-    }
-
-    protected override void OnUpgrade() => DynamicVars.Cards.UpgradeValueBy(1);
 }

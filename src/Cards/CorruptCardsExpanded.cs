@@ -22,7 +22,9 @@ public sealed class BlasphemousDesire : MSCorruptCard
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<StrengthPower>(3), new DynamicVar("Desire", 5)];
+        [new PowerVar<StrengthPower>(3),
+            SecondaryResourceVars.ForLocal(
+                "Desire", MaidenSuccubusMod.ModId, DesireResource.LocalId, 5)];
 
     public BlasphemousDesire()
         : base(0, CardType.Skill, CardRarity.Rare, TargetType.Self)
@@ -51,33 +53,6 @@ public sealed class BlasphemousDesire : MSCorruptCard
 
     protected override void OnUpgrade() =>
         DynamicVars["Desire"].UpgradeValueBy(2);
-}
-
-public sealed class DistractingClaw : MSCorruptCard
-{
-    protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(5, ValueProp.Move), new DynamicVar("Hits", 3)];
-
-    public DistractingClaw()
-        : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy)
-    {
-        this.SecondaryCosts().Set(DesireResource.Id, 1);
-    }
-
-    protected override Task OnPlay(
-        PlayerChoiceContext choiceContext,
-        CardPlay cardPlay)
-    {
-        ArgumentNullException.ThrowIfNull(cardPlay.Target);
-        return DamageCmd.Attack(DynamicVars.Damage.BaseValue)
-            .WithHitCount(DynamicVars["Hits"].IntValue)
-            .FromCard(this, cardPlay)
-            .Targeting(cardPlay.Target)
-            .WithHitFx("vfx/vfx_attack_slash")
-            .Execute(choiceContext);
-    }
-
-    protected override void OnUpgrade() => DynamicVars["Hits"].UpgradeValueBy(1);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]
@@ -229,61 +204,6 @@ public sealed class CursedTomb : MSCorruptCard
     protected override void OnUpgrade() => DynamicVars.Cards.UpgradeValueBy(1);
 }
 
-public sealed class MemoryKindling : MSCorruptCard
-{
-    protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<MemoryKindlingPower>(1)];
-
-    public MemoryKindling()
-        : base(1, CardType.Power, CardRarity.Uncommon, TargetType.Self)
-    {
-    }
-
-    protected override Task OnPlay(
-        PlayerChoiceContext choiceContext,
-        CardPlay cardPlay) =>
-        PowerCmd.Apply<MemoryKindlingPower>(
-            choiceContext,
-            Owner.Creature,
-            DynamicVars["MemoryKindlingPower"].BaseValue,
-            Owner.Creature,
-            this);
-
-    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
-}
-
-public sealed class PainfulRend : MSCorruptCard
-{
-    protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(3, ValueProp.Move), new DynamicVar("Hits", 2)];
-
-    public PainfulRend()
-        : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy)
-    {
-    }
-
-    protected override async Task OnPlay(
-        PlayerChoiceContext choiceContext,
-        CardPlay cardPlay)
-    {
-        ArgumentNullException.ThrowIfNull(cardPlay.Target);
-        await DamageCmd.Attack(DynamicVars.Damage.BaseValue)
-            .WithHitCount(DynamicVars["Hits"].IntValue)
-            .FromCard(this, cardPlay)
-            .Targeting(cardPlay.Target)
-            .WithHitFx("vfx/vfx_attack_slash")
-            .Execute(choiceContext);
-        await PowerCmd.Apply<StrengthPower>(
-            choiceContext,
-            Owner.Creature,
-            1,
-            Owner.Creature,
-            this);
-    }
-
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(2);
-}
-
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class PriceOfStrength : MSCorruptCard
 {
@@ -376,64 +296,13 @@ public sealed class BurningDesire : MSCorruptCard
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(1);
 }
 
-public sealed class AbyssalEcho : MSCorruptCard
-{
-    protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<AbyssalEchoPower>(1)];
-
-    public AbyssalEcho()
-        : base(1, CardType.Power, CardRarity.Rare, TargetType.Self)
-    {
-    }
-
-    protected override Task OnPlay(
-        PlayerChoiceContext choiceContext,
-        CardPlay cardPlay) =>
-        PowerCmd.Apply<AbyssalEchoPower>(
-            choiceContext,
-            Owner.Creature,
-            1,
-            Owner.Creature,
-            this);
-
-    protected override void OnUpgrade() => AddKeyword(CardKeyword.Innate);
-}
-
-public sealed class WallArm : MSCorruptCard
-{
-    public override bool GainsBlock => true;
-    protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new BlockVar(9, ValueProp.Move)];
-
-    public WallArm()
-        : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self)
-    {
-    }
-
-    protected override Task OnPlay(
-        PlayerChoiceContext choiceContext,
-        CardPlay cardPlay)
-    {
-        int strength = Owner.Creature.Powers
-            .OfType<StrengthPower>()
-            .Sum(power => power.Amount);
-        return CreatureCmd.GainBlock(
-            Owner.Creature,
-            DynamicVars.Block.BaseValue + strength,
-            DynamicVars.Block.Props,
-            cardPlay);
-    }
-
-    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(3);
-}
-
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class FearAura : MSCorruptCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<StrengthPower>(3)];
+        [new PowerVar<FearAuraStrengthLossPower>(3)];
 
     public FearAura()
         : base(0, CardType.Skill, CardRarity.Uncommon, TargetType.AllEnemies)
@@ -445,16 +314,10 @@ public sealed class FearAura : MSCorruptCard
         CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(CombatState);
-        decimal loss = DynamicVars["StrengthPower"].BaseValue;
+        decimal loss = DynamicVars["FearAuraStrengthLossPower"].BaseValue;
         foreach (var enemy in CombatState.HittableEnemies)
         {
-            await PowerCmd.Apply<StrengthPower>(
-                choiceContext,
-                enemy,
-                -loss,
-                Owner.Creature,
-                this);
-            await PowerCmd.Apply<RestoreStrengthAtTurnEndPower>(
+            await PowerCmd.Apply<FearAuraStrengthLossPower>(
                 choiceContext,
                 enemy,
                 loss,
@@ -464,7 +327,7 @@ public sealed class FearAura : MSCorruptCard
     }
 
     protected override void OnUpgrade() =>
-        DynamicVars["StrengthPower"].UpgradeValueBy(1);
+        DynamicVars["FearAuraStrengthLossPower"].UpgradeValueBy(1);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]
@@ -489,7 +352,7 @@ public sealed class TentacleArmor : MSCorruptCard
             DynamicVars["PlatingPower"].BaseValue,
             Owner.Creature,
             this);
-        CardModel copy = Owner.RunState.CreateCard<TentacleArmor>(Owner);
+        CardModel copy = CombatState!.CreateCard<TentacleArmor>(Owner);
         await CardPileCmd.Add(copy, PileType.Draw, CardPilePosition.Random);
     }
 

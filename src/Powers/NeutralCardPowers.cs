@@ -21,7 +21,7 @@ public sealed class BasicTrainingPower : ModPowerTemplate
         Creature? dealer,
         CardModel? cardSource,
         CardPlay? cardPlay) =>
-        dealer == Owner
+        (dealer == Owner || cardSource?.Owner.Creature == Owner)
         && cardSource?.Tags.Contains(CardTag.Strike) == true
         && props.IsPoweredAttack()
             ? Amount
@@ -34,6 +34,7 @@ public sealed class BasicTrainingPower : ModPowerTemplate
         CardModel? cardSource,
         CardPlay? cardPlay) =>
         target == Owner
+        && cardSource?.Owner.Creature == Owner
         && cardSource?.Tags.Contains(CardTag.Defend) == true
         && props.IsPoweredCardOrMonsterMoveBlock()
             ? Amount

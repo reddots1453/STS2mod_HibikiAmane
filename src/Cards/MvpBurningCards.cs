@@ -27,7 +27,7 @@ public sealed class MiasmaFlame : MSCorruptCard
         ArgumentNullException.ThrowIfNull(CombatState);
         Creature[] enemies = CombatState.HittableEnemies.ToArray();
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
-            .TargetingAllOpponents(CombatState).WithHitFx("vfx/vfx_attack_fire").Execute(context);
+            .TargetingAllOpponents(CombatState).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         foreach (Creature enemy in enemies.Where(enemy => enemy.IsAlive))
             await PowerCmd.Apply<BurningPower>(context, enemy, DynamicVars["BurningPower"].BaseValue, Owner.Creature, this);
     }

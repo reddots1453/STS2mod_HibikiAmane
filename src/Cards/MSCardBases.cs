@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using STS2RitsuLib.Scaffolding.Content;
 using MaidenSuccubus.Core.Routes;
@@ -12,7 +13,12 @@ public abstract class MSNeutralCardTemplate : ModCardTemplate, IMaidenSuccubusRo
     public override CardPoolModel Pool => ModelDb.CardPool<MSNeutralCardPool>();
 
     public override CardAssetProfile AssetProfile => new(
-        PortraitPath: "res://images/atlases/card_atlas.sprites/beta.tres");
+        PortraitPath: "res://images/packed/card_portraits/ironclad/bash.png");
+
+    protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
+    protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
+        CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)
+            .Concat(CardSpecificHoverTips);
 
     protected MSNeutralCardTemplate(
         int cost,
@@ -34,7 +40,12 @@ public abstract class MSCorruptCardTemplate : ModCardTemplate, IMaidenSuccubusRo
     public override CardPoolModel Pool => ModelDb.CardPool<MSCorruptCardPool>();
 
     public override CardAssetProfile AssetProfile => new(
-        PortraitPath: "res://images/atlases/card_atlas.sprites/beta.tres");
+        PortraitPath: "res://images/packed/card_portraits/ironclad/bash.png");
+
+    protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
+    protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
+        CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)
+            .Concat(CardSpecificHoverTips);
 
     protected MSCorruptCardTemplate(
         int cost,
@@ -56,7 +67,12 @@ public abstract class MSHolyCardTemplate : ModCardTemplate, IMaidenSuccubusRoute
     public override CardPoolModel Pool => ModelDb.CardPool<MSHolyCardPool>();
 
     public override CardAssetProfile AssetProfile => new(
-        PortraitPath: "res://images/atlases/card_atlas.sprites/beta.tres");
+        PortraitPath: "res://images/packed/card_portraits/ironclad/bash.png");
+
+    protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
+    protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
+        CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)
+            .Concat(CardSpecificHoverTips);
 
     protected MSHolyCardTemplate(
         int cost,

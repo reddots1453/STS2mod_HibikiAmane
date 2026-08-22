@@ -24,7 +24,7 @@ public sealed class DarkThrust : MSCorruptCard
     {
         ArgumentNullException.ThrowIfNull(play.Target);
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
-            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_pierce").Execute(context);
+            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         await CardPileCmd.Draw(context, DynamicVars.Cards.IntValue, Owner);
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
@@ -42,7 +42,7 @@ public sealed class BlasphemousTwilight : MSCorruptCard
         ArgumentNullException.ThrowIfNull(CombatState);
         return DamageCmd.Attack(DynamicVars.Damage.BaseValue).WithHitCount(DynamicVars["Hits"].IntValue)
             .FromCard(this, play).TargetingRandomOpponents(CombatState)
-            .WithHitFx("vfx/vfx_attack_magic").Execute(context);
+            .WithHitFx("vfx/vfx_attack_slash").Execute(context);
     }
     protected override void OnUpgrade()
     {
@@ -54,6 +54,9 @@ public sealed class BlasphemousTwilight : MSCorruptCard
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class MagicOverdraft : MSCorruptCard
 {
+    protected override IEnumerable<MegaCrit.Sts2.Core.HoverTips.IHoverTip>
+        CardSpecificHoverTips =>
+        [CardHoverTipSupport.Static("MAIDENSUCCUBUS_OVERDRAFT")];
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(10, ValueProp.Move)];
     public MagicOverdraft() : base(0, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) =>
         this.SecondaryCosts().Set(DesireResource.Id, 3);
@@ -61,7 +64,7 @@ public sealed class MagicOverdraft : MSCorruptCard
     {
         ArgumentNullException.ThrowIfNull(play.Target);
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
-            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_magic").Execute(context);
+            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         if (await OverdraftCmd.Offer(context, this, 1))
             await PowerCmd.Apply<SlipperyPower>(context, Owner.Creature, 1, Owner.Creature, this);
     }
@@ -82,7 +85,6 @@ public sealed class WinterHolly : MSCorruptCard
         ArgumentNullException.ThrowIfNull(CombatState);
         CardModel copy = CombatState.CloneCard(this);
         copy.AddKeyword(CardKeyword.Ethereal);
-        copy.RemoveKeyword(CardKeyword.Exhaust);
         await CardPileCmd.Add(copy, PileType.Hand);
     }
     protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(3);
@@ -111,7 +113,7 @@ public sealed class AllHopeLost : MSCorruptCard, ISecondaryResourceHookListener
         decimal damage = DynamicVars.Damage.BaseValue * _desireSpent;
         _desireSpent = 0;
         return DamageCmd.Attack(damage).WithHitCount(hits).FromCard(this, play)
-            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_magic").Execute(context);
+            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
     }
     protected override void OnUpgrade() { }
 }

@@ -1,8 +1,10 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Rewards;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
+using MaidenSuccubus.Acts;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.Rewards;
@@ -13,6 +15,27 @@ namespace MaidenSuccubus.Patches;
 [HarmonyPatch(typeof(RewardsCmd), nameof(RewardsCmd.OfferForRoomEnd))]
 public static class BossBlessingPatch
 {
+    [HarmonyPrefix]
+    public static bool Prefix(
+        Player player,
+        AbstractRoom room,
+        ref Task __result)
+    {
+        if (room is not CombatRoom { RoomType: RoomType.Boss }
+            || player.RunState is not RunState runState
+            || runState.CurrentActIndex != 2
+            || !runState.Acts.Any(act => act is MaidenSuccubusFourthAct)
+            || !M5Progress.Handle.Get(runState).FourthRouteThirdBossDefeated)
+        {
+            return true;
+        }
+
+        MaidenSuccubusMod.Logger.Info(
+            "Suppressing vanilla Act 3 boss rewards before entering the appended Fourth Act.");
+        __result = new RewardsSet(player).EmptyForRoom(room).Offer();
+        return false;
+    }
+
     [HarmonyPostfix]
     public static void Postfix(
         Player player,

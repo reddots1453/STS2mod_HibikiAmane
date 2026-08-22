@@ -1,4 +1,6 @@
 {
+  "MAIDENSUCCUBUS_EVENT_CORRUPTION_GAIN.description": "{Original}\n[purple]获得1点堕落值。[/purple]",
+  "MAIDENSUCCUBUS_EVENT_CORRUPTION_LOSE.description": "{Original}\n[blue]失去1点堕落值。[/blue]",
   "WHISPERING_HOLLOW.pages.INITIAL.options.MS_PURIFY.title": "净化树木",
   "WHISPERING_HOLLOW.pages.INITIAL.options.MS_PURIFY.description": "获得300金币。",
   "WHISPERING_HOLLOW.pages.INITIAL.options.MS_PURIFY_LOCKED.title": "[需要堕落值-2或更低] 净化树木",

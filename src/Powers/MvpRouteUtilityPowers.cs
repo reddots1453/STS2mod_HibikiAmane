@@ -62,8 +62,13 @@ public sealed class SanctuaryPower : ModPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
-    public override decimal ModifyHpLostAfterOsty(Creature target, decimal amount, ValueProp props, Creature? dealer, CardModel? cardSource) =>
-        target == Owner ? decimal.Floor(amount / 2m) : amount;
+    public override decimal ModifyDamageMultiplicative(
+        Creature? target,
+        decimal amount,
+        ValueProp props,
+        Creature? dealer,
+        CardModel? cardSource,
+        CardPlay? cardPlay) => target == Owner ? 0.5m : 1m;
     public override async Task AfterSideTurnStart(CombatSide side, IReadOnlyList<Creature> participants, ICombatState combatState)
     {
         if (side == Owner.Side)
@@ -90,7 +95,7 @@ public sealed class BlizzardEchoPower : ModPowerTemplate
             ValueProp.Move,
             Owner);
         await CardPileCmd.AddGeneratedCardToCombat(
-            Owner.Player.RunState.CreateCard<IceMist>(Owner.Player), PileType.Hand, Owner.Player);
+            Owner.CombatState.CreateCard<IceMist>(Owner.Player), PileType.Hand, Owner.Player);
         await PowerCmd.Decrement(this);
     }
 }

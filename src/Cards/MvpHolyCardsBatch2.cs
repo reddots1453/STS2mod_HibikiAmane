@@ -3,10 +3,12 @@ using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Commands;
+using MaidenSuccubus.Cards.Scriptures;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
 using STS2RitsuLib.Interop.AutoRegistration;
@@ -16,6 +18,8 @@ namespace MaidenSuccubus.Cards;
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class Consecration : MSHolyCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        ScriptureCardPreview.All();
     public Consecration() : base(1, CardType.Power, CardRarity.Uncommon, TargetType.Self) { }
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
         PowerCmd.Apply<ConsecrationPower>(context, Owner.Creature, 1, Owner.Creature, this);
@@ -25,13 +29,15 @@ public sealed class Consecration : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class HolyPunishment : MSHolyCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        ScriptureCardPreview.All();
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(9, ValueProp.Move)];
     public HolyPunishment() : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
-            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_magic").Execute(context);
+            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         CardPile draw = PileType.Draw.GetPile(Owner);
         if (draw.Cards.Count == 0) return;
         CardModel? card = (await CardSelectCmd.FromCombatPile(context, draw, Owner,
@@ -63,7 +69,7 @@ public sealed class ExternalPowerSkeleton : MSHolyCard
     {
         ArgumentNullException.ThrowIfNull(CombatState);
         return DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
-            .TargetingAllOpponents(CombatState).WithHitFx("vfx/vfx_attack_magic").Execute(context);
+            .TargetingAllOpponents(CombatState).WithHitFx("vfx/vfx_attack_slash").Execute(context);
     }
     public override async Task BeforeFlush(PlayerChoiceContext context, Player player)
     {

@@ -274,43 +274,38 @@ public sealed class ChastityRouteRelic : FourthRouteRelic
 [RegisterRelic(typeof(MSRelicPool))]
 public sealed class BenevolenceRouteRelic : FourthRouteRelic
 {
-    private int _blessedRewardsRemaining;
-    [SavedProperty]
-    public int BlessedRewardsRemaining
-    {
-        get => _blessedRewardsRemaining;
-        set { AssertMutable(); _blessedRewardsRemaining = Math.Max(0, value); }
-    }
     public override FourthRouteQuest Quest => FourthRouteQuest.Benevolence;
     public override bool HasUponPickupEffect => true;
     public override async Task AfterObtained()
     {
         if (Stage == 4) return;
         int count = Stage >= 3 ? 3 : 2;
-        if (Stage >= 3) BlessedRewardsRemaining = count;
         CardCreationOptions options = new(AllMaidenSuccubusCards.Pools, CardCreationSource.Other, CardRarityOddsType.RegularEncounter);
         List<Reward> rewards = [];
-        for (int i = 0; i < count; i++) rewards.Add(new CardReward(options, 3, Owner));
+        for (int i = 0; i < count; i++)
+        {
+            var reward = new CardReward(options, 3, Owner);
+            if (Stage >= 3)
+                reward.AfterGenerated += () => BlessRewardOptions(reward);
+            rewards.Add(reward);
+        }
         await RewardsCmd.OfferCustom(Owner, rewards);
     }
 
-    public override Task AfterCardChangedPiles(CardModel card, PileType oldPileType, AbstractModel? source)
+    private void BlessRewardOptions(CardReward reward)
     {
-        if (Stage < 3 || BlessedRewardsRemaining <= 0 || card.Owner != Owner
-            || oldPileType != PileType.None || card.Pile?.Type != PileType.Deck)
-            return Task.CompletedTask;
-        if (card.IsUpgradable) CardCmd.Upgrade(card);
-        if (card.Enchantment == null)
+        foreach (CardModel card in reward.Cards)
         {
+            if (card.IsUpgradable)
+                CardCmd.Upgrade(card);
             List<EnchantmentModel> options = ModelDb.DebugEnchantments
                 .Where(enchantment => enchantment.GetType().Namespace?.StartsWith("MegaCrit.Sts2.Core.Models.Enchantments") == true)
                 .Select(enchantment => enchantment.ToMutable())
                 .Where(enchantment => enchantment.CanEnchant(card))
                 .ToList().StableShuffle(Owner.RunState.Rng.Niche);
-            if (options.FirstOrDefault() is { } enchantment) CardCmd.Enchant(enchantment, card, 1);
+            if (options.FirstOrDefault() is { } enchantment)
+                CardCmd.Enchant(enchantment, card, 1);
         }
-        BlessedRewardsRemaining--;
-        return Task.CompletedTask;
     }
 }
 

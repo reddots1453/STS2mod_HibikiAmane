@@ -19,7 +19,9 @@ public sealed class EcstasyDew : MSCorruptCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DynamicVar("Desire", 2), new CardsVar(1)];
+        [SecondaryResourceVars.ForLocal(
+            "Desire", MaidenSuccubusMod.ModId, DesireResource.LocalId, 2),
+            new CardsVar(1)];
     public EcstasyDew() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
@@ -44,21 +46,23 @@ public sealed class MiasmaAbsorption : MSCorruptCard
 public sealed class LastStand : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(3, ValueProp.Move), new DynamicVar("PerDebuff", 3)];
+    [
+        new CalculationBaseVar(3),
+        new ExtraDamageVar(3),
+        new CalculatedDamageVar(ValueProp.Move).WithMultiplier(
+            static (card, _) => PowerLayerQuery.CountDebuffLayers(card.Owner.Creature)),
+    ];
     public LastStand() : base(0, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
-        decimal damage = DynamicVars.Damage.BaseValue
-            + PowerLayerQuery.CountDebuffLayers(Owner.Creature)
-            * DynamicVars["PerDebuff"].BaseValue;
-        return DamageCmd.Attack(damage).FromCard(this, play).Targeting(play.Target)
+        return DamageCmd.Attack(DynamicVars.CalculatedDamage).FromCard(this, play).Targeting(play.Target)
             .WithHitFx("vfx/vfx_attack_slash").Execute(context);
     }
     protected override void OnUpgrade()
     {
-        DynamicVars.Damage.UpgradeValueBy(1);
-        DynamicVars["PerDebuff"].UpgradeValueBy(1);
+        DynamicVars.CalculationBase.UpgradeValueBy(1);
+        DynamicVars.ExtraDamage.UpgradeValueBy(1);
     }
 }
 
@@ -120,21 +124,23 @@ public sealed class SoulImpact : MSHolyCard
 public sealed class MagicBurst : MSHolyCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(7, ValueProp.Move), new DynamicVar("PerBuff", 2)];
+    [
+        new CalculationBaseVar(7),
+        new ExtraDamageVar(2),
+        new CalculatedDamageVar(ValueProp.Move).WithMultiplier(
+            static (card, _) => PowerLayerQuery.CountBuffLayers(card.Owner.Creature)),
+    ];
     public MagicBurst() : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
-        decimal damage = DynamicVars.Damage.BaseValue
-            + PowerLayerQuery.CountBuffLayers(Owner.Creature)
-            * DynamicVars["PerBuff"].BaseValue;
-        return DamageCmd.Attack(damage).FromCard(this, play).Targeting(play.Target)
-            .WithHitFx("vfx/vfx_attack_magic").Execute(context);
+        return DamageCmd.Attack(DynamicVars.CalculatedDamage).FromCard(this, play).Targeting(play.Target)
+            .WithHitFx("vfx/vfx_attack_slash").Execute(context);
     }
     protected override void OnUpgrade()
     {
-        DynamicVars.Damage.UpgradeValueBy(3);
-        DynamicVars["PerBuff"].UpgradeValueBy(1);
+        DynamicVars.CalculationBase.UpgradeValueBy(3);
+        DynamicVars.ExtraDamage.UpgradeValueBy(1);
     }
 }
 

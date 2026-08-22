@@ -31,14 +31,6 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
     private int _displayedValue = int.MaxValue;
     private bool _isShown = false;
     private NTopBar? _topBar;
-    private readonly HoverTip _hoverTip = new(
-        new LocString(
-            "static_hover_tips",
-            "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.title"),
-        new LocString(
-            "static_hover_tips",
-            "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.description"));
-
     // 诊断标记（每个关键路径首次触发时 log 一次）
     private bool _loggedSetup;
     private bool _loggedNullRunState;
@@ -310,9 +302,18 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
             return;
         }
 
+        var description = new LocString(
+            "static_hover_tips",
+            "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.description");
+        description.Add("Current", _displayedValue);
+        var hoverTip = new HoverTip(
+            new LocString(
+                "static_hover_tips",
+                "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.title"),
+            description);
         NHoverTipSet.CreateAndShow(
             this,
-            _hoverTip,
+            hoverTip,
             HoverTip.GetHoverTipAlignment(this));
     }
 

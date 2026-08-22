@@ -9,6 +9,7 @@ using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Helpers;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
@@ -67,6 +68,10 @@ internal static class MvpEventRules
         }
         return Task.CompletedTask;
     }
+
+    internal static bool TryGetCorruptionDelta(
+        string optionKey,
+        out int delta) => CorruptionByOption.TryGetValue(optionKey, out delta);
 
     internal static bool Applies(EventModel model) =>
         model.Owner?.Character is MaidenSuccubusCharacter
@@ -181,6 +186,55 @@ internal static class MvpEventRules
         AccessTools.Method(typeof(EventModel), "SetEventFinished")?.Invoke(
             model,
             [new LocString("events", locKey)]);
+}
+
+[HarmonyPatch]
+public static class VanillaEventCorruptionDescriptionPatch
+{
+    private static readonly FieldInfo DescriptionField =
+        AccessTools.Field(typeof(EventOption), "<Description>k__BackingField");
+
+    public static MethodBase TargetMethod() => AccessTools.Constructor(
+        typeof(EventOption),
+        [
+            typeof(EventModel),
+            typeof(Func<Task>),
+            typeof(string),
+            typeof(IEnumerable<IHoverTip>),
+        ]);
+
+    [HarmonyPostfix]
+    public static void Postfix(
+        EventOption __instance,
+        EventModel __0,
+        string __2) => Safe.Run(
+        () => Decorate(__instance, __0, __2),
+        nameof(VanillaEventCorruptionDescriptionPatch));
+
+    private static void Decorate(
+        EventOption option,
+        EventModel eventModel,
+        string optionKey)
+    {
+        if (!MvpEventRules.Applies(eventModel)
+            || !MvpEventRules.TryGetCorruptionDelta(optionKey, out int delta)
+            || DescriptionField.GetValue(option) is not LocString original)
+        {
+            return;
+        }
+
+        var decorated = new LocString(
+            "events",
+            delta > 0
+                ? "MAIDENSUCCUBUS_EVENT_CORRUPTION_GAIN.description"
+                : "MAIDENSUCCUBUS_EVENT_CORRUPTION_LOSE.description");
+        // LocString.Add(LocString) formats immediately.  Populate the original
+        // option with the event vars first, otherwise placeholders such as
+        // {MaxHp}, {Damage}, and {Heal} are frozen into the wrapper verbatim.
+        eventModel.DynamicVars.AddTo(original);
+        decorated.Add("Original", original);
+        DescriptionField.SetValue(option, decorated);
+    }
 }
 
 internal static class ThresholdEventOptionFactory

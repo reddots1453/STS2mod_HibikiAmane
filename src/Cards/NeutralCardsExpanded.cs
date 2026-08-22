@@ -23,57 +23,18 @@ using STS2RitsuLib.Interop.AutoRegistration;
 
 namespace MaidenSuccubus.Cards;
 
-public sealed class Impermanence : MSNeutralCard
-{
-    public override bool GainsBlock => true;
-    protected override IEnumerable<DynamicVar> CanonicalVars =>
-    [
-        new DamageVar(4, ValueProp.Move),
-        new BlockVar(4, ValueProp.Move),
-        new DynamicVar("Scaling", 3),
-    ];
-
-    public Impermanence()
-        : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy)
-    {
-    }
-
-    protected override async Task OnPlay(
-        PlayerChoiceContext choiceContext,
-        CardPlay cardPlay)
-    {
-        ArgumentNullException.ThrowIfNull(cardPlay.Target);
-        int corruption = CorruptionQuery.Get((RunState)Owner.RunState);
-        decimal damage = DynamicVars.Damage.BaseValue
-            + Math.Max(0, corruption) * DynamicVars["Scaling"].BaseValue;
-        decimal block = DynamicVars.Block.BaseValue
-            + Math.Max(0, -corruption) * DynamicVars["Scaling"].BaseValue;
-        await DamageCmd.Attack(damage)
-            .FromCard(this, cardPlay)
-            .Targeting(cardPlay.Target)
-            .WithHitFx("vfx/vfx_attack_slash")
-            .Execute(choiceContext);
-        await CreatureCmd.GainBlock(
-            Owner.Creature,
-            block,
-            ValueProp.Move,
-            cardPlay);
-    }
-
-    protected override void OnUpgrade()
-    {
-        DynamicVars.Damage.UpgradeValueBy(1);
-        DynamicVars.Block.UpgradeValueBy(1);
-        DynamicVars["Scaling"].UpgradeValueBy(1);
-    }
-}
-
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class BalanceShield : MSNeutralCard
 {
     public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new BlockVar(14, ValueProp.Move), new DynamicVar("Penalty", 3)];
+    [
+        new CalculationBaseVar(14),
+        new CalculationExtraVar(-3),
+        new CalculatedBlockVar(ValueProp.Move).WithMultiplier(
+            static (card, _) => Math.Abs(
+                CorruptionQuery.Get((RunState)card.Owner.RunState))),
+    ];
 
     public BalanceShield()
         : base(1, CardType.Skill, CardRarity.Common, TargetType.Self)
@@ -84,19 +45,15 @@ public sealed class BalanceShield : MSNeutralCard
         PlayerChoiceContext choiceContext,
         CardPlay cardPlay)
     {
-        decimal block = Math.Max(
-            0,
-            DynamicVars.Block.BaseValue
-                - Math.Abs(CorruptionQuery.Get((RunState)Owner.RunState))
-                * DynamicVars["Penalty"].BaseValue);
         return CreatureCmd.GainBlock(
             Owner.Creature,
-            block,
-            ValueProp.Move,
+            DynamicVars.CalculatedBlock.Calculate(null),
+            DynamicVars.CalculatedBlock.Props,
             cardPlay);
     }
 
-    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(4);
+    protected override void OnUpgrade() =>
+        DynamicVars.CalculationBase.UpgradeValueBy(4);
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]
@@ -136,7 +93,19 @@ public sealed class SteadyGuard : MSNeutralCard
 {
     public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new BlockVar(13, ValueProp.Move), new DynamicVar("BonusBlock", 5)];
+    [
+        new CalculationBaseVar(13),
+        new CalculationExtraVar(5),
+        new CalculatedBlockVar(ValueProp.Move).WithMultiplier(
+            static (card, _) => CombatManager.Instance.History.Entries
+                .OfType<DamageReceivedEntry>()
+                .Any(entry =>
+                    entry.Receiver == card.Owner.Creature
+                    && !entry.Result.WasFullyBlocked
+                    && entry.HappenedLastPlayerTurn(card.Owner))
+                    ? 0
+                    : 1),
+    ];
 
     public SteadyGuard()
         : base(2, CardType.Skill, CardRarity.Common, TargetType.Self)
@@ -147,80 +116,29 @@ public sealed class SteadyGuard : MSNeutralCard
         PlayerChoiceContext choiceContext,
         CardPlay cardPlay)
     {
-        bool lostHpLastTurn = CombatManager.Instance.History.Entries
-            .OfType<DamageReceivedEntry>()
-            .Any(entry =>
-                entry.Receiver == Owner.Creature
-                && !entry.Result.WasFullyBlocked
-                && entry.HappenedLastPlayerTurn(Owner));
-        decimal block = DynamicVars.Block.BaseValue
-            + (lostHpLastTurn ? 0 : DynamicVars["BonusBlock"].BaseValue);
         await CreatureCmd.GainBlock(
             Owner.Creature,
-            block,
-            ValueProp.Move,
+            DynamicVars.CalculatedBlock.Calculate(null),
+            DynamicVars.CalculatedBlock.Props,
             cardPlay);
     }
 
     protected override void OnUpgrade()
     {
-        DynamicVars.Block.UpgradeValueBy(4);
+        DynamicVars.CalculationBase.UpgradeValueBy(4);
     }
-}
-
-public sealed class CloseQuartersBlade : MSNeutralCard
-{
-    public override IEnumerable<CardKeyword> CanonicalKeywords =>
-        [MaidenSuccubus.Keywords.PortableKeyword.Value];
-    protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(10, ValueProp.Move)];
-
-    public CloseQuartersBlade()
-        : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy)
-    {
-    }
-
-    protected override Task OnPlay(
-        PlayerChoiceContext choiceContext,
-        CardPlay cardPlay)
-    {
-        ArgumentNullException.ThrowIfNull(cardPlay.Target);
-        return DamageCmd.Attack(DynamicVars.Damage.BaseValue)
-            .FromCard(this, cardPlay)
-            .Targeting(cardPlay.Target)
-            .WithHitFx("vfx/vfx_attack_slash")
-            .Execute(choiceContext);
-    }
-
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(4);
-}
-
-public sealed class LubricatingOil : MSNeutralCard
-{
-    public override IEnumerable<CardKeyword> CanonicalKeywords =>
-        [MaidenSuccubus.Keywords.PortableKeyword.Value, CardKeyword.Exhaust];
-
-    public LubricatingOil()
-        : base(1, CardType.Skill, CardRarity.Rare, TargetType.Self)
-    {
-    }
-
-    protected override async Task OnPlay(
-        PlayerChoiceContext choiceContext,
-        CardPlay cardPlay)
-    {
-        await ControlCmd.Release(choiceContext, Owner.Creature);
-        await Data.Desire.Modify(Owner, 1);
-    }
-
-    protected override void OnUpgrade() => AddKeyword(CardKeyword.Retain);
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class JudgmentBlade : MSNeutralCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(7, ValueProp.Move), new DynamicVar("PerDebuff", 5)];
+    [
+        new CalculationBaseVar(7),
+        new ExtraDamageVar(5),
+        new CalculatedDamageVar(ValueProp.Move).WithMultiplier(
+            static (_, target) => target is null ? 0 : PowerLayerQuery.CountDebuffLayers(target)),
+    ];
 
     public JudgmentBlade()
         : base(1, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy)
@@ -232,10 +150,7 @@ public sealed class JudgmentBlade : MSNeutralCard
         CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target);
-        decimal damage = DynamicVars.Damage.BaseValue
-            + PowerLayerQuery.CountDebuffLayers(cardPlay.Target)
-            * DynamicVars["PerDebuff"].BaseValue;
-        return DamageCmd.Attack(damage)
+        return DamageCmd.Attack(DynamicVars.CalculatedDamage)
             .FromCard(this, cardPlay)
             .Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_slash")
@@ -243,7 +158,7 @@ public sealed class JudgmentBlade : MSNeutralCard
     }
 
     protected override void OnUpgrade() =>
-        DynamicVars["PerDebuff"].UpgradeValueBy(2);
+        DynamicVars.ExtraDamage.UpgradeValueBy(2);
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]
@@ -331,8 +246,16 @@ public sealed class Fusion : MSNeutralCard
         if (selected == null)
             return;
 
-        selected.EnergyCost.SetThisTurnOrUntilPlayed(0);
-        selected.SecondaryCosts().Set(DesireResource.Id, 0);
+        selected.SetToFreeThisTurn();
+        if (selected.TryGetSecondaryCosts(out var secondaryCosts)
+            && secondaryCosts.Get(DesireResource.Id) is not null)
+        {
+            secondaryCosts.Set(
+                DesireResource.Id,
+                new SecondaryResourceCost(0),
+                SecondaryResourceCostDuration.UntilPlayed
+                    | SecondaryResourceCostDuration.ThisTurn);
+        }
         await CardPileCmd.AddGeneratedCardToCombat(
             selected,
             PileType.Hand,

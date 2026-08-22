@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
@@ -15,18 +16,25 @@ public sealed class SwordVerdict : MSNeutralCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Retain];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(25, ValueProp.Move), new DynamicVar("Multiplier", 2)];
+    [
+        new CalculationBaseVar(25),
+        new ExtraDamageVar(25),
+        new DynamicVar("Multiplier", 2),
+        new CalculatedDamageVar(ValueProp.Move).WithMultiplier(
+            static (_, target) => target is not null && target.CurrentHp * 2 < target.MaxHp ? 1 : 0),
+    ];
     public SwordVerdict() : base(3, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy) { }
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
-        decimal damage = DynamicVars.Damage.BaseValue;
-        if (play.Target.CurrentHp * 2 < play.Target.MaxHp)
-            damage *= DynamicVars["Multiplier"].BaseValue;
-        return DamageCmd.Attack(damage).FromCard(this, play).Targeting(play.Target)
+        return DamageCmd.Attack(DynamicVars.CalculatedDamage).FromCard(this, play).Targeting(play.Target)
             .WithHitFx("vfx/vfx_attack_slash").Execute(context);
     }
-    protected override void OnUpgrade() => DynamicVars["Multiplier"].UpgradeValueBy(1);
+    protected override void OnUpgrade()
+    {
+        DynamicVars.ExtraDamage.UpgradeValueBy(25);
+        DynamicVars["Multiplier"].UpgradeValueBy(1);
+    }
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]
@@ -45,7 +53,7 @@ public sealed class LightningRecoil : MSNeutralCard
     {
         ArgumentNullException.ThrowIfNull(play.Target);
         return DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
-            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_magic").Execute(context);
+            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(4);
 }
@@ -81,6 +89,8 @@ public sealed class IceShard : MSGeneratedCard
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class IceBreakingSlash : MSNeutralCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [HoverTipFactory.FromCard<IceShard>(IsUpgraded)];
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(7, ValueProp.Move)];
     public IceBreakingSlash() : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
@@ -88,7 +98,7 @@ public sealed class IceBreakingSlash : MSNeutralCard
         ArgumentNullException.ThrowIfNull(play.Target);
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
-        CardModel shard = Owner.RunState.CreateCard<IceShard>(Owner);
+        CardModel shard = CombatState!.CreateCard<IceShard>(Owner);
         if (IsUpgraded) CardCmd.Upgrade(shard);
         await CardPileCmd.AddGeneratedCardToCombat(shard, PileType.Hand, Owner);
     }
@@ -98,13 +108,15 @@ public sealed class IceBreakingSlash : MSNeutralCard
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class IceShield : MSNeutralCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [HoverTipFactory.FromCard<IceShard>(IsUpgraded)];
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     public IceShield() : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         for (int i = 0; i < 3; i++)
         {
-            CardModel shard = Owner.RunState.CreateCard<IceShard>(Owner);
+            CardModel shard = CombatState!.CreateCard<IceShard>(Owner);
             if (IsUpgraded) CardCmd.Upgrade(shard);
             await CardPileCmd.AddGeneratedCardToCombat(shard, PileType.Hand, Owner);
         }
@@ -122,8 +134,7 @@ public sealed class FlashStab : MSNeutralCard
         ArgumentNullException.ThrowIfNull(play.Target);
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
-        CardModel copy = Owner.RunState.CreateCard<FlashStab>(Owner);
-        if (IsUpgraded) CardCmd.Upgrade(copy);
+        CardModel copy = CreateClone();
         await CardPileCmd.Add(copy, PileType.Draw, CardPilePosition.Random);
     }
     // The design intentionally defines no numerical upgrade for this card.  An

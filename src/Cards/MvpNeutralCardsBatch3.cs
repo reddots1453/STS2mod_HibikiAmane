@@ -2,6 +2,7 @@ using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
@@ -29,12 +30,15 @@ public sealed class Surf : MSNeutralCard
         int totalCost = 0;
         while (totalCost < DynamicVars.Energy.IntValue)
         {
+            if (PileType.Hand.GetPile(Owner).Cards.Count >= 10) break;
             IEnumerable<CardModel> drawn = await CardPileCmd.Draw(context, 1, Owner);
             CardModel? card = drawn.FirstOrDefault();
             if (card == null) break;
-            totalCost += Math.Max(0, card.EnergyCost.GetAmountToSpend());
+            totalCost += card.EnergyCost.CostsX
+                ? 0
+                : Math.Max(0, card.EnergyCost.GetAmountToSpend());
             await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
-                .TargetingAllOpponents(CombatState).WithHitFx("vfx/vfx_attack_wave").Execute(context);
+                .TargetingAllOpponents(CombatState).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         }
     }
     protected override void OnUpgrade() => DynamicVars.Energy.UpgradeValueBy(1);
@@ -88,21 +92,36 @@ public sealed class AcceleratedMotion : MSNeutralCard
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class MagicSword : MSNeutralCard
 {
+    [SavedProperty]
+    public bool EnchantedOnPickup { get; set; }
+
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        HoverTipFactory.FromEnchantment<ChargeEnchantment>(2);
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(14, ValueProp.Move)];
     public MagicSword() : base(2, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
-    public override void AfterCreated()
+
+    public override Task AfterCardChangedPiles(
+        CardModel card,
+        PileType oldPileType,
+        AbstractModel? source)
     {
-        if (Enchantment != null) return;
-        ChargeEnchantment charge = (ChargeEnchantment)ModelDb.Enchantment<ChargeEnchantment>().ToMutable();
-        EnchantInternal(charge, 2);
-        charge.ModifyCard();
-        FinalizeUpgradeInternal();
+        if (card == this
+            && !EnchantedOnPickup
+            && oldPileType == PileType.None
+            && card.Pile?.Type == PileType.Deck)
+        {
+            if (Enchantment == null)
+                CardCmd.Enchant<ChargeEnchantment>(this, 2);
+            EnchantedOnPickup = Enchantment is ChargeEnchantment;
+        }
+        return Task.CompletedTask;
     }
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
         return DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
-            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_magic").Execute(context);
+            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(4);
 }

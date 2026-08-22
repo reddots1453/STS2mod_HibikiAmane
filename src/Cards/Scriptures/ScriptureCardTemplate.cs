@@ -1,5 +1,6 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using STS2RitsuLib.Scaffolding.Content;
@@ -32,14 +33,24 @@ public abstract class MSScriptureCardTemplate : ModCardTemplate
 {
     public override CardPoolModel Pool => ModelDb.CardPool<MSScriptureCardPool>();
 
+    // Scriptures are derivative cards. They may only be created by the
+    // explicit scripture effects and must never enter the compendium or any
+    // generic card-generation/reward pool.
+    public override bool CanBeGeneratedByModifiers => false;
+
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new IntVar("Duration", 2), new EnergyVar(1), new IntVar("Cards", 1)];
 
     public override CardAssetProfile AssetProfile => new(
-        PortraitPath: "res://images/atlases/card_atlas.sprites/beta.tres");
+        PortraitPath: "res://images/packed/card_portraits/ironclad/bash.png");
+
+    protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
+    protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
+        CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)
+            .Concat(CardSpecificHoverTips);
 
     protected MSScriptureCardTemplate(CardRarity rarity)
-        : base(0, CardType.Skill, rarity, TargetType.Self, true)
+        : base(0, CardType.Skill, rarity, TargetType.Self, false)
     {
     }
 
