@@ -138,7 +138,7 @@
   "MAIDEN_SUCCUBUS_CARD_BLISS_SCRIPTURE.description": "持续{Duration:diff()}回合。回合开始时失去1点欲望。若欲望为0，获得{Energy:energyIcons()}并抽{Cards:diff()}张牌。",
 
   "MAIDENSUCCUBUS_ESCAPE.title": "挣脱",
-  "MAIDENSUCCUBUS_ESCAPE.description": "本牌由{Original}临时变为【挣脱】。\n打出后不执行原效果，改为从{Source}施加的[gold]控制[/gold]中挣脱{Escape}点。",
+  "MAIDENSUCCUBUS_ESCAPE.description": "本牌由{Original}临时变为【挣脱】。\n打出后不执行原效果，改为从{Source}施加的[gold]拘束[/gold]中挣脱{Escape}点。",
   "MAIDEN_SUCCUBUS_CARD_SEMEN_CURSE.title": "精液",
   "MAIDEN_SUCCUBUS_CARD_SEMEN_CURSE.description": "打出后移除出牌组。",
 

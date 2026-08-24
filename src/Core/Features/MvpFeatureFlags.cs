@@ -6,10 +6,10 @@ namespace MaidenSuccubus.Core.Features;
 /// </summary>
 public static class MvpFeatureFlags
 {
-    public static readonly bool EnemyIntentExtensions = false;
-    public static readonly bool ControlAndInvasion = false;
+    public static readonly bool EnemyIntentExtensions = true;
+    public static readonly bool ControlAndInvasion = true;
     public static readonly bool Portable = false;
-    public static readonly bool SpecialInvasionMerchant = false;
+    public static readonly bool SpecialInvasionMerchant = true;
     public static readonly bool BossBlessings = false;
     public static readonly bool ExtraStartProfiles = false;
     public static readonly bool LegacyUnconditionalFourthAct = false;
@@ -17,25 +17,25 @@ public static class MvpFeatureFlags
 
 public static class MvpPatchPolicy
 {
-    private static readonly HashSet<string> DeferredPatchTypes =
-    [
-        "BossBlessingPatch",
-        "BlindfoldIntentPatch",
-        "IntentAdapterPatch",
-        "MerchantInvasionCursePatch",
-        "PortableRetainPatch",
-        "EscapeCardVisualPatch",
-        "EscapeCardProjectionPatches",
-        "InfectionHandSnapshotPatch",
-    ];
-
     public static bool ShouldInstall(Type patchType)
     {
         for (Type? current = patchType; current is not null; current = current.DeclaringType)
         {
-            if (DeferredPatchTypes.Contains(current.Name))
+            bool? enabled = current.Name switch
             {
-                return false;
+                "IntentAdapterPatch" or "EscapeCardVisualPatch"
+                    or "EscapeCardProjectionPatches" =>
+                    MvpFeatureFlags.ControlAndInvasion,
+                "MerchantInvasionCursePatch" =>
+                    MvpFeatureFlags.SpecialInvasionMerchant,
+                "PortableRetainPatch" => MvpFeatureFlags.Portable,
+                "BossBlessingPatch" => MvpFeatureFlags.BossBlessings,
+                "BlindfoldIntentPatch" or "InfectionHandSnapshotPatch" => false,
+                _ => null,
+            };
+            if (enabled.HasValue)
+            {
+                return enabled.Value;
             }
         }
         return true;

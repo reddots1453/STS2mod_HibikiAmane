@@ -72,9 +72,9 @@
   "MAIDEN_SUCCUBUS_POWER_BASIC_TRAINING_POWER.description": "打击额外造成伤害，防御额外获得格挡。",
   "MAIDEN_SUCCUBUS_POWER_BASIC_TRAINING_POWER.smartDescription": "打击额外造成伤害，防御额外获得格挡。",
 
-  "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.title": "控制",
-  "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.description": "受到 {Source} 的{ControlType}控制。对应类型的非随身牌临时变为【挣脱】；还需挣脱 [red]{Amount}[/red] 点。",
-  "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.smartDescription": "受到 {Source} 的{ControlType}控制。对应类型的非随身牌临时变为【挣脱】；还需挣脱 [red]{Amount}[/red] 点。",
+  "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.title": "拘束",
+  "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.description": "受到 {Source} 的{ControlType}拘束。对应类型的非随身牌临时变为【挣脱】；还需挣脱 [red]{Amount}[/red] 点。",
+  "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.smartDescription": "受到 {Source} 的{ControlType}拘束。对应类型的非随身牌临时变为【挣脱】；还需挣脱 [red]{Amount}[/red] 点。",
   "MAIDEN_SUCCUBUS_POWER_BURNING_POWER.title": "燃烧",
   "MAIDEN_SUCCUBUS_POWER_BURNING_POWER.description": "攻击前受到{Amount}点伤害。敌人的每段攻击分别结算。回合结束时减少1层。",
   "MAIDEN_SUCCUBUS_POWER_BURNING_POWER.smartDescription": "攻击前受到{Amount}点伤害。敌人的每段攻击分别结算。回合结束时减少1层。",
@@ -149,5 +149,8 @@
   "MAIDEN_SUCCUBUS_POWER_CURSE_CORRIDOR_POWER.smartDescription": "回合开始时改为从消耗牌堆抽牌，并额外抽1张。",
   "MAIDEN_SUCCUBUS_POWER_SELF_IMPORTANT_POWER.title": "自负",
   "MAIDEN_SUCCUBUS_POWER_SELF_IMPORTANT_POWER.description": "每次失去生命值时，失去1层自负和1点力量。",
-  "MAIDEN_SUCCUBUS_POWER_SELF_IMPORTANT_POWER.smartDescription": "每次失去生命值时，失去1层自负和1点力量。"
+  "MAIDEN_SUCCUBUS_POWER_SELF_IMPORTANT_POWER.smartDescription": "每次失去生命值时，失去1层自负和1点力量。",
+  "MAIDEN_SUCCUBUS_POWER_STEADFAST_POWER.title": "意志坚定",
+  "MAIDEN_SUCCUBUS_POWER_STEADFAST_POWER.description": "没有色情攻击，不进行色情攻击概率判定，并且不受将怪物意图改变为欲望攻击、拘束或侵犯的效果影响。",
+  "MAIDEN_SUCCUBUS_POWER_STEADFAST_POWER.smartDescription": "没有色情攻击，不进行色情攻击概率判定，并且不受将怪物意图改变为欲望攻击、拘束或侵犯的效果影响。"
 }

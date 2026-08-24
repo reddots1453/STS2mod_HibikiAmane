@@ -52,9 +52,9 @@ public sealed class M5AddInvasionCurseConsoleCmd : AbstractConsoleCmd
 public sealed class M5MerchantCurseConsoleCmd : AbstractConsoleCmd
 {
     public override string CmdName => "ms_shop_curse";
-    public override string Args => "[refundGold:int]";
+    public override string Args => string.Empty;
     public override string Description =>
-        "Select and remove an invasion-sourced curse without using normal removal";
+        "Remove all semen curses, refunding the fixed 50 gold each";
     public override bool IsNetworked => false;
 
     public override CmdResult Process(Player? issuingPlayer, string[] args)
@@ -62,14 +62,6 @@ public sealed class M5MerchantCurseConsoleCmd : AbstractConsoleCmd
         if (issuingPlayer?.Character is not MaidenSuccubusCharacter)
         {
             return new CmdResult(false, "Use this in a MaidenSuccubus run.");
-        }
-        if (args.Length > 0)
-        {
-            if (!int.TryParse(args[0], out int refund) || refund < 0)
-            {
-                return new CmdResult(false, "refundGold must be a non-negative integer.");
-            }
-            InvasionCurseMerchantConfig.DebugRefundGold = refund;
         }
         int count = InvasionCurseMerchantService.GetEligible(issuingPlayer).Count;
         if (count == 0)
@@ -80,8 +72,8 @@ public sealed class M5MerchantCurseConsoleCmd : AbstractConsoleCmd
         return new CmdResult(
             task,
             true,
-            $"Opening special removal ({count} eligible, "
-            + $"refund={InvasionCurseMerchantConfig.DebugRefundGold}).");
+            $"Removing {count} semen curses; refund="
+            + $"{count * InvasionCurseMerchantConfig.RefundGoldPerCurse}.");
     }
 }
 
@@ -130,7 +122,7 @@ public sealed class M5StateConsoleCmd : AbstractConsoleCmd
             true,
             $"profile={state.StartProfileId}; applied={state.StartProfileApplied}; "
             + $"corruption={corruption}; invasionCurses={curses}; "
-            + $"refund={InvasionCurseMerchantConfig.DebugRefundGold}; "
+            + $"refundEach={InvasionCurseMerchantConfig.RefundGoldPerCurse}; "
             + $"blessingActs=[{string.Join(",", state.BlessingOfferedActs.Order())}]");
     }
 }

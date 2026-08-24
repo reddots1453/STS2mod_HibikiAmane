@@ -29,7 +29,29 @@ public static class ControlQuery
         player.Creature.Powers
             .OfType<ControlPower>()
             .Where(power => power.Amount > 0)
+            .OrderBy(power => power.Amount)
+            .ThenBy(power => SourceBattlefieldIndex(player, power))
             .ToArray();
+
+    private static int SourceBattlefieldIndex(
+        Player player,
+        ControlPower power)
+    {
+        IReadOnlyList<MegaCrit.Sts2.Core.Entities.Creatures.Creature>? enemies =
+            player.Creature.CombatState?.Enemies;
+        if (enemies == null || power.Applier == null)
+        {
+            return int.MaxValue;
+        }
+        for (int index = 0; index < enemies.Count; index++)
+        {
+            if (ReferenceEquals(enemies[index], power.Applier))
+            {
+                return index;
+            }
+        }
+        return int.MaxValue;
+    }
 
     public static bool IsControlled(Player player) =>
         GetInstances(player).Count > 0;

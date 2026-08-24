@@ -8,17 +8,24 @@ public sealed record ControlIntentSpec(
     int BlockRequired,
     ControlType ControlType,
     int EscapeRequired,
-    int Weight = 1);
+    int MaxUsesPerCombat = 1,
+    string DisplayName = "拘束",
+    string EffectText = "");
 
 public sealed record InvasionIntentSpec(
     int Damage,
-    int Weight = 1,
-    bool MayControlAgain = false);
+    int MaxUsesPerCombat = 1,
+    string CurseName = "精液",
+    string DisplayName = "侵犯",
+    string EffectText = "");
 
 public sealed record DesireIntentSpec(
     int Desire,
     int MaxUsesPerCombat = 1,
-    int Weight = 1);
+    int Damage = 0,
+    int Hits = 1,
+    string DisplayName = "欲望攻击",
+    string EffectText = "");
 
 public interface IControlIntentProvider
 {
@@ -39,4 +46,3 @@ public interface ILowThreatIntentProvider
 {
     MoveState? GetLowThreatMove(MonsterModel monster);
 }
-

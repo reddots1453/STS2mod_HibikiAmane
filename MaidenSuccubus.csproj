@@ -49,6 +49,8 @@
       <Private>false</Private>
     </Reference>
     <PackageReference Include="STS2.RitsuLib" Version="0.4.64" />
+    <EmbeddedResource Include="docs\EROTIC_ATTACK_ASSIGNMENTS.md" />
+    <EmbeddedResource Include="docs\EROTIC_ATTACK_INTENTS.md" />
   </ItemGroup>
 
   <Target Name="CopyModForDebug" AfterTargets="Build"

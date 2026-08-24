@@ -13,12 +13,21 @@ public sealed class ControlIntent :
     public int BlockRequired { get; }
     public ControlType ControlType { get; }
     public int EscapeRequired { get; }
+    public string DisplayName { get; }
+    public string EffectText { get; }
 
-    public ControlIntent(int blockRequired, ControlType controlType, int escapeRequired)
+    public ControlIntent(
+        int blockRequired,
+        ControlType controlType,
+        int escapeRequired,
+        string displayName,
+        string effectText)
     {
         BlockRequired = blockRequired;
         ControlType = controlType;
         EscapeRequired = escapeRequired;
+        DisplayName = displayName;
+        EffectText = effectText;
     }
 
     public override IntentType IntentType => IntentType.DebuffStrong;
@@ -47,14 +56,43 @@ public sealed class ControlIntent :
                 ExtraIconAmountLabelCorner.BottomRight,
                 EscapeRequired.ToString()),
         ];
+
+    protected override LocString GetIntentDescription(
+        IEnumerable<Creature> targets,
+        Creature owner)
+    {
+        LocString description = base.GetIntentDescription(targets, owner);
+        description.Add("Name", DisplayName);
+        description.Add("Effect", EffectText);
+        return description;
+    }
 }
 
 public sealed class InvasionIntent : SingleAttackIntent
 {
-    public InvasionIntent(int damage) : base(damage) { }
+    public string DisplayName { get; }
+    public string EffectText { get; }
+
+    public InvasionIntent(int damage, string displayName, string effectText)
+        : base(damage)
+    {
+        DisplayName = displayName;
+        EffectText = effectText;
+    }
+
     protected override string IntentPrefix => "MAIDENSUCCUBUS_INVASION";
     protected override string SpritePath =>
         "atlases/intent_atlas.sprites/intent_attack.tres";
+
+    protected override LocString GetIntentDescription(
+        IEnumerable<Creature> targets,
+        Creature owner)
+    {
+        LocString description = base.GetIntentDescription(targets, owner);
+        description.Add("Name", DisplayName);
+        description.Add("Effect", EffectText);
+        return description;
+    }
 }
 
 public sealed class DesireGainIntent :
@@ -62,8 +100,15 @@ public sealed class DesireGainIntent :
     IIntentExtraCornerAmountLabelSpecsProvider
 {
     public int Amount { get; }
+    public string DisplayName { get; }
+    public string EffectText { get; }
 
-    public DesireGainIntent(int amount) => Amount = amount;
+    public DesireGainIntent(int amount, string displayName, string effectText)
+    {
+        Amount = amount;
+        DisplayName = displayName;
+        EffectText = effectText;
+    }
 
     public override IntentType IntentType => IntentType.Debuff;
     protected override string IntentPrefix => "MAIDENSUCCUBUS_DESIRE";
@@ -77,4 +122,14 @@ public sealed class DesireGainIntent :
                 ExtraIconAmountLabelCorner.BottomRight,
                 $"+{Amount}"),
         ];
+
+    protected override LocString GetIntentDescription(
+        IEnumerable<Creature> targets,
+        Creature owner)
+    {
+        LocString description = base.GetIntentDescription(targets, owner);
+        description.Add("Name", DisplayName);
+        description.Add("Effect", EffectText);
+        return description;
+    }
 }

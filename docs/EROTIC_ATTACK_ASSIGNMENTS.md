@@ -20,7 +20,7 @@
 - `S`（意志坚定）：没有色情攻击，跳过色情攻击判定，并免疫将其意图改为色情攻击的效果；
 - `—`：不允许该类型。
 
-“允许类型”只定义候选集合，不定义三类意图之间的具体权重。`I`在玩家未被拘束时始终不是合法候选。每个怪物ID必须至少具有`A/B/I`之一，或者单独具有`S`；`S`不能与`A/B/I`并存。
+“允许类型”定义候选集合，“首选”用于确定候选权重；具体算法见2.1.1节。`I`在玩家未被拘束时始终不是合法候选。每个怪物ID必须至少具有`A/B/I`之一，或者单独具有`S`；`S`不能与`A/B/I`并存。
 
 ## 2. 匹配原则
 
@@ -29,6 +29,150 @@
 3. 具有生物性、类人生物性、寄生性、吞噬性或明确侵入表现的怪物可以获得`I`；纯粹武器、炮台、雕像和一般构装体默认不获得`I`。
 4. 不适合色情表现的纯机械、静物、门、蛋、肢体分段或附属物使用`S`。意志坚定显示在怪物状态栏中，并使该对象不参与色情攻击判定。
 5. Boss可以拥有更完整的候选集合，但具体数值、诅咒和重复次数仍需单独设计，不能因Boss身份自动提高概率。
+
+## 2.1 每场战斗自然使用次数上限（初稿）
+
+次数按“每个敌人实例的每种色情意图”分别计算。`A/B/I`依次表示欲望攻击、拘束、侵犯的自然使用次数上限；`—`表示该怪物没有这种意图。由玩家卡牌或其他玩家效果强制改变出的色情意图不消耗次数。多个ID写在同一行时，每个敌人实例分别使用该行上限，不共享计数。意志坚定对象没有色情意图，因此不进入本表。
+
+| 幕 | 遭遇/对象 | 怪物ID | A | B | I |
+|---|---|---|---:|---:|---:|
+| 密林 | 红宝石劫掠者 | `ASSASSIN_RUBY_RAIDER`、`AXE_RUBY_RAIDER`、`BRUTE_RUBY_RAIDER`、`CROSSBOW_RUBY_RAIDER`、`TRACKER_RUBY_RAIDER` | 2 | — | 1 |
+| 密林 | 多尼斯异鸟 | `BYRDONIS` | 3 | 2 | — |
+| 密林 | 仪式兽 | `CEREMONIAL_BEAST` | 4 | 3 | 2 |
+| 密林 | 密林真菌 | `FLYCONID` | 2 | — | — |
+| 密林 | 雾菇主体 | `FOGMOG` | 2 | 1 | — |
+| 密林 | 毛绒伏地虫 | `FUZZY_WURM_CRAWLER` | 2 | 2 | 1 |
+| 密林 | 墨宝 | `INKLET` | 2 | 1 | — |
+| 密林 | 蛮兽 | `MAWLER` | 2 | 1 | 1 |
+| 密林 | 小啃兽 | `NIBBIT` | 1 | — | 1 |
+| 密林 | 缩小甲虫 | `SHRINKER_BEETLE` | 2 | 1 | — |
+| 密林 | 异蛙寄生虫 | `PHROG_PARASITE` | 3 | 2 | 2 |
+| 密林 | 寄生虫附属体 | `WRIGGLER` | 2 | — | 2 |
+| 密林 | 密林史莱姆 | `LEAF_SLIME_M`、`LEAF_SLIME_S`、`TWIG_SLIME_M`、`TWIG_SLIME_S` | 1 | 1 | 1 |
+| 密林 | 巨口果 | `SNAPPING_JAXFRUIT` | 2 | 2 | 1 |
+| 密林 | 扼杀者 | `SLITHERING_STRANGLER` | 2 | 2 | 1 |
+| 密林 | 藤蔓蹒跚者 | `VINE_SHAMBLER` | 2 | 2 | 1 |
+| 密林 | 同族小队 | `KIN_FOLLOWER`、`KIN_PRIEST` | 4 | 3 | 2 |
+| 密林 | 墨影幻灵 | `VANTOM` | 4 | 3 | 2 |
+| 巢穴 | 盛碗虫成体 | `BOWLBUG_NECTAR`、`BOWLBUG_ROCK`、`BOWLBUG_SILK` | 2 | 2 | 1 |
+| 巢穴 | 自动机械咬合体 | `CHOMPER` | 2 | 2 | — |
+| 巢穴 | 帝皇蟹双组件 | `CRUSHER`、`ROCKET` | 4 | 3 | 2 |
+| 巢穴 | 残杀千足虫前段 | `DECIMILLIPEDE_SEGMENT_FRONT` | 3 | 2 | 2 |
+| 巢穴 | 蜂群术士 | `ENTOMANCER` | 3 | 2 | 2 |
+| 巢穴 | 外骨骼虫 | `EXOSKELETON` | 2 | — | 1 |
+| 巢穴 | 猎人杀手 | `HUNTER_KILLER` | 2 | 2 | 1 |
+| 巢穴 | 感染棱柱 | `INFESTED_PRISM` | 3 | 2 | — |
+| 巢穴 | 知识恶魔 | `KNOWLEDGE_DEMON` | 4 | 3 | 2 |
+| 巢穴 | 虱虫之祖 | `LOUSE_PROGENITOR` | 2 | 1 | 2 |
+| 巢穴 | 异螨群 | `MYTE` | 1 | — | 1 |
+| 巢穴 | 直飞产卵虫 | `OVICOPTER` | 2 | 2 | 3 |
+| 巢穴 | 棘刺蟾蜍 | `SPINY_TOAD` | 2 | — | 1 |
+| 巢穴 | 熟睡甲虫 | `SLUMBERING_BEETLE` | 2 | 1 | 1 |
+| 巢穴 | 胧光怪 | `THE_OBSCURA` | 2 | 1 | 1 |
+| 巢穴 | 偷窃草蜢 | `THIEVING_HOPPER` | 1 | — | 1 |
+| 巢穴 | 地道虫 | `TUNNELER` | 2 | 2 | 1 |
+| 巢穴 | 无厌沙虫 | `THE_INSATIABLE` | 4 | 3 | 3 |
+| 荣耀城 | 虔诚雕刻师 | `DEVOTED_SCULPTOR` | 2 | — | 1 |
+| 荣耀城 | 门扉缔造者 | `DOORMAKER` | 4 | 3 | 2 |
+| 荣耀城 | 骑士团伙 | `FLAIL_KNIGHT`、`MAGI_KNIGHT`、`SPECTRAL_KNIGHT` | 3 | 2 | 2 |
+| 荣耀城 | 青蛙骑士 | `FROG_KNIGHT` | 2 | 2 | 1 |
+| 荣耀城 | 活体盾牌 | `LIVING_SHIELD` | 2 | 2 | — |
+| 荣耀城 | 猫头鹰法官 | `OWL_MAGISTRATE` | 2 | — | 1 |
+| 荣耀城 | 咬人卷轴 | `SCROLL_OF_BITING` | 2 | 2 | — |
+| 荣耀城 | 史莱姆狂战士 | `SLIMED_BERSERKER` | 2 | 2 | 1 |
+| 荣耀城 | 灵魂枢纽 | `SOUL_NEXUS` | 3 | 2 | — |
+| 荣耀城 | 女王与火炬头聚合体 | `QUEEN`、`TORCH_HEAD_AMALGAM` | 4 | 3 | 2 |
+| 荣耀城 | 实验体 | `TEST_SUBJECT` | 4 | 3 | 3 |
+| 荣耀城 | 失落与遗忘之物 | `THE_LOST`、`THE_FORGOTTEN` | 2 | 1 | 1 |
+| 荣耀城 | 高塔炮手 | `TURRET_OPERATOR` | 2 | — | 1 |
+| 暗港 | 邪教徒 | `CALCIFIED_CULTIST`、`DAMP_CULTIST` | 2 | 1 | 1 |
+| 暗港 | 噬尸蛞蝓 | `CORPSE_SLUG` | 2 | 2 | 2 |
+| 暗港 | 化石追踪者 | `FOSSIL_STALKER` | 2 | 1 | 1 |
+| 暗港 | 邪恶气体主体 | `LIVING_FOG` | 3 | 2 | 2 |
+| 暗港 | 地精佣兵 | `GREMLIN_MERC`、`SNEAKY_GREMLIN`、`FAT_GREMLIN` | 1 | 1 | 1 |
+| 暗港 | 幽灵船 | `HAUNTED_SHIP` | 2 | 2 | — |
+| 暗港 | 乐加维林族母 | `LAGAVULIN_MATRIARCH` | 4 | 3 | 2 |
+| 暗港 | 花园幽灵鳗 | `PHANTASMAL_GARDENER` | 3 | 2 | 2 |
+| 暗港 | 海洋混混 | `SEAPUNK` | 1 | — | 1 |
+| 暗港 | 下水道蚌 | `SEWER_CLAM` | 2 | 2 | 1 |
+| 暗港 | 鬼祟珊瑚群 | `SKULKING_COLONY` | 3 | 2 | 2 |
+| 暗港 | 淤泥旋螺 | `SLUDGE_SPINNER` | 2 | 2 | 1 |
+| 暗港 | 灵魂异鱼 | `SOUL_FYSH` | 4 | 3 | 3 |
+| 暗港 | 骇鳗 | `TERROR_EEL` | 3 | 2 | 2 |
+| 暗港 | 蟾蜍蝌蚪 | `TOADPOLE` | 1 | — | 1 |
+| 暗港 | 双尾鼠 | `TWO_TAILED_RAT` | 2 | 2 | 1 |
+| 暗港 | 瀑布巨人 | `WATERFALL_GIANT` | 4 | 3 | 2 |
+
+分配采用以下初始梯度，供后续运行时测试微调：普通弱小敌人通常为`A1/B1/I1`，普通强敌通常为`A2/B1～2/I1`，精英通常为`A3/B2/I1～2`，Boss通常为`A4/B3/I2～3`。产卵、寄生、吞噬等以侵犯为核心风味的敌人可以提高`I`，但不得超过4。
+
+### 2.1.1 色情意图候选权重
+
+怪物通过DesignDoc规定的色情攻击概率判定后，才执行本节的类型选择。候选类型必须同时满足：已列入该怪物的“允许类型”、当前状态下合法、对应自然使用次数尚未耗尽，以及未被其他规则禁止。
+
+- 逐怪物表中的“首选”类型权重为`3`，其他允许类型权重各为`1`；
+- 两种类型均合法时，若其中一种是首选，概率为`75%/25%`；
+- `A/B/I`三种类型均合法时，首选概率为`60%`，另外两种各为`20%`；
+- 先删除不合法候选，再按剩余权重重新归一化。首选不合法时，其余候选均为非首选权重`1`，因此等概率选择；
+- 只剩一种合法类型时直接选择，不额外消耗类型选择RNG；没有合法类型时保持原意图，不重新进行色情攻击概率判定；
+- 存在至少两种合法类型时，只消耗一次类型选择RNG，并按固定顺序`A→B→I`划分累计权重区间；
+- 玩家卡牌或其他效果需要从多个当前合法色情意图中随机选择时沿用本节权重。强制改变意图不消耗自然使用次数的规则保持不变。
+
+示例：某怪物允许`A/B/I`且首选`B`。玩家未被拘束时，`I`不合法，因此在`A/B`中按`25%/75%`选择；玩家被拘束且三种类型均有剩余次数时，按`A20%/B60%/I20%`选择；若`B`次数耗尽，则在`A/I`中各按`50%`选择。
+
+## 2.2 挣脱后的恢复意图 `[SYS-CTL-002]`
+
+本节只分类已被分配拘束意图`B`的原版怪物。没有拘束意图的怪物和意志坚定对象不会成为拘束来源，因此不属于本节的弱怪或强大怪物。分类是固定设计数据，不在运行时按生命值、当前阶段或遭遇房间重新推断。
+
+玩家将某个来源怪物施加的拘束降至0时：
+
+- 弱怪立即将当前意图替换为晕眩意图；
+- 强大怪物立即将当前意图替换为下表指定的唯一原版恢复意图；
+- 替换只影响下一次行动。该行动结束后重新进入原版状态机，不补做此前被色情意图或恢复意图覆盖的原版行动；
+- 恢复意图属于原版意图，不消耗该怪物任何色情攻击次数。
+
+### 弱怪：挣脱后进入晕眩
+
+| 幕 | 怪物ID |
+|---|---|
+| 密林 | `FOGMOG`、`FUZZY_WURM_CRAWLER`、`INKLET`、`MAWLER`、`SHRINKER_BEETLE`、`LEAF_SLIME_M`、`LEAF_SLIME_S`、`TWIG_SLIME_M`、`TWIG_SLIME_S`、`SNAPPING_JAXFRUIT`、`SLITHERING_STRANGLER`、`VINE_SHAMBLER`、`KIN_FOLLOWER` |
+| 巢穴 | `BOWLBUG_NECTAR`、`BOWLBUG_ROCK`、`BOWLBUG_SILK`、`CHOMPER`、`HUNTER_KILLER`、`LOUSE_PROGENITOR`、`OVICOPTER`、`SLUMBERING_BEETLE`、`THE_OBSCURA`、`TUNNELER` |
+| 荣耀城 | `FROG_KNIGHT`、`LIVING_SHIELD`、`SCROLL_OF_BITING`、`SLIMED_BERSERKER`、`THE_LOST`、`THE_FORGOTTEN` |
+| 暗港 | `CALCIFIED_CULTIST`、`DAMP_CULTIST`、`CORPSE_SLUG`、`FOSSIL_STALKER`、`LIVING_FOG`、`GREMLIN_MERC`、`SNEAKY_GREMLIN`、`FAT_GREMLIN`、`HAUNTED_SHIP`、`SEWER_CLAM`、`SLUDGE_SPINNER`、`TWO_TAILED_RAT` |
+
+`KIN_FOLLOWER`虽然出现在Boss战中，但本身是低生命值随从，明确按弱怪处理。
+
+### 强大怪物：挣脱后进入指定原版意图
+
+| 幕 | 怪物ID | 指定恢复意图ID | 原版意图效果摘要 |
+|---|---|---|---|
+| 密林 | `BYRDONIS` | `PECK_MOVE` | 造成3点伤害3次。 |
+| 密林 | `CEREMONIAL_BEAST` | `STOMP_MOVE` | 造成一次原版“践踏”伤害。 |
+| 密林 | `PHROG_PARASITE` | `LASH_MOVE` | 造成4点伤害4次。 |
+| 密林 | `KIN_PRIEST` | `BEAM_MOVE` | 造成3点伤害3次。 |
+| 密林 | `VANTOM` | `INK_BLOT_MOVE` | 造成7点伤害。 |
+| 巢穴 | `CRUSHER` | `ENLARGING_STRIKE_MOVE` | 造成4点伤害。 |
+| 巢穴 | `ROCKET` | `TARGETING_RETICLE_MOVE` | 造成3点伤害。 |
+| 巢穴 | `DECIMILLIPEDE_SEGMENT_FRONT` | `BULK_MOVE` | 造成一次较低伤害并结算该意图原有增益。 |
+| 巢穴 | `ENTOMANCER` | `SPEAR_MOVE` | 造成一次原版“长矛”伤害。 |
+| 巢穴 | `INFESTED_PRISM` | `RADIATE_MOVE` | 造成一次较低伤害并获得格挡。 |
+| 巢穴 | `KNOWLEDGE_DEMON` | `SLAP_MOVE` | 造成一次原版“拍击”伤害。 |
+| 巢穴 | `THE_INSATIABLE` | `THRASH_MOVE_1` | 造成8点伤害2次。 |
+| 荣耀城 | `DOORMAKER` | `WHAT_IS_IT_MOVE` | 进入其原版晕眩行动。 |
+| 荣耀城 | `FLAIL_KNIGHT` | `RAM_MOVE` | 造成15点伤害。 |
+| 荣耀城 | `MAGI_KNIGHT` | `RAM_MOVE` | 造成10点伤害。 |
+| 荣耀城 | `SPECTRAL_KNIGHT` | `SOUL_FLAME` | 造成3点伤害3次。 |
+| 荣耀城 | `SOUL_NEXUS` | `DRAIN_LIFE_MOVE` | 造成18点伤害并结算该意图原有减益。 |
+| 荣耀城 | `QUEEN` | `OFF_WITH_YOUR_HEAD_MOVE` | 造成原版低伤害多段攻击。 |
+| 荣耀城 | `TORCH_HEAD_AMALGAM` | `TACKLE_3_MOVE` | 造成14点伤害。 |
+| 荣耀城 | `TEST_SUBJECT` | `SKULL_BASH_MOVE` | 造成一次较低伤害并结算该意图原有减益。 |
+| 暗港 | `LAGAVULIN_MATRIARCH` | `SLASH2_MOVE` | 造成12点伤害并获得格挡。 |
+| 暗港 | `PHANTASMAL_GARDENER` | `FLAIL_MOVE` | 造成1点伤害3次。 |
+| 暗港 | `SKULKING_COLONY` | `INERTIA_MOVE` | 获得格挡并结算该意图原有增益，不造成伤害。 |
+| 暗港 | `SOUL_FYSH` | `GAZE_MOVE` | 造成7点伤害并放入1张原版状态牌。 |
+| 暗港 | `TERROR_EEL` | `ThrashMove` | 造成3点伤害3次并结算该意图原有增益。 |
+| 暗港 | `WATERFALL_GIANT` | `RAM_MOVE` | 造成一次较低伤害并结算该意图原有增益。 |
+
+表中的伤害仅用于说明所选意图为何属于该怪物的低威胁行动；实际数值、进阶难度变化及意图原有效果全部沿用原版对应Move，不在本Mod中重写。
 
 ## 3. 密林（OVERGROWTH）
 

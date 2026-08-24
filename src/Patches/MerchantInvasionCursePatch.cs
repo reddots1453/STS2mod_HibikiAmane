@@ -41,7 +41,7 @@ public static class MerchantInvasionCursePatch
             CustomMinimumSize = new Vector2(300f, 64f),
             Position = new Vector2(-50f, 155f),
             FocusMode = Control.FocusModeEnum.All,
-            TooltipText = "只移除带侵犯来源的诅咒；不消耗普通删牌次数。",
+            TooltipText = "永久移除牌组中全部精液类诅咒；每张获得50金币；不消耗普通删牌次数。",
         };
         host.AddChild(button);
         button.Pressed += () =>
@@ -68,6 +68,6 @@ public static class MerchantInvasionCursePatch
     }
 
     private static string BuildText(Player player) =>
-        $"净除侵入诅咒（免费，返还{InvasionCurseMerchantConfig.DebugRefundGold}金币）"
-        + $" ×{InvasionCurseMerchantService.GetEligible(player).Count}";
+        $"清理全部精液类诅咒（获得"
+        + $"{InvasionCurseMerchantConfig.RefundGoldPerCurse * InvasionCurseMerchantService.GetEligible(player).Count}金币）";
 }

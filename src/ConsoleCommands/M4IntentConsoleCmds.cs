@@ -270,13 +270,20 @@ public sealed class M4StateConsoleCmd : AbstractConsoleCmd
             {
                 MonsterModel monster = creature.Monster!;
                 IntentRuntimeState state = IntentAdapterRegistry.GetRuntime(monster);
+                EroticMonsterSpec? spec = EroticAttackCatalog.Get(monster);
+                string allowed = spec?.Steadfast == true
+                    ? "S"
+                    : string.Concat(
+                        spec?.Desire != null ? "A" : "",
+                        spec?.Control != null ? "B" : "",
+                        spec?.Invasion != null ? "I" : "");
                 return $"{index}:{monster.Id.Entry} move={monster.NextMove.Id} "
-                    + $"adapted={IntentAdapterRegistry.GetAdapter(monster) != null} "
-                    + $"invaded={state.HasInvaded} controlDisabled={state.ControlDisabled} "
-                    + $"desireUses={state.DesireIntentUses}";
+                    + $"catalog={allowed} "
+                    + $"invasionUses={state.InvasionIntentUses} controlDisabled={state.ControlDisabled} "
+                    + $"desireUses={state.DesireIntentUses} controlUses={state.ControlIntentUses}";
             });
         var curses = PileType.Deck.GetPile(issuingPlayer).Cards
-            .OfType<Cards.Curses.SemenCurse>()
+            .OfType<Cards.Curses.MSInvasionCurseTemplate>()
             .Select(curse => curse.SourceMonsterId);
 
         string report =

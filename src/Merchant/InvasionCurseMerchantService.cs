@@ -1,17 +1,16 @@
-using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Core.Invasion;
+using MaidenSuccubus.Cards.Curses;
 
 namespace MaidenSuccubus.Merchant;
 
 public static class InvasionCurseMerchantConfig
 {
-    // DesignDoc 尚未给出正式数值；只允许通过此显式 Debug 配置调整。
-    public static int DebugRefundGold { get; set; } = 25;
+    public const int RefundGoldPerCurse = 50;
 }
 
 public static class InvasionCurseMerchantService
@@ -19,8 +18,7 @@ public static class InvasionCurseMerchantService
     public static bool IsEligible(CardModel card) =>
         card.Pile?.Type == PileType.Deck
         && card.Type == CardType.Curse
-        && card is IInvasionSourcedCurse sourced
-        && !string.IsNullOrWhiteSpace(sourced.SourceMonsterId);
+        && card is MSInvasionCurseTemplate;
 
     public static IReadOnlyList<CardModel> GetEligible(Player player) =>
         PileType.Deck.GetPile(player).Cards.Where(IsEligible).ToList();
@@ -32,33 +30,23 @@ public static class InvasionCurseMerchantService
             return null;
         }
 
-        var prefs = new CardSelectorPrefs(
-            CardSelectorPrefs.RemoveSelectionPrompt,
-            minCount: 0,
-            maxCount: 1)
-        {
-            Cancelable = true,
-            RequireManualConfirmation = true,
-        };
-        CardModel? selected = (await CardSelectCmd.FromDeckForRemoval(
-            player,
-            prefs,
-            IsEligible)).FirstOrDefault();
-        if (selected == null)
+        CardModel[] selected = GetEligible(player).ToArray();
+        if (selected.Length == 0)
         {
             return null;
         }
 
-        await CardPileCmd.RemoveFromDeck(selected);
-        int refund = Math.Max(0, InvasionCurseMerchantConfig.DebugRefundGold);
-        if (refund > 0)
+        foreach (CardModel curse in selected)
         {
-            await PlayerCmd.GainGold(refund, player);
+            await CardPileCmd.RemoveFromDeck(curse);
         }
+        int refund = selected.Length
+            * InvasionCurseMerchantConfig.RefundGoldPerCurse;
+        await PlayerCmd.GainGold(refund, player);
         MaidenSuccubusMod.Logger.Info(
-            $"Merchant removed invasion curse {selected.Id.Entry}; "
+            $"Merchant removed {selected.Length} invasion curses; "
             + $"refund={refund}; normalRemovalCount="
             + player.ExtraFields.CardShopRemovalsUsed);
-        return selected;
+        return selected[0];
     }
 }

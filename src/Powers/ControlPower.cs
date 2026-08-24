@@ -7,6 +7,7 @@ using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Content;
 using STS2RitsuLib.Combat.Ui.ExtraCornerAmountLabels;
 using MegaCrit.Sts2.Core.Localization;
+using MegaCrit.Sts2.Core.Saves.Runs;
 using MaidenSuccubus.Commands;
 using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Core.Intents;
@@ -24,6 +25,7 @@ public sealed class ControlPower :
     public override PowerInstanceType InstanceType =>
         PowerInstanceType.InstancedPerApplier;
 
+    [SavedProperty]
     public ControlType ControlType { get; set; }
 
     public override LocString Description

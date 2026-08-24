@@ -32,7 +32,10 @@ public static class MaidenSuccubusMod
         DesireResource.Register();
         if (MvpFeatureFlags.EnemyIntentExtensions)
         {
-            VanillaIntentAdapters.Register();
+            EroticAttackCatalog.Validate();
+            Logger.Info(
+                $"Erotic intent catalogue validated: "
+                + $"{EroticAttackCatalog.All.Count} monsters.");
         }
         ModTypeDiscoveryHub.RegisterModAssembly(ModId, assembly);
         FrameworkSelfTests.Run(Logger);
