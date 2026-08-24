@@ -76,17 +76,17 @@ $enchantmentsRoot = Join-Path $ProjectDir "src\Enchantments"
 $locRoot = Join-Path $ProjectDir "MaidenSuccubus\localization\zhs"
 
 $poolExpectations = [ordered]@{
-    MSNeutralCardPool = 36
-    MSCorruptCardPool = 53
-    MSHolyCardPool = 43
+    MSNeutralCardPool = 40
+    MSCorruptCardPool = 63
+    MSHolyCardPool = 51
     MSScriptureCardPool = 6
     MSInvasionCursePool = 17
-    MSGeneratedCardPool = 22
+    MSGeneratedCardPool = 27
 }
 $formalPoolIdentityHashes = @{
-    MSNeutralCardPool = "77844c337365a4972197d0223f47e9f059766830d1821219ccbf95fb497d0464"
-    MSCorruptCardPool = "5b9ea4599fac6129099c792b16a29a48fd76843f7c53312cc115ef181fbc2542"
-    MSHolyCardPool = "89e778384dc9a7f3f3b1bda17fe237fd8171095142b091f97e1e05e27de89443"
+    MSNeutralCardPool = "68d0bab1030e93f26cc9398ac10d17b0ac7304c34151d85c2e39b38ad9d15ac5"
+    MSCorruptCardPool = "796192f8fd70937011d9b3e7786234ea047cf7f3cc55c4433c3bf3e378ac34e2"
+    MSHolyCardPool = "16b4265367bb1b6e23788480bf69c56b8dd3f733e8777c15546f116939218f9c"
 }
 $allCards = [System.Collections.Generic.List[string]]::new()
 foreach ($entry in $poolExpectations.GetEnumerator()) {
@@ -111,4 +111,4 @@ Assert-Localization "CARD" $allCards.ToArray() $cardLoc @("title", "description"
 Assert-Localization "RELIC" $relics $relicLoc @("title", "description", "flavor")
 Assert-Localization "ENCHANTMENT" $enchantments $enchantmentLoc @("title", "description", "extraCardText")
 
-Write-Host "Validated forward-merge content: neutral=36, corrupt=53, holy=43, scriptures=6, invasion-curses=17, generated=22, relics=22, enchantments=8."
+Write-Host "Validated forward-merge content: neutral=40, corrupt=63, holy=51, scriptures=6, invasion-curses=17, generated=27, relics=22, enchantments=8."

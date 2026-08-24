@@ -1,5 +1,8 @@
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.Powers;
+using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MaidenSuccubus.Core.Routes;
 using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Content;
 using MaidenSuccubus.Core.Desire;
@@ -31,4 +34,17 @@ public sealed class UnboundedDesirePower
 
     public bool ShouldTriggerDesirePenalty(Player player) =>
         player.Creature != Owner;
+
+    public override async Task AfterCardPlayed(
+        PlayerChoiceContext context,
+        CardPlay cardPlay)
+    {
+        if (cardPlay.IsLastInSeries
+            && cardPlay.Card.Owner.Creature == Owner
+            && RouteCardQuery.IsCorrupt(cardPlay.Card)
+            && Owner.Player != null)
+        {
+            await Data.Desire.Modify(Owner.Player, 1);
+        }
+    }
 }

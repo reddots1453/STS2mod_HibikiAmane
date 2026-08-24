@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MaidenSuccubus.Cards.Curses;
 using MaidenSuccubus.Core.Intents;
+using MaidenSuccubus.Powers;
 
 namespace MaidenSuccubus.Commands;
 
@@ -24,6 +25,14 @@ public static class InvasionCmd
         InvasionIntentSpec spec)
     {
         if (source.Creature.IsDead || target.Creature.IsDead) return false;
+
+        ChastityDefensePower? protection =
+            target.Creature.GetPower<ChastityDefensePower>();
+        if (protection != null)
+        {
+            protection.NotifyInvasionBlocked();
+            return false;
+        }
 
         await DamageCmd.Attack(spec.Damage)
             .FromMonster(source)

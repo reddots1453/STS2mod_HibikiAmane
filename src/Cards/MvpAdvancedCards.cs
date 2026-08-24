@@ -10,6 +10,7 @@ using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Saves.Runs;
+using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Commands;
 using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Enchantments;
@@ -22,32 +23,72 @@ namespace MaidenSuccubus.Cards;
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class AllCurseBite : MSCorruptCard
 {
-    public AllCurseBite() : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) =>
-        this.SecondaryCosts().Set(DesireResource.Id, 1);
+    private int _exhaustedAttackDamage;
 
-    protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
+    [SavedProperty]
+    public int ExhaustedAttackDamage
     {
-        IEnumerable<CardModel> candidates = ModelDb.AllCharacters
-            .Where(character => character.GetType() != Owner.Character.GetType())
-            .SelectMany(character => character.CardPool.GetUnlockedCards(
-                Owner.UnlockState, Owner.RunState.CardMultiplayerConstraint))
-            .Where(card =>
-            card.Keywords.Contains(CardKeyword.Exhaust)
-            && card.CanBeGeneratedInCombat);
-        List<CardModel> choices = CardFactory.GetDistinctForCombat(
-            Owner, candidates, 3, Owner.RunState.Rng.CombatCardGeneration).ToList();
-        if (IsUpgraded)
+        get => _exhaustedAttackDamage;
+        set
         {
-            foreach (CardModel card in choices.Where(card => card.IsUpgradable))
-                CardCmd.Upgrade(card);
+            AssertMutable();
+            _exhaustedAttackDamage = value;
+            DynamicVars.ExtraDamage.BaseValue = value;
         }
-        CardModel? selected = await CardSelectCmd.FromChooseACardScreen(context, choices, Owner, canSkip: false);
-        if (selected == null) return;
-        selected.SetToFreeThisTurn();
-        selected.SecondaryCosts().Set(DesireResource.Id, 0);
-        await CardPileCmd.AddGeneratedCardToCombat(selected, PileType.Hand, Owner);
     }
-    protected override void OnUpgrade() { }
+
+    protected override IEnumerable<DynamicVar> CanonicalVars =>
+    [
+        new CalculationBaseVar(1),
+        new ExtraDamageVar(ExhaustedAttackDamage),
+        new CalculatedDamageVar(ValueProp.Move)
+            .WithMultiplier(static (_, _) => 1),
+    ];
+
+    public AllCurseBite()
+        : base(3, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy) { }
+
+    protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
+    {
+        ArgumentNullException.ThrowIfNull(play.Target);
+        return DamageCmd.Attack(DynamicVars.CalculatedDamage)
+            .FromCard(this, play)
+            .Targeting(play.Target)
+            .WithHitFx("vfx/vfx_attack_slash")
+            .Execute(context);
+    }
+
+    public override Task AfterCardExhausted(
+        PlayerChoiceContext context,
+        CardModel card,
+        bool causedByEthereal)
+    {
+        if (card.Owner != Owner || card.Type != CardType.Attack)
+        {
+            return Task.CompletedTask;
+        }
+        int addedDamage;
+        try
+        {
+            addedDamage = Math.Max(0, card.DynamicVars.Damage.IntValue);
+        }
+        catch (KeyNotFoundException)
+        {
+            try
+            {
+                addedDamage = Math.Max(
+                    0, card.DynamicVars.CalculatedDamage.IntValue);
+            }
+            catch (KeyNotFoundException)
+            {
+                addedDamage = 0;
+            }
+        }
+        ExhaustedAttackDamage += addedDamage;
+        return Task.CompletedTask;
+    }
+
+    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]

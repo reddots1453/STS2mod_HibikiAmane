@@ -28,7 +28,7 @@ public sealed class DarkStorm : MSCorruptCard
         HoverTipFactory.FromEnchantment<Glam>();
 
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(7, ValueProp.Move), new PowerVar<VulnerablePower>(1)];
+        [new DamageVar(9, ValueProp.Move), new PowerVar<VulnerablePower>(1)];
 
     public DarkStorm() : base(2, CardType.Attack, CardRarity.Uncommon, TargetType.AllEnemies) { }
 
@@ -67,7 +67,11 @@ public sealed class DarkStorm : MSCorruptCard
         }
     }
 
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(2);
+    protected override void OnUpgrade()
+    {
+        DynamicVars.Damage.UpgradeValueBy(2);
+        DynamicVars["VulnerablePower"].UpgradeValueBy(1);
+    }
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]
@@ -82,10 +86,14 @@ public sealed class BerserkerMask : MSCorruptCard
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class CurseWedge : MSCorruptCard
 {
-    public CurseWedge() : base(1, CardType.Skill, CardRarity.Rare, TargetType.Self) { }
+    protected override IEnumerable<DynamicVar> CanonicalVars =>
+        [new PowerVar<CurseWedgePower>(1)];
+    public CurseWedge() : base(0, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
-        PowerCmd.Apply<CurseWedgePower>(context, Owner.Creature, 1m, Owner.Creature, this);
-    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
+        PowerCmd.Apply<CurseWedgePower>(context, Owner.Creature,
+            DynamicVars["CurseWedgePower"].BaseValue, Owner.Creature, this);
+    protected override void OnUpgrade() =>
+        DynamicVars["CurseWedgePower"].UpgradeValueBy(1);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]

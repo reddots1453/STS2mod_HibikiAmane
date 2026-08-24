@@ -1,5 +1,6 @@
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.ValueProps;
@@ -10,10 +11,9 @@ using MaidenSuccubus.Commands;
 namespace MaidenSuccubus.Enchantments;
 
 /// <summary>
-/// Negative enchantment granted by an event. When its card is played, its
-/// owner takes 2 damage and the cards that were immediately adjacent in hand
-/// receive combat-only Infection, subject to the normal single-enchantment
-/// slot rule.
+/// Negative enchantment. It hurts its owner while retained in hand and spreads
+/// to the immediately adjacent hand cards just before the enchanted card
+/// leaves the hand to be played.
 /// </summary>
 [RegisterEnchantment]
 public sealed class InfectionEnchantment : ModEnchantmentTemplate
@@ -32,15 +32,6 @@ public sealed class InfectionEnchantment : ModEnchantmentTemplate
             return;
         }
 
-        await CreatureCmd.Damage(
-            choiceContext,
-            Card.Owner.Creature,
-            2m,
-            ValueProp.Unpowered | ValueProp.Move,
-            Card.Owner.Creature,
-            Card,
-            cardPlay);
-
         foreach (CardModel adjacentCard in InfectionHandSnapshot.Consume(Card))
         {
             CombatEnchantmentCmd.TryApplyAudited<InfectionEnchantment>(
@@ -48,5 +39,23 @@ public sealed class InfectionEnchantment : ModEnchantmentTemplate
                 1m,
                 out _);
         }
+    }
+
+    public override Task BeforeFlush(
+        PlayerChoiceContext choiceContext,
+        Player player)
+    {
+        if (player != Card.Owner || Card.Pile?.Type != PileType.Hand)
+        {
+            return Task.CompletedTask;
+        }
+        return CreatureCmd.Damage(
+            choiceContext,
+            Card.Owner.Creature,
+            3m,
+            ValueProp.Unpowered | ValueProp.Move,
+            Card.Owner.Creature,
+            Card,
+            null);
     }
 }

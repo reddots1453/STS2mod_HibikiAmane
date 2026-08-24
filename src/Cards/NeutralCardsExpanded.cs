@@ -15,6 +15,7 @@ using MaidenSuccubus.Commands;
 using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Core.Powers;
+using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Powers;
@@ -95,7 +96,7 @@ public sealed class SteadyGuard : MSNeutralCard
     protected override IEnumerable<DynamicVar> CanonicalVars =>
     [
         new CalculationBaseVar(13),
-        new CalculationExtraVar(5),
+        new CalculationExtraVar(4),
         new CalculatedBlockVar(ValueProp.Move).WithMultiplier(
             static (card, _) => CombatManager.Instance.History.Entries
                 .OfType<DamageReceivedEntry>()
@@ -121,6 +122,16 @@ public sealed class SteadyGuard : MSNeutralCard
             DynamicVars.CalculatedBlock.Calculate(null),
             DynamicVars.CalculatedBlock.Props,
             cardPlay);
+        if (!CombatManager.Instance.History.Entries
+            .OfType<DamageReceivedEntry>()
+            .Any(entry =>
+                entry.Receiver == Owner.Creature
+                && !entry.Result.WasFullyBlocked
+                && entry.HappenedLastPlayerTurn(Owner)))
+        {
+            await TransformationCmd.GainArmor(
+                choiceContext, Owner.Creature, 1, this);
+        }
     }
 
     protected override void OnUpgrade()
@@ -229,7 +240,6 @@ public sealed class Fusion : MSNeutralCard
         CardPlay cardPlay)
     {
         List<CardModel> choices = [];
-        AddOneFromPool<MSNeutralCardPool>(choices);
         AddOneFromPool<MSCorruptCardPool>(choices);
         AddOneFromPool<MSHolyCardPool>(choices);
         if (IsUpgraded)
@@ -246,16 +256,7 @@ public sealed class Fusion : MSNeutralCard
         if (selected == null)
             return;
 
-        selected.SetToFreeThisTurn();
-        if (selected.TryGetSecondaryCosts(out var secondaryCosts)
-            && secondaryCosts.Get(DesireResource.Id) is not null)
-        {
-            secondaryCosts.Set(
-                DesireResource.Id,
-                new SecondaryResourceCost(0),
-                SecondaryResourceCostDuration.UntilPlayed
-                    | SecondaryResourceCostDuration.ThisTurn);
-        }
+        GeneratedCardCostCmd.SetFreeThisTurn(selected);
         await CardPileCmd.AddGeneratedCardToCombat(
             selected,
             PileType.Hand,

@@ -109,6 +109,12 @@ public static class CombatEnchantmentCmd
         card.EnchantInternal(enchantment, amount);
         enchantment.ModifyCard();
         card.FinalizeUpgradeInternal();
+        foreach (ICombatEnchantmentAppliedListener listener in card.CombatState!
+            .IterateHookListeners()
+            .OfType<ICombatEnchantmentAppliedListener>())
+        {
+            listener.AfterCombatEnchantmentApplied(card);
+        }
         return enchantment;
     }
 
@@ -162,4 +168,9 @@ public static class CombatEnchantmentCmd
                 $"Card {card.Id} is not a card instance owned by the active combat state.");
         }
     }
+}
+
+public interface ICombatEnchantmentAppliedListener
+{
+    void AfterCombatEnchantmentApplied(CardModel card);
 }

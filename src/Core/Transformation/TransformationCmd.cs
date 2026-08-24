@@ -25,10 +25,19 @@ public static class TransformationCmd
     public static decimal ApplyAmplificationToDelayedValue(
         Creature creature,
         CardModel source,
-        decimal value) =>
-        GetAmplification(creature)?.IsAmplifying(source) == true
-            ? value * 1.5m
-            : value;
+        decimal value)
+    {
+        if (GetAmplification(creature)?.IsAmplifying(source) != true)
+        {
+            return value;
+        }
+        decimal multiplier = source is IDoubleMagicAmplification
+            || (source.Enchantment != null
+                && creature.HasPower<TacticalCorePower>())
+                ? 2m
+                : 1.5m;
+        return value * multiplier;
+    }
 
     public static async Task EnterImmaculateRobe(
         PlayerChoiceContext choiceContext,

@@ -42,10 +42,10 @@ public sealed class ChainDestructionPower : ModPowerTemplate
     {
         if (card.Owner.Creature != Owner) return Task.CompletedTask;
         ExhaustProgress++;
-        if (ExhaustProgress >= 5)
+        if (ExhaustProgress >= 4)
         {
-            ArmedReplays += ExhaustProgress / 5;
-            ExhaustProgress %= 5;
+            ArmedReplays += ExhaustProgress / 4;
+            ExhaustProgress %= 4;
             Flash();
         }
         return Task.CompletedTask;

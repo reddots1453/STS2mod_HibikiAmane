@@ -51,7 +51,6 @@ public sealed class BlasphemousTwilight : MSCorruptCard
     }
 }
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class MagicOverdraft : MSCorruptCard
 {
     protected override IEnumerable<MegaCrit.Sts2.Core.HoverTips.IHoverTip>

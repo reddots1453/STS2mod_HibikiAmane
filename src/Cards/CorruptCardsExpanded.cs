@@ -167,7 +167,6 @@ public sealed class SacrificialFrenzy : MSCorruptCard
     }
 }
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class CursedTomb : MSCorruptCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
@@ -339,7 +338,6 @@ public sealed class TentacleArmor : MSCorruptCard
     public TentacleArmor()
         : base(1, CardType.Power, CardRarity.Rare, TargetType.Self)
     {
-        this.SecondaryCosts().Set(DesireResource.Id, 1);
     }
 
     protected override async Task OnPlay(
@@ -352,7 +350,8 @@ public sealed class TentacleArmor : MSCorruptCard
             DynamicVars["PlatingPower"].BaseValue,
             Owner.Creature,
             this);
-        CardModel copy = CombatState!.CreateCard<TentacleArmor>(Owner);
+        CardModel copy = CombatState!.CloneCard(this);
+        copy.DeckVersion = null;
         await CardPileCmd.Add(copy, PileType.Draw, CardPilePosition.Random);
     }
 

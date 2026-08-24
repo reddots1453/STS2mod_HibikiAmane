@@ -26,23 +26,36 @@ public sealed class DrowsyStatus : MSGeneratedCard
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class MentalUnity : MSNeutralCard
 {
+    public override bool GainsBlock => true;
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(8, ValueProp.Move), new PowerVar<MentalUnityPower>(2)];
-    public MentalUnity() : base(2, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
+        [new DamageVar(8, ValueProp.Move), new BlockVar(2, ValueProp.Move)];
+    public MentalUnity() : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
-        if (play.Target.IsAlive)
-            await PowerCmd.Apply<MentalUnityPower>(context, play.Target,
-                DynamicVars["MentalUnityPower"].BaseValue, Owner.Creature, this);
+        if (play.Target.IsAlive
+            && await TransformationCmd.PayOverdraft(
+                context, Owner.Creature, this))
+        {
+            decimal block = DynamicVars.Block.BaseValue;
+            if (Enchantment is { } enchantment)
+            {
+                block += enchantment.EnchantBlockAdditive(block);
+                block *= enchantment.EnchantBlockMultiplicative(block);
+            }
+            block = TransformationCmd.ApplyAmplificationToDelayedValue(
+                Owner.Creature, this, block);
+            await PowerCmd.Apply<MentalUnityPower>(
+                context, play.Target, block, Owner.Creature, this);
+        }
     }
     protected override void OnUpgrade()
     {
         DynamicVars.Damage.UpgradeValueBy(2);
-        DynamicVars["MentalUnityPower"].UpgradeValueBy(1);
+        DynamicVars.Block.UpgradeValueBy(1);
     }
 }
 
@@ -65,7 +78,6 @@ public sealed class ObstructingShot : MSNeutralCard
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
 }
 
-[RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class CounterDefense : MSNeutralCard
 {
     public override bool GainsBlock => true;
@@ -134,7 +146,7 @@ public sealed class UltimateFlare : MSNeutralCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(24, ValueProp.Move)];
     public UltimateFlare() : base(2, CardType.Attack, CardRarity.Uncommon, TargetType.AllEnemies) { }
-    protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
+    protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         UltimateFlarePower power = (UltimateFlarePower)ModelDb.Power<UltimateFlarePower>().ToMutable();
         decimal damage = DynamicVars.Damage.BaseValue;
@@ -145,7 +157,12 @@ public sealed class UltimateFlare : MSNeutralCard
         }
         power.Damage = TransformationCmd.ApplyAmplificationToDelayedValue(
             Owner.Creature, this, damage);
-        return PowerCmd.Apply(context, power, Owner.Creature, 1, Owner.Creature, this);
+        await PowerCmd.Apply(context, power, Owner.Creature, 1, Owner.Creature, this);
+        if (await TransformationCmd.PayOverdraft(
+                context, Owner.Creature, this))
+        {
+            await PlayerCmd.GainEnergy(1, Owner);
+        }
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(8);
 }
@@ -159,7 +176,6 @@ public sealed class MagicIndex : MSNeutralCard
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
 
-[RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class ResonanceArmor : MSNeutralCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars => [new PowerVar<ResonanceArmorPower>(3)];
@@ -182,7 +198,6 @@ public sealed class Lullaby : MSNeutralCard
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
 
-[RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class TenaciousResistance : MSNeutralCard
 {
     public override bool GainsBlock => true;

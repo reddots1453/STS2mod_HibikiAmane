@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
+using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Pools;
 using STS2RitsuLib.Interop.AutoRegistration;
 
@@ -14,51 +15,45 @@ namespace MaidenSuccubus.Cards;
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class SwordVerdict : MSNeutralCard
 {
-    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Retain];
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-    [
-        new CalculationBaseVar(25),
-        new ExtraDamageVar(25),
-        new DynamicVar("Multiplier", 2),
-        new CalculatedDamageVar(ValueProp.Move).WithMultiplier(
-            static (_, target) => target is not null && target.CurrentHp * 2 < target.MaxHp ? 1 : 0),
-    ];
+        [new DamageVar(24, ValueProp.Move)];
     public SwordVerdict() : base(3, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy) { }
-    protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
+    protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
-        return DamageCmd.Attack(DynamicVars.CalculatedDamage).FromCard(this, play).Targeting(play.Target)
+        bool belowHalf = play.Target.CurrentHp * 2 < play.Target.MaxHp;
+        decimal damage = DynamicVars.Damage.BaseValue * (belowHalf ? 2 : 1);
+        await DamageCmd.Attack(damage).FromCard(this, play).Targeting(play.Target)
             .WithHitFx("vfx/vfx_attack_slash").Execute(context);
+        if (belowHalf && play.Target.IsAlive)
+        {
+            await CreatureCmd.Stun(play.Target);
+        }
     }
-    protected override void OnUpgrade()
-    {
-        DynamicVars.ExtraDamage.UpgradeValueBy(25);
-        DynamicVars["Multiplier"].UpgradeValueBy(1);
-    }
+    protected override void OnUpgrade() => AddKeyword(CardKeyword.Retain);
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class LightningRecoil : MSNeutralCard
 {
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(12, ValueProp.Move)];
+    protected override IEnumerable<DynamicVar> CanonicalVars =>
+        [new DamageVar(4, ValueProp.Move)];
     public LightningRecoil() : base(0, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
-    public override bool TryModifyEnergyCostInCombat(CardModel card, decimal cost, out decimal modified)
-    {
-        modified = cost;
-        if (card != this) return false;
-        modified += PileType.Hand.GetPile(Owner).Cards.Count(other => other != this);
-        return true;
-    }
-    protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
+    protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
-        return DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
+        await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
+        if (await TransformationCmd.PayOverdraft(
+                context, Owner.Creature, this))
+        {
+            await CardPileCmd.Draw(context, 1, Owner);
+        }
     }
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(4);
+    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
 }
 
-[RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class PrepareAhead : MSNeutralCard
 {
     public override bool GainsBlock => true;
@@ -137,7 +132,5 @@ public sealed class FlashStab : MSNeutralCard
         CardModel copy = CreateClone();
         await CardPileCmd.Add(copy, PileType.Draw, CardPilePosition.Random);
     }
-    // The design intentionally defines no numerical upgrade for this card.  An
-    // upgraded copy still propagates its upgrade marker to generated copies.
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(2);
 }

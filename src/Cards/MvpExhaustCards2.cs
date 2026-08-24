@@ -65,7 +65,6 @@ public sealed class BlackVortex : MSCorruptCard
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class GrudgeFire : MSCorruptCard
 {
     private int _currentDamage = 1;
@@ -103,7 +102,6 @@ public sealed class ChainDestruction : MSCorruptCard
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class CurseCorridor : MSCorruptCard
 {
     public CurseCorridor() : base(1, CardType.Power, CardRarity.Rare, TargetType.Self) { }
@@ -112,7 +110,6 @@ public sealed class CurseCorridor : MSCorruptCard
     protected override void OnUpgrade() => AddKeyword(CardKeyword.Retain);
 }
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class GrudgeBlade : MSCorruptCard, IPermanentGrowthCard
 {
     private int _currentDamage = 8;

@@ -81,7 +81,7 @@ public sealed class PunishmentScripturePower : ScripturePowerTemplate
         await CondemnationCmd.Apply(
             choiceContext,
             enemies[index],
-            2m,
+            1m,
             Owner,
             null);
     }

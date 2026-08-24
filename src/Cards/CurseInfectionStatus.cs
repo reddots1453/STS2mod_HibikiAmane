@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
@@ -6,9 +5,9 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Hooks;
-using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
+using MaidenSuccubus.Keywords;
 using MaidenSuccubus.Util;
 
 namespace MaidenSuccubus.Cards;
@@ -19,16 +18,13 @@ namespace MaidenSuccubus.Cards;
 /// </summary>
 public static class CurseInfectionStatus
 {
-    private sealed class Marker;
-
-    private static readonly ConditionalWeakTable<CardModel, Marker> Marked = new();
-
-    public static bool Has(CardModel card) => Marked.TryGetValue(card, out _);
+    public static bool Has(CardModel card) =>
+        card.Keywords.Contains(CurseInfectionKeyword.Value);
 
     public static bool TryApply(CardModel card)
     {
         if (card is CurseInfection || Has(card)) return false;
-        Marked.Add(card, new Marker());
+        card.AddKeyword(CurseInfectionKeyword.Value);
         return true;
     }
 
@@ -95,14 +91,3 @@ public static class CurseInfectionCardTextPatch
     }
 }
 
-[HarmonyPatch(typeof(CardModel), nameof(CardModel.HoverTips), MethodType.Getter)]
-public static class CurseInfectionHoverTipPatch
-{
-    [HarmonyPostfix]
-    public static void Postfix(CardModel __instance, ref IEnumerable<IHoverTip> __result)
-    {
-        if (CurseInfectionStatus.Has(__instance))
-            __result = __result.Append(
-                CardHoverTipSupport.Static("MAIDENSUCCUBUS_CURSE_INFECTION"));
-    }
-}

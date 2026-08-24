@@ -78,12 +78,7 @@ public sealed class BurningPower : ModPowerTemplate
 
         if (command.ModelSource is CardModel { Type: CardType.Attack })
         {
-            await CreatureCmd.Damage(
-                new BlockingPlayerChoiceContext(),
-                Owner,
-                Amount,
-                ValueProp.Unpowered | ValueProp.Move,
-                Owner);
+            await ResolveBurningDamage(new BlockingPlayerChoiceContext());
         }
     }
 
@@ -97,6 +92,31 @@ public sealed class BurningPower : ModPowerTemplate
     {
         if (!_enemyAttackActive || dealer != Owner || target.Side == Owner.Side)
             return Task.CompletedTask;
+
+        return ResolveBurningDamage(choiceContext);
+    }
+
+    private Task ResolveBurningDamage(PlayerChoiceContext choiceContext)
+    {
+        if (Owner.Player != null
+            && Owner.HasPower<LordOfBlazePower>()
+            && Owner.CombatState != null)
+        {
+            Creature[] enemies = Owner.CombatState.GetOpponentsOf(Owner)
+                .Where(creature => creature.IsAlive)
+                .ToArray();
+            if (enemies.Length > 0)
+            {
+                Creature target = enemies[
+                    Owner.Player.RunState.Rng.CombatTargets.NextInt(enemies.Length)];
+                return CreatureCmd.Damage(
+                    choiceContext,
+                    target,
+                    Amount,
+                    ValueProp.Unpowered | ValueProp.Move,
+                    Owner);
+            }
+        }
 
         return CreatureCmd.Damage(
             choiceContext,

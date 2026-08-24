@@ -40,7 +40,7 @@ public sealed class Tranquilizer : MSHolyCard
 public sealed class Stigma : MSHolyCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<CondemnationPower>(2), new PowerVar<WeakPower>(2)];
+        [new DynamicVar("Layers", 2)];
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     public Stigma() : base(0, CardType.Skill, CardRarity.Common, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
@@ -64,14 +64,13 @@ public sealed class Stigma : MSHolyCard
             context, targets, Owner, canSkip: false) as StigmaTargetChoice;
         Creature target = creatures[Math.Clamp(selectedTarget?.TargetIndex ?? 0, 0, creatures.Count - 1)];
         if (choice is StigmaCondemnationChoice)
-            await CondemnationCmd.Apply(context, target, DynamicVars["CondemnationPower"].BaseValue, Owner.Creature, this);
+            await CondemnationCmd.Apply(context, target, DynamicVars["Layers"].BaseValue, Owner.Creature, this);
         else
-            await PowerCmd.Apply<WeakPower>(context, target, DynamicVars["WeakPower"].BaseValue, Owner.Creature, this);
+            await PowerCmd.Apply<WeakPower>(context, target, DynamicVars["Layers"].BaseValue, Owner.Creature, this);
     }
     protected override void OnUpgrade()
     {
-        DynamicVars["CondemnationPower"].UpgradeValueBy(1);
-        DynamicVars["WeakPower"].UpgradeValueBy(1);
+        DynamicVars["Layers"].UpgradeValueBy(1);
     }
 }
 
@@ -107,7 +106,13 @@ public sealed class StigmaWeakChoice : MSGeneratedCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class EternalDamnation : MSHolyCard
 {
+    public override IEnumerable<CardKeyword> CanonicalKeywords =>
+        [MaidenSuccubus.Keywords.SinkingKeyword.Value];
     public EternalDamnation() : base(3, CardType.Power, CardRarity.Rare, TargetType.Self) { }
+    public override Task BeforeCombatStart() =>
+        Pile?.Type == PileType.Draw
+            ? CardPileCmd.Add(this, PileType.Discard)
+            : Task.CompletedTask;
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
         PowerCmd.Apply<CondemnationRetentionPower>(context, Owner.Creature, 1, Owner.Creature, this);
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
@@ -139,11 +144,14 @@ public sealed class ForgeNimble : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class Rest : MSHolyCard
 {
+    protected override bool IsPlayable =>
+        TransformationCmd.IsTransformed(Owner.Creature);
     public Rest() : base(0, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         await TransformationCmd.Exit(context, Owner.Creature);
-        await PowerCmd.Apply<RetainHandPower>(context, Owner.Creature, 1, Owner.Creature, this);
+        await PowerCmd.Apply<RestNextTurnPower>(
+            context, Owner.Creature, 1, Owner.Creature, this);
         PlayerCmd.EndTurn(Owner, canBackOut: false);
     }
     protected override void OnUpgrade() => AddKeyword(CardKeyword.Retain);
@@ -163,5 +171,5 @@ public sealed class MultipleReproduction : MSHolyCard
         if (power != null)
             power.DelayOneTurn = !await OverdraftCmd.Offer(context, this, 1);
     }
-    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
+    protected override void OnUpgrade() { }
 }

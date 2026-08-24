@@ -9,6 +9,7 @@ using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Core.Powers;
 using MaidenSuccubus.Pools;
+using MaidenSuccubus.Powers;
 using STS2RitsuLib.Combat.SecondaryResources;
 using STS2RitsuLib.Interop.AutoRegistration;
 
@@ -32,7 +33,6 @@ public sealed class PleasureDrowning : MSCorruptCard
     protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(3);
 }
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class DesireLockdown : MSCorruptCard
 {
     protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
@@ -112,7 +112,7 @@ public sealed class NoLewdness : MSHolyCard
 public sealed class PhotonVolt : MSHolyCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(10, ValueProp.Move), new PowerVar<Powers.PurificationPower>(1)];
+        [new DamageVar(10, ValueProp.Move)];
     public PhotonVolt() : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
@@ -120,7 +120,8 @@ public sealed class PhotonVolt : MSHolyCard
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         if (Data.Desire.Get(Owner) <= 2)
-            await PowerCmd.Apply<Powers.PurificationPower>(context, Owner.Creature, 1, Owner.Creature, this);
+            await PowerCmd.Apply<MagicAmplificationPower>(
+                context, Owner.Creature, 1, Owner.Creature, this);
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
 }

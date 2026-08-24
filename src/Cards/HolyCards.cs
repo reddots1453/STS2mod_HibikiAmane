@@ -31,6 +31,7 @@ public sealed class DragonflyTouch : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class PenanceSlash : MSHolyCard
 {
+    protected override HashSet<CardTag> CanonicalTags => [CardTag.Strike];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new DamageVar(14, ValueProp.Move), new PowerVar<FrailPower>(2)];
 
@@ -51,6 +52,7 @@ public sealed class PenanceSlash : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class DevoutBulwark : MSHolyCard
 {
+    protected override HashSet<CardTag> CanonicalTags => [CardTag.Defend];
     public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new BlockVar(12, ValueProp.Move), new PowerVar<WeakPower>(2)];

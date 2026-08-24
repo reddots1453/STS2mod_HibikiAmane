@@ -246,7 +246,7 @@ public sealed class SunDance : MSHolyCard
         [CardKeyword.Exhaust];
 
     public SunDance()
-        : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self)
+        : base(1, CardType.Skill, CardRarity.Common, TargetType.Self)
     {
     }
 

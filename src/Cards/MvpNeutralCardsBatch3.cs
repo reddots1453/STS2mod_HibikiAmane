@@ -44,7 +44,6 @@ public sealed class Surf : MSNeutralCard
     protected override void OnUpgrade() => DynamicVars.Energy.UpgradeValueBy(1);
 }
 
-[RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class PressBack : MSNeutralCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
@@ -86,7 +85,7 @@ public sealed class AcceleratedMotion : MSNeutralCard
             await CardPileCmd.Add(copy, PileType.Deck);
         }
     }
-    protected override void OnUpgrade() => DynamicVars["Copies"].UpgradeValueBy(1);
+    protected override void OnUpgrade() => DynamicVars.Cards.UpgradeValueBy(1);
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]
@@ -98,7 +97,7 @@ public sealed class MagicSword : MSNeutralCard
     protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
         HoverTipFactory.FromEnchantment<ChargeEnchantment>(2);
 
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(14, ValueProp.Move)];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(12, ValueProp.Move)];
     public MagicSword() : base(2, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
 
     public override Task AfterCardChangedPiles(
@@ -123,11 +122,11 @@ public sealed class MagicSword : MSNeutralCard
         return DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
     }
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(4);
+    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(6);
 }
 
-[RegisterCard(typeof(MSNeutralCardPool))]
-public sealed class ChangePanties : MSNeutralCard
+[RegisterCard(typeof(MSCorruptCardPool))]
+public sealed class ChangePanties : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new PowerVar<SlipperyPower>(2), new PowerVar<VulnerablePower>(2)];
@@ -141,5 +140,5 @@ public sealed class ChangePanties : MSNeutralCard
         await PowerCmd.Apply<VulnerablePower>(context, Owner.Creature,
             DynamicVars["VulnerablePower"].BaseValue, Owner.Creature, this);
     }
-    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
+    protected override void OnUpgrade() { }
 }

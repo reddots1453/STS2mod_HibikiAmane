@@ -6,5 +6,11 @@
   "MAIDEN_SUCCUBUS_KEYWORD_PORTABLE.title": "随身",
   "MAIDEN_SUCCUBUS_KEYWORD_PORTABLE.description": "回合结束时，保留进入手牌最早且仍在手牌中的一张[gold]随身[/gold]牌。该牌离开手牌后，名额释放。[gold]随身[/gold]牌不会因拘束而变化为【挣脱】。",
   "1380709635.title": "随身",
-  "1380709635.description": "回合结束时，保留进入手牌最早且仍在手牌中的一张[gold]随身[/gold]牌。该牌离开手牌后，名额释放。[gold]随身[/gold]牌不会因拘束而变化为【挣脱】。"
+  "1380709635.description": "回合结束时，保留进入手牌最早且仍在手牌中的一张[gold]随身[/gold]牌。该牌离开手牌后，名额释放。[gold]随身[/gold]牌不会因拘束而变化为【挣脱】。",
+  "MAIDEN_SUCCUBUS_KEYWORD_SINKING.title": "沉底",
+  "MAIDEN_SUCCUBUS_KEYWORD_SINKING.description": "战斗开始时，将这张牌放入弃牌堆。",
+  "MAIDEN_SUCCUBUS_KEYWORD_BATTLE_REPLAY.title": "战技复读",
+  "MAIDEN_SUCCUBUS_KEYWORD_BATTLE_REPLAY.description": "这张牌来自【战技复读】，打出后恢复为【战技复读】。",
+  "MAIDEN_SUCCUBUS_KEYWORD_CURSE_INFECTION.title": "咒印传染",
+  "MAIDEN_SUCCUBUS_KEYWORD_CURSE_INFECTION.description": "当这张牌被消耗时，抽2张牌，并将这一效果附加到随机手牌上。不能叠加给已有该效果的牌。"
 }

@@ -8,7 +8,7 @@ public static class MvpFeatureFlags
 {
     public static readonly bool EnemyIntentExtensions = true;
     public static readonly bool ControlAndInvasion = true;
-    public static readonly bool Portable = false;
+    public static readonly bool Portable = true;
     public static readonly bool SpecialInvasionMerchant = true;
     public static readonly bool BossBlessings = false;
     public static readonly bool ExtraStartProfiles = false;
@@ -30,7 +30,7 @@ public static class MvpPatchPolicy
                     MvpFeatureFlags.SpecialInvasionMerchant,
                 "PortableRetainPatch" => MvpFeatureFlags.Portable,
                 "BossBlessingPatch" => MvpFeatureFlags.BossBlessings,
-                "BlindfoldIntentPatch" or "InfectionHandSnapshotPatch" => false,
+                "BlindfoldIntentPatch" => false,
                 _ => null,
             };
             if (enabled.HasValue)

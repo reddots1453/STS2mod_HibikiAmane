@@ -23,7 +23,7 @@ public sealed class Consecration : MSHolyCard
     public Consecration() : base(1, CardType.Power, CardRarity.Uncommon, TargetType.Self) { }
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
         PowerCmd.Apply<ConsecrationPower>(context, Owner.Creature, 1, Owner.Creature, this);
-    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
+    protected override void OnUpgrade() { }
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]

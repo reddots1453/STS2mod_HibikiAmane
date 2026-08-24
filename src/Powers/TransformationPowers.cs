@@ -28,8 +28,9 @@ public sealed class ImmaculateRobePower : ModPowerTemplate
         {
             return;
         }
+        decimal amount = Owner.GetPower<EternalRobePower>()?.Amount ?? 1m;
         await PowerCmd.Apply<MagicAmplificationPower>(
-            choiceContext, Owner, 1m, Owner, null);
+            choiceContext, Owner, amount, Owner, null);
     }
 }
 
@@ -174,7 +175,7 @@ public sealed class MagicAmplificationPower : ModPowerTemplate
         CardModel? cardSource,
         CardPlay? cardPlay) =>
         ReferenceEquals(dealer, Owner) && ReferenceEquals(cardSource, _cardToAmplify)
-            ? 1.5m
+            ? AmplificationMultiplier(cardSource)
             : 1m;
 
     public override decimal ModifyBlockMultiplicative(
@@ -184,8 +185,14 @@ public sealed class MagicAmplificationPower : ModPowerTemplate
         CardModel? cardSource,
         CardPlay? cardPlay) =>
         ReferenceEquals(target, Owner) && ReferenceEquals(cardSource, _cardToAmplify)
-            ? 1.5m
+            ? AmplificationMultiplier(cardSource)
             : 1m;
+
+    private decimal AmplificationMultiplier(CardModel? card) =>
+        card is IDoubleMagicAmplification
+        || (card?.Enchantment != null && Owner.HasPower<TacticalCorePower>())
+            ? 2m
+            : 1.5m;
 
     public override async Task AfterCardPlayed(
         PlayerChoiceContext context,

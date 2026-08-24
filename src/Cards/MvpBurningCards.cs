@@ -49,7 +49,6 @@ public sealed class PlayingWithFire : MSCorruptCard
     protected override void OnUpgrade() => DynamicVars.Cards.UpgradeValueBy(1);
 }
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class ScorchingMagic : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars => [new PowerVar<ScorchingMagicPower>(3)];
@@ -63,14 +62,16 @@ public sealed class ScorchingMagic : MSCorruptCard
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class FlameBloom : MSNeutralCard
 {
-    public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new BlockVar(5, ValueProp.Move), new PowerVar<BurningPower>(2)];
-    public FlameBloom() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
+        [new DamageVar(7, ValueProp.Move), new PowerVar<BurningPower>(2)];
+    public FlameBloom() : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
-        await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
-        await PowerCmd.Apply<BurningPower>(context, Owner.Creature, 2, Owner.Creature, this);
+        ArgumentNullException.ThrowIfNull(play.Target);
+        await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
+            .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
+        await PowerCmd.Apply<BurningPower>(
+            context, play.Target, 2, Owner.Creature, this);
     }
-    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(3);
+    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
 }

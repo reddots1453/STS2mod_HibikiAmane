@@ -5,7 +5,9 @@ using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
+using MegaCrit.Sts2.Core.Saves.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
+using MaidenSuccubus.Commands;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
 using STS2RitsuLib.Interop.AutoRegistration;
@@ -30,7 +32,6 @@ public sealed class MimicProliferation : MSCorruptCard
     protected override void OnUpgrade() => DynamicVars.Cards.UpgradeValueBy(1);
 }
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class MiasmaFrenzy : MSCorruptCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
@@ -82,24 +83,56 @@ public sealed class DestructionReaction : MSCorruptCard
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]
-public sealed class ThousandCurseScythe : MSCorruptCard
+public sealed class ThousandCurseScythe : MSCorruptCard, IPermanentGrowthCard
 {
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(33, ValueProp.Move)];
-    public ThousandCurseScythe() : base(8, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
-    public override bool TryModifyEnergyCostInCombat(CardModel card, decimal cost, out decimal modified)
+    private int _currentDamage = 8;
+
+    [SavedProperty]
+    public int CurrentDamage
     {
-        modified = cost;
-        if (card != this) return false;
-        modified = Math.Max(0, cost - PileType.Exhaust.GetPile(Owner).Cards.Count);
-        return true;
+        get => _currentDamage;
+        set
+        {
+            AssertMutable();
+            _currentDamage = value;
+            DynamicVars.Damage.BaseValue = value;
+        }
     }
+
+    public override IEnumerable<CardKeyword> CanonicalKeywords =>
+        [CardKeyword.Exhaust];
+    protected override IEnumerable<DynamicVar> CanonicalVars =>
+        [new DamageVar(CurrentDamage, ValueProp.Move), new DynamicVar("Growth", 4)];
+
+    public ThousandCurseScythe()
+        : base(2, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy) { }
+
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
         return DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
     }
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(11);
+
+    public override Task AfterCardExhausted(
+        PlayerChoiceContext context,
+        CardModel card,
+        bool causedByEthereal)
+    {
+        if (card != this)
+        {
+            return Task.CompletedTask;
+        }
+        int growth = DynamicVars["Growth"].IntValue;
+        CurrentDamage += growth;
+        PermanentCardCmd.ModifyDeckVersion(
+            this,
+            deck => ((ThousandCurseScythe)deck).CurrentDamage += growth);
+        return Task.CompletedTask;
+    }
+
+    protected override void OnUpgrade() =>
+        DynamicVars["Growth"].UpgradeValueBy(1);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]

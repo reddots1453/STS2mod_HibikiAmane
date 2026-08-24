@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Core.Powers;
+using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
 using STS2RitsuLib.Combat.SecondaryResources;
@@ -117,7 +118,11 @@ public sealed class SoulImpact : MSHolyCard
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_blunt").Execute(context);
         if (debuffed) await PlayerCmd.GainEnergy(DynamicVars.Energy.IntValue, Owner);
     }
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(4);
+    protected override void OnUpgrade()
+    {
+        DynamicVars.Damage.UpgradeValueBy(2);
+        DynamicVars.Energy.UpgradeValueBy(1);
+    }
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]
@@ -128,20 +133,28 @@ public sealed class MagicBurst : MSHolyCard
         new CalculationBaseVar(7),
         new ExtraDamageVar(2),
         new CalculatedDamageVar(ValueProp.Move).WithMultiplier(
-            static (card, _) => PowerLayerQuery.CountBuffLayers(card.Owner.Creature)),
+            static (card, _) =>
+                TransformationCmd.GetAmplification(card.Owner.Creature)?.Amount > 0
+                || TransformationCmd.GetArmor(card.Owner.Creature)?.Amount > 0
+                    ? PowerLayerQuery.CountBuffLayers(card.Owner.Creature)
+                    : 0),
     ];
-    public MagicBurst() : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
-    protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
+    public MagicBurst() : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
+    protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
-        return DamageCmd.Attack(DynamicVars.CalculatedDamage).FromCard(this, play).Targeting(play.Target)
+        bool overdrafted = await TransformationCmd.PayOverdraft(
+            context, Owner.Creature, this);
+        decimal damage = DynamicVars.CalculationBase.BaseValue;
+        if (overdrafted)
+        {
+            damage += PowerLayerQuery.CountBuffLayers(Owner.Creature)
+                * DynamicVars.ExtraDamage.BaseValue;
+        }
+        await DamageCmd.Attack(damage).FromCard(this, play).Targeting(play.Target)
             .WithHitFx("vfx/vfx_attack_slash").Execute(context);
     }
-    protected override void OnUpgrade()
-    {
-        DynamicVars.CalculationBase.UpgradeValueBy(3);
-        DynamicVars.ExtraDamage.UpgradeValueBy(1);
-    }
+    protected override void OnUpgrade() => DynamicVars.ExtraDamage.UpgradeValueBy(1);
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]

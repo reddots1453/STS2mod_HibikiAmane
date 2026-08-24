@@ -47,21 +47,21 @@ public sealed class MasochisticGirl : MSCorruptCard
     protected override void OnUpgrade() => DynamicVars["MasochisticGirlPower"].UpgradeValueBy(1);
 }
 
-[RegisterCard(typeof(MSHolyCardPool))]
-public sealed class LightArrow : MSHolyCard
+[RegisterCard(typeof(MSNeutralCardPool))]
+public sealed class LightArrow : MSNeutralCard, IDoubleMagicAmplification
 {
-    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(7, ValueProp.Move)];
-    public LightArrow() : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
+    public override bool GainsBlock => true;
+    protected override IEnumerable<DynamicVar> CanonicalVars =>
+        [new DamageVar(5, ValueProp.Move), new BlockVar(5, ValueProp.Move)];
+    public LightArrow() : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
-        int layers = Core.Powers.PowerLayerQuery.CountDebuffLayers(play.Target);
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
-        if (layers > 0) await CardPileCmd.Draw(context, layers, Owner);
+        await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
     }
-    protected override void OnUpgrade() => RemoveKeyword(CardKeyword.Exhaust);
+    protected override void OnUpgrade() { }
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]

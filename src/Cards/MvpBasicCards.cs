@@ -10,8 +10,8 @@ using STS2RitsuLib.Interop.AutoRegistration;
 
 namespace MaidenSuccubus.Cards;
 
-[RegisterCard(typeof(MSNeutralCardPool))]
-public sealed class MaidenStrike : MSNeutralCard
+[RegisterCard(typeof(MSGeneratedCardPool))]
+public sealed class MaidenStrike : MSGeneratedCard
 {
     protected override HashSet<CardTag> CanonicalTags => [CardTag.Strike];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
@@ -32,8 +32,8 @@ public sealed class MaidenStrike : MSNeutralCard
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
 }
 
-[RegisterCard(typeof(MSNeutralCardPool))]
-public sealed class MaidenDefend : MSNeutralCard
+[RegisterCard(typeof(MSGeneratedCardPool))]
+public sealed class MaidenDefend : MSGeneratedCard
 {
     public override bool GainsBlock => true;
     protected override HashSet<CardTag> CanonicalTags => [CardTag.Defend];
