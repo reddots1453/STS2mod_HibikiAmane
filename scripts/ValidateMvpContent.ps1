@@ -77,7 +77,7 @@ $locRoot = Join-Path $ProjectDir "MaidenSuccubus\localization\zhs"
 
 $poolExpectations = [ordered]@{
     MSNeutralCardPool = 36
-    MSCorruptCardPool = 52
+    MSCorruptCardPool = 53
     MSHolyCardPool = 43
     MSScriptureCardPool = 6
     MSInvasionCursePool = 17
@@ -85,7 +85,7 @@ $poolExpectations = [ordered]@{
 }
 $formalPoolIdentityHashes = @{
     MSNeutralCardPool = "77844c337365a4972197d0223f47e9f059766830d1821219ccbf95fb497d0464"
-    MSCorruptCardPool = "3eda58611787d33279cdc81c22a876f97f54537cf9f8265c14a4d4930a7bd030"
+    MSCorruptCardPool = "5b9ea4599fac6129099c792b16a29a48fd76843f7c53312cc115ef181fbc2542"
     MSHolyCardPool = "89e778384dc9a7f3f3b1bda17fe237fd8171095142b091f97e1e05e27de89443"
 }
 $allCards = [System.Collections.Generic.List[string]]::new()
@@ -111,4 +111,4 @@ Assert-Localization "CARD" $allCards.ToArray() $cardLoc @("title", "description"
 Assert-Localization "RELIC" $relics $relicLoc @("title", "description", "flavor")
 Assert-Localization "ENCHANTMENT" $enchantments $enchantmentLoc @("title", "description", "extraCardText")
 
-Write-Host "Validated MVP content: neutral=36, corrupt=52, holy=43, scriptures=6, invasion-curses=17, generated=22, relics=22, enchantments=8."
+Write-Host "Validated forward-merge content: neutral=36, corrupt=53, holy=43, scriptures=6, invasion-curses=17, generated=22, relics=22, enchantments=8."

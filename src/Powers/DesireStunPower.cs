@@ -19,7 +19,7 @@ public sealed class DesireStunPower : ModPowerTemplate
 {
     public override PowerType Type => PowerType.Debuff;
 
-    public override PowerStackType StackType => PowerStackType.Single;
+    public override PowerStackType StackType => PowerStackType.Counter;
 
     public override PowerAssetProfile AssetProfile => new(
         IconPath: "res://MaidenSuccubus/images/powers/desire_stun.svg",
@@ -46,6 +46,6 @@ public sealed class DesireStunPower : ModPowerTemplate
         }
 
         Flash();
-        await PowerCmd.Remove(this);
+        await PowerCmd.Decrement(this);
     }
 }

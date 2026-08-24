@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.HoverTips;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
+using MaidenSuccubus.Core.Transformation;
 using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Content;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
@@ -47,13 +48,9 @@ public sealed class NakedDesireStatus : MSGeneratedCard
     public NakedDesireStatus() : base(-1, CardType.Status, CardRarity.Status, TargetType.None) { }
     protected override async Task OnTurnEndInHand(PlayerChoiceContext context)
     {
-        MagicArmorPower? armor = Owner.Creature.GetPower<MagicArmorPower>();
+        MagicArmorPower? armor = TransformationCmd.GetArmor(Owner.Creature);
         if (armor != null)
-        {
-            await PowerCmd.ModifyAmount(context, armor, -1, Owner.Creature, this);
-            if (Owner.Creature.GetPower<MagicArmorPower>() is null)
-                await PowerCmd.Remove<MagicArmorProtectionPower>(Owner.Creature);
-        }
+            await PowerCmd.Decrement(armor);
     }
 }
 

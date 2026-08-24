@@ -8,6 +8,7 @@ using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
+using MaidenSuccubus.Core.Transformation;
 using STS2RitsuLib.Interop.AutoRegistration;
 
 namespace MaidenSuccubus.Cards;
@@ -93,7 +94,16 @@ public sealed class Blizzard : MSHolyCard
             .TargetingAllOpponents(CombatState).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         await CardPileCmd.AddGeneratedCardToCombat(CombatState.CreateCard<IceMist>(Owner), PileType.Hand, Owner);
         BlizzardEchoPower echo = (BlizzardEchoPower)ModelDb.Power<BlizzardEchoPower>().ToMutable();
-        echo.Damage = DynamicVars.Damage.BaseValue;
+        decimal delayedDamage = DynamicVars.Damage.BaseValue;
+        if (Enchantment is { } enchantment)
+        {
+            delayedDamage += enchantment.EnchantDamageAdditive(
+                delayedDamage, DynamicVars.Damage.Props);
+            delayedDamage *= enchantment.EnchantDamageMultiplicative(
+                delayedDamage, DynamicVars.Damage.Props);
+        }
+        echo.Damage = TransformationCmd.ApplyAmplificationToDelayedValue(
+            Owner.Creature, this, delayedDamage);
         await PowerCmd.Apply(context, echo, Owner.Creature, 2, Owner.Creature, this);
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(2);

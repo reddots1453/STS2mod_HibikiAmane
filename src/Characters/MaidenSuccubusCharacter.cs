@@ -3,7 +3,6 @@ using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Characters;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
-using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Nodes.Combat;
@@ -59,6 +58,7 @@ public class MaidenSuccubusCharacter
         new(typeof(MaidenStrike), 4),
         new(typeof(MaidenDefend), 4),
         new(typeof(Transform), 1),
+        new(typeof(DarkElement), 1),
     ];
 
     // 起始遗物占位：燃烧之血

@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Entities.Powers;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Saves.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Cards;
 using STS2RitsuLib.Interop.AutoRegistration;
@@ -73,7 +74,7 @@ public sealed class CounterDefensePower : ModPowerTemplate
 [RegisterPower]
 public sealed class UltimateFlarePower : ModPowerTemplate
 {
-    public decimal Damage { get; set; }
+    [SavedProperty] public decimal Damage { get; set; }
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
     public override async Task AfterSideTurnStart(

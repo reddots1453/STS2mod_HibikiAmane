@@ -9,8 +9,14 @@ public sealed class DesireState
     public bool HasGrantedFirstMaxCorruption { get; set; }
 
     /// <summary>
-    /// Maximum desire reached outside combat; consumed on the next combat's
-    /// first player turn.
+    /// Legacy save field kept for runs created before first-iteration rules.
     /// </summary>
     public bool PendingFirstTurnStun { get; set; }
+
+    /// <summary>
+    /// Full-desire penalties waiting for the next legal player-turn start.
+    /// Kept as a count because separate gains can reach ten more than once
+    /// before that resolution point.
+    /// </summary>
+    public int PendingClimaxResolutions { get; set; }
 }

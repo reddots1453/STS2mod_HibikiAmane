@@ -9,6 +9,7 @@ using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
+using MaidenSuccubus.Core.Transformation;
 using STS2RitsuLib.Interop.AutoRegistration;
 
 namespace MaidenSuccubus.Cards;
@@ -142,7 +143,8 @@ public sealed class UltimateFlare : MSNeutralCard
             damage += enchantment.EnchantDamageAdditive(damage, DynamicVars.Damage.Props);
             damage *= enchantment.EnchantDamageMultiplicative(damage, DynamicVars.Damage.Props);
         }
-        power.Damage = damage;
+        power.Damage = TransformationCmd.ApplyAmplificationToDelayedValue(
+            Owner.Creature, this, damage);
         return PowerCmd.Apply(context, power, Owner.Creature, 1, Owner.Creature, this);
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(8);

@@ -1,4 +1,6 @@
 {
+  "MAIDEN_SUCCUBUS_CARD_DARK_ELEMENT.title": "黑暗元素",
+  "MAIDEN_SUCCUBUS_CARD_DARK_ELEMENT.description": "造成{Damage:diff()}点伤害。透支：获得{Block:diff()}点格挡。",
   "MAIDEN_SUCCUBUS_CARD_AROUSAL_STATUS.title": "发情",
   "MAIDEN_SUCCUBUS_CARD_AROUSAL_STATUS.description": "每当你抽到该牌时，获得1欲望。",
   "MAIDEN_SUCCUBUS_CARD_NAKED_DESIRE_STATUS.title": "赤裸欲",
@@ -40,7 +42,7 @@
   "MAIDEN_SUCCUBUS_CARD_MAIDEN_DEFEND.title": "防御",
   "MAIDEN_SUCCUBUS_CARD_MAIDEN_DEFEND.description": "获得{Block:diff()}点[gold]格挡[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_TRANSFORM.title": "变身",
-  "MAIDEN_SUCCUBUS_CARD_TRANSFORM.description": "进入[gold]变身：魔法少女形态[/gold]。",
+  "MAIDEN_SUCCUBUS_CARD_TRANSFORM.description": "进入[gold]变身：无垢天衣形态[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_BALANCE_BLADE.title": "天平之刃",
   "MAIDEN_SUCCUBUS_CARD_BALANCE_BLADE.description": "造成{CalculatedDamage:diff()}点伤害。每有1点堕落值偏移，这张牌造成的伤害减少3点。",
   "MAIDEN_SUCCUBUS_CARD_DOUBLE_DEFENSE.title": "双重防御",
@@ -353,9 +355,9 @@
   "MAIDEN_SUCCUBUS_CARD_FOURTH_ROUTE_QUEST_CHOICE.title": "女神的任务",
   "MAIDEN_SUCCUBUS_CARD_FOURTH_ROUTE_QUEST_CHOICE.description": "[gold]试炼[/gold]：{QuestText}。\n[green]奖励[/green]：{RewardText}。",
   "MAIDEN_SUCCUBUS_CARD_OVERDRAFT_ACCEPT_CHOICE.title": "透支",
-  "MAIDEN_SUCCUBUS_CARD_OVERDRAFT_ACCEPT_CHOICE.description": "失去{ArmorCost}层[gold]魔装[/gold]，触发透支效果。",
+  "MAIDEN_SUCCUBUS_CARD_OVERDRAFT_ACCEPT_CHOICE.description": "失去{ArmorCost}层[gold]魔装耐久[/gold]，触发透支效果。",
   "MAIDEN_SUCCUBUS_CARD_OVERDRAFT_DECLINE_CHOICE.title": "不透支",
-  "MAIDEN_SUCCUBUS_CARD_OVERDRAFT_DECLINE_CHOICE.description": "不失去[gold]魔装[/gold]，跳过透支效果。",
+  "MAIDEN_SUCCUBUS_CARD_OVERDRAFT_DECLINE_CHOICE.description": "不失去[gold]魔装耐久[/gold]，跳过透支效果。",
   "MAIDEN_SUCCUBUS_CARD_HUMILITY_LESSON.title": "谦逊",
   "MAIDEN_SUCCUBUS_CARD_HUMILITY_LESSON.description": "选择1张攻击牌或技能牌，使其伤害与格挡数值翻倍。"
 }

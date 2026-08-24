@@ -48,11 +48,14 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
             bool inCombat = CombatManager.Instance.IsInProgress
                 && !CombatManager.Instance.IsEnding
                 && context.Player.Creature.CombatState != null;
-            if (!inCombat)
+            bool isPlayerTurn = inCombat
+                && context.Player.Creature.CombatState!.CurrentSide
+                    == CombatSide.Player;
+            if (!isPlayerTurn)
             {
                 Data.Desire.Handle.Modify(
                     runState,
-                    state => state.PendingFirstTurnStun = true);
+                    state => state.PendingClimaxResolutions++);
                 return;
             }
 

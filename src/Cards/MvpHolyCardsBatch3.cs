@@ -13,6 +13,7 @@ using MaidenSuccubus.Commands;
 using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
+using MaidenSuccubus.Core.Transformation;
 using STS2RitsuLib.Combat.SecondaryResources;
 using STS2RitsuLib.Interop.AutoRegistration;
 
@@ -141,8 +142,7 @@ public sealed class Rest : MSHolyCard
     public Rest() : base(0, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
-        await PowerCmd.Remove<MagicArmorPower>(Owner.Creature);
-        await PowerCmd.Remove<MagicArmorProtectionPower>(Owner.Creature);
+        await TransformationCmd.Exit(context, Owner.Creature);
         await PowerCmd.Apply<RetainHandPower>(context, Owner.Creature, 1, Owner.Creature, this);
         PlayerCmd.EndTurn(Owner, canBackOut: false);
     }

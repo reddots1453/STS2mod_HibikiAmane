@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MaidenSuccubus.Powers;
 using MaidenSuccubus.Cards;
+using MaidenSuccubus.Core.Transformation;
 
 namespace MaidenSuccubus.Commands;
 
@@ -14,27 +15,9 @@ public static class OverdraftCmd
         CardModel source,
         int armorCost)
     {
-        if (MagicArmorCmd.GetAmount(source.Owner) < armorCost)
-        {
-            return false;
-        }
-
-        OverdraftAcceptChoice accept =
-            source.CombatState!.CreateCard<OverdraftAcceptChoice>(source.Owner);
-        accept.Configure(armorCost);
-        OverdraftDeclineChoice decline =
-            source.CombatState.CreateCard<OverdraftDeclineChoice>(source.Owner);
-
-        CardModel? selected = await CardSelectCmd.FromChooseACardScreen(
-            choiceContext,
-            [accept, decline],
-            source.Owner,
-            canSkip: false);
-        return selected == accept
-            && await MagicArmorCmd.TrySpend(
-                choiceContext,
-                source.Owner,
-                armorCost,
-                source);
+        if (armorCost != 1)
+            throw new ArgumentOutOfRangeException(nameof(armorCost), "透支固定支付1层魔力增幅或魔装耐久。");
+        return await TransformationCmd.PayOverdraft(
+            choiceContext, source.Owner.Creature, source);
     }
 }

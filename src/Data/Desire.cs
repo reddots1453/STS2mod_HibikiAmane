@@ -68,15 +68,26 @@ public static class Desire
         PlayerChoiceContext choiceContext,
         Player player)
     {
-        if (player.RunState is not RunState runState
-            || !Handle.Get(runState).PendingFirstTurnStun)
+        if (player.RunState is not RunState runState)
+        {
+            return;
+        }
+
+        DesireState state = Handle.Get(runState);
+        int pending = state.PendingClimaxResolutions
+            + (state.PendingFirstTurnStun ? 1 : 0);
+        if (pending <= 0)
         {
             return;
         }
 
         Handle.Modify(
             runState,
-            state => state.PendingFirstTurnStun = false);
+            saved =>
+            {
+                saved.PendingFirstTurnStun = false;
+                saved.PendingClimaxResolutions = 0;
+            });
         await SecondaryResourceCmd.Set(
             player,
             DesireResource.Id,
@@ -84,7 +95,7 @@ public static class Desire
         await PowerCmd.Apply<DesireStunPower>(
             choiceContext,
             player.Creature,
-            1m,
+            pending,
             player.Creature,
             null);
     }

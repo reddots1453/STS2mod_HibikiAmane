@@ -135,8 +135,9 @@
 | 类型 | 需求ID | 变化 | Plan结论 | 当前状态 |
 |---|---|---|---|---|
 | ADD | `DOC-ITER1-001` | MVP验收后启动第一轮完整范围 | 新增`ITER1-0～6` | READY（从时间戳MVP基线正向重做） |
-| CHANGE | 基础牌章节 | 黑暗元素进入普通初始牌组 | 初始牌组改为4打击、4防御、变身、黑暗元素 | READY |
-| CHANGE | `SYS-TRF-001/002`、`KW-MAGIC-AMP-001`、`KW-OVERDRAFT-001` | 变身、耐久、增幅、透支采用新规则 | `ITER1-1`重做并全卡回归 | READY |
+| CHANGE | 基础牌章节 | 黑暗元素进入普通初始牌组 | 初始牌组改为4打击、4防御、变身、黑暗元素 | IMPLEMENTED（待运行时验收） |
+| CHANGE | `SYS-DES-002A` | 满欲望按玩家回合立即、敌方回合/战斗外排队，并逐次结算 | `ITER1-1`重做时序和持久化计数 | IMPLEMENTED（待运行时验收） |
+| CHANGE | `SYS-TRF-001/002`、`KW-MAGIC-AMP-001`、`KW-OVERDRAFT-001` | 变身、耐久、增幅、透支采用新规则 | `ITER1-1`重做并全卡回归 | IMPLEMENTED（待运行时验收） |
 | ADD | `SYS-TRF-004` | 四档分层立绘与五类轻量动画 | `ITER1-3` | READY |
 | CHANGE | `SYS-CTL-001/002`、`SYS-INV-001/002` | 闭合多来源挣脱、恢复意图和商店清理 | `ITER1-2`替换延期状态 | READY |
 | ADD | `SYS-DES-INTENT-001`、`MON-ERO-CATALOG-001` | 逐怪物色情意图、权重、次数和优先级 | `ITER1-2`；交付范围覆盖DesignDoc成熟度标签 | READY |

@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
+using MaidenSuccubus.Core.Transformation;
 using STS2RitsuLib.Interop.AutoRegistration;
 
 namespace MaidenSuccubus.Cards;
@@ -56,7 +57,36 @@ public sealed class Transform : MSHolyCard
     public Transform() : base(1, CardType.Skill, CardRarity.Basic, TargetType.Self) { }
 
     protected override Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay) =>
-        MagicArmorCmd.Transform(choiceContext, Owner, this);
+        TransformationCmd.EnterImmaculateRobe(choiceContext, Owner.Creature, this);
 
     protected override void OnUpgrade() => AddKeyword(CardKeyword.Innate);
+}
+
+[RegisterCard(typeof(MSCorruptCardPool))]
+public sealed class DarkElement : MSCorruptCard
+{
+    public override bool GainsBlock => true;
+    protected override IEnumerable<DynamicVar> CanonicalVars =>
+        [new DamageVar(4, ValueProp.Move), new BlockVar(4, ValueProp.Move)];
+
+    public DarkElement() : base(0, CardType.Attack, CardRarity.Basic, TargetType.AnyEnemy) { }
+
+    protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        ArgumentNullException.ThrowIfNull(cardPlay.Target);
+        await DamageCmd.Attack(DynamicVars.Damage.BaseValue)
+            .FromCard(this, cardPlay)
+            .Targeting(cardPlay.Target)
+            .WithHitFx("vfx/vfx_attack_slash")
+            .Execute(choiceContext);
+        if (await Core.Transformation.TransformationCmd.PayOverdraft(
+                choiceContext, Owner.Creature, this))
+            await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, cardPlay);
+    }
+
+    protected override void OnUpgrade()
+    {
+        DynamicVars.Damage.UpgradeValueBy(2);
+        DynamicVars.Block.UpgradeValueBy(2);
+    }
 }
