@@ -19,6 +19,7 @@ using MaidenSuccubus.Keywords;
 using MegaCrit.Sts2.Core.Rooms;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Characters.Starts;
+using MaidenSuccubus.UI;
 using CorruptionData = MaidenSuccubus.Data.Corruption;
 
 namespace MaidenSuccubus.Characters;
@@ -123,7 +124,8 @@ public class MaidenSuccubusCharacter
         }
     }
 
-    // 自动转换人物场景（教程标准写法，复制即可）
     protected override NCreatureVisuals? TryCreateCreatureVisuals() =>
-        RitsuGodotNodeFactories.CreateFromScenePath<NCreatureVisuals>(AssetProfile.Scenes!.VisualsPath!);
+        MaidenSuccubusCreatureVisuals.TryCreate()
+        ?? RitsuGodotNodeFactories.CreateFromScenePath<NCreatureVisuals>(
+            AssetProfile.Scenes!.VisualsPath!);
 }
