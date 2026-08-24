@@ -29,7 +29,6 @@ public static class MvpPatchPolicy
                 "MerchantInvasionCursePatch" =>
                     MvpFeatureFlags.SpecialInvasionMerchant,
                 "PortableRetainPatch" => MvpFeatureFlags.Portable,
-                "BossBlessingPatch" => MvpFeatureFlags.BossBlessings,
                 "BlindfoldIntentPatch" => false,
                 _ => null,
             };

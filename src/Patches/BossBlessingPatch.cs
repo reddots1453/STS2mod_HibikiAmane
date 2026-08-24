@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Acts;
 using MaidenSuccubus.Characters;
+using MaidenSuccubus.Core.Features;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.Rewards;
 using MaidenSuccubus.Util;
@@ -21,19 +22,35 @@ public static class BossBlessingPatch
         AbstractRoom room,
         ref Task __result)
     {
-        if (room is not CombatRoom { RoomType: RoomType.Boss }
-            || player.RunState is not RunState runState
-            || runState.CurrentActIndex != 2
-            || !runState.Acts.Any(act => act is MaidenSuccubusFourthAct)
-            || !M5Progress.Handle.Get(runState).FourthRouteThirdBossDefeated)
+        bool shouldSuppress = false;
+        Safe.Run(
+            () => shouldSuppress = room is CombatRoom { RoomType: RoomType.Boss }
+                && player.RunState is RunState runState
+                && runState.CurrentActIndex == 2
+                && runState.Acts.Any(act => act is MaidenSuccubusFourthAct)
+                && M5Progress.Handle.Get(runState).FourthRouteThirdBossDefeated,
+            "FourthRoute.ShouldSuppressActThreeBossRewards");
+        if (!shouldSuppress)
         {
             return true;
         }
 
-        MaidenSuccubusMod.Logger.Info(
-            "Suppressing vanilla Act 3 boss rewards before entering the appended Fourth Act.");
-        __result = new RewardsSet(player).EmptyForRoom(room).Offer();
-        return false;
+        bool suppressed = false;
+        Task replacement = __result;
+        Safe.Run(
+            () =>
+            {
+                MaidenSuccubusMod.Logger.Info(
+                    "Suppressing vanilla Act 3 boss rewards before entering the appended Fourth Act.");
+                replacement = new RewardsSet(player).EmptyForRoom(room).Offer();
+                suppressed = true;
+            },
+            "FourthRoute.SuppressActThreeBossRewards");
+        if (suppressed)
+        {
+            __result = replacement;
+        }
+        return !suppressed;
     }
 
     [HarmonyPostfix]
@@ -42,6 +59,14 @@ public static class BossBlessingPatch
         AbstractRoom room,
         ref Task __result)
     {
+        // The prefix above is part of the MVP fourth-route transition and must
+        // always remain installed. Goddess blessings are a separate deferred
+        // feature, so gate only this postfix instead of the whole patch class.
+        if (!MvpFeatureFlags.BossBlessings)
+        {
+            return;
+        }
+
         int defeatedActIndex = player.RunState is RunState runState
             ? runState.CurrentActIndex
             : -1;
