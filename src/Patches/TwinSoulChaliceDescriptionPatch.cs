@@ -10,8 +10,8 @@ namespace MaidenSuccubus.Patches;
 
 /// <summary>
 /// RelicModel.Description is not virtual in the base game. Select the active
-/// ascension text at the getter boundary so every relic UI receives the same
-/// branch and DynamicDescription can still inject Heal/MaxHp/Cards normally.
+/// text at the getter boundary so every relic UI receives the same branch and
+/// DynamicDescription can still inject dynamic variables normally.
 /// </summary>
 [HarmonyPatch(typeof(RelicModel), "get_Description")]
 public static class TwinSoulChaliceDescriptionPatch
@@ -23,6 +23,14 @@ public static class TwinSoulChaliceDescriptionPatch
         Safe.Run(
             () =>
             {
+                if (__instance is FourthRouteRelic routeRelic)
+                {
+                    result = new LocString(
+                        "relics",
+                        routeRelic.Id.Entry + $".descriptionStage{routeRelic.Stage}");
+                    return;
+                }
+
                 if (__instance is not TwinSoulChalice chalice || !chalice.IsMutable
                     || chalice.Owner.RunState is not RunState runState)
                 {

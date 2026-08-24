@@ -11,6 +11,7 @@ using MegaCrit.Sts2.Core.Entities.Relics;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
@@ -51,6 +52,16 @@ public abstract class FourthRouteRelic : ModRelicTemplate
         }
     }
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Stage", 1)];
+    public override LocString Title
+    {
+        get
+        {
+            LocString title = new("relics", "MAIDEN_SUCCUBUS_RELIC_FOURTH_ROUTE_STAGE.title");
+            title.Add("Relic", new LocString("relics", Id.Entry + ".title"));
+            title.Add("Stage", new LocString("relics", $"MAIDEN_SUCCUBUS_RELIC_FOURTH_ROUTE_STAGE_{Stage}.title"));
+            return title;
+        }
+    }
     public abstract FourthRouteQuest Quest { get; }
     public override RelicRarity Rarity => RelicRarity.Event;
     public override RelicAssetProfile AssetProfile => new(
