@@ -14,7 +14,7 @@ public sealed class RemoveSealedCardsRestSiteOption
     public override string OptionId => "MAIDEN_SUCCUBUS_REMOVE_SEALED";
 
     public override RestSiteOptionAssetProfile AssetProfile => new(
-        "res://MaidenSuccubus/images/ui/remove_sealed.svg");
+        "res://images/ui/rest_site/option_smith.png");
 
     public override LocString? CustomTitle => new(
         "rest_site_ui",

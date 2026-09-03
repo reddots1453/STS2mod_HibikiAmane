@@ -14,7 +14,7 @@ using STS2RitsuLib.Scaffolding.Content;
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
-public sealed class AbnormalAdaptationPower : ModPowerTemplate
+public sealed class AbnormalAdaptationPower : MaidenSuccubusPowerTemplate
 {
     public int RemainingTriggers { get; set; }
     public override PowerType Type => PowerType.Buff;
@@ -45,7 +45,7 @@ public sealed class AbnormalAdaptationPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class MasochisticGirlPower : ModPowerTemplate
+public sealed class MasochisticGirlPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -59,7 +59,7 @@ public sealed class MasochisticGirlPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class SanctuaryPower : ModPowerTemplate
+public sealed class SanctuaryPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -78,7 +78,7 @@ public sealed class SanctuaryPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class BlizzardEchoPower : ModPowerTemplate
+public sealed class BlizzardEchoPower : MaidenSuccubusPowerTemplate
 {
     [SavedProperty] public decimal Damage { get; set; }
     public override PowerType Type => PowerType.Buff;

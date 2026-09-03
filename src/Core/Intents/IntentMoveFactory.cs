@@ -91,7 +91,6 @@ public static class IntentMoveFactory
                 await DamageCmd.Attack(spec.Damage)
                     .WithHitCount(Math.Max(1, spec.Hits))
                     .FromMonster(source)
-                    .Targeting(target)
                     .WithNoAttackerAnim()
                     .Execute(new BlockingPlayerChoiceContext());
             }

@@ -13,7 +13,7 @@ using STS2RitsuLib.Scaffolding.Content;
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
-public sealed class ChastityDefensePower : ModPowerTemplate
+public sealed class ChastityDefensePower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -32,7 +32,7 @@ public sealed class ChastityDefensePower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class RegenerativeMagicFiberPower : ModPowerTemplate
+public sealed class RegenerativeMagicFiberPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -50,7 +50,7 @@ public sealed class RegenerativeMagicFiberPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class RestNextTurnPower : ModPowerTemplate
+public sealed class RestNextTurnPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
@@ -70,14 +70,14 @@ public sealed class RestNextTurnPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class EternalRobePower : ModPowerTemplate
+public sealed class EternalRobePower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
 }
 
 [RegisterPower]
-public sealed class TacticalCorePower : ModPowerTemplate
+public sealed class TacticalCorePower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -94,7 +94,7 @@ public sealed class TacticalCorePower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class BattleTechniqueReplayPower : ModPowerTemplate
+public sealed class BattleTechniqueReplayPower : MaidenSuccubusPowerTemplate
 {
     private readonly Dictionary<CardModel, bool> _generatedOrigins = [];
     private bool _changing;

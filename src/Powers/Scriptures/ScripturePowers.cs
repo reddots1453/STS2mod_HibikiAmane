@@ -149,7 +149,5 @@ public sealed class BlissScripturePower : ScripturePowerTemplate
 
 internal static class ScriptureAssets
 {
-    internal static PowerAssetProfile Profile => new(
-        IconPath: "res://MaidenSuccubus/images/ui/desire_resource.png",
-        BigIconPath: "res://MaidenSuccubus/images/ui/desire_resource.png");
+    internal static PowerAssetProfile Profile => CommonPowerAssets.Generic;
 }

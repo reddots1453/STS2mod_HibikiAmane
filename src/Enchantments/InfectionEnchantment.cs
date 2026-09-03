@@ -21,7 +21,7 @@ public sealed class InfectionEnchantment : ModEnchantmentTemplate
     public override bool HasExtraCardText => true;
 
     public override EnchantmentAssetProfile AssetProfile => new(
-        IconPath: "res://MaidenSuccubus/images/ui/desire_resource.png");
+        IconPath: "res://images/powers/strength_power.png");
 
     public override async Task OnPlay(
         PlayerChoiceContext choiceContext,

@@ -16,7 +16,7 @@ using STS2RitsuLib.Scaffolding.Content;
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
-public sealed class MentalUnityPower : ModPowerTemplate
+public sealed class MentalUnityPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Debuff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -40,7 +40,7 @@ public sealed class MentalUnityPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class CounterDefensePower : ModPowerTemplate
+public sealed class CounterDefensePower : MaidenSuccubusPowerTemplate
 {
     private Creature? _activeAttacker;
     public override PowerType Type => PowerType.Buff;
@@ -72,7 +72,7 @@ public sealed class CounterDefensePower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class UltimateFlarePower : ModPowerTemplate
+public sealed class UltimateFlarePower : MaidenSuccubusPowerTemplate
 {
     [SavedProperty] public decimal Damage { get; set; }
     public override PowerType Type => PowerType.Buff;
@@ -89,7 +89,7 @@ public sealed class UltimateFlarePower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class MagicIndexPower : ModPowerTemplate
+public sealed class MagicIndexPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -101,7 +101,7 @@ public sealed class MagicIndexPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class ResonanceArmorPower : ModPowerTemplate
+public sealed class ResonanceArmorPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -114,7 +114,7 @@ public sealed class ResonanceArmorPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class LullabyPower : ModPowerTemplate
+public sealed class LullabyPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -129,7 +129,7 @@ public sealed class LullabyPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class TenaciousResistancePower : ModPowerTemplate
+public sealed class TenaciousResistancePower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;

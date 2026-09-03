@@ -18,7 +18,7 @@ using STS2RitsuLib.Scaffolding.Content;
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
-public sealed class RestoreDexterityAtTurnEndPower : ModPowerTemplate
+public sealed class RestoreDexterityAtTurnEndPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Debuff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -45,7 +45,7 @@ public sealed class RestoreDexterityAtTurnEndPower : ModPowerTemplate
 
 [RegisterPower]
 public sealed class PreventNextDesireGainPower :
-    ModPowerTemplate,
+    MaidenSuccubusPowerTemplate,
     ISecondaryResourceHookListener
 {
     public override PowerType Type => PowerType.Buff;
@@ -72,7 +72,7 @@ public sealed class PreventNextDesireGainPower :
 }
 
 [RegisterPower]
-public sealed class InwardDisciplinePower : ModPowerTemplate
+public sealed class InwardDisciplinePower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -108,11 +108,12 @@ public sealed class InwardDisciplinePower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class HolyRadiancePower : ModPowerTemplate
+public sealed class HolyRadiancePower : MaidenSuccubusPowerTemplate
 {
     private bool _resolving;
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
+    public override PowerAssetProfile AssetProfile => CommonPowerAssets.Generic;
 
     public override async Task AfterPowerAmountChanged(
         PlayerChoiceContext choiceContext,
@@ -158,7 +159,7 @@ public sealed class HolyRadiancePower : ModPowerTemplate
 
 [RegisterPower]
 public sealed class HolyResonancePower :
-    ModPowerTemplate,
+    MaidenSuccubusPowerTemplate,
     IScriptureTriggeredListener
 {
     public override PowerType Type => PowerType.Buff;

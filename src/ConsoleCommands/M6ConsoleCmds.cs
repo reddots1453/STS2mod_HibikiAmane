@@ -106,6 +106,9 @@ public sealed class M6RouteConsoleCmd : AbstractConsoleCmd
             state.FourthRouteAlignment = "";
             state.FourthRouteQuestProgress = 0;
             state.FourthRouteQuestCompleted = false;
+            state.FourthRouteRewardPending = false;
+            state.FourthRouteRewardClaimed = false;
+            state.FourthRouteRewardCorruptionApplied = false;
             state.FourthRouteRelicStage = 0;
             state.FourthRouteFragmentPending = false;
             state.FourthRouteFragmentOffered = false;

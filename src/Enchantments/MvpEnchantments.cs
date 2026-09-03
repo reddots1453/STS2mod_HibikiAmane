@@ -100,7 +100,7 @@ public sealed class ProliferationEnchantment : CombatOnlyEnchantmentTemplate
         if (cardPlay?.Card != Card || Card.CombatState is null)
             return;
         CardModel copy = Card.CreateClone();
-        await CardPileCmd.Add(copy, PileType.Draw, CardPilePosition.Random);
+        await CardPileCmd.AddGeneratedCardToCombat(copy, PileType.Draw, Card.Owner, CardPilePosition.Random);
     }
 }
 
@@ -124,7 +124,7 @@ public sealed class WrathEnchantment : ModEnchantmentTemplate
     {
         if (_used || cardPlay?.Card != Card) return;
         _used = true;
-        CardModel copy = Card.Owner.RunState.CloneCard(Card);
-        await CardPileCmd.Add(copy, PileType.Discard);
+        CardModel copy = Card.CreateClone();
+        await CardPileCmd.AddGeneratedCardToCombat(copy, PileType.Discard, Card.Owner);
     }
 }

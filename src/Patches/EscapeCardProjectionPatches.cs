@@ -6,8 +6,6 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Afflictions;
 using MegaCrit.Sts2.Core.Models.Enchantments;
 using MaidenSuccubus.Core.Control;
-using MaidenSuccubus.Core.Routes;
-using MaidenSuccubus.Keywords;
 using MaidenSuccubus.Util;
 
 namespace MaidenSuccubus.Patches;
@@ -38,8 +36,10 @@ internal static class EscapeCardProjectionPatches
         LocString result = __result;
         Safe.Run(() =>
         {
-            EscapeProjection? projection = ControlQuery.GetProjection(__instance);
-            if (projection == null) return;
+            if (ControlQuery.GetProjection(__instance) is not { } projection)
+            {
+                return;
+            }
             result = new LocString("cards", "MAIDENSUCCUBUS_ESCAPE.description");
             result.Add("Escape", Math.Max(0, __instance.EnergyCost.GetAmountToSpend()));
             result.Add("Original", projection.OriginalCard.Title);
@@ -69,16 +69,6 @@ internal static class EscapeCardProjectionPatches
         IReadOnlySet<CardKeyword> result = __result;
         Safe.Run(() =>
         {
-            if (__instance is IMaidenSuccubusRouteCard routeCard
-                && routeCard.RouteKind != RouteCardKind.Neutral)
-            {
-                var decorated = result.ToHashSet();
-                decorated.Add(routeCard.RouteKind == RouteCardKind.Corrupt
-                    ? RouteCardKeywords.Corrupt
-                    : RouteCardKeywords.Holy);
-                result = decorated;
-            }
-
             IReadOnlySet<CardKeyword> raw = result;
             if (ControlQuery.GetProjection(__instance, raw) != null)
             {

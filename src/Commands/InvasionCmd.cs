@@ -36,7 +36,6 @@ public static class InvasionCmd
 
         await DamageCmd.Attack(spec.Damage)
             .FromMonster(source)
-            .Targeting(target.Creature)
             .WithNoAttackerAnim()
             .Execute(choiceContext);
 

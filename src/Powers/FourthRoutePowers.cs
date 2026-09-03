@@ -12,7 +12,7 @@ using STS2RitsuLib.Scaffolding.Content;
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
-public sealed class SelfImportantPower : ModPowerTemplate
+public sealed class SelfImportantPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Debuff;
     public override PowerStackType StackType => PowerStackType.Counter;

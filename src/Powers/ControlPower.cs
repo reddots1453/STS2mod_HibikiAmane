@@ -17,7 +17,7 @@ namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
 public sealed class ControlPower :
-    ModPowerTemplate,
+    MaidenSuccubusPowerTemplate,
     IPowerExtraIconAmountLabelSpecsProvider
 {
     public override PowerType Type => PowerType.Debuff;
@@ -42,9 +42,7 @@ public sealed class ControlPower :
     internal ControlBreakReason PendingBreakReason { get; set; } =
         ControlBreakReason.Direct;
 
-    public override PowerAssetProfile AssetProfile => new(
-        IconPath: "res://MaidenSuccubus/images/ui/corruption_meter.svg",
-        BigIconPath: "res://MaidenSuccubus/images/ui/corruption_meter.svg");
+    public override PowerAssetProfile AssetProfile => CommonPowerAssets.Corruption;
 
     public IReadOnlyList<ExtraIconAmountLabelSpec>
         GetPowerExtraIconAmountLabelSpecs() =>
@@ -56,8 +54,7 @@ public sealed class ControlPower :
 
     public override Task BeforeCardPlayed(CardPlay cardPlay)
     {
-        EscapeProjection? projection = ControlQuery.GetProjection(cardPlay.Card);
-        if (projection != null
+        if (ControlQuery.GetProjection(cardPlay.Card) is { } projection
             && ReferenceEquals(projection.Control, this)
             && cardPlay.IsFirstInSeries)
         {

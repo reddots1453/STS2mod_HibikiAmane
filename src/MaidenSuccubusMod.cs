@@ -12,6 +12,8 @@ using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Core.Intents;
 using MaidenSuccubus.Patches;
 using MaidenSuccubus.Core.Features;
+using MaidenSuccubus.Keywords;
+using STS2RitsuLib.Keywords;
 
 namespace MaidenSuccubus;
 
@@ -29,6 +31,7 @@ public static class MaidenSuccubusMod
         var assembly = Assembly.GetExecutingAssembly();
         RitsuLibFramework.EnsureGodotScriptsRegistered(assembly, Logger);
         RegisterRunSavedData();
+        RegisterKeywords();
         DesireResource.Register();
         if (MvpFeatureFlags.EnemyIntentExtensions)
         {
@@ -68,6 +71,34 @@ public static class MaidenSuccubusMod
             }
         }
         Logger.Info($"Maiden & Succubus ready — {patchCount} patches applied");
+    }
+
+    private static void RegisterKeywords()
+    {
+        // RitsuLib's attribute scanner skips static classes.  All keyword
+        // holders in this mod are intentionally static, so register their
+        // definitions explicitly before type discovery freezes the registry.
+        ModKeywordRegistry registry = ModKeywordRegistry.For(ModId);
+        registry.RegisterCardKeywordOwnedByLocNamespace(
+            PortableKeyword.LocalStem,
+            iconPath: null,
+            ModKeywordCardDescriptionPlacement.AfterCardDescription,
+            includeInCardHoverTip: true);
+        registry.RegisterCardKeywordOwnedByLocNamespace(
+            SinkingKeyword.LocalStem,
+            iconPath: null,
+            ModKeywordCardDescriptionPlacement.AfterCardDescription,
+            includeInCardHoverTip: true);
+        registry.RegisterCardKeywordOwnedByLocNamespace(
+            BattleReplayKeyword.LocalStem,
+            iconPath: null,
+            ModKeywordCardDescriptionPlacement.None,
+            includeInCardHoverTip: true);
+        registry.RegisterCardKeywordOwnedByLocNamespace(
+            CurseInfectionKeyword.LocalStem,
+            iconPath: null,
+            ModKeywordCardDescriptionPlacement.None,
+            includeInCardHoverTip: true);
     }
 
     private static void RegisterRunSavedData()

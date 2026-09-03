@@ -21,13 +21,14 @@ using MegaCrit.Sts2.Core.Entities.RestSite;
 using MaidenSuccubus.Relics;
 using MaidenSuccubus.RestSite;
 using MaidenSuccubus.Patches;
+using MaidenSuccubus.UI;
 
 namespace MaidenSuccubus.Relics;
 
 [RegisterRelic(typeof(MSRelicPool))]
 public sealed class TwinSoulChalice : ModRelicTemplate
 {
-    private bool _choosingFourthRouteQuest;
+    private bool _showingFourthRouteFlow;
     public override RelicRarity Rarity => RelicRarity.Starter;
 
     protected override IEnumerable<DynamicVar> CanonicalVars =>
@@ -51,23 +52,39 @@ public sealed class TwinSoulChalice : ModRelicTemplate
 
     internal async Task EnsureFourthRouteQuestSelected()
     {
-        if (_choosingFourthRouteQuest || Owner.RunState is not RunState runState
+        if (_showingFourthRouteFlow || Owner.RunState is not RunState runState
             || FourthRouteProgressService.TryGetQuest(runState, out _)) return;
-        _choosingFourthRouteQuest = true;
+        _showingFourthRouteFlow = true;
         try
         {
             var rng = Owner.RunState.Rng.Niche;
             FourthRouteQuest dark = FourthRouteProgressService.DarkQuests[rng.NextInt(7)];
             FourthRouteQuest light = FourthRouteProgressService.LightQuests[rng.NextInt(7)];
-            List<CardModel> choices = [CreateQuestChoice(dark), CreateQuestChoice(light)];
-            FourthRouteQuestChoice? selected = await CardSelectCmd.FromChooseACardScreen(
-                new BlockingPlayerChoiceContext(), choices, Owner, canSkip: false) as FourthRouteQuestChoice;
-            if (selected != null && Enum.TryParse(selected.QuestId, out FourthRouteQuest quest))
+            FourthRouteQuest? selected = await FourthRouteSelectionScreen.ChooseQuest(dark, light);
+            if (selected is FourthRouteQuest quest)
                 FourthRouteProgressService.SelectQuest(runState, quest);
         }
         finally
         {
-            _choosingFourthRouteQuest = false;
+            _showingFourthRouteFlow = false;
+        }
+    }
+
+    internal async Task EnsureFourthRouteRewardClaimed()
+    {
+        if (_showingFourthRouteFlow || Owner.RunState is not RunState runState
+            || !FourthRouteProgressService.HasPendingInitialReward(runState)
+            || !FourthRouteProgressService.TryGetQuest(runState, out FourthRouteQuest quest))
+            return;
+        _showingFourthRouteFlow = true;
+        try
+        {
+            if (await FourthRouteSelectionScreen.ShowReward(quest))
+                await FourthRouteProgressService.ClaimInitialReward(Owner);
+        }
+        finally
+        {
+            _showingFourthRouteFlow = false;
         }
     }
 
@@ -152,55 +169,6 @@ public sealed class TwinSoulChalice : ModRelicTemplate
             return FourthRouteProgressService.AddProgress(Owner, quest);
         return Task.CompletedTask;
     }
-
-    private FourthRouteQuestChoice CreateQuestChoice(FourthRouteQuest quest)
-    {
-        FourthRouteQuestChoice choice = Owner.RunState.CreateCard<FourthRouteQuestChoice>(Owner);
-        choice.Configure(
-            quest.ToString(),
-            QuestName(quest),
-            QuestText(quest),
-            QuestRewardText(quest));
-        return choice;
-    }
-
-    private static string QuestName(FourthRouteQuest quest) => quest switch
-    {
-        FourthRouteQuest.Pride => "傲慢", FourthRouteQuest.Greed => "贪婪", FourthRouteQuest.Lust => "色欲",
-        FourthRouteQuest.Envy => "嫉妒", FourthRouteQuest.Gluttony => "暴食", FourthRouteQuest.Wrath => "愤怒",
-        FourthRouteQuest.Sloth => "懒惰", FourthRouteQuest.Humility => "谦逊", FourthRouteQuest.Generosity => "慷慨",
-        FourthRouteQuest.Chastity => "贞洁", FourthRouteQuest.Benevolence => "仁爱", FourthRouteQuest.Temperance => "节制",
-        FourthRouteQuest.Patience => "耐心", _ => "勤勉"
-    };
-
-    private static string QuestText(FourthRouteQuest quest) => quest switch
-    {
-        FourthRouteQuest.Pride => "进行3场精英战斗", FourthRouteQuest.Greed => "持有至少300金币",
-        FourthRouteQuest.Lust => "欲望不低于5时结束3场战斗", FourthRouteQuest.Envy => "移除2张牌",
-        FourthRouteQuest.Gluttony => "使用3瓶药水", FourthRouteQuest.Wrath => "第3回合结束前赢得4场战斗",
-        FourthRouteQuest.Sloth => "在火堆休息2次", FourthRouteQuest.Humility => "升级2张初始牌",
-        FourthRouteQuest.Generosity => "跳过1个宝箱", FourthRouteQuest.Chastity => "欲望不高于2时结束3场战斗",
-        FourthRouteQuest.Benevolence => "向牌组加入5张牌", FourthRouteQuest.Temperance => "跳过2次卡牌奖励",
-        FourthRouteQuest.Patience => "进行5场普通战斗", _ => "在火堆锻造3次"
-    };
-
-    private static string QuestRewardText(FourthRouteQuest quest) => quest switch
-    {
-        FourthRouteQuest.Pride => "傲慢之冠·始源：战斗开始时获得1点力量和1层自负；获得1点堕落值",
-        FourthRouteQuest.Greed => "贪婪圣杯·始源：拾起时获得100金币；获得1点堕落值",
-        FourthRouteQuest.Lust => "色欲之印·始源：每场战斗第一次获得欲望时抽1张牌；获得1点堕落值",
-        FourthRouteQuest.Envy => "嫉妒魔镜·始源：每场战斗第一次给予敌人负面效果时获得1费；获得1点堕落值",
-        FourthRouteQuest.Gluttony => "暴食之胃·始源：拾起时获得5点最大生命和1个药水栏；获得1点堕落值",
-        FourthRouteQuest.Wrath => "愤怒之刃·始源：拾起时为1张攻击牌附魔“愤怒”；获得1点堕落值",
-        FourthRouteQuest.Sloth => "懒惰软枕·始源：本回合耗能不超过2时，下回合额外获得1费；获得1点堕落值",
-        FourthRouteQuest.Humility => "谦逊之证·始源：战斗开始时将1张“谦逊”置入手牌；失去1点堕落值",
-        FourthRouteQuest.Generosity => "慷慨之手·始源：拾起时移除1张牌；失去1点堕落值",
-        FourthRouteQuest.Chastity => "贞洁缎带·始源：战斗开始时阻止1次欲望增加；失去1点堕落值",
-        FourthRouteQuest.Benevolence => "仁爱之心·始源：拾起时获得2次卡牌奖励；失去1点堕落值",
-        FourthRouteQuest.Temperance => "节制之杯·始源：战斗开始时选择抽牌堆1张牌获得消耗；失去1点堕落值",
-        FourthRouteQuest.Patience => "耐心沙漏·始源：战斗开始时随机获得1张圣洁牌；失去1点堕落值",
-        _ => "勤勉铁锤·始源：拾起时随机升级2张牌；失去1点堕落值",
-    };
 
     public override bool TryModifyRewards(Player player, List<Reward> rewards, AbstractRoom? room)
     {

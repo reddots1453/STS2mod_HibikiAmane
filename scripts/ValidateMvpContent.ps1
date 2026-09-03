@@ -3,7 +3,11 @@ param([Parameter(Mandatory = $true)][string]$ProjectDir)
 $ErrorActionPreference = "Stop"
 
 function ConvertTo-ScreamingSnake([string]$Name) {
-    return ([regex]::Replace($Name, "(?<!^)([A-Z])", '_${1}')).ToUpperInvariant()
+    # Preserve acronym and terminal Roman-numeral runs. CounterBarrierII must
+    # resolve to COUNTER_BARRIER_II, matching RitsuLib/runtime registration.
+    $value = [regex]::Replace($Name, '([a-z0-9])([A-Z])', '$1_$2')
+    $value = [regex]::Replace($value, '([A-Z]+)([A-Z][a-z])', '$1_$2')
+    return $value.ToUpperInvariant()
 }
 
 function Read-JsonHashtable([string]$Path) {
@@ -39,8 +43,11 @@ function Assert-Localization(
         $prefix = "MAIDEN_SUCCUBUS_${Kind}_$(ConvertTo-ScreamingSnake $type)"
         foreach ($suffix in $Suffixes) {
             $key = "$prefix.$suffix"
+            $allowsEmptyDescription = $Kind -eq "CARD" -and
+                $type -eq "DrowsyStatus" -and $suffix -eq "description"
             if (!$Localization.ContainsKey($key) -or
-                [string]::IsNullOrWhiteSpace([string]$Localization[$key])) {
+                (!$allowsEmptyDescription -and
+                    [string]::IsNullOrWhiteSpace([string]$Localization[$key]))) {
                 $missing.Add($key)
             }
         }

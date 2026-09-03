@@ -14,7 +14,7 @@ public sealed class FourthRouteSacrificeOption : ModRestSiteOptionTemplate
 {
     public override string OptionId => "MAIDEN_SUCCUBUS_FOURTH_ROUTE_SACRIFICE";
     public override RestSiteOptionAssetProfile AssetProfile => new(
-        "res://MaidenSuccubus/images/ui/remove_sealed.svg");
+        "res://images/ui/rest_site/option_smith.png");
     public override LocString? CustomTitle => new("rest_site_ui", "OPTION_MAIDEN_SUCCUBUS_FOURTH_ROUTE_SACRIFICE.name");
     public override LocString Description => new("rest_site_ui", "OPTION_MAIDEN_SUCCUBUS_FOURTH_ROUTE_SACRIFICE.description");
     public FourthRouteSacrificeOption(Player owner) : base(owner) { }

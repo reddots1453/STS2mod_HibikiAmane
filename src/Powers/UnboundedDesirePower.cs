@@ -15,15 +15,13 @@ namespace MaidenSuccubus.Powers;
 /// </summary>
 [RegisterPower]
 public sealed class UnboundedDesirePower
-    : ModPowerTemplate, IDesireRuleModifier
+    : MaidenSuccubusPowerTemplate, IDesireRuleModifier
 {
     public override PowerType Type => PowerType.Buff;
 
     public override PowerStackType StackType => PowerStackType.Single;
 
-    public override PowerAssetProfile AssetProfile => new(
-        IconPath: "res://MaidenSuccubus/images/ui/desire_resource.png",
-        BigIconPath: "res://MaidenSuccubus/images/ui/desire_resource.png");
+    public override PowerAssetProfile AssetProfile => CommonPowerAssets.Generic;
 
     public decimal ModifyDesireCap(
         Player player,

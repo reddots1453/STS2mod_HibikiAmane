@@ -11,7 +11,7 @@ public sealed class MasturbateRestSiteOption : ModRestSiteOptionTemplate
         "MAIDEN_SUCCUBUS_MASTURBATE";
 
     public override RestSiteOptionAssetProfile AssetProfile => new(
-        "res://MaidenSuccubus/images/ui/desire_resource.png");
+        "res://images/ui/rest_site/option_heal.png");
 
     public override LocString? CustomTitle => new(
         "rest_site_ui",

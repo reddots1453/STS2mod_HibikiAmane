@@ -22,7 +22,7 @@ public enum ScriptureTriggerTiming
 /// Instances do not merge, so multiple transformed cards retain independent
 /// expiration and each remaining turn counts as a buff layer.
 /// </summary>
-public abstract class ScripturePowerTemplate : ModPowerTemplate
+public abstract class ScripturePowerTemplate : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;

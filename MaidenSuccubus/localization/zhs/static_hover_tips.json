@@ -6,7 +6,7 @@
   "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.title": "欲望",
   "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.description": "跨战斗保留。部分卡牌会获得或消耗欲望。通常达到 10 点时会立即结算高潮平复。",
   "MAIDENSUCCUBUS_OVERDRAFT.title": "透支",
-  "MAIDENSUCCUBUS_OVERDRAFT.description": "透支X表示玩家可以额外选择失去X层魔装，以触发该卡牌在“透支X”之后写明的效果。透支是可选效果，不是打出卡牌的强制附加费用。",
+  "MAIDENSUCCUBUS_OVERDRAFT.description": "透支：消耗1层魔力增幅以触发效果。如果没有魔力增幅，可以选择失去1层魔装耐久并触发效果。",
   "MAIDENSUCCUBUS_CURSE_INFECTION.title": "咒印传染",
   "MAIDENSUCCUBUS_CURSE_INFECTION.description": "当这张牌被消耗时，抽2张牌，并将这一效果附加到随机手牌上。不能叠加给已有该效果的牌。",
   "MAIDENSUCCUBUS_CURSE_INFECTION.extraCardText": "当这张牌被消耗时，抽2张牌，并将这一效果附加到随机手牌上。"

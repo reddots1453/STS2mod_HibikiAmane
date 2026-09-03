@@ -15,15 +15,13 @@ namespace MaidenSuccubus.Powers;
 /// present eligible debuff types, not between individual layers.
 /// </summary>
 [RegisterPower]
-public sealed class PurificationPower : ModPowerTemplate
+public sealed class PurificationPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
 
     public override PowerStackType StackType => PowerStackType.Counter;
 
-    public override PowerAssetProfile AssetProfile => new(
-        IconPath: "res://MaidenSuccubus/images/ui/desire_resource.png",
-        BigIconPath: "res://MaidenSuccubus/images/ui/desire_resource.png");
+    public override PowerAssetProfile AssetProfile => CommonPowerAssets.Generic;
 
     public override async Task AfterPlayerTurnStart(
         PlayerChoiceContext choiceContext,

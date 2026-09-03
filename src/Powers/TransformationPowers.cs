@@ -15,7 +15,7 @@ using MaidenSuccubus.Core.Transformation;
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
-public sealed class ImmaculateRobePower : ModPowerTemplate
+public sealed class ImmaculateRobePower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
@@ -35,12 +35,13 @@ public sealed class ImmaculateRobePower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class MagicArmorPower : ModPowerTemplate
+public sealed class MagicArmorPower : MaidenSuccubusPowerTemplate
 {
     private bool _pendingDecrement;
 
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
+    public override PowerAssetProfile AssetProfile => CommonPowerAssets.Generic;
     [SavedProperty] public bool UsedThisTurn { get; set; }
     internal bool SuppressFormRemoval { get; set; }
 
@@ -130,13 +131,14 @@ public sealed class MagicArmorPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class MagicAmplificationPower : ModPowerTemplate
+public sealed class MagicAmplificationPower : MaidenSuccubusPowerTemplate
 {
     private CardModel? _cardToAmplify;
     private int _reservedForOverdraft;
 
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
+    public override PowerAssetProfile AssetProfile => CommonPowerAssets.Generic;
 
     public bool IsAmplifying(CardModel card) => ReferenceEquals(card, _cardToAmplify);
 
@@ -174,7 +176,7 @@ public sealed class MagicAmplificationPower : ModPowerTemplate
         Creature? dealer,
         CardModel? cardSource,
         CardPlay? cardPlay) =>
-        ReferenceEquals(dealer, Owner) && ReferenceEquals(cardSource, _cardToAmplify)
+        ReferenceEquals(dealer, Owner) && ShouldAmplify(cardSource)
             ? AmplificationMultiplier(cardSource)
             : 1m;
 
@@ -184,9 +186,27 @@ public sealed class MagicAmplificationPower : ModPowerTemplate
         ValueProp props,
         CardModel? cardSource,
         CardPlay? cardPlay) =>
-        ReferenceEquals(target, Owner) && ReferenceEquals(cardSource, _cardToAmplify)
+        ReferenceEquals(target, Owner) && ShouldAmplify(cardSource)
             ? AmplificationMultiplier(cardSource)
             : 1m;
+
+    private bool ShouldAmplify(CardModel? card)
+    {
+        if (Amount <= 0
+            || card == null
+            || card.Owner?.Creature != Owner
+            || card.Type is not (CardType.Attack or CardType.Skill))
+        {
+            return false;
+        }
+
+        // Before a card enters the play pile there is no reserved card yet.
+        // Treat every eligible card as the possible "next card" so the
+        // standard DynamicVar preview can show its amplified damage/block,
+        // as Lethality does. Once play starts, only the reserved card and all
+        // of its repeated values remain amplified.
+        return _cardToAmplify == null || ReferenceEquals(card, _cardToAmplify);
+    }
 
     private decimal AmplificationMultiplier(CardModel? card) =>
         card is IDoubleMagicAmplification

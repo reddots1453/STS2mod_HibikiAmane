@@ -7,7 +7,7 @@ using MaidenSuccubus.Powers;
 
 namespace MaidenSuccubus.Core.Control;
 
-public sealed record EscapeProjection(
+public readonly record struct EscapeProjection(
     ControlPower Control,
     CardModel OriginalCard)
 {
@@ -25,13 +25,34 @@ public static class ControlQuery
     [ThreadStatic]
     private static bool _resolvingProjection;
 
-    public static IReadOnlyList<ControlPower> GetInstances(Player player) =>
-        player.Creature.Powers
-            .OfType<ControlPower>()
-            .Where(power => power.Amount > 0)
-            .OrderBy(power => power.Amount)
-            .ThenBy(power => SourceBattlefieldIndex(player, power))
-            .ToArray();
+    public static IReadOnlyList<ControlPower> GetInstances(Player player)
+    {
+        List<ControlPower>? controls = null;
+        foreach (var power in player.Creature.Powers)
+        {
+            if (power is not ControlPower { Amount: > 0 } control)
+            {
+                continue;
+            }
+            controls ??= [];
+            controls.Add(control);
+        }
+
+        if (controls == null)
+        {
+            return Array.Empty<ControlPower>();
+        }
+
+        controls.Sort((left, right) =>
+        {
+            int amountComparison = left.Amount.CompareTo(right.Amount);
+            return amountComparison != 0
+                ? amountComparison
+                : SourceBattlefieldIndex(player, left).CompareTo(
+                    SourceBattlefieldIndex(player, right));
+        });
+        return controls;
+    }
 
     private static int SourceBattlefieldIndex(
         Player player,
@@ -53,8 +74,44 @@ public static class ControlQuery
         return int.MaxValue;
     }
 
-    public static bool IsControlled(Player player) =>
-        GetInstances(player).Count > 0;
+    public static bool IsControlled(Player player)
+    {
+        foreach (var power in player.Creature.Powers)
+        {
+            if (power is ControlPower { Amount: > 0 })
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static ControlPower? FindMatchingControl(
+        Player player,
+        CardType cardType)
+    {
+        ControlPower? best = null;
+        int bestBattlefieldIndex = int.MaxValue;
+        foreach (var power in player.Creature.Powers)
+        {
+            if (power is not ControlPower { Amount: > 0 } control
+                || !control.ControlType.Matches(cardType))
+            {
+                continue;
+            }
+
+            int battlefieldIndex = SourceBattlefieldIndex(player, control);
+            if (best == null
+                || control.Amount < best.Amount
+                || (control.Amount == best.Amount
+                    && battlefieldIndex < bestBattlefieldIndex))
+            {
+                best = control;
+                bestBattlefieldIndex = battlefieldIndex;
+            }
+        }
+        return best;
+    }
 
     public static EscapeProjection? GetProjection(CardModel card)
     {
@@ -74,15 +131,21 @@ public static class ControlQuery
             }
 
             Player owner = card.Owner;
-            if (owner.Character is not MaidenSuccubusCharacter
-                || PortableKeyword.IsPortable(card))
+            if (owner.Character is not MaidenSuccubusCharacter)
             {
                 return null;
             }
 
-            ControlPower? control = GetInstances(owner)
-                .FirstOrDefault(power => power.ControlType.Matches(card.Type));
-            return control == null ? null : new EscapeProjection(control, card);
+            ControlPower? control = FindMatchingControl(owner, card.Type);
+            // Most combat frames have no matching control at all. Checking
+            // that cheap condition before asking for Keywords avoids entering
+            // CardModel.Keywords (and the Harmony projection chain again) for
+            // every title/description/target refresh of every visible card.
+            if (control == null || PortableKeyword.IsPortable(card))
+            {
+                return null;
+            }
+            return new EscapeProjection(control, card);
         }
         finally
         {
@@ -114,8 +177,7 @@ public static class ControlQuery
                 return null;
             }
 
-            ControlPower? control = GetInstances(owner)
-                .FirstOrDefault(power => power.ControlType.Matches(card.Type));
+            ControlPower? control = FindMatchingControl(owner, card.Type);
             return control == null ? null : new EscapeProjection(control, card);
         }
         finally

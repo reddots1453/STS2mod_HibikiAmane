@@ -1,5 +1,7 @@
 using Godot;
+using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Nodes.Cards;
+using MegaCrit.Sts2.Core.Nodes.Combat;
 using STS2RitsuLib;
 using STS2RitsuLib.Combat.SecondaryResources;
 using MaidenSuccubus.Characters;
@@ -32,7 +34,7 @@ public static class DesireResource
                 smallIconPath:
                     "res://images/packed/sprite_fonts/star_icon.png",
                 largeIconPath:
-                    "res://images/packed/sprite_fonts/star_icon.png",
+                    "res://images/ui/combat/energy_star.png",
                 locTable: "static_hover_tips",
                 titleKey:
                     "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.title",
@@ -60,6 +62,34 @@ public static class DesireResource
                 return ui;
             },
             context => context.Node.Refresh(context));
+
+        registry.RegisterCombatUi(
+            "desire_combat_counter",
+            parent =>
+            {
+                var counter = NSecondaryResourceCounter.Create(
+                    Definition,
+                    SecondaryResourceCounterStyle.Default with
+                    {
+                        CounterSize = new Vector2(128f, 128f),
+                        IconSize = new Vector2(128f, 128f),
+                        FontSize = 36,
+                        OutlineSize = 14,
+                        AmountLabelOffset = new Vector2(0f, 20f),
+                        OutlineColor = StsColors.defaultStarCostOutline,
+                        GainFeedback = SecondaryResourceCounterGainFeedback.StarCounterLike,
+                        FormatAmount = (amount, _) => amount.ToString(),
+                    });
+
+                // Match the vanilla NStarCounter scene's bottom-left anchor,
+                // offsets and scale so Desire sits beside the energy counter.
+                counter.SetAnchorsPreset(Godot.Control.LayoutPreset.BottomLeft);
+                counter.Position = new Vector2(64f, -212f);
+                counter.Scale = Vector2.One * 0.8f;
+                counter.PivotOffset = new Vector2(64f, 64f);
+                return counter;
+            },
+            context => context.Node.Refresh(context.Player));
 
         registry.AlwaysShowInCombatUiForCharacter<MaidenSuccubusCharacter>(
             Definition.LocalId);

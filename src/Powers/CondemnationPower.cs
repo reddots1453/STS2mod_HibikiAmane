@@ -10,7 +10,7 @@ using MaidenSuccubus.Commands;
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
-public sealed class CondemnationPower : ModPowerTemplate
+public sealed class CondemnationPower : MaidenSuccubusPowerTemplate
 {
     public const int JudgmentThreshold = 7;
     public const int DamagePerLayer = 7;
@@ -21,9 +21,7 @@ public sealed class CondemnationPower : ModPowerTemplate
 
     public override PowerStackType StackType => PowerStackType.Counter;
 
-    public override PowerAssetProfile AssetProfile => new(
-        IconPath: "res://MaidenSuccubus/images/ui/corruption_meter.svg",
-        BigIconPath: "res://MaidenSuccubus/images/ui/corruption_meter.svg");
+    public override PowerAssetProfile AssetProfile => CommonPowerAssets.Corruption;
 
     internal void FlashForJudgment() => Flash();
 

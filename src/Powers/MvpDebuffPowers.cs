@@ -19,7 +19,7 @@ namespace MaidenSuccubus.Powers;
 /// current magnitude and remaining duration, and decreases once per owner turn.
 /// </summary>
 [RegisterPower]
-public sealed class ShatterPower : ModPowerTemplate
+public sealed class ShatterPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Debuff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -58,7 +58,7 @@ public sealed class ShatterPower : ModPowerTemplate
 /// by the same creature cannot accidentally trigger Burning.
 /// </summary>
 [RegisterPower]
-public sealed class BurningPower : ModPowerTemplate
+public sealed class BurningPower : MaidenSuccubusPowerTemplate
 {
     private bool _enemyAttackActive;
 

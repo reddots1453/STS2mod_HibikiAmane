@@ -44,28 +44,71 @@ public static class FourthRouteProgressService
         });
     }
 
-    public static async Task AddProgress(Player player, FourthRouteQuest quest, int amount = 1)
+    public static Task AddProgress(Player player, FourthRouteQuest quest, int amount = 1)
     {
         if (player.RunState is not RunState runState || !TryGetQuest(runState, out FourthRouteQuest active)
             || active != quest || M5Progress.Handle.Get(runState).FourthRouteQuestCompleted)
-            return;
+            return Task.CompletedTask;
         int target = TargetFor(quest);
-        bool completed = false;
         M5Progress.Handle.Modify(runState, state =>
         {
             state.FourthRouteQuestProgress = Math.Min(target, state.FourthRouteQuestProgress + amount);
             if (state.FourthRouteQuestProgress >= target)
             {
                 state.FourthRouteQuestCompleted = true;
-                state.FourthRouteRelicStage = 1;
-                state.FourthRouteFragmentPending = true;
-                completed = true;
+                state.FourthRouteRewardPending = true;
             }
         });
-        if (!completed) return;
-        CorruptionCmd.Modify(runState, AlignmentOf(quest) == FourthRouteAlignment.Dark ? 1 : -1,
-            new CorruptionChangeSource($"fourth_route.{quest.ToString().ToLowerInvariant()}"));
-        await RelicCmd.Obtain(CreateRelic(quest), player);
+        return Task.CompletedTask;
+    }
+
+    public static bool HasPendingInitialReward(RunState runState)
+    {
+        M5ProgressState state = M5Progress.Handle.Get(runState);
+        // Legacy saves have no pending flag and therefore do not replay their
+        // already-granted stage-one reward. New rewards retain the pending flag
+        // until acquisition finishes, so a failed grant can be retried safely.
+        return state.FourthRouteQuestCompleted
+            && !state.FourthRouteRewardClaimed
+            && state.FourthRouteRewardPending
+            && TryGetQuest(runState, out _);
+    }
+
+    public static async Task ClaimInitialReward(Player player)
+    {
+        if (player.RunState is not RunState runState
+            || !HasPendingInitialReward(runState)
+            || !TryGetQuest(runState, out FourthRouteQuest quest))
+            return;
+
+        M5ProgressState before = M5Progress.Handle.Get(runState);
+        if (!before.FourthRouteRewardCorruptionApplied)
+        {
+            M5Progress.Handle.Modify(runState,
+                state => state.FourthRouteRewardCorruptionApplied = true);
+            CorruptionCmd.Modify(runState,
+                AlignmentOf(quest) == FourthRouteAlignment.Dark ? 1 : -1,
+                new CorruptionChangeSource($"fourth_route.{quest.ToString().ToLowerInvariant()}"));
+        }
+
+        M5Progress.Handle.Modify(runState, state =>
+        {
+            state.FourthRouteRelicStage = Math.Max(1, state.FourthRouteRelicStage);
+            state.FourthRouteFragmentPending = true;
+        });
+
+        if (!player.Relics.OfType<FourthRouteRelic>().Any(relic => relic.Quest == quest))
+        {
+            FourthRouteRelic relic = CreateRelic(quest);
+            relic.Stage = 1;
+            await RelicCmd.Obtain(relic, player);
+        }
+
+        M5Progress.Handle.Modify(runState, state =>
+        {
+            state.FourthRouteRewardPending = false;
+            state.FourthRouteRewardClaimed = true;
+        });
     }
 
     public static async Task CheckThresholdQuest(Player player)
@@ -119,6 +162,42 @@ public static class FourthRouteProgressService
         FourthRouteQuest.Wrath => 4,
         _ => 3
     };
+
+    public static string QuestName(FourthRouteQuest quest) => quest switch
+    {
+        FourthRouteQuest.Pride => "傲慢", FourthRouteQuest.Greed => "贪婪",
+        FourthRouteQuest.Lust => "色欲", FourthRouteQuest.Envy => "嫉妒",
+        FourthRouteQuest.Gluttony => "暴食", FourthRouteQuest.Wrath => "愤怒",
+        FourthRouteQuest.Sloth => "懒惰", FourthRouteQuest.Humility => "谦逊",
+        FourthRouteQuest.Generosity => "慷慨", FourthRouteQuest.Chastity => "贞洁",
+        FourthRouteQuest.Benevolence => "仁爱", FourthRouteQuest.Temperance => "节制",
+        FourthRouteQuest.Patience => "耐心", _ => "勤勉"
+    };
+
+    public static string QuestText(FourthRouteQuest quest) => quest switch
+    {
+        FourthRouteQuest.Pride => "进行3场精英战斗。",
+        FourthRouteQuest.Greed => "持有至少300金币。",
+        FourthRouteQuest.Lust => "在欲望不低于5的状态下结束3场战斗。",
+        FourthRouteQuest.Envy => "移除2张牌。",
+        FourthRouteQuest.Gluttony => "使用3瓶药水。",
+        FourthRouteQuest.Wrath => "在第3回合结束前赢得4场战斗。",
+        FourthRouteQuest.Sloth => "在火堆休息2次。",
+        FourthRouteQuest.Humility => "升级2张初始牌。",
+        FourthRouteQuest.Generosity => "跳过1个宝箱。",
+        FourthRouteQuest.Chastity => "以不高于2点欲望的状态结束3场战斗。",
+        FourthRouteQuest.Benevolence => "向牌组中加入5张牌。",
+        FourthRouteQuest.Temperance => "跳过2次卡牌奖励。",
+        FourthRouteQuest.Patience => "进行5场普通战斗。",
+        _ => "在火堆锻造3次。"
+    };
+
+    public static FourthRouteRelic CreateRelicPreview(FourthRouteQuest quest)
+    {
+        FourthRouteRelic relic = CreateRelic(quest);
+        relic.Stage = 1;
+        return relic;
+    }
 
     private static FourthRouteRelic CreateRelic(FourthRouteQuest quest) => quest switch
     {

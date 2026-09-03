@@ -13,7 +13,7 @@ using STS2RitsuLib.Scaffolding.Content;
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
-public sealed class IgnitePower : ModPowerTemplate
+public sealed class IgnitePower : MaidenSuccubusPowerTemplate
 {
     [SavedProperty] public string CardId { get; set; } = string.Empty;
     [SavedProperty] public bool WasUpgraded { get; set; }
@@ -31,7 +31,7 @@ public sealed class IgnitePower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class ChainDestructionPower : ModPowerTemplate
+public sealed class ChainDestructionPower : MaidenSuccubusPowerTemplate
 {
     [SavedProperty] public int ExhaustProgress { get; set; }
     [SavedProperty] public int ArmedReplays { get; set; }
@@ -62,7 +62,7 @@ public sealed class ChainDestructionPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class CurseCorridorPower : ModPowerTemplate
+public sealed class CurseCorridorPower : MaidenSuccubusPowerTemplate
 {
     private int _pendingDraw;
     public override PowerType Type => PowerType.Buff;

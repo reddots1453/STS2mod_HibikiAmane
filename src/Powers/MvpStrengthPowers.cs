@@ -13,7 +13,7 @@ using STS2RitsuLib.Scaffolding.Content;
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
-public sealed class BerserkerMaskPower : ModPowerTemplate
+public sealed class BerserkerMaskPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
@@ -43,7 +43,7 @@ public sealed class BerserkerMaskPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class CurseWedgePower : ModPowerTemplate
+public sealed class CurseWedgePower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;

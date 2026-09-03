@@ -14,7 +14,7 @@ using STS2RitsuLib.Scaffolding.Content;
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
-public sealed class ConsecrationPower : ModPowerTemplate
+public sealed class ConsecrationPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
@@ -29,7 +29,7 @@ public sealed class ConsecrationPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class SoulPurificationPower : ModPowerTemplate
+public sealed class SoulPurificationPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -48,7 +48,7 @@ public sealed class SoulPurificationPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class MemoryImprintPower : ModPowerTemplate
+public sealed class MemoryImprintPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;

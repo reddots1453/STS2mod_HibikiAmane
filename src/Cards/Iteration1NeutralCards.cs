@@ -63,10 +63,18 @@ public abstract class HandDiscountCard : MSNeutralCard
     public override bool TryModifyEnergyCostInCombat(
         CardModel card, decimal original, out decimal modified)
     {
-        modified = Math.Max(
-            0,
-            original - (PileType.Hand.GetPile(Owner).Cards.Count - 1));
-        return ReferenceEquals(card, this);
+        modified = original;
+        if (!ReferenceEquals(card, this))
+        {
+            return false;
+        }
+
+        int otherCardsInHand = PileType.Hand
+            .GetPile(Owner)
+            .Cards
+            .Count(handCard => !ReferenceEquals(handCard, this));
+        modified = Math.Max(0, original - otherCardsInHand);
+        return true;
     }
 }
 
@@ -147,7 +155,7 @@ public sealed class CounterBarrier : MSNeutralCard
     {
         await IterationCardEffects.Attack(
             this, context, play, DynamicVars.Damage.BaseValue);
-        CardModel next = Owner.RunState.CreateCard(
+        CardModel next = CombatState!.CreateCard(
             ModelDb.Card<CounterBarrierII>(), Owner);
         await CardPileCmd.AddGeneratedCardToCombat(next, PileType.Discard, Owner);
     }
@@ -173,7 +181,7 @@ public abstract class CounterBarrierToken<TNext> : MSGeneratedCard
     {
         await IterationCardEffects.Attack(
             this, context, play, DynamicVars.Damage.BaseValue);
-        CardModel next = Owner.RunState.CreateCard(ModelDb.Card<TNext>(), Owner);
+        CardModel next = CombatState!.CreateCard(ModelDb.Card<TNext>(), Owner);
         await CardPileCmd.AddGeneratedCardToCombat(next, PileType.Discard, Owner);
     }
 

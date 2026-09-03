@@ -333,7 +333,7 @@ public sealed class FearAura : MSCorruptCard
 public sealed class TentacleArmor : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<PlatingPower>(5)];
+        [new PowerVar<PlatingPower>(4)];
 
     public TentacleArmor()
         : base(1, CardType.Power, CardRarity.Rare, TargetType.Self)

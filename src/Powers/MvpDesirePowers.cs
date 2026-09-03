@@ -9,7 +9,7 @@ using STS2RitsuLib.Scaffolding.Content;
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
-public sealed class LegendaryMinerPower : ModPowerTemplate, ISecondaryResourceHookListener
+public sealed class LegendaryMinerPower : MaidenSuccubusPowerTemplate, ISecondaryResourceHookListener
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;

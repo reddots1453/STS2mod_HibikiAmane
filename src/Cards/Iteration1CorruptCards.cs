@@ -36,7 +36,7 @@ public sealed class Exhibitionist : MSCorruptCard
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
-        CardModel status = Owner.RunState.CreateCard(
+        CardModel status = CombatState!.CreateCard(
             ModelDb.Card<NakedDesireStatus>(), Owner);
         await CardPileCmd.AddGeneratedCardToCombat(status, PileType.Hand, Owner);
     }
@@ -127,8 +127,14 @@ public sealed class DarkPunishment : MSCorruptCard
     public override bool TryModifyEnergyCostInCombat(
         CardModel card, decimal original, out decimal modified)
     {
+        modified = original;
+        if (!ReferenceEquals(card, this))
+        {
+            return false;
+        }
+
         modified = Math.Max(0, original - CardsExhaustedThisCombat);
-        return ReferenceEquals(card, this);
+        return true;
     }
 
     public override Task AfterCardExhausted(

@@ -14,7 +14,7 @@ using STS2RitsuLib.Scaffolding.Content;
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
-public sealed class MagicResonancePower : ModPowerTemplate,
+public sealed class MagicResonancePower : MaidenSuccubusPowerTemplate,
     ICombatEnchantmentAppliedListener
 {
     [SavedProperty] public int Progress { get; set; }
@@ -22,6 +22,7 @@ public sealed class MagicResonancePower : ModPowerTemplate,
 
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
+    public override PowerAssetProfile AssetProfile => CommonPowerAssets.Generic;
 
     public void AfterCombatEnchantmentApplied(CardModel card)
     {
@@ -83,7 +84,7 @@ public sealed class MagicResonancePower : ModPowerTemplate,
 }
 
 [RegisterPower]
-public sealed class GoddessOfIcePower : ModPowerTemplate
+public sealed class GoddessOfIcePower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
@@ -100,7 +101,7 @@ public sealed class GoddessOfIcePower : ModPowerTemplate
             return;
         }
 
-        CardModel shard = Owner.Player.RunState.CreateCard(
+        CardModel shard = Owner.CombatState!.CreateCard(
             ModelDb.Card<IceShard>(), Owner.Player);
         if (Amount >= 2)
         {
@@ -116,7 +117,7 @@ public interface IEscapeCard
 }
 
 [RegisterPower]
-public sealed class BindingInsightPower : ModPowerTemplate
+public sealed class BindingInsightPower : MaidenSuccubusPowerTemplate
 {
     private CardModel? _pendingEscapeCard;
 

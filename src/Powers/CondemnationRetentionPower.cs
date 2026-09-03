@@ -12,14 +12,12 @@ namespace MaidenSuccubus.Powers;
 /// </summary>
 [RegisterPower]
 public sealed class CondemnationRetentionPower
-    : ModPowerTemplate, ICondemnationRuleModifier
+    : MaidenSuccubusPowerTemplate, ICondemnationRuleModifier
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
 
-    public override PowerAssetProfile AssetProfile => new(
-        IconPath: "res://MaidenSuccubus/images/ui/corruption_meter.svg",
-        BigIconPath: "res://MaidenSuccubus/images/ui/corruption_meter.svg");
+    public override PowerAssetProfile AssetProfile => CommonPowerAssets.Corruption;
 
     public bool ShouldClearAfterJudgment(
         CondemnationPower condemnation,

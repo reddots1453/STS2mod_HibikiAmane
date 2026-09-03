@@ -135,17 +135,15 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
         }
 
         ProcessMode = ProcessModeEnum.Always;
-        SetProcess(true);
+        // VisibilityPollTimer is the single refresh driver. Running the same
+        // lookup from _Process as well made the character/run-data and layout
+        // queries execute once per rendered frame in addition to the timer.
+        SetProcess(false);
         _displayedValue = Corruption.Neutral;
         Visible = false;
         _isShown = false;
         CallDeferred(nameof(RefreshVisibility));
         QueueRedraw();
-    }
-
-    public override void _Process(double delta)
-    {
-        RefreshVisibility();
     }
 
     private void RefreshVisibility()

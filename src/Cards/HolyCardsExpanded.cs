@@ -319,7 +319,7 @@ public sealed class DivineEcho : MSHolyCard
 public sealed class HolyRadiance : MSHolyCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<HolyRadiancePower>(1)];
+        [new PowerVar<HolyRadiancePower>(4)];
 
     public HolyRadiance()
         : base(1, CardType.Power, CardRarity.Rare, TargetType.Self)
@@ -337,7 +337,7 @@ public sealed class HolyRadiance : MSHolyCard
             this);
 
     protected override void OnUpgrade() =>
-        DynamicVars["HolyRadiancePower"].UpgradeValueBy(1);
+        DynamicVars["HolyRadiancePower"].UpgradeValueBy(2);
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]
@@ -534,7 +534,7 @@ public sealed class Chant : MSHolyCard
             int index = rng.NextInt(available.Count);
             CardModel canonical = available[index];
             available.RemoveAt(index);
-            cards.Add(Owner.RunState.CreateCard(canonical, Owner));
+            cards.Add(CombatState!.CreateCard(canonical, Owner));
         }
         CardModel? selected = await CardSelectCmd.FromChooseACardScreen(
             choiceContext,
@@ -543,7 +543,10 @@ public sealed class Chant : MSHolyCard
             canSkip: false);
         if (selected != null)
         {
-            await CardPileCmd.Add(selected, PileType.Hand);
+            await CardPileCmd.AddGeneratedCardToCombat(
+                selected,
+                PileType.Hand,
+                Owner);
         }
     }
 

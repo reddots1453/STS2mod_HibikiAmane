@@ -13,14 +13,41 @@ public static class TransformationCmd
 {
     public const int MaxArmor = 3;
 
-    public static bool IsTransformed(Creature creature) =>
-        creature.Powers.Any(power => power is ImmaculateRobePower);
+    public static bool IsTransformed(Creature creature)
+    {
+        foreach (var power in creature.Powers)
+        {
+            if (power is ImmaculateRobePower)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 
-    public static MagicArmorPower? GetArmor(Creature creature) =>
-        creature.Powers.OfType<MagicArmorPower>().FirstOrDefault();
+    public static MagicArmorPower? GetArmor(Creature creature)
+    {
+        foreach (var power in creature.Powers)
+        {
+            if (power is MagicArmorPower armor)
+            {
+                return armor;
+            }
+        }
+        return null;
+    }
 
-    public static MagicAmplificationPower? GetAmplification(Creature creature) =>
-        creature.Powers.OfType<MagicAmplificationPower>().FirstOrDefault();
+    public static MagicAmplificationPower? GetAmplification(Creature creature)
+    {
+        foreach (var power in creature.Powers)
+        {
+            if (power is MagicAmplificationPower amplification)
+            {
+                return amplification;
+            }
+        }
+        return null;
+    }
 
     public static decimal ApplyAmplificationToDelayedValue(
         Creature creature,

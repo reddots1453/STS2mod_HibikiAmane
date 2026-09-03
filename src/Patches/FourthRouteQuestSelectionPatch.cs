@@ -13,10 +13,9 @@ using MaidenSuccubus.Util;
 namespace MaidenSuccubus.Patches;
 
 /// <summary>
-/// Opens the mandatory route quest only after the map scene exists. A blocking
-/// card choice must never be awaited from room-entry or combat-start hooks: those
-/// hooks are part of the scene transition itself and waiting there can leave the
-/// run behind the transition backstop indefinitely.
+/// Opens route selection and pending route rewards only after the map scene is
+/// stable. Both flows use a dedicated overlay and never run from room-entry or
+/// combat-start hooks, which are still inside the scene transition lifecycle.
 /// </summary>
 [HarmonyPatch(typeof(NMapScreen), nameof(NMapScreen.Open))]
 public static class FourthRouteQuestSelectionPatch
@@ -36,8 +35,11 @@ public static class FourthRouteQuestSelectionPatch
         TwinSoulChalice? chalice = runState?.Players
             .Select(player => player.GetRelic<TwinSoulChalice>())
             .FirstOrDefault(relic => relic != null);
-        if (runState is null || chalice is null
-            || FourthRouteProgressService.TryGetQuest(runState, out _))
+        bool needsQuest = runState is not null
+            && !FourthRouteProgressService.TryGetQuest(runState, out _);
+        bool needsReward = runState is not null
+            && FourthRouteProgressService.HasPendingInitialReward(runState);
+        if (runState is null || chalice is null || (!needsQuest && !needsReward))
         {
             return;
         }
@@ -72,32 +74,27 @@ public static class FourthRouteQuestSelectionPatch
 
         if (RunManager.Instance.DebugOnlyGetState() != runState
             || NModalContainer.Instance?.OpenModal is not null
-            || FourthRouteProgressService.TryGetQuest(runState, out _))
+            || (FourthRouteProgressService.TryGetQuest(runState, out _)
+                && !FourthRouteProgressService.HasPendingInitialReward(runState)))
         {
             return;
         }
 
-        bool reopenMap = map.IsOpen;
-        if (reopenMap)
-        {
-            map.SetTravelEnabled(false);
-            map.Close(animateOut: false);
-            await WaitOneFrame();
-        }
-
+        bool restoreTravel = map.IsOpen;
+        if (restoreTravel) map.SetTravelEnabled(false);
         try
         {
-            await chalice.EnsureFourthRouteQuestSelected();
+            if (!FourthRouteProgressService.TryGetQuest(runState, out _))
+                await chalice.EnsureFourthRouteQuestSelected();
+            if (FourthRouteProgressService.HasPendingInitialReward(runState))
+                await chalice.EnsureFourthRouteRewardClaimed();
         }
         finally
         {
-            if (reopenMap
+            if (restoreTravel
                 && RunManager.Instance.DebugOnlyGetState() == runState
-                && NMapScreen.Instance is { IsOpen: false } currentMap)
-            {
-                currentMap.Open(isOpenedFromTopBar: false);
+                && NMapScreen.Instance is { IsOpen: true } currentMap)
                 currentMap.SetTravelEnabled(true);
-            }
         }
     }
 

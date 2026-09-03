@@ -13,7 +13,7 @@ using STS2RitsuLib.Scaffolding.Content;
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
-public sealed class RestoreStrengthAtTurnEndPower : ModPowerTemplate
+public sealed class RestoreStrengthAtTurnEndPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Debuff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -39,7 +39,7 @@ public sealed class RestoreStrengthAtTurnEndPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class DelayedStrengthPricePower : ModPowerTemplate
+public sealed class DelayedStrengthPricePower : MaidenSuccubusPowerTemplate
 {
     public int Damage { get; set; } = 30;
     public override PowerType Type => PowerType.Debuff;

@@ -15,7 +15,7 @@ namespace MaidenSuccubus.Powers;
 /// </summary>
 [RegisterPower]
 public sealed class DesirePaidWithHpPower
-    : ModPowerTemplate, ISecondaryResourceHookListener
+    : MaidenSuccubusPowerTemplate, ISecondaryResourceHookListener
 {
     private bool _committed;
 
@@ -23,11 +23,7 @@ public sealed class DesirePaidWithHpPower
 
     public override PowerStackType StackType => PowerStackType.Single;
 
-    public override PowerAssetProfile AssetProfile => new(
-        IconPath:
-            "res://MaidenSuccubus/images/powers/desire_paid_with_hp.svg",
-        BigIconPath:
-            "res://MaidenSuccubus/images/powers/desire_paid_with_hp.svg");
+    public override PowerAssetProfile AssetProfile => CommonPowerAssets.Generic;
 
     public decimal ModifySecondaryResourceCostLate(
         SecondaryResourceCostContext context,

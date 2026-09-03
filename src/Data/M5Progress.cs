@@ -11,6 +11,9 @@ public sealed class M5ProgressState
     public string FourthRouteAlignment { get; set; } = "";
     public int FourthRouteQuestProgress { get; set; }
     public bool FourthRouteQuestCompleted { get; set; }
+    public bool FourthRouteRewardPending { get; set; }
+    public bool FourthRouteRewardClaimed { get; set; }
+    public bool FourthRouteRewardCorruptionApplied { get; set; }
     public int FourthRouteRelicStage { get; set; }
     public bool FourthRouteFragmentPending { get; set; }
     public bool FourthRouteFragmentOffered { get; set; }

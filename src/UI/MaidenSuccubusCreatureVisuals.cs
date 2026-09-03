@@ -5,40 +5,54 @@ using MaidenSuccubus.Core.Transformation;
 namespace MaidenSuccubus.UI;
 
 /// <summary>
-/// Lightweight layered combat visuals.  All source layers share the same
-/// 922x922 canvas, so changing armour only swaps the clothing texture.
+/// Lightweight combat visuals backed by one precomposed sprite per form.
+/// Keeping the original illustration layers out of the live scene prevents
+/// their relative Z indices from bleeding through full-screen overlays.
 /// </summary>
 public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
 {
     private const string RootPath = "res://MaidenSuccubus/images/character/";
-    private static readonly Vector2 RestPosition = new(0f, -300f);
-    private static readonly Vector2 RestScale = Vector2.One * 0.66f;
+    private static readonly Dictionary<string, Texture2D> TextureCache =
+        new(StringComparer.Ordinal);
+    private static readonly HashSet<string> FailedTextureLoads =
+        new(StringComparer.Ordinal);
+    // The whole-character textures are 922x1250 and retain the original
+    // artwork coordinates through the knees.  This scale keeps the completed
+    // figure close to the base-game character height, while the Y offset puts
+    // the newly drawn shoe soles on the combat floor.
+    private static readonly Vector2 RestPosition = new(0f, -194f);
+    private static readonly Vector2 RestScale = Vector2.One * 0.36f;
 
     private Node2D? _visualRoot;
-    private Sprite2D? _clothing;
+    private Sprite2D? _characterSprite;
     private int _shownArmor = int.MinValue;
     private Tween? _feedbackTween;
     private bool _feedbackActive;
     private bool _dead;
-    private double _idleTime;
 
     /// <summary>
-    /// Creates the layered visuals only when every indispensable base layer
-    /// can be loaded.  The character model falls back to its original scene
-    /// when this returns null, preventing a missing loose asset from producing
-    /// an invisible player.
+    /// Creates the visuals only when the default whole-character texture can
+    /// be loaded. The character model falls back to its original scene when
+    /// this returns null, preventing a missing loose asset from producing an
+    /// invisible player.
     /// </summary>
     public static MaidenSuccubusCreatureVisuals? TryCreate()
     {
-        Texture2D? body = LoadTexture("body.png");
-        Texture2D? clothing = LoadTexture("cloth_0001.png");
-        Texture2D? face = LoadTexture("face.png");
-        if (body == null || clothing == null || face == null)
+        Texture2D? appearance = LoadTexture("character_normal.png");
+        if (appearance == null)
         {
             MaidenSuccubusMod.Logger.Warn(
-                "Layered character visuals are incomplete; using the fallback character scene.");
+                "Whole-character visuals are incomplete; using the fallback character scene.");
             return null;
         }
+
+        // Decode the three alternate forms while the combat room is being
+        // constructed. Form/armour changes can then swap an already resident
+        // texture instead of synchronously reading and decoding a PNG in the
+        // middle of an animation frame.
+        LoadTexture("character_armor_1.png");
+        LoadTexture("character_armor_2.png");
+        LoadTexture("character_armor_3.png");
 
         var root = new MaidenSuccubusCreatureVisuals
         {
@@ -54,37 +68,42 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         root.AddChild(visualRoot);
         visualRoot.Owner = root;
 
-        AddLayer(visualRoot, "BodyLayer", body, 0);
-        root._clothing = AddLayer(visualRoot, "ClothingLayer", clothing, 1);
-        AddLayer(visualRoot, "FaceLayer", face, 2);
+        root._characterSprite = new Sprite2D
+        {
+            Name = "CharacterSprite",
+            Texture = appearance,
+            FlipH = true,
+            ZIndex = 0,
+        };
+        visualRoot.AddChild(root._characterSprite);
         root._visualRoot = visualRoot;
 
         AddUnique(root, new Control
         {
             Name = "Bounds",
-            Position = new Vector2(-165f, -610f),
-            Size = new Vector2(330f, 610f),
+            Position = new Vector2(-120f, -360f),
+            Size = new Vector2(240f, 360f),
             MouseFilter = Control.MouseFilterEnum.Ignore,
         });
         AddUnique(root, new Marker2D
         {
             Name = "IntentPos",
-            Position = new Vector2(0f, -650f),
+            Position = new Vector2(0f, -385f),
         });
         AddUnique(root, new Marker2D
         {
             Name = "CenterPos",
-            Position = new Vector2(0f, -320f),
+            Position = new Vector2(0f, -190f),
         });
         AddUnique(root, new Marker2D
         {
             Name = "OrbPos",
-            Position = new Vector2(-190f, -360f),
+            Position = new Vector2(-135f, -205f),
         });
         AddUnique(root, new Marker2D
         {
             Name = "TalkPos",
-            Position = new Vector2(0f, -610f),
+            Position = new Vector2(0f, -355f),
         });
         return root;
     }
@@ -92,23 +111,25 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
     public override void _Ready()
     {
         base._Ready();
-        SetProcess(true);
-        RefreshClothing();
-    }
-
-    public override void _Process(double delta)
-    {
-        RefreshClothing();
-        if (_visualRoot == null || _feedbackActive || _dead)
+        // A whole-character PNG is much larger than the individual Spine
+        // attachments used by the base-game characters.  Moving/rotating it
+        // from a managed _Process callback every rendered frame also used to
+        // query the transformation powers 60+ times a second.  That path did
+        // not emit errors, but made every combat animation visibly uneven.
+        // Form changes are infrequent, so poll only that state at 5 Hz and
+        // leave the resting sprite completely static between feedback tweens.
+        SetProcess(false);
+        var appearanceTimer = new Godot.Timer
         {
-            return;
-        }
-
-        _idleTime += delta;
-        _visualRoot.Position = new Vector2(
-            RestPosition.X,
-            RestPosition.Y + Mathf.Sin((float)_idleTime * 2.1f) * 4f);
-        _visualRoot.Rotation = Mathf.Sin((float)_idleTime * 1.3f) * 0.006f;
+            Name = "AppearancePollTimer",
+            WaitTime = 0.2,
+            OneShot = false,
+            Autostart = true,
+            ProcessCallback = Godot.Timer.TimerProcessCallback.Idle,
+        };
+        appearanceTimer.Timeout += RefreshAppearance;
+        AddChild(appearanceTimer);
+        RefreshAppearance();
     }
 
     public void PlayFeedback(string trigger)
@@ -126,7 +147,7 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         else if (normalized.Contains("hurt") || normalized.Contains("hit"))
         {
             PlayTransient(
-                new Vector2(-26f, -300f),
+                new Vector2(-18f, -194f),
                 -0.04f,
                 RestScale,
                 new Color(1f, 0.45f, 0.45f),
@@ -135,18 +156,18 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         else if (normalized.Contains("cast") || normalized.Contains("skill"))
         {
             PlayTransient(
-                new Vector2(0f, -316f),
+                new Vector2(0f, -206f),
                 -0.025f,
-                Vector2.One * 0.72f,
+                Vector2.One * 0.39f,
                 new Color(0.85f, 0.65f, 1f),
                 0.3f);
         }
         else if (normalized.Contains("attack"))
         {
             PlayTransient(
-                new Vector2(34f, -296f),
+                new Vector2(24f, -190f),
                 0.045f,
-                Vector2.One * 0.68f,
+                Vector2.One * 0.38f,
                 Colors.White,
                 0.2f);
         }
@@ -195,17 +216,17 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         _feedbackActive = true;
         _feedbackTween = CreateTween().SetParallel();
         _feedbackTween.TweenProperty(
-            _visualRoot, "position", new Vector2(-25f, -270f), 0.7f);
+            _visualRoot, "position", new Vector2(-18f, -174f), 0.7f);
         _feedbackTween.TweenProperty(_visualRoot, "rotation", -0.28f, 0.7f);
         _feedbackTween.TweenProperty(
-            _visualRoot, "scale", Vector2.One * 0.62f, 0.7f);
+            _visualRoot, "scale", Vector2.One * 0.34f, 0.7f);
         _feedbackTween.TweenProperty(
             _visualRoot, "modulate", new Color(0.45f, 0.45f, 0.52f, 0.25f), 0.7f);
     }
 
-    private void RefreshClothing()
+    private void RefreshAppearance()
     {
-        if (_clothing == null || GetParent() is not NCreature node)
+        if (_characterSprite == null || GetParent() is not NCreature node)
         {
             return;
         }
@@ -220,60 +241,62 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
 
         string file = armor switch
         {
-            >= 3 => "cloth_0021.png",
-            2 => "cloth_0022.png",
-            1 => "cloth_0023.png",
-            _ => "cloth_0001.png",
+            >= 3 => "character_armor_3.png",
+            2 => "character_armor_2.png",
+            1 => "character_armor_1.png",
+            _ => "character_normal.png",
         };
         Texture2D? nextTexture = LoadTexture(file);
         if (nextTexture == null)
         {
             MaidenSuccubusMod.Logger.Warn(
-                $"Unable to switch character clothing to '{file}'; keeping the current layer.");
+                $"Unable to switch character appearance to '{file}'; keeping the current texture.");
             return;
         }
 
-        _clothing.Texture = nextTexture;
+        _characterSprite.Texture = nextTexture;
         _shownArmor = armor;
-    }
-
-    private static Sprite2D AddLayer(
-        Node2D parent,
-        string name,
-        Texture2D texture,
-        int zIndex)
-    {
-        var sprite = new Sprite2D
-        {
-            Name = name,
-            Texture = texture,
-            ZIndex = zIndex,
-        };
-        parent.AddChild(sprite);
-        return sprite;
     }
 
     private static Texture2D? LoadTexture(string file)
     {
-        string resourcePath = RootPath + file;
-        Texture2D? imported = GD.Load<Texture2D>(resourcePath);
-        if (imported != null)
+        if (TextureCache.TryGetValue(file, out Texture2D? cached)
+            && GodotObject.IsInstanceValid(cached))
         {
-            return imported;
+            return cached;
         }
-
-        // Debug/hot-reload installs deliberately do not carry a PCK.  Load
-        // mirrored loose PNG files directly when Godot has not imported them.
-        string absolutePath = ProjectSettings.GlobalizePath(resourcePath);
-        Image image = Image.LoadFromFile(absolutePath);
-        if (image.IsEmpty())
+        if (FailedTextureLoads.Contains(file))
         {
-            MaidenSuccubusMod.Logger.Warn(
-                $"Unable to load character layer '{absolutePath}'.");
             return null;
         }
 
-        return ImageTexture.CreateFromImage(image);
+        string resourcePath = RootPath + file;
+        byte[] pngBytes = Godot.FileAccess.GetFileAsBytes(resourcePath);
+        if (pngBytes.Length == 0)
+        {
+            FailedTextureLoads.Add(file);
+            MaidenSuccubusMod.Logger.Warn(
+                $"Unable to read character texture '{resourcePath}'.");
+            return null;
+        }
+
+        // These assets are deliberately deployed as loose PNG files for hot
+        // reload. ResourceLoader has no importer for them at runtime and logs
+        // two full error stacks for every failed GD.Load call. Decode the PNG
+        // bytes directly instead; FileAccess also works when assets are packed.
+        using var image = new Image();
+        Error error = image.LoadPngFromBuffer(pngBytes);
+        if (error != Error.Ok || image.IsEmpty())
+        {
+            FailedTextureLoads.Add(file);
+            MaidenSuccubusMod.Logger.Warn(
+                $"Unable to decode character texture '{resourcePath}' ({error}).");
+            return null;
+        }
+
+        Texture2D texture = ImageTexture.CreateFromImage(image);
+        TextureCache[file] = texture;
+        return texture;
     }
 
     private static void AddUnique(Node root, Node child)

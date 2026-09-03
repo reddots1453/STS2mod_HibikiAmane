@@ -71,7 +71,8 @@ public static class FourthRouteStarterUpgradePatch
     {
         Safe.Run(() =>
         {
-            if (!__state || !card.IsUpgraded || card is not (MaidenStrike or MaidenDefend or Transform)
+            if (!__state || !card.IsUpgraded
+                || card is not (MaidenStrike or MaidenDefend or Transform or DarkElement)
                 || card.Owner.RunState is not RunState runState
                 || !FourthRouteProgressService.TryGetQuest(runState, out FourthRouteQuest quest)
                 || quest != FourthRouteQuest.Humility)

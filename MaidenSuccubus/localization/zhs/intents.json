@@ -1,8 +1,8 @@
 {
   "MAIDENSUCCUBUS_CONTROL.title": "拘束",
-  "MAIDENSUCCUBUS_CONTROL.description": "[gold]{Name}[/gold]\n{Effect}",
+  "MAIDENSUCCUBUS_CONTROL.description": "{Effect}",
   "MAIDENSUCCUBUS_INVASION.title": "侵犯",
-  "MAIDENSUCCUBUS_INVASION.description": "[gold]{Name}[/gold]\n{Effect}",
+  "MAIDENSUCCUBUS_INVASION.description": "{Effect}",
   "MAIDENSUCCUBUS_DESIRE.title": "诱惑",
-  "MAIDENSUCCUBUS_DESIRE.description": "[gold]{Name}[/gold]\n{Effect}"
+  "MAIDENSUCCUBUS_DESIRE.description": "{Effect}"
 }

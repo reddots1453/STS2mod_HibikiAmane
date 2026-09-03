@@ -16,7 +16,7 @@ using STS2RitsuLib.Scaffolding.Content;
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
-public sealed class LordOfBlazePower : ModPowerTemplate
+public sealed class LordOfBlazePower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -41,7 +41,7 @@ public sealed class LordOfBlazePower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class DarkFlameBarrierPower : ModPowerTemplate
+public sealed class DarkFlameBarrierPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -69,7 +69,7 @@ public sealed class DarkFlameBarrierPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class RecollectionRoomPower : ModPowerTemplate
+public sealed class RecollectionRoomPower : MaidenSuccubusPowerTemplate
 {
     private int _pendingDraw;
 
@@ -104,7 +104,7 @@ public sealed class RecollectionRoomPower : ModPowerTemplate
 }
 
 [RegisterPower]
-public sealed class SemenAppetitePower : ModPowerTemplate
+public sealed class SemenAppetitePower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;

@@ -15,15 +15,13 @@ namespace MaidenSuccubus.Powers;
 /// Ringing allows one card; this version blocks every card in hand.
 /// </summary>
 [RegisterPower]
-public sealed class DesireStunPower : ModPowerTemplate
+public sealed class DesireStunPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Debuff;
 
     public override PowerStackType StackType => PowerStackType.Counter;
 
-    public override PowerAssetProfile AssetProfile => new(
-        IconPath: "res://MaidenSuccubus/images/powers/desire_stun.svg",
-        BigIconPath: "res://MaidenSuccubus/images/powers/desire_stun.svg");
+    public override PowerAssetProfile AssetProfile => CommonPowerAssets.Generic;
 
     public override bool ShouldPlay(CardModel card, AutoPlayType _)
     {

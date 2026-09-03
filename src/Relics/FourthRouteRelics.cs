@@ -354,9 +354,9 @@ public sealed class PatienceRouteRelic : FourthRouteRelic
                 && card.CanBeGeneratedInCombat)
             .ToList();
         CardModel canonical = pool[Owner.RunState.Rng.CombatCardGeneration.NextInt(pool.Count)];
-        CardModel card = Owner.RunState.CreateCard(canonical, Owner);
+        CardModel card = Owner.Creature.CombatState!.CreateCard(canonical, Owner);
         if (Stage >= 2) CardCmd.Upgrade(card);
-        await CardPileCmd.Add(card, PileType.Hand);
+        await CardPileCmd.AddGeneratedCardToCombat(card, PileType.Hand, Owner);
     }
 }
 

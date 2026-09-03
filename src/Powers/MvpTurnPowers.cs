@@ -7,7 +7,7 @@ using STS2RitsuLib.Scaffolding.Content;
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
-public sealed class MultipleReproductionPower : ModPowerTemplate
+public sealed class MultipleReproductionPower : MaidenSuccubusPowerTemplate
 {
     public bool DelayOneTurn { get; set; }
     public override PowerType Type => PowerType.Buff;
