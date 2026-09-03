@@ -41,6 +41,7 @@ public sealed class RestoreStrengthAtTurnEndPower : MaidenSuccubusPowerTemplate
 [RegisterPower]
 public sealed class DelayedStrengthPricePower : MaidenSuccubusPowerTemplate
 {
+    [MegaCrit.Sts2.Core.Saves.Runs.SavedProperty]
     public int Damage { get; set; } = 30;
     public override PowerType Type => PowerType.Debuff;
     public override PowerStackType StackType => PowerStackType.Counter;

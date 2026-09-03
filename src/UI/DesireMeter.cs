@@ -1,6 +1,10 @@
 using Godot;
+using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Context;
+using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
+using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Runs;
 using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Godot.NodeAttachments;
@@ -34,7 +38,21 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
     private readonly List<ColorRect> _segments = [];
     private Label? _valueLabel;
     private NTopBar? _topBar;
+    private MegaCrit.Sts2.Core.Entities.Players.Player? _player;
     private int _displayedValue = int.MinValue;
+
+    public override void _EnterTree()
+    {
+        DesireEvents.Changed += OnDesireChanged;
+        RunUiRefreshEvents.CombatVisibilityChanged += OnCombatVisibilityChanged;
+    }
+
+    public override void _ExitTree()
+    {
+        DesireEvents.Changed -= OnDesireChanged;
+        RunUiRefreshEvents.CombatVisibilityChanged -= OnCombatVisibilityChanged;
+        NHoverTipSet.Remove(this);
+    }
 
     public void Setup(Node parent, Node node)
     {
@@ -47,28 +65,14 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
         SetAnchorsPreset(LayoutPreset.TopLeft);
         CustomMinimumSize = new Vector2(54f, TotalHeight);
         Size = CustomMinimumSize;
-        MouseFilter = MouseFilterEnum.Ignore;
+        MouseFilter = MouseFilterEnum.Stop;
         ZIndex = 100;
         Visible = false;
+        MouseEntered += ShowHoverTip;
+        MouseExited += ClearHoverTip;
 
         BuildMeter();
-
-        var timer = GetNodeOrNull<Godot.Timer>("VisibilityPollTimer");
-        if (timer == null)
-        {
-            timer = new Godot.Timer
-            {
-                Name = "VisibilityPollTimer",
-                WaitTime = 0.2,
-                OneShot = false,
-                Autostart = true,
-                ProcessCallback = Godot.Timer.TimerProcessCallback.Idle,
-            };
-            timer.Timeout += Refresh;
-            AddChild(timer);
-        }
-
-        ProcessMode = ProcessModeEnum.Always;
+        SetProcess(false);
         CallDeferred(nameof(Refresh));
     }
 
@@ -153,30 +157,58 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
         var runState = RunManager.Instance?.DebugOnlyGetState();
         if (runState == null)
         {
+            _player = null;
             Visible = false;
             return;
         }
 
         var player = LocalContext.GetMe(runState);
-        if (player?.Character is not MaidenSuccubusCharacter)
+        _player = player;
+        if (player?.Character is not MaidenSuccubusCharacter
+            || (CombatManager.Instance.IsInProgress
+                && player.Creature.CombatState != null))
         {
             Visible = false;
             return;
         }
 
         Visible = true;
-        int value = Desire.Get(player);
+        UpdateValue(Desire.Get(player));
+    }
+
+    private void OnDesireChanged(DesireChanged change)
+    {
+        if (_player == null || !ReferenceEquals(change.Player, _player))
+        {
+            return;
+        }
+        UpdateValue(change.NewValue);
+    }
+
+    private void OnCombatVisibilityChanged(bool inCombat)
+    {
+        if (_player?.Character is not MaidenSuccubusCharacter)
+        {
+            return;
+        }
+        Visible = !inCombat;
+        if (!inCombat)
+        {
+            UpdateValue(Desire.Get(_player));
+        }
+    }
+
+    private void UpdateValue(int value)
+    {
         if (value == _displayedValue)
         {
             return;
         }
 
         _displayedValue = value;
-        if (_valueLabel != null)
+        if (_valueLabel != null && _player != null)
         {
-            int? max = SecondaryResourceCmd.GetMax(
-                player,
-                DesireResource.Id);
+            int? max = SecondaryResourceCmd.GetMax(_player, DesireResource.Id);
             _valueLabel.Text = max is null or >= int.MaxValue
                 ? value.ToString()
                 : $"{value}/{max}";
@@ -190,6 +222,26 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
                 value >= requiredValue);
         }
     }
+
+    private void ShowHoverTip()
+    {
+        if (!Visible)
+        {
+            return;
+        }
+        NHoverTipSet.CreateAndShow(
+            this,
+            new HoverTip(
+                new LocString(
+                    "static_hover_tips",
+                    "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.title"),
+                new LocString(
+                    "static_hover_tips",
+                    "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.description")),
+            HoverTip.GetHoverTipAlignment(this));
+    }
+
+    private void ClearHoverTip() => NHoverTipSet.Remove(this);
 
     private void UpdatePosition()
     {

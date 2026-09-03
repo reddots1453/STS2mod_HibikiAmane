@@ -17,7 +17,9 @@ using MaidenSuccubus.Relics;
 using MaidenSuccubus.Cards;
 using MaidenSuccubus.Keywords;
 using MegaCrit.Sts2.Core.Rooms;
+using MegaCrit.Sts2.Core.Combat;
 using MaidenSuccubus.Core.Corruption;
+using MaidenSuccubus.Core.Intents;
 using MaidenSuccubus.Characters.Starts;
 using MaidenSuccubus.UI;
 using CorruptionData = MaidenSuccubus.Data.Corruption;
@@ -93,6 +95,36 @@ public class MaidenSuccubusCharacter
         }
 
         await Desire.ResolvePendingFirstTurnStun(choiceContext, player);
+    }
+
+    public override async Task BeforeCombatStart()
+    {
+        var combatState = CombatManager.Instance.DebugOnlyGetState();
+        if (combatState == null
+            || !combatState.Players.Any(player =>
+                ReferenceEquals(player.Character, this)))
+        {
+            return;
+        }
+
+        foreach (var enemy in combatState.Enemies)
+        {
+            if (enemy.Monster != null
+                && EroticAttackCatalog.Get(enemy.Monster) != null)
+            {
+                await IntentAdapterRegistry.Initialize(enemy.Monster);
+            }
+        }
+    }
+
+    public override async Task AfterCreatureAddedToCombat(
+        MegaCrit.Sts2.Core.Entities.Creatures.Creature creature)
+    {
+        if (creature.Monster != null
+            && EroticAttackCatalog.Get(creature.Monster) != null)
+        {
+            await IntentAdapterRegistry.Initialize(creature.Monster);
+        }
     }
 
     public override Task AfterCardChangedPiles(

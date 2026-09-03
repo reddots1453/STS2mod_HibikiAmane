@@ -25,8 +25,6 @@ public static class IntentMoveFactory
         return true;
     }
 
-    private static long _sequence;
-
     public static MoveState CreateControl(
         MonsterModel source,
         ControlIntentSpec spec)
@@ -267,6 +265,10 @@ public static class IntentMoveFactory
             // intent replaced, contrary to SYS-TRF-003.
             move.FollowUpState = successor;
         }
+        // Keep transient states addressable by a stable id. The state machine
+        // is scoped to one monster, so one slot per intent kind is sufficient
+        // and can be deterministically recreated after combat restoration.
+        monster.MoveStateMachine!.States[move.StateId] = move;
         monster.SetMoveImmediate(move, forceTransition: true);
     }
 
@@ -277,7 +279,7 @@ public static class IntentMoveFactory
         params AbstractIntent[] intents)
     {
         return new MoveState(
-            $"MAIDENSUCCUBUS_{kind}_{source.Creature.CombatId}_{Interlocked.Increment(ref _sequence)}",
+            $"MAIDENSUCCUBUS_{kind}",
             action,
             intents)
         {

@@ -3,6 +3,7 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Acts;
+using MaidenSuccubus.Bootstrap;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Util;
 
@@ -12,12 +13,16 @@ public static class FourthActRunAdapter
 {
     public static bool Enabled { get; set; } = false;
 
-    private static readonly PropertyInfo ActsProperty =
-        AccessTools.Property(typeof(RunState), nameof(RunState.Acts));
+    private static readonly PropertyInfo? ActsProperty =
+        ModCompatibility.FindWritableProperty(
+            typeof(RunState),
+            nameof(RunState.Acts),
+            typeof(IReadOnlyList<ActModel>));
 
     public static bool EnsurePresent(RunState runState)
     {
-        if ((!Enabled && !FourthRouteProgressService.CanEnterFourthAct(runState))
+        if (ActsProperty == null
+            || (!Enabled && !FourthRouteProgressService.CanEnterFourthAct(runState))
             || !runState.Players.Any(p => p.Character is MaidenSuccubusCharacter)
             || runState.Acts.Any(a => a is MaidenSuccubusFourthAct))
         {

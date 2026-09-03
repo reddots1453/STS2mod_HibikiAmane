@@ -11,7 +11,6 @@ namespace MaidenSuccubus.Core.Intents;
 
 public sealed class IntentRuntimeState
 {
-    private const int Sentinel = 1 << 20;
     private EroticIntentRuntimePower? _carrier;
     private bool _forceStun;
     private bool _controlDisabled;
@@ -80,7 +79,12 @@ public sealed class IntentRuntimeState
     {
         if (ReferenceEquals(_carrier, carrier)) return;
         _carrier = carrier;
-        Decode(carrier.Amount);
+        _forceStun = carrier.ForceStun;
+        _controlDisabled = carrier.ControlDisabled;
+        _desireIntentUses = carrier.DesireIntentUses;
+        _controlIntentUses = carrier.ControlIntentUses;
+        _invasionIntentUses = carrier.InvasionIntentUses;
+        _lastNaturalRollTurn = carrier.LastNaturalRollTurn;
     }
 
     public void AttachNew(EroticIntentRuntimePower carrier)
@@ -89,34 +93,16 @@ public sealed class IntentRuntimeState
         Sync();
     }
 
-    private int Encode()
-    {
-        int turn = Math.Clamp(_lastNaturalRollTurn + 1, 0, 511);
-        return Sentinel
-            | (Math.Clamp(_desireIntentUses, 0, 7) << 0)
-            | (Math.Clamp(_controlIntentUses, 0, 7) << 3)
-            | (Math.Clamp(_invasionIntentUses, 0, 7) << 6)
-            | (turn << 9)
-            | (_controlDisabled ? 1 << 18 : 0)
-            | (_forceStun ? 1 << 19 : 0);
-    }
-
-    private void Decode(int value)
-    {
-        if ((value & Sentinel) == 0) return;
-        _desireIntentUses = (value >> 0) & 0b111;
-        _controlIntentUses = (value >> 3) & 0b111;
-        _invasionIntentUses = (value >> 6) & 0b111;
-        _lastNaturalRollTurn = ((value >> 9) & 0x1ff) - 1;
-        _controlDisabled = (value & (1 << 18)) != 0;
-        _forceStun = (value & (1 << 19)) != 0;
-    }
-
     private void Sync()
     {
         if (_carrier != null)
         {
-            _carrier.SetAmount(Encode(), silent: true);
+            _carrier.ForceStun = _forceStun;
+            _carrier.ControlDisabled = _controlDisabled;
+            _carrier.DesireIntentUses = _desireIntentUses;
+            _carrier.ControlIntentUses = _controlIntentUses;
+            _carrier.InvasionIntentUses = _invasionIntentUses;
+            _carrier.LastNaturalRollTurn = _lastNaturalRollTurn;
         }
     }
 }
@@ -154,29 +140,49 @@ public static class IntentAdapterRegistry
         {
             state.AttachExisting(existing);
         }
-        else if (!state.PersistenceScheduled)
-        {
-            state.PersistenceScheduled = true;
-            TaskHelper.RunSafely(AttachCarrier(monster, state));
-        }
         return state;
     }
 
-    private static async Task AttachCarrier(
-        MonsterModel monster,
-        IntentRuntimeState state)
+    public static async Task Initialize(MonsterModel monster)
     {
-        EroticIntentRuntimePower? carrier =
-            await PowerCmd.Apply<EroticIntentRuntimePower>(
+        IntentRuntimeState state = GetRuntime(monster);
+        if (monster.Creature.GetPower<EroticIntentRuntimePower>() != null
+            || state.PersistenceScheduled)
+        {
+            return;
+        }
+
+        state.PersistenceScheduled = true;
+        try
+        {
+            EroticIntentRuntimePower? carrier =
+                await PowerCmd.Apply<EroticIntentRuntimePower>(
+                    new ThrowingPlayerChoiceContext(),
+                    monster.Creature,
+                    1m,
+                    monster.Creature,
+                    null,
+                    silent: true);
+            if (carrier != null)
+            {
+                state.AttachNew(carrier);
+            }
+        }
+        finally
+        {
+            state.PersistenceScheduled = false;
+        }
+
+        if (EroticAttackCatalog.Get(monster)?.Steadfast == true
+            && !monster.Creature.HasPower<SteadfastPower>())
+        {
+            await PowerCmd.Apply<SteadfastPower>(
                 new ThrowingPlayerChoiceContext(),
                 monster.Creature,
                 1m,
                 monster.Creature,
                 null,
                 silent: true);
-        if (carrier != null)
-        {
-            state.AttachNew(carrier);
         }
     }
 

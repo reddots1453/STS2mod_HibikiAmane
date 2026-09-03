@@ -31,32 +31,23 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
     private int _displayedValue = int.MaxValue;
     private bool _isShown = false;
     private NTopBar? _topBar;
-    // 诊断标记（每个关键路径首次触发时 log 一次）
-    private bool _loggedSetup;
-    private bool _loggedNullRunState;
-    private bool _loggedNonMsChar;
-    private bool _loggedShow;
-    private bool _loggedDraw;
-    private string? _lastCharType;
+    private int _initialRefreshAttempts;
 
     public override void _EnterTree()
     {
         CorruptionEvents.Changed += OnCorruptionChanged;
+        RunUiRefreshEvents.CombatVisibilityChanged += OnCombatVisibilityChanged;
     }
 
     public override void _ExitTree()
     {
         CorruptionEvents.Changed -= OnCorruptionChanged;
+        RunUiRefreshEvents.CombatVisibilityChanged -= OnCombatVisibilityChanged;
+        ClearHoverTip();
     }
 
     public void Setup(Node parent, Node node)
     {
-        if (!_loggedSetup)
-        {
-            MaidenSuccubusMod.Logger.Info($"[CorruptionMeter] Setup called, parent={parent?.Name} ({parent?.GetType().Name})");
-            _loggedSetup = true;
-        }
-
         // Boss 图标与计时器之间是弹性空白区，不应把计量条交给左侧 HBox
         // 自动排版。直接挂到 NTopBar，并按两者的全局边界计算空白区中心。
         if (parent is NTopBar topBar
@@ -116,28 +107,6 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
             AddChild(marker);
         }
 
-        // 动态挂载的 C# 节点在部分环境中不会可靠收到 _Process，因此使用
-        // Godot 原生 Timer 驱动角色归属检查。默认隐藏，只有确认当前玩家是
-        // 本 Mod 角色后才显示，避免其他角色短暂或永久看到堕落条。
-        var visibilityTimer = GetNodeOrNull<Godot.Timer>("VisibilityPollTimer");
-        if (visibilityTimer == null)
-        {
-            visibilityTimer = new Godot.Timer
-            {
-                Name = "VisibilityPollTimer",
-                WaitTime = 0.25,
-                OneShot = false,
-                Autostart = true,
-                ProcessCallback = Godot.Timer.TimerProcessCallback.Idle,
-            };
-            visibilityTimer.Timeout += RefreshVisibility;
-            AddChild(visibilityTimer);
-        }
-
-        ProcessMode = ProcessModeEnum.Always;
-        // VisibilityPollTimer is the single refresh driver. Running the same
-        // lookup from _Process as well made the character/run-data and layout
-        // queries execute once per rendered frame in addition to the timer.
         SetProcess(false);
         _displayedValue = Corruption.Neutral;
         Visible = false;
@@ -153,42 +122,27 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
         var runState = RunManager.Instance?.DebugOnlyGetState();
         if (runState == null)
         {
-            if (!_loggedNullRunState)
-            {
-                MaidenSuccubusMod.Logger.Info("[CorruptionMeter] _Process: runState is null (RunManager not ready or not in run)");
-                _loggedNullRunState = true;
-            }
             HideIfNeeded();
+            if (_initialRefreshAttempts++ < 4)
+            {
+                CallDeferred(nameof(RefreshVisibility));
+            }
             return;
         }
-        _loggedNullRunState = false;
+        _initialRefreshAttempts = 0;
 
         var player = LocalContext.GetMe(runState);
-        var charType = player?.Character?.GetType().Name ?? "null";
-        if (charType != _lastCharType)
-        {
-            MaidenSuccubusMod.Logger.Info($"[CorruptionMeter] _Process: character type = {charType}");
-            _lastCharType = charType;
-        }
-
         if (player?.Character is not MaidenSuccubusCharacter)
         {
-            if (!_loggedNonMsChar)
-            {
-                MaidenSuccubusMod.Logger.Info($"[CorruptionMeter] _Process: not MS character ({charType}), hiding");
-                _loggedNonMsChar = true;
-            }
             HideIfNeeded();
             return;
         }
-        _loggedNonMsChar = false;
 
         ShowIfNeeded();
 
         int currentValue = CorruptionQuery.Get(runState);
         if (currentValue != _displayedValue)
         {
-            MaidenSuccubusMod.Logger.Info($"[CorruptionMeter] value changed: {_displayedValue} -> {currentValue}, QueueRedraw");
             _displayedValue = currentValue;
             QueueRedraw();
         }
@@ -204,6 +158,8 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
         _displayedValue = change.NewValue;
         QueueRedraw();
     }
+
+    private void OnCombatVisibilityChanged(bool _) => RefreshVisibility();
 
     private void UpdatePosition()
     {
@@ -239,23 +195,12 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
         {
             _isShown = true;
             Visible = true;
-            if (!_loggedShow)
-            {
-                MaidenSuccubusMod.Logger.Info("[CorruptionMeter] Show triggered (Visible=true)");
-                _loggedShow = true;
-            }
         }
     }
 
     public override void _Draw()
     {
         if (_displayedValue == int.MaxValue) return;
-
-        if (!_loggedDraw)
-        {
-            MaidenSuccubusMod.Logger.Info($"[CorruptionMeter] _Draw called, value={_displayedValue}, size={Size}");
-            _loggedDraw = true;
-        }
 
         for (int i = 0; i < SegmentCount; i++)
         {

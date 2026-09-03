@@ -16,6 +16,7 @@ namespace MaidenSuccubus.Powers;
 [RegisterPower]
 public sealed class AbnormalAdaptationPower : MaidenSuccubusPowerTemplate
 {
+    [SavedProperty]
     public int RemainingTriggers { get; set; }
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;

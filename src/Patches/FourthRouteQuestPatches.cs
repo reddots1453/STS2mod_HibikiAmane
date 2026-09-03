@@ -9,6 +9,7 @@ using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Rewards;
 using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Acts;
+using MaidenSuccubus.Bootstrap;
 using MaidenSuccubus.Cards;
 using MaidenSuccubus.Relics;
 using MaidenSuccubus.Util;
@@ -85,15 +86,21 @@ public static class FourthRouteStarterUpgradePatch
 [HarmonyPatch(typeof(NTreasureRoom), "OnProceedButtonReleased")]
 public static class FourthRouteTreasureSkippedPatch
 {
-    private static readonly FieldInfo ClaimedField = AccessTools.Field(typeof(NTreasureRoom), "_hasRelicBeenClaimed");
-    private static readonly FieldInfo RunStateField = AccessTools.Field(typeof(NTreasureRoom), "_runState");
+    private static readonly FieldInfo? ClaimedField =
+        ModCompatibility.FindField(
+            typeof(NTreasureRoom), "_hasRelicBeenClaimed", typeof(bool));
+    private static readonly FieldInfo? RunStateField =
+        ModCompatibility.FindField(
+            typeof(NTreasureRoom), "_runState", typeof(IRunState));
 
     [HarmonyPrefix]
     public static void Prefix(NTreasureRoom __instance)
     {
         Safe.Run(() =>
         {
-            if ((bool)ClaimedField.GetValue(__instance)!
+            if (ClaimedField == null
+                || RunStateField == null
+                || (bool)ClaimedField.GetValue(__instance)!
                 || RunStateField.GetValue(__instance) is not RunState runState
                 || runState.Players.Count != 1
                 || !FourthRouteProgressService.TryGetQuest(runState, out FourthRouteQuest quest)

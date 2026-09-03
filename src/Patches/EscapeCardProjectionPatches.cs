@@ -42,7 +42,7 @@ internal static class EscapeCardProjectionPatches
             }
             result = new LocString("cards", "MAIDENSUCCUBUS_ESCAPE.description");
             result.Add("Escape", Math.Max(0, __instance.EnergyCost.GetAmountToSpend()));
-            result.Add("Original", projection.OriginalCard.Title);
+            result.Add("Original", projection.OriginalTitle);
             result.Add("Source", projection.Control.Applier?.Name ?? "Unknown");
         }, "Escape.Description");
         __result = result;
@@ -129,33 +129,48 @@ internal static class EscapeCardProjectionPatches
 
 public static class EscapeEffectPatcher
 {
-    public static int Install(Harmony harmony)
+    private static readonly object Sync = new();
+    private static readonly HashSet<MethodBase> PatchedMethods = [];
+    private static Harmony? _harmony;
+
+    public static void Configure(Harmony harmony)
     {
-        HarmonyMethod prefix = new(typeof(EscapeEffectPatcher), nameof(OnPlayPrefix));
-        int count = 0;
-        foreach (Type type in AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(GetLoadableTypes)
-            .Where(type => !type.IsAbstract && typeof(CardModel).IsAssignableFrom(type)))
+        lock (Sync)
         {
-            MethodInfo? method = type.GetMethod(
-                "OnPlay",
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
-            if (method == null || method.ReturnType != typeof(Task)) continue;
-            harmony.Patch(method, prefix);
-            count++;
+            _harmony = harmony;
         }
-        return count;
     }
 
-    private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
+    public static void EnsurePatched(CardModel card)
     {
-        try
+        Harmony? harmony;
+        MethodInfo? method = card.GetType().GetMethod(
+            "OnPlay",
+            BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+        if (method == null || method.ReturnType != typeof(Task))
         {
-            return assembly.GetTypes();
+            throw new MissingMethodException(
+                card.GetType().FullName,
+                "OnPlay(PlayerChoiceContext, CardPlay)");
         }
-        catch (ReflectionTypeLoadException ex)
+
+        lock (Sync)
         {
-            return ex.Types.OfType<Type>();
+            if (PatchedMethods.Contains(method))
+            {
+                return;
+            }
+            harmony = _harmony ?? throw new InvalidOperationException(
+                "EscapeEffectPatcher was not configured during mod initialization.");
+            harmony.Patch(
+                method,
+                prefix: new HarmonyMethod(
+                    typeof(EscapeEffectPatcher),
+                    nameof(OnPlayPrefix)));
+            PatchedMethods.Add(method);
+            MaidenSuccubusMod.Logger.Info(
+                $"Escape projection activated for card effect: "
+                + $"{method.DeclaringType?.FullName}.OnPlay");
         }
     }
 

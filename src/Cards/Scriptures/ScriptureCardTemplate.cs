@@ -31,11 +31,11 @@ public abstract class ScriptureCardTemplate<TPower> : ScriptureCardTemplate
 
 public abstract class MSScriptureCardTemplate : ModCardTemplate
 {
-    public override CardPoolModel Pool => ModelDb.CardPool<MSScriptureCardPool>();
+    public override CardPoolModel Pool => ModelDb.CardPool<MSGeneratedCardPool>();
 
     // Scriptures are derivative cards. They may only be created by the
-    // explicit scripture effects and must never enter the compendium or any
-    // generic card-generation/reward pool.
+    // explicit scripture effects and must never enter the compendium or a
+    // reward pool.  They share the same derivative-card pool as other tokens.
     public override bool CanBeGeneratedByModifiers => false;
 
     protected override IEnumerable<DynamicVar> CanonicalVars =>

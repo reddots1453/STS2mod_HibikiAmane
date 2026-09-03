@@ -5,42 +5,42 @@ using MaidenSuccubus.Powers.Scriptures;
 
 namespace MaidenSuccubus.Cards.Scriptures;
 
-[RegisterCard(typeof(MSScriptureCardPool))]
+[RegisterCard(typeof(MSGeneratedCardPool))]
 public sealed class GuardianScripture
     : ScriptureCardTemplate<GuardianScripturePower>
 {
     public GuardianScripture() : base(CardRarity.Common) { }
 }
 
-[RegisterCard(typeof(MSScriptureCardPool))]
+[RegisterCard(typeof(MSGeneratedCardPool))]
 public sealed class NimbleScripture
     : ScriptureCardTemplate<NimbleScripturePower>
 {
     public NimbleScripture() : base(CardRarity.Common) { }
 }
 
-[RegisterCard(typeof(MSScriptureCardPool))]
+[RegisterCard(typeof(MSGeneratedCardPool))]
 public sealed class PunishmentScripture
     : ScriptureCardTemplate<PunishmentScripturePower>
 {
     public PunishmentScripture() : base(CardRarity.Common) { }
 }
 
-[RegisterCard(typeof(MSScriptureCardPool))]
+[RegisterCard(typeof(MSGeneratedCardPool))]
 public sealed class WisdomScripture
     : ScriptureCardTemplate<WisdomScripturePower>
 {
     public WisdomScripture() : base(CardRarity.Common) { }
 }
 
-[RegisterCard(typeof(MSScriptureCardPool))]
+[RegisterCard(typeof(MSGeneratedCardPool))]
 public sealed class VitalityScripture
     : ScriptureCardTemplate<VitalityScripturePower>
 {
     public VitalityScripture() : base(CardRarity.Common) { }
 }
 
-[RegisterCard(typeof(MSScriptureCardPool))]
+[RegisterCard(typeof(MSGeneratedCardPool))]
 public sealed class BlissScripture
     : ScriptureCardTemplate<BlissScripturePower>
 {

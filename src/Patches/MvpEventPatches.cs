@@ -18,6 +18,7 @@ using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Cards;
+using MaidenSuccubus.Bootstrap;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Core.Desire;
@@ -28,6 +29,12 @@ namespace MaidenSuccubus.Patches;
 
 internal static class MvpEventRules
 {
+    private static readonly MethodInfo? SetEventFinishedMethod =
+        ModCompatibility.FindInstanceMethod(
+            typeof(EventModel),
+            "SetEventFinished",
+            typeof(void),
+            typeof(LocString));
     private static readonly IReadOnlyDictionary<string, int> CorruptionByOption =
         new Dictionary<string, int>(StringComparer.Ordinal)
         {
@@ -183,7 +190,7 @@ internal static class MvpEventRules
     }
 
     private static void Finish(EventModel model, string locKey) =>
-        AccessTools.Method(typeof(EventModel), "SetEventFinished")?.Invoke(
+        SetEventFinishedMethod?.Invoke(
             model,
             [new LocString("events", locKey)]);
 }
@@ -191,8 +198,9 @@ internal static class MvpEventRules
 [HarmonyPatch]
 public static class VanillaEventCorruptionDescriptionPatch
 {
-    private static readonly FieldInfo DescriptionField =
-        AccessTools.Field(typeof(EventOption), "<Description>k__BackingField");
+    private static readonly PropertyInfo? DescriptionProperty =
+        ModCompatibility.FindWritableProperty(
+            typeof(EventOption), nameof(EventOption.Description), typeof(LocString));
 
     public static MethodBase TargetMethod() => AccessTools.Constructor(
         typeof(EventOption),
@@ -218,7 +226,8 @@ public static class VanillaEventCorruptionDescriptionPatch
     {
         if (!MvpEventRules.Applies(eventModel)
             || !MvpEventRules.TryGetCorruptionDelta(optionKey, out int delta)
-            || DescriptionField.GetValue(option) is not LocString original)
+            || DescriptionProperty == null
+            || DescriptionProperty.GetValue(option) is not LocString original)
         {
             return;
         }
@@ -233,7 +242,7 @@ public static class VanillaEventCorruptionDescriptionPatch
         // {MaxHp}, {Damage}, and {Heal} are frozen into the wrapper verbatim.
         eventModel.DynamicVars.AddTo(original);
         decorated.Add("Original", original);
-        DescriptionField.SetValue(option, decorated);
+        DescriptionProperty.SetValue(option, decorated);
     }
 }
 
@@ -344,8 +353,11 @@ public static class SymbioteMvpPatch
 [HarmonyPatch(typeof(EventOption), nameof(EventOption.Chosen))]
 public static class VanillaEventCorruptionCompletionPatch
 {
-    private static readonly FieldInfo OnChosenField =
-        AccessTools.Field(typeof(EventOption), "<OnChosen>k__BackingField");
+    private static readonly FieldInfo? OnChosenField =
+        ModCompatibility.FindField(
+            typeof(EventOption),
+            "<OnChosen>k__BackingField",
+            typeof(Func<Task>));
     private static readonly ConditionalWeakTable<EventOption, object> Wrapped = new();
 
     [HarmonyPrefix]
@@ -355,7 +367,8 @@ public static class VanillaEventCorruptionCompletionPatch
 
     private static void Wrap(EventOption option)
     {
-        if (Wrapped.TryGetValue(option, out _)
+        if (OnChosenField == null
+            || Wrapped.TryGetValue(option, out _)
             || OnChosenField.GetValue(option) is not Func<Task> original)
         {
             return;

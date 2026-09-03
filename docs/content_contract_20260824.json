@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "baseline": "DesignDoc/Plan state 2026-08-24",
+  "cards": {
+    "MSNeutralCardPool": [
+      "AcceleratedMotion", "BalanceBlade", "BalanceShield", "BasicTraining",
+      "Bath", "BeyondReasonForge", "BindingInsight", "BorrowedForceStrike",
+      "BurningBracelet", "CounterBarrier", "CycloneRupture", "DoubleDefense",
+      "DreamMist", "ExplosiveImpact", "FlameBloom", "FlashStab",
+      "FrozenBracelet", "Fusion", "GoddessOfIce", "HealingArt",
+      "IceBreakingSlash", "IceShield", "JudgmentBlade", "LightArrow",
+      "LightningRecoil", "Lullaby", "MagiciansSecret", "MagicIndex",
+      "MagicResonance", "MagicSword", "MentalUnity", "MindsEye",
+      "ObstructingShot", "Procrastinate", "RepairAlyssa", "SteadyGuard",
+      "StudyPlan", "Surf", "SwordVerdict", "UltimateFlare"
+    ],
+    "MSCorruptCardPool": [
+      "AbnormalAdaptation", "AllCurseBite", "AllHopeLost", "BerserkerMask",
+      "BiteInvader", "BlackVortex", "BlasphemousDesire",
+      "BlasphemousTwilight", "BurningBladeRitual", "BurningDesire",
+      "ChainDestruction", "ChangePanties", "Coronation", "CurseInfection",
+      "CurseWedge", "DarkElement", "DarkFlameBarrier", "DarkPunishment",
+      "DarkStorm", "DarkThrust", "DemonStaff", "DesireRecycle",
+      "DesireWhip", "DestructionReaction", "EcstasyDew", "Exhibitionist",
+      "ExposePlay", "FearAura", "FinalSlash", "FleetingYears",
+      "FullOfOpenings", "Ignite", "InsatiableGreed", "LastStand",
+      "LegendaryMiner", "LightningKick", "LordOfBlaze", "LoversDagger",
+      "LureDeep", "MagicExcess", "MasochisticGirl", "MasochisticTrance",
+      "MentalStabilizer", "MiasmaAbsorption", "MiasmaAffinity",
+      "MiasmaConversion", "MiasmaFlame", "MimicProliferation",
+      "PlayingWithFire", "PleasureDrowning", "PleasureGarden",
+      "PriceOfStrength", "RecollectionRoom", "ReflectiveBarrier",
+      "SacrificialFrenzy", "SemenAppetite", "SemenConversion", "SharpForge",
+      "SmallFry", "SuperRegeneration", "TentacleArmor",
+      "ThousandCurseScythe", "WinterHolly"
+    ],
+    "MSHolyCardPool": [
+      "AutoReactionArmor", "BattleTechniqueReplay", "Blizzard", "CalmingMist",
+      "Chant", "ChastityDefense", "Consecration", "DesireWard",
+      "DevoutBulwark", "DivineEcho", "DragonflyTouch", "EternalDamnation",
+      "ExternalPowerSkeleton", "FinalJudgment", "FocusedSlash", "ForgeCharge",
+      "ForgeNimble", "Gospel", "HolyCurse", "HolyPunishment",
+      "HolyRadiance", "HolyResonance", "InwardDiscipline", "Judgment",
+      "LightPowerRelease", "MagicBurst", "MemoryImprint", "MomentaryGrace",
+      "MultipleReproduction", "NoLewdness", "OriginalSinBrand",
+      "PenanceSlash", "PhotonVolt", "RegenerativeMagicFiber",
+      "ResistanceGloves", "Rest", "RestraintEvasion", "RetainedGuard",
+      "SneakSnack", "SoulImpact", "SoulPurification", "Stigma", "SunDance",
+      "TacticalAnalyzer", "TacticalCore", "TerminalSanctuary", "Tranquilizer",
+      "Transform", "WindRumor", "Worship", "YarusMemory"
+    ],
+    "MSInvasionCursePool": [
+      "AphrodisiacCurse", "CorrosiveSlimeCurse", "DeepSeaSlimeCurse",
+      "EctoplasmResidueCurse", "ExperimentalLiquidCurse", "FoulSlimeCurse",
+      "InkFluidCurse", "InsectEggCurse", "MagicResidueCurse",
+      "ParalyticSlimeCurse", "ParasiticEggCurse", "RoyalEssenceCurse",
+      "ScorchingFluidCurse", "SemenCurse", "SludgeSemenCurse",
+      "SporeMucusCurse", "VineSeedCurse"
+    ],
+    "MSGeneratedCardPool": [
+      "ArousalStatus", "BlissScripture", "CalmMind", "ClimaxBanCurse",
+      "CounterBarrierII", "CounterBarrierIII", "CounterBarrierIV",
+      "DrowsyStatus", "EnchantmentChoiceCard", "FourthRouteQuestChoice",
+      "GagCurse", "GuardianScripture", "HumilityLesson", "HypnosisCurse",
+      "IceMist", "IceShard", "InfatuationCurse", "LewdMarkCompleteCurse",
+      "LewdMarkMinorCurse", "LewdMarkSpreadCurse", "MaidenDefend",
+      "MaidenStrike", "NakedDesireStatus", "NimbleScripture",
+      "OverdraftAcceptChoice", "OverdraftDeclineChoice", "PunishmentScripture",
+      "StigmaCondemnationChoice", "StigmaTargetChoice", "StigmaWeakChoice",
+      "TransparentOutfitCurse", "VitalityScripture", "WisdomScripture"
+    ]
+  },
+  "libraryVisibleGeneratedCards": ["MaidenDefend", "MaidenStrike"],
+  "derivativeCardPools": ["MSGeneratedCardPool", "MSInvasionCursePool"],
+  "rewardCardPools": ["MSNeutralCardPool", "MSCorruptCardPool", "MSHolyCardPool"],
+  "relics": [
+    "BalancedLens", "BenevolenceRouteRelic", "Blindfold",
+    "ChastityRouteRelic", "DarkBlessingPlaceholder", "DiligenceRouteRelic",
+    "EnvyRouteRelic", "FourthRouteFragmentRelic", "GenerosityRouteRelic",
+    "GluttonyRouteRelic", "GreedRouteRelic", "HumilityRouteRelic",
+    "LightBlessingPlaceholder", "LustRouteRelic", "PatienceRouteRelic",
+    "PrideRouteRelic", "SlothRouteRelic", "TemperanceRouteRelic",
+    "TwinSoulChalice", "Vibrator", "WitheredTreeSoul", "WrathRouteRelic"
+  ],
+  "enchantments": [
+    "ChargeEnchantment", "EnergyOverloadEnchantment", "InfectionEnchantment",
+    "IronWallEnchantment", "NecromancyEnchantment",
+    "ProliferationEnchantment", "SoulLinkEnchantment", "WrathEnchantment"
+  ]
+}

@@ -44,6 +44,7 @@ public static class MaidenSuccubusMod
         FrameworkSelfTests.Run(Logger);
 
         var harmony = new Harmony("com.maidensuccubus.sts2");
+        EscapeEffectPatcher.Configure(harmony);
         var patchCount = 0;
         foreach (var type in assembly.GetTypes())
         {
@@ -59,17 +60,7 @@ public static class MaidenSuccubusMod
             catch (Exception ex) { Logger.Warn($"Harmony failed: {type.Name}: {ex.Message}"); }
         }
         if (MvpFeatureFlags.ControlAndInvasion)
-        {
-            try
-            {
-                int cardEffects = EscapeEffectPatcher.Install(harmony);
-                Logger.Info($"Escape projection patched {cardEffects} concrete card effects.");
-            }
-            catch (Exception ex)
-            {
-                Logger.Warn($"Escape projection patching failed: {ex}");
-            }
-        }
+            Logger.Info("Escape projection uses instance-scoped, on-demand card effect patches.");
         Logger.Info($"Maiden & Succubus ready — {patchCount} patches applied");
     }
 

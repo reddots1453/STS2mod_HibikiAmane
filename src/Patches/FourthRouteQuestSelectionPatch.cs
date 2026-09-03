@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Acts;
+using MaidenSuccubus.Bootstrap;
 using MaidenSuccubus.Relics;
 using MaidenSuccubus.Util;
 
@@ -20,8 +21,9 @@ namespace MaidenSuccubus.Patches;
 [HarmonyPatch(typeof(NMapScreen), nameof(NMapScreen.Open))]
 public static class FourthRouteQuestSelectionPatch
 {
-    private static readonly FieldInfo ActAnimationTweenField =
-        AccessTools.Field(typeof(NMapScreen), "_actAnimTween");
+    private static readonly FieldInfo? ActAnimationTweenField =
+        ModCompatibility.FindField(
+            typeof(NMapScreen), "_actAnimTween", typeof(Tween));
 
     [HarmonyPostfix]
     public static void Postfix(NMapScreen __instance) =>
@@ -31,6 +33,10 @@ public static class FourthRouteQuestSelectionPatch
 
     private static async Task ShowWhenMapIsStable(NMapScreen map)
     {
+        if (ActAnimationTweenField == null)
+        {
+            return;
+        }
         RunState? runState = RunManager.Instance.DebugOnlyGetState();
         TwinSoulChalice? chalice = runState?.Players
             .Select(player => player.GetRelic<TwinSoulChalice>())

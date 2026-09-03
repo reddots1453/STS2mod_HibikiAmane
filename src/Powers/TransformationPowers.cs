@@ -20,6 +20,18 @@ public sealed class ImmaculateRobePower : MaidenSuccubusPowerTemplate
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
 
+    public override Task AfterApplied(Creature? applier, CardModel? cardSource)
+    {
+        TransformationEvents.Publish(Owner);
+        return Task.CompletedTask;
+    }
+
+    public override Task AfterRemoved(Creature oldOwner)
+    {
+        TransformationEvents.Publish(oldOwner);
+        return Task.CompletedTask;
+    }
+
     public override async Task AfterPlayerTurnStart(
         PlayerChoiceContext choiceContext,
         MegaCrit.Sts2.Core.Entities.Players.Player player)
@@ -59,6 +71,26 @@ public sealed class MagicArmorPower : MaidenSuccubusPowerTemplate
             });
             return description;
         }
+    }
+
+    public override Task AfterApplied(Creature? applier, CardModel? cardSource)
+    {
+        TransformationEvents.Publish(Owner);
+        return Task.CompletedTask;
+    }
+
+    public override Task AfterPowerAmountChanged(
+        PlayerChoiceContext context,
+        PowerModel power,
+        decimal amount,
+        Creature? applier,
+        CardModel? cardSource)
+    {
+        if (ReferenceEquals(power, this))
+        {
+            TransformationEvents.Publish(Owner);
+        }
+        return Task.CompletedTask;
     }
 
     public override Task BeforeSideTurnStart(
@@ -116,6 +148,7 @@ public sealed class MagicArmorPower : MaidenSuccubusPowerTemplate
 
     public override async Task AfterRemoved(Creature oldOwner)
     {
+        TransformationEvents.Publish(oldOwner);
         if (SuppressFormRemoval)
         {
             return;

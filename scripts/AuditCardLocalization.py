@@ -35,6 +35,22 @@ VAR_CLASS_NAMES = {
 }
 
 
+def load_json_with_review_comments(path: Path) -> dict[str, str]:
+    """Load localization JSON while preserving full-line design review notes.
+
+    Design review comments are intentionally kept beside the affected key as
+    lines beginning with //.  The game loader accepts the current file; Python's
+    strict json parser does not, so the audit removes only those full lines and
+    never rewrites the localization source.
+    """
+    text = path.read_text(encoding="utf-8-sig")
+    strict_json = "\n".join(
+        line for line in text.splitlines()
+        if not line.lstrip().startswith("//")
+    )
+    return json.loads(strict_json)
+
+
 def screaming_snake(name: str) -> str:
     # Preserve terminal roman-numeral/acronym runs: CounterBarrierII ->
     # COUNTER_BARRIER_II, not COUNTER_BARRIER_I_I.
@@ -169,10 +185,8 @@ def design_effect(title: str, lines: list[str]) -> str | None:
 
 
 def main() -> int:
-    loc: dict[str, str] = json.loads(LOC_PATH.read_text(encoding="utf-8-sig"))
-    power_loc: dict[str, str] = json.loads(
-        POWER_LOC_PATH.read_text(encoding="utf-8-sig")
-    )
+    loc = load_json_with_review_comments(LOC_PATH)
+    power_loc = load_json_with_review_comments(POWER_LOC_PATH)
     design_lines = DESIGN_PATH.read_text(encoding="utf-8-sig").splitlines()
     cards, all_classes = registered_cards()
     failures: list[str] = []

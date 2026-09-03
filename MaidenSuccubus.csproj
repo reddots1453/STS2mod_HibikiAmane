@@ -21,6 +21,10 @@
     <Sts2Dir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\..\..'))</Sts2Dir>
     <InstalledModDir>$(Sts2Dir)\mods\MaidenSuccubus</InstalledModDir>
     <RitsuLibDeployDir>$(Sts2Dir)\mods\STS2-RitsuLib</RitsuLibDeployDir>
+    <!-- Build, validation and deployment are deliberately separate gates.
+         Opt in with -p:ValidateMod=true and/or -p:DeployMod=true. -->
+    <ValidateMod Condition="'$(ValidateMod)' == ''">false</ValidateMod>
+    <DeployMod Condition="'$(DeployMod)' == ''">false</DeployMod>
   </PropertyGroup>
 
   <!-- Portable PDB is required for debugger hot reload. -->
@@ -54,7 +58,7 @@
   </ItemGroup>
 
   <Target Name="CopyModForDebug" AfterTargets="Build"
-          Condition="'$(Configuration)' == 'Debug' and '$(DeployMod)' != 'false'">
+          Condition="'$(Configuration)' == 'Debug' and '$(DeployMod)' == 'true'">
     <MakeDir Directories="$(InstalledModDir)" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(InstalledModDir)" />
     <Copy SourceFiles="$(TargetDir)$(TargetName).pdb"
@@ -78,7 +82,8 @@
           SkipUnchangedFiles="true" />
   </Target>
 
-  <Target Name="ValidateModArtifact" AfterTargets="Build">
+  <Target Name="ValidateModArtifact" AfterTargets="Build"
+          Condition="'$(ValidateMod)' == 'true'">
     <Error Condition="!Exists('$(TargetPath)')"
            Text="Mod assembly was not produced: $(TargetPath)" />
     <Error Condition="!Exists('$(MSBuildProjectDirectory)\MaidenSuccubus.json')"
@@ -86,6 +91,7 @@
     <Error Condition="!Exists('$(MSBuildProjectDirectory)\MaidenSuccubus\localization\zhs\cards.json')"
            Text="Chinese card localization is missing." />
     <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\scripts\ValidateMvpContent.ps1&quot; -ProjectDir &quot;$(MSBuildProjectDirectory)&quot;" />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\scripts\ValidateStructuralContracts.ps1&quot; -ProjectDir &quot;$(MSBuildProjectDirectory)&quot;" />
     <Exec Command="python &quot;$(MSBuildProjectDirectory)\scripts\AuditCardLocalization.py&quot;" />
     <Message Importance="high"
              Text="Validated $(Configuration) mod artifact and required manifest/localization inputs." />

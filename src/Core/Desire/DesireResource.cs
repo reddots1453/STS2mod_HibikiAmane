@@ -89,7 +89,19 @@ public static class DesireResource
                 counter.PivotOffset = new Vector2(64f, 64f);
                 return counter;
             },
-            context => context.Node.Refresh(context.Player));
+            context => context.Node.Bind(context.Player, autoRefresh: false),
+            context =>
+            {
+                if (context.Definition.Id != Definition.Id)
+                {
+                    return;
+                }
+                context.Node.Visible = context.VisibleDefinitions.Any(
+                    definition => definition.Id == Definition.Id);
+                context.Node.SetAmount(
+                    context.NewAmount,
+                    SecondaryResourceCmd.GetMax(context.Player, Definition.Id));
+            });
 
         registry.AlwaysShowInCombatUiForCharacter<MaidenSuccubusCharacter>(
             Definition.LocalId);

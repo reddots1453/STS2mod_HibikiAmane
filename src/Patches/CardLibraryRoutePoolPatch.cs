@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardLibrary;
 using MaidenSuccubus.Characters;
+using MaidenSuccubus.Cards;
 using MaidenSuccubus.Core.Routes;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Util;
@@ -41,5 +42,5 @@ public static class CardLibraryRoutePoolPatch
 
     private static bool IsMaidenSuccubusCompendiumCard(CardModel card) =>
         card is IMaidenSuccubusRouteCard
-        || card.Pool is MSScriptureCardPool;
+        || card is MaidenStrike or MaidenDefend;
 }

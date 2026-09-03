@@ -12,6 +12,8 @@ namespace MaidenSuccubus.UI;
 public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
 {
     private const string RootPath = "res://MaidenSuccubus/images/character/";
+    private const string ScenePath =
+        "res://MaidenSuccubus/scenes/maiden_succubus_character.tscn";
     private static readonly Dictionary<string, Texture2D> TextureCache =
         new(StringComparer.Ordinal);
     private static readonly HashSet<string> FailedTextureLoads =
@@ -54,82 +56,59 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         LoadTexture("character_armor_2.png");
         LoadTexture("character_armor_3.png");
 
+        PackedScene? scene = ResourceLoader.Load<PackedScene>(ScenePath);
+        if (scene == null)
+        {
+            MaidenSuccubusMod.Logger.Warn(
+                $"Unable to load character layout '{ScenePath}'; using the fallback character scene.");
+            return null;
+        }
+
+        Node2D scaffold = scene.Instantiate<Node2D>();
         var root = new MaidenSuccubusCreatureVisuals
         {
             Name = "MaidenSuccubusCreatureVisuals",
         };
-        var visualRoot = new Node2D
-        {
-            Name = "Visuals",
-            UniqueNameInOwner = true,
-            Position = RestPosition,
-            Scale = RestScale,
-        };
-        root.AddChild(visualRoot);
-        visualRoot.Owner = root;
+        AdoptSceneChildren(scaffold, root);
+        scaffold.Free();
 
-        root._characterSprite = new Sprite2D
+        root._visualRoot = root.GetNodeOrNull<Node2D>("Visuals");
+        root._characterSprite = root.GetNodeOrNull<Sprite2D>(
+            "Visuals/CharacterSprite");
+        if (root._visualRoot == null || root._characterSprite == null)
         {
-            Name = "CharacterSprite",
-            Texture = appearance,
-            FlipH = true,
-            ZIndex = 0,
-        };
-        visualRoot.AddChild(root._characterSprite);
-        root._visualRoot = visualRoot;
-
-        AddUnique(root, new Control
-        {
-            Name = "Bounds",
-            Position = new Vector2(-120f, -360f),
-            Size = new Vector2(240f, 360f),
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-        });
-        AddUnique(root, new Marker2D
-        {
-            Name = "IntentPos",
-            Position = new Vector2(0f, -385f),
-        });
-        AddUnique(root, new Marker2D
-        {
-            Name = "CenterPos",
-            Position = new Vector2(0f, -190f),
-        });
-        AddUnique(root, new Marker2D
-        {
-            Name = "OrbPos",
-            Position = new Vector2(-135f, -205f),
-        });
-        AddUnique(root, new Marker2D
-        {
-            Name = "TalkPos",
-            Position = new Vector2(0f, -355f),
-        });
+            root.Free();
+            MaidenSuccubusMod.Logger.Warn(
+                $"Character layout '{ScenePath}' lacks Visuals/CharacterSprite; using the fallback character scene.");
+            return null;
+        }
+        root._characterSprite.Texture = appearance;
         return root;
     }
 
     public override void _Ready()
     {
         base._Ready();
-        // A whole-character PNG is much larger than the individual Spine
-        // attachments used by the base-game characters.  Moving/rotating it
-        // from a managed _Process callback every rendered frame also used to
-        // query the transformation powers 60+ times a second.  That path did
-        // not emit errors, but made every combat animation visibly uneven.
-        // Form changes are infrequent, so poll only that state at 5 Hz and
-        // leave the resting sprite completely static between feedback tweens.
         SetProcess(false);
-        var appearanceTimer = new Godot.Timer
-        {
-            Name = "AppearancePollTimer",
-            WaitTime = 0.2,
-            OneShot = false,
-            Autostart = true,
-            ProcessCallback = Godot.Timer.TimerProcessCallback.Idle,
-        };
-        appearanceTimer.Timeout += RefreshAppearance;
-        AddChild(appearanceTimer);
+        TransformationEvents.Changed += OnTransformationChanged;
         RefreshAppearance();
+    }
+
+    public override void _ExitTree()
+    {
+        TransformationEvents.Changed -= OnTransformationChanged;
+        _feedbackTween?.Kill();
+        base._ExitTree();
+    }
+
+    private void OnTransformationChanged(
+        MegaCrit.Sts2.Core.Entities.Creatures.Creature creature)
+    {
+        if (GetParent() is NCreature node
+            && ReferenceEquals(node.Entity, creature))
+        {
+            RefreshAppearance();
+        }
     }
 
     public void PlayFeedback(string trigger)
@@ -299,10 +278,32 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         return texture;
     }
 
-    private static void AddUnique(Node root, Node child)
+    private static void AdoptSceneChildren(Node source, Node destination)
     {
-        child.UniqueNameInOwner = true;
-        root.AddChild(child);
-        child.Owner = root;
+        foreach (Node child in source.GetChildren())
+        {
+            ClearOwnerRecursive(child);
+            source.RemoveChild(child);
+            destination.AddChild(child);
+            SetOwnerRecursive(child, destination);
+        }
+    }
+
+    private static void ClearOwnerRecursive(Node node)
+    {
+        node.Owner = null;
+        foreach (Node child in node.GetChildren())
+        {
+            ClearOwnerRecursive(child);
+        }
+    }
+
+    private static void SetOwnerRecursive(Node node, Node owner)
+    {
+        node.Owner = owner;
+        foreach (Node child in node.GetChildren())
+        {
+            SetOwnerRecursive(child, owner);
+        }
     }
 }

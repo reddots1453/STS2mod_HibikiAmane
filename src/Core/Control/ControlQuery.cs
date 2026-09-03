@@ -3,13 +3,16 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Keywords;
+using MaidenSuccubus.Patches;
 using MaidenSuccubus.Powers;
+using System.Runtime.CompilerServices;
 
 namespace MaidenSuccubus.Core.Control;
 
 public readonly record struct EscapeProjection(
     ControlPower Control,
-    CardModel OriginalCard)
+    CardModel OriginalCard,
+    string OriginalTitle)
 {
     public int EscapeRemaining => Control.Amount;
     public ControlType Type => Control.ControlType;
@@ -17,11 +20,20 @@ public readonly record struct EscapeProjection(
 
 public static class ControlQuery
 {
-    // CardModel.Keywords builds its result from Enchantment/Affliction, while the
-    // projection patches for those properties also need to ask whether a card is
-    // Portable. Without a guard that forms Keywords -> Enchantment -> projection
-    // -> Keywords and eventually overflows the native stack when combat cards are
-    // materialized.
+    private sealed class ProjectionHolder
+    {
+        public required EscapeProjection Projection { get; set; }
+    }
+
+    // Projection membership belongs to the concrete combat card instance.  The
+    // original card is never replaced or mutated; after loading a combat the table
+    // is deterministically rebuilt from the saved ControlPower instances.
+    private static readonly ConditionalWeakTable<CardModel, ProjectionHolder>
+        Projections = new();
+
+    // CardModel.Keywords is itself projected.  Portable detection must be able to
+    // inspect the unprojected keyword result once without recursively re-entering
+    // projection resolution.
     [ThreadStatic]
     private static bool _resolvingProjection;
 
@@ -120,32 +132,16 @@ public static class ControlQuery
             return null;
         }
 
+        if (Projections.TryGetValue(card, out ProjectionHolder? existing)
+            && IsStillValid(card, existing.Projection, rawKeywords: null))
+        {
+            return existing.Projection;
+        }
+
         _resolvingProjection = true;
         try
         {
-            // Unowned generated cards and canonical database models are queried by
-            // UI/reward code too. They cannot participate in combat control.
-            if (card.Pile?.IsCombatPile != true)
-            {
-                return null;
-            }
-
-            Player owner = card.Owner;
-            if (owner.Character is not MaidenSuccubusCharacter)
-            {
-                return null;
-            }
-
-            ControlPower? control = FindMatchingControl(owner, card.Type);
-            // Most combat frames have no matching control at all. Checking
-            // that cheap condition before asking for Keywords avoids entering
-            // CardModel.Keywords (and the Harmony projection chain again) for
-            // every title/description/target refresh of every visible card.
-            if (control == null || PortableKeyword.IsPortable(card))
-            {
-                return null;
-            }
-            return new EscapeProjection(control, card);
+            return RefreshCard(card, rawKeywords: null);
         }
         finally
         {
@@ -157,7 +153,18 @@ public static class ControlQuery
         CardModel card,
         IReadOnlySet<CardKeyword> rawKeywords)
     {
-        if (_resolvingProjection || !card.IsMutable)
+        if (!card.IsMutable)
+        {
+            return null;
+        }
+
+        if (Projections.TryGetValue(card, out ProjectionHolder? existing)
+            && IsStillValid(card, existing.Projection, rawKeywords))
+        {
+            return existing.Projection;
+        }
+
+        if (_resolvingProjection)
         {
             return null;
         }
@@ -165,24 +172,117 @@ public static class ControlQuery
         _resolvingProjection = true;
         try
         {
-            if (card.Pile?.IsCombatPile != true)
-            {
-                return null;
-            }
-
-            Player owner = card.Owner;
-            if (owner.Character is not MaidenSuccubusCharacter
-                || rawKeywords.Contains(PortableKeyword.Value))
-            {
-                return null;
-            }
-
-            ControlPower? control = FindMatchingControl(owner, card.Type);
-            return control == null ? null : new EscapeProjection(control, card);
+            return RefreshCard(card, rawKeywords);
         }
         finally
         {
             _resolvingProjection = false;
         }
+    }
+
+    public static void Refresh(Player player)
+    {
+        foreach (CardPile pile in player.Piles.Where(pile => pile.IsCombatPile))
+        {
+            foreach (CardModel card in pile.Cards)
+            {
+                Refresh(card);
+            }
+        }
+    }
+
+    public static void Refresh(CardModel card)
+    {
+        if (!card.IsMutable)
+        {
+            return;
+        }
+
+        _resolvingProjection = true;
+        try
+        {
+            RefreshCard(card, rawKeywords: null);
+        }
+        finally
+        {
+            _resolvingProjection = false;
+        }
+    }
+
+    private static EscapeProjection? RefreshCard(
+        CardModel card,
+        IReadOnlySet<CardKeyword>? rawKeywords)
+    {
+        Projections.Remove(card);
+        if (card.Pile?.IsCombatPile != true)
+        {
+            return null;
+        }
+
+        Player owner = card.Owner;
+        if (owner.Character is not MaidenSuccubusCharacter)
+        {
+            return null;
+        }
+
+        ControlPower? control = FindMatchingControl(owner, card.Type);
+        bool portable = rawKeywords?.Contains(PortableKeyword.Value)
+            ?? PortableKeyword.IsPortable(card);
+        if (control == null || portable)
+        {
+            return null;
+        }
+
+        EscapeProjection projection = new(
+            control,
+            card,
+            GetUnprojectedTitle(card));
+        Projections.Add(card, new ProjectionHolder { Projection = projection });
+        EscapeEffectPatcher.EnsurePatched(card);
+        return projection;
+    }
+
+    private static bool IsStillValid(
+        CardModel card,
+        EscapeProjection projection,
+        IReadOnlySet<CardKeyword>? rawKeywords)
+    {
+        if (card.Pile?.IsCombatPile != true
+            || card.Owner.Character is not MaidenSuccubusCharacter
+            || projection.Control.Amount <= 0
+            || !projection.Control.ControlType.Matches(card.Type)
+            || !card.Owner.Creature.Powers.Contains(projection.Control))
+        {
+            Projections.Remove(card);
+            return false;
+        }
+
+        bool portable = rawKeywords?.Contains(PortableKeyword.Value)
+            ?? PortableKeyword.IsPortable(card);
+        if (portable)
+        {
+            Projections.Remove(card);
+            return false;
+        }
+
+        ControlPower? current = FindMatchingControl(card.Owner, card.Type);
+        if (!ReferenceEquals(current, projection.Control))
+        {
+            Projections.Remove(card);
+            return false;
+        }
+        return true;
+    }
+
+    private static string GetUnprojectedTitle(CardModel card)
+    {
+        string title = card.TitleLocString.GetFormattedText();
+        if (!card.IsUpgraded)
+        {
+            return title;
+        }
+        return card.MaxUpgradeLevel > 1
+            ? $"{title}+{card.CurrentUpgradeLevel}"
+            : title + "+";
     }
 }

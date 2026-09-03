@@ -9,7 +9,6 @@ using MaidenSuccubus.Powers;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
-using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.MonsterMoves.MonsterMoveStateMachine;
 using MaidenSuccubus.Util;
 
@@ -51,17 +50,6 @@ internal static class IntentAdapterPatch
         }
         if (spec?.Steadfast == true)
         {
-            if (!runtime.SteadfastScheduled
-                && !monster.Creature.HasPower<SteadfastPower>())
-            {
-                runtime.SteadfastScheduled = true;
-                TaskHelper.RunSafely(PowerCmd.Apply<SteadfastPower>(
-                    new ThrowingPlayerChoiceContext(),
-                    monster.Creature,
-                    1m,
-                    monster.Creature,
-                    null));
-            }
             return;
         }
         EroticMonsterSpec catalog = spec!;

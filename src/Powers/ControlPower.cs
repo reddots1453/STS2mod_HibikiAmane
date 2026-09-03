@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Powers;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.Models;
 using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Content;
 using STS2RitsuLib.Combat.Ui.ExtraCornerAmountLabels;
@@ -43,6 +44,52 @@ public sealed class ControlPower :
         ControlBreakReason.Direct;
 
     public override PowerAssetProfile AssetProfile => CommonPowerAssets.Corruption;
+
+    public override Task AfterApplied(Creature? applier, CardModel? cardSource)
+    {
+        if (Owner.Player != null)
+        {
+            ControlQuery.Refresh(Owner.Player);
+            EscapeCardVisuals.Refresh(Owner.Player);
+        }
+        return Task.CompletedTask;
+    }
+
+    public override Task AfterPowerAmountChanged(
+        PlayerChoiceContext context,
+        PowerModel power,
+        decimal amount,
+        Creature? applier,
+        CardModel? cardSource)
+    {
+        if (ReferenceEquals(power, this) && Owner.Player != null)
+        {
+            ControlQuery.Refresh(Owner.Player);
+            EscapeCardVisuals.Refresh(Owner.Player);
+        }
+        return Task.CompletedTask;
+    }
+
+    public override Task AfterCardEnteredCombat(CardModel card)
+    {
+        if (Owner.Player != null && ReferenceEquals(card.Owner, Owner.Player))
+        {
+            ControlQuery.Refresh(card);
+        }
+        return Task.CompletedTask;
+    }
+
+    public override Task AfterCardChangedPiles(
+        CardModel card,
+        PileType oldPileType,
+        MegaCrit.Sts2.Core.Models.AbstractModel? source)
+    {
+        if (Owner.Player != null && ReferenceEquals(card.Owner, Owner.Player))
+        {
+            ControlQuery.Refresh(card);
+        }
+        return Task.CompletedTask;
+    }
 
     public IReadOnlyList<ExtraIconAmountLabelSpec>
         GetPowerExtraIconAmountLabelSpecs() =>
@@ -99,6 +146,7 @@ public sealed class ControlPower :
         }
         if (oldOwner.Player != null)
         {
+            ControlQuery.Refresh(oldOwner.Player);
             EscapeCardVisuals.Refresh(oldOwner.Player);
         }
         return Task.CompletedTask;

@@ -10,6 +10,34 @@ using MaidenSuccubus.Powers;
 
 namespace MaidenSuccubus.Core.Desire;
 
+public readonly record struct DesireChanged(
+    Player Player,
+    int OldValue,
+    int NewValue);
+
+public static class DesireEvents
+{
+    public static event Action<DesireChanged>? Changed;
+
+    internal static void Publish(DesireChanged change)
+    {
+        foreach (Action<DesireChanged> handler in
+            Changed?.GetInvocationList().Cast<Action<DesireChanged>>()
+            ?? [])
+        {
+            try
+            {
+                handler(change);
+            }
+            catch (Exception ex)
+            {
+                MaidenSuccubusMod.Logger.Warn(
+                    $"Desire Changed listener failed: {ex.Message}");
+            }
+        }
+    }
+}
+
 /// <summary>
 /// Resolves the special rule at ten desire. The resource framework remains
 /// responsible for card affordability, payment, free play, X and replay.
@@ -28,8 +56,17 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
     public async Task AfterSecondaryResourceChanged(
         SecondaryResourceChangeContext context)
     {
-        if (context.Definition.Id != DesireResource.Id
-            || context.NewAmount < Data.Desire.Max
+        if (context.Definition.Id != DesireResource.Id)
+        {
+            return;
+        }
+
+        DesireEvents.Publish(new DesireChanged(
+            context.Player,
+            context.OldAmount,
+            context.NewAmount));
+
+        if (context.NewAmount < Data.Desire.Max
             || !DesireRuleModifiers.ShouldTriggerPenalty(context.Player)
             || !ResolvingPlayers.Add(context.Player))
         {
