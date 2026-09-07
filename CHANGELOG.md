@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-07 — 中文描述与悬停格式版本部署
+
+- 部署前快照：`53b5f190eb1e3cf86c4dec1aeafa7118266132e0`（`refactor(maiden): standardize localization hover formatting`）。
+- 执行：`dotnet build -c Debug -p:DeployMod=true -p:ValidateMod=true`。
+- 验证：构建0 warning、0 error；204张卡文本审计0 failure；内容契约、结构契约和本地化格式契约全部通过。
+- 产物校验：DLL、PDB和manifest与源码构建产物SHA-256一致；33个资源文件在安装目录和Godot热加载目录均为0缺失、0哈希差异。
+- 安装目录：`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`。
+- 热加载目录：`D:\game_backup\steam\steamapps\common\Slay the Spire 2\MaidenSuccubus`。
+- 部署：是；等待用户进行游戏内手动测试。
+
 ## 2026-09-07 — 中文描述与悬停格式整改
 
 - 变更前快照：`maiden-pre-localization-format-20260907` → `0bf43eb7c42e9d0c37f61ab6ee6f0bc961b07e47`。
