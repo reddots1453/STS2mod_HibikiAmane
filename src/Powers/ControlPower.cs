@@ -34,6 +34,7 @@ public sealed class ControlPower :
         get
         {
             LocString description = base.Description;
+            description.Add("Amount", Amount);
             description.Add("ControlType", ControlType.LocalizedName());
             description.Add("Source", Applier?.Name ?? "未知来源");
             return description;

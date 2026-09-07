@@ -1,12 +1,12 @@
 {
   "MAIDEN_SUCCUBUS_KEYWORD_PORTABLE.title": "随身",
-  "MAIDEN_SUCCUBUS_KEYWORD_PORTABLE.description": "随身关键字的牌不会变化为挣脱，且第一张进入手牌的随身牌不会被回合结束的弃牌所自动丢弃。",
+  "MAIDEN_SUCCUBUS_KEYWORD_PORTABLE.description": "随身关键字的牌不会变化为[gold]挣脱[/gold]，且第一张进入[gold]手牌[/gold]的随身牌不会被回合结束的弃牌所自动丢弃。",
   "1380709635.title": "随身",
-  "1380709635.description": "随身关键字的牌不会变化为挣脱，且第一张进入手牌的随身牌不会被回合结束的弃牌所自动丢弃。",
+  "1380709635.description": "随身关键字的牌不会变化为[gold]挣脱[/gold]，且第一张进入[gold]手牌[/gold]的随身牌不会被回合结束的弃牌所自动丢弃。",
   "MAIDEN_SUCCUBUS_KEYWORD_SINKING.title": "沉底",
-  "MAIDEN_SUCCUBUS_KEYWORD_SINKING.description": "战斗开始时，将这张牌放入弃牌堆。",
+  "MAIDEN_SUCCUBUS_KEYWORD_SINKING.description": "战斗开始时，将这张牌放入[gold]弃牌堆[/gold]。",
   "MAIDEN_SUCCUBUS_KEYWORD_BATTLE_REPLAY.title": "战技复读",
   "MAIDEN_SUCCUBUS_KEYWORD_BATTLE_REPLAY.description": "这张牌来自【战技复读】，打出后恢复为【战技复读】。",
   "MAIDEN_SUCCUBUS_KEYWORD_CURSE_INFECTION.title": "咒印传染",
-  "MAIDEN_SUCCUBUS_KEYWORD_CURSE_INFECTION.description": "当这张牌被消耗时，抽2张牌，并将这一效果附加到随机手牌上。不能叠加给已有该效果的牌。"
+  "MAIDEN_SUCCUBUS_KEYWORD_CURSE_INFECTION.description": "当这张牌被[gold]消耗[/gold]时，抽2张牌，并将这一效果附加到随机[gold]手牌[/gold]上。不能叠加给已有该效果的牌。"
 }

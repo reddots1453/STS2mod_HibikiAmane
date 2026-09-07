@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Powers;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Saves.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
@@ -16,8 +17,24 @@ namespace MaidenSuccubus.Powers;
 [RegisterPower]
 public sealed class AbnormalAdaptationPower : MaidenSuccubusPowerTemplate
 {
+    private int _remainingTriggers;
+
     [SavedProperty]
-    public int RemainingTriggers { get; set; }
+    public int RemainingTriggers
+    {
+        get => _remainingTriggers;
+        set
+        {
+            AssertMutable();
+            _remainingTriggers = value;
+            DynamicVars["RemainingTriggers"].BaseValue = value;
+            InvokeDisplayAmountChanged();
+        }
+    }
+
+    protected override IEnumerable<DynamicVar> CanonicalVars =>
+        [new DynamicVar("RemainingTriggers", 0)];
+
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
 

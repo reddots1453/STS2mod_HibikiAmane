@@ -1,13 +1,13 @@
 {
   "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.title": "堕落值",
-  "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.description": "当前堕落值：[blue]{Current}[/blue]。\n圣洁与堕落的平衡，范围为 [purple]-5[/purple] 至 [purple]+5[/purple]。\n[purple]-5[/purple]：战斗结束时失去 1 点欲望。\n[purple]-3[/purple] 或更低：堕落牌被封印，不进入下一场战斗；可在火堆移除全部封印牌。\n[purple]+3[/purple] 或更高：圣洁牌被封印，不进入下一场战斗；可在火堆移除全部封印牌。\n[purple]+5[/purple]：战斗结束时获得 1 点欲望。",
+  "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.description": "当前[gold]堕落值[/gold]：[blue]{Current}[/blue]。\n圣洁与堕落的平衡，范围为[purple]-5[/purple]至[purple]+5[/purple]。\n[purple]-5[/purple]：战斗结束时失去1点[gold]欲望[/gold]。\n[purple]-3[/purple]或更低：堕落牌被[gold]封印[/gold]，不进入下一场战斗；可在火堆移除全部[gold]封印[/gold]牌。\n[purple]+3[/purple]或更高：圣洁牌被[gold]封印[/gold]，不进入下一场战斗；可在火堆移除全部[gold]封印[/gold]牌。\n[purple]+5[/purple]：战斗结束时获得1点[gold]欲望[/gold]。",
   "MAIDENSUCCUBUS_SEALED_CARD.title": "封印",
-  "MAIDENSUCCUBUS_SEALED_CARD.description": "这张牌仍在永久牌组中，但按当前堕落值不会进入下一场战斗。战斗中堕落值变化不会改变当前战斗牌堆。",
+  "MAIDENSUCCUBUS_SEALED_CARD.description": "这张牌仍在[gold]永久牌组[/gold]中，但按当前[gold]堕落值[/gold]不会进入下一场战斗。战斗中[gold]堕落值[/gold]变化不会改变当前战斗牌堆。",
   "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.title": "欲望",
-  "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.description": "跨战斗保留。部分卡牌会获得或消耗欲望。通常达到 10 点时会立即结算高潮平复。",
+  "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.description": "跨战斗[gold]保留[/gold]。部分卡牌会获得或[gold]消耗[/gold][gold]欲望[/gold]。通常达到10点时会立即结算[gold]高潮平复[/gold]。",
   "MAIDENSUCCUBUS_OVERDRAFT.title": "透支",
-  "MAIDENSUCCUBUS_OVERDRAFT.description": "透支：消耗1层魔力增幅以触发效果。如果没有魔力增幅，可以选择失去1层魔装耐久并触发效果。",
+  "MAIDENSUCCUBUS_OVERDRAFT.description": "[gold]透支[/gold]：[gold]消耗[/gold]1层[gold]魔力增幅[/gold]以触发效果。如果没有[gold]魔力增幅[/gold]，可以选择失去1层[gold]魔装耐久[/gold]并触发效果。",
   "MAIDENSUCCUBUS_CURSE_INFECTION.title": "咒印传染",
-  "MAIDENSUCCUBUS_CURSE_INFECTION.description": "当这张牌被消耗时，抽2张牌，并将这一效果附加到随机手牌上。不能叠加给已有该效果的牌。",
-  "MAIDENSUCCUBUS_CURSE_INFECTION.extraCardText": "当这张牌被消耗时，抽2张牌，并将这一效果附加到随机手牌上。"
+  "MAIDENSUCCUBUS_CURSE_INFECTION.description": "当这张牌被[gold]消耗[/gold]时，抽2张牌，并将这一效果附加到随机[gold]手牌[/gold]上。不能叠加给已有该效果的牌。",
+  "MAIDENSUCCUBUS_CURSE_INFECTION.extraCardText": "当这张牌被[gold]消耗[/gold]时，抽2张牌，并将这一效果附加到随机[gold]手牌[/gold]上。"
 }
