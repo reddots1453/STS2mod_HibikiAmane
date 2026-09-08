@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.ValueProps;
+using MaidenSuccubus.Core.Intents;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
 using MaidenSuccubus.Core.Transformation;
@@ -73,7 +74,7 @@ public sealed class ObstructingShot : MSNeutralCard
         bool shouldStun = play.Target.Monster?.IntendsToAttack == false;
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
-        if (shouldStun && play.Target.IsAlive) await CreatureCmd.Stun(play.Target);
+        if (shouldStun && play.Target.IsAlive) await IntentMoveFactory.Stun(play.Target);
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
 }

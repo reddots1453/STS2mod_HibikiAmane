@@ -94,7 +94,11 @@ internal sealed class CardEffectTestContext
 
         Creature[] playerTargets = Combat.Players.Select(player => player.Creature).ToArray();
         foreach (Creature enemy in Combat.Creatures.Where(creature => creature.Monster != null))
+        {
+            enemy.Monster!.ResetStateMachine();
+            enemy.Monster.SetUpForCombat();
             enemy.Monster!.RollMove(playerTargets);
+        }
 
         await PlayerCmd.SetEnergy(20, Player);
         await Desire.Set(Player, 0);

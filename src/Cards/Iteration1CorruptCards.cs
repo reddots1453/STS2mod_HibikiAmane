@@ -375,7 +375,7 @@ public sealed class DesireWhip : MSCorruptCard
         if (play.Target?.Monster?.NextMove.Intents.Any(
                 intent => intent is ControlIntent or InvasionIntent) == true)
         {
-            await CreatureCmd.Stun(play.Target);
+            await IntentMoveFactory.Stun(play.Target);
         }
     }
 
@@ -439,7 +439,7 @@ public sealed class BiteInvader : MSCorruptCard
         ArgumentNullException.ThrowIfNull(play.Target);
         await PowerCmd.Apply<WeakPower>(
             context, play.Target, 7, Owner.Creature, this);
-        await CreatureCmd.Stun(play.Target);
+        await IntentMoveFactory.Stun(play.Target);
     }
 
     protected override void OnUpgrade() { }

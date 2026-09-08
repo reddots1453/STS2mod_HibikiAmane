@@ -158,11 +158,27 @@ public static class IntentMoveFactory
         runtime.ForceStun = true;
         SetTransient(
             monster,
-            NewMove(monster, "STUN", _ =>
+            new MoveState("STUNNED", _ =>
             {
                 runtime.ForceStun = false;
                 return Task.CompletedTask;
-            }, new StunIntent()));
+            }, new StunIntent())
+            {
+                MustPerformOnceBeforeTransitioning = true,
+            });
+    }
+
+    public static async Task Stun(Creature creature)
+    {
+        ArgumentNullException.ThrowIfNull(creature.Monster);
+        await CreatureCmd.Stun(creature);
+        if (creature.IsAlive && !creature.IsStunned)
+        {
+            // CreatureCmd respects CanTransitionAway and therefore cannot replace
+            // one of our unperformed transient erotic moves. Cards that say they
+            // stun must still replace that intent immediately.
+            ForceStun(creature.Monster);
+        }
     }
 
     public static bool TryForceErotic(MonsterModel monster, Player player)

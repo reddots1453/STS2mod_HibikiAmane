@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-08 — 204张卡牌第二轮实测修复
+
+- 变更前运行时快照：`maiden-card-test-second-run-20260908` → `05c1f9c`；第二轮 F10 报告于16:03:55开始、16:11:33正常结束，结果由首轮150张通过提升至197张通过、4张失败、3张`DESIGN_PENDING`，不属于卡死或中断。
+- 按最新游戏日志和当前v0.111.0游戏DLL复核：原版`CreatureCmd.Stun`仅在当前意图允许转移时调用`SetMoveImmediate`，遇到尚未执行的本模组临时色情意图会静默不生效；本模组原强制眩晕又使用非原版识别的状态ID，导致`Creature.IsStunned`为假。
+- 新增统一眩晕桥接：正常情况保留原版眩晕流程；若临时色情意图阻止切换，则强制替换；强制状态使用引擎识别的稳定ID `STUNNED`。剑之裁决、妨碍射击、欲望鞭挞和咬统一改走该路径。
+- 测试场景复位会重建每个怪物的状态机，确保前一张牌留下的临时意图不污染后一张牌；战技复读改为执行真实`BeforeCombatStart`并验证Power、牌面变形、保留和打出后恢复；诱敌深入临时加入并清理具备拘束目录项的原版多尼斯异鸟，不再错误选择无拘束意图的小啃兽。
+- 补足此前遗漏的欲望鞭挞条件测试：建立真实拘束意图后同时核对7点伤害和击晕，而非只验证伤害。构建门新增`STUNNED`状态ID、临时意图回退、卡牌统一眩晕入口及欲望鞭挞条件断言检查。
+- 静态构建验证：`dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=true`通过，0 warning、0 error；内容契约、结构契约、204张卡文本审计、本地化格式契约和卡牌测试结构门全部通过。
+- 游戏内结果：等待部署后的第三轮完整 F10 数值测试；当前不把静态构建通过记作201张实际效果全部通过。
+- 部署：`dotnet build -c Debug -p:DeployMod=true -p:ValidateMod=true`通过，0 warning、0 error；已部署至`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`。源码与安装目录DLL SHA-256均为`F146D0E722D76115C1D391BAFDBF74A976E8EC8D3CF984946DE7C263968C74BC`，PDB均为`699C287A52C373FC924DD4F91087B0C425AF164812CC71824D23327A2ECAF80C`。
+
 ## 2026-09-08 — 204张卡牌首轮实测修复
 
 - 变更前运行时快照：`maiden-card-test-first-run-20260908` → `409eeeb`；首轮 F10 报告正常完成，结果为150张通过、51张失败、3张`DESIGN_PENDING`，手牌区大量卡牌是测试生成节点残留而非卡死。

@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
+using MaidenSuccubus.Core.Intents;
 using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Pools;
 using STS2RitsuLib.Interop.AutoRegistration;
@@ -28,7 +29,7 @@ public sealed class SwordVerdict : MSNeutralCard
             .WithHitFx("vfx/vfx_attack_slash").Execute(context);
         if (belowHalf && play.Target.IsAlive)
         {
-            await CreatureCmd.Stun(play.Target);
+            await IntentMoveFactory.Stun(play.Target);
         }
     }
     protected override void OnUpgrade() => AddKeyword(CardKeyword.Retain);

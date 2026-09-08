@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Enchantments;
+using MegaCrit.Sts2.Core.Models.Monsters;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.TestSupport;
 using MegaCrit.Sts2.Core.ValueProps;
@@ -116,7 +117,7 @@ internal static class CardEffectTestCatalog
         DamageDraw<DarkThrust>(8, 11, 2, 2);
         GenerateChosenCard<DemonStaff>();
         DesireRecycleProbe();
-        Damage<DesireWhip>(7, 7);
+        DesireWhipProbe();
         DrawAndExhaustSelection<DestructionReaction>(3, 4);
         DesireDraw<EcstasyDew>(2, 3, 1, 1);
         BlockGenerate<Exhibitionist, NakedDesireStatus>(18, 24, PileType.Hand);
@@ -1041,7 +1042,9 @@ internal static class CardEffectTestCatalog
     private static void BattleTechniqueReplayProbe() =>
         CustomVariants<BattleTechniqueReplay>(async (ctx, card, upgraded) =>
         {
-            await ctx.Play(card);
+            await card.BeforeCombatStart();
+            ctx.AssertEqual("combat-start replay power installed", 1,
+                ctx.PowerAmount<BattleTechniqueReplayPower>(ctx.Self));
             BattleTechniqueReplay replay = await ctx.Add<BattleTechniqueReplay>(
                 PileType.Hand, upgraded, skipVisuals: false);
             MaidenStrike strike = ctx.Create<MaidenStrike>();
@@ -1059,7 +1062,19 @@ internal static class CardEffectTestCatalog
             await ctx.Play(projected, ctx.PrimaryEnemy);
             ctx.AssertEqual("projection restores replay card after use", 1,
                 ctx.CountCards<BattleTechniqueReplay>(PileType.Discard));
-        }, 4);
+        }, 5);
+
+    private static void DesireWhipProbe() =>
+        CustomVariants<DesireWhip>(async (ctx, card, _) =>
+        {
+            IntentMoveFactory.SetTransient(ctx.PrimaryEnemy.Monster!,
+                IntentMoveFactory.CreateControl(ctx.PrimaryEnemy.Monster!,
+                    new ControlIntentSpec(4, ControlType.Attack, 3)));
+            int hp = ctx.PrimaryEnemy.CurrentHp;
+            await ctx.Play(card, ctx.PrimaryEnemy);
+            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, 7);
+            ctx.AssertTrue("control-intent target stunned", ctx.PrimaryEnemy.IsStunned);
+        }, 2);
 
     private static void BlizzardProbe() =>
         CustomVariants<Blizzard>(async (ctx, card, upgraded) =>
@@ -1861,14 +1876,22 @@ internal static class CardEffectTestCatalog
     private static void LureDeepProbe() =>
         CustomVariants<LureDeep>(async (ctx, card, upgraded) =>
         {
-            await ctx.Play(card, ctx.PrimaryEnemy);
-            ControlIntent intent = ctx.PrimaryEnemy.Monster!.NextMove.Intents
-                .OfType<ControlIntent>().Single();
-            ctx.AssertEqual("forced control escape requirement",
-                upgraded ? 2 : 3, intent.EscapeRequired);
-            ctx.AssertTrue("forced move uses stable transient state id",
-                ctx.PrimaryEnemy.Monster.NextMove.StateId.StartsWith(
-                    "MAIDENSUCCUBUS_", StringComparison.Ordinal));
+            Creature target = await CreatureCmd.Add<Byrdonis>(ctx.Combat);
+            try
+            {
+                await ctx.Play(card, target);
+                ControlIntent intent = target.Monster!.NextMove.Intents
+                    .OfType<ControlIntent>().Single();
+                ctx.AssertEqual("forced control escape requirement",
+                    upgraded ? 2 : 3, intent.EscapeRequired);
+                ctx.AssertTrue("forced move uses stable transient state id",
+                    target.Monster.NextMove.StateId.StartsWith(
+                        "MAIDENSUCCUBUS_", StringComparison.Ordinal));
+            }
+            finally
+            {
+                await CreatureCmd.Escape(target);
+            }
         }, 2);
 
     private static void MagicExcessProbe() =>
