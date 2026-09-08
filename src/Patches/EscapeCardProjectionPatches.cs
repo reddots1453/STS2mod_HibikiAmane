@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Afflictions;
 using MegaCrit.Sts2.Core.Models.Enchantments;
+using MaidenSuccubus.Cards.Curses;
 using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Util;
 
@@ -73,6 +74,12 @@ internal static class EscapeCardProjectionPatches
             if (ControlQuery.GetProjection(__instance, raw) != null)
             {
                 result = new HashSet<CardKeyword>();
+            }
+            if (TransparentOutfitCurse.ProjectsEtherealOnto(__instance)
+                && !result.Contains(CardKeyword.Ethereal))
+            {
+                result = result.ToHashSet();
+                ((HashSet<CardKeyword>)result).Add(CardKeyword.Ethereal);
             }
         }, "Escape.Keywords");
         __result = result;

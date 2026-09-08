@@ -70,6 +70,24 @@ public sealed class RestNextTurnPower : MaidenSuccubusPowerTemplate
 }
 
 [RegisterPower]
+public sealed class EctoplasmResidueEnergyLossPower :
+    MaidenSuccubusPowerTemplate
+{
+    public override PowerType Type => PowerType.Debuff;
+    public override PowerStackType StackType => PowerStackType.Counter;
+
+    public override async Task AfterEnergyReset(Player player)
+    {
+        if (player != Owner.Player)
+        {
+            return;
+        }
+        await PlayerCmd.LoseEnergy(Amount, player);
+        await PowerCmd.Remove(this);
+    }
+}
+
+[RegisterPower]
 public sealed class EternalRobePower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;

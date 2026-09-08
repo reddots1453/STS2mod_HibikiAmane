@@ -162,7 +162,7 @@ public sealed class SacrificialFrenzy : MSCorruptCard
 
     protected override void OnUpgrade()
     {
-        DynamicVars.Damage.UpgradeValueBy(6);
+        DynamicVars.Damage.UpgradeValueBy(4);
         DynamicVars.Cards.UpgradeValueBy(1);
     }
 }

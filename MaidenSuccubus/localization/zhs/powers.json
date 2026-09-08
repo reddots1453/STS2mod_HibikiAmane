@@ -193,5 +193,8 @@
   "MAIDEN_SUCCUBUS_POWER_TACTICAL_CORE_POWER.smartDescription": "{Amount}回合内，[gold]魔力增幅[/gold]对于[gold]附魔牌[/gold]的效果提升100%。",
   "MAIDEN_SUCCUBUS_POWER_BATTLE_TECHNIQUE_REPLAY_POWER.title": "战技复读",
   "MAIDEN_SUCCUBUS_POWER_BATTLE_TECHNIQUE_REPLAY_POWER.description": "战技复读会复制上一张打出的非战技复读牌。",
-  "MAIDEN_SUCCUBUS_POWER_BATTLE_TECHNIQUE_REPLAY_POWER.smartDescription": "战技复读会复制上一张打出的非战技复读牌。"
+  "MAIDEN_SUCCUBUS_POWER_BATTLE_TECHNIQUE_REPLAY_POWER.smartDescription": "战技复读会复制上一张打出的非战技复读牌。",
+  "MAIDEN_SUCCUBUS_POWER_ECTOPLASM_RESIDUE_ENERGY_LOSS_POWER.title": "灵质残液",
+  "MAIDEN_SUCCUBUS_POWER_ECTOPLASM_RESIDUE_ENERGY_LOSS_POWER.description": "下回合失去能量。",
+  "MAIDEN_SUCCUBUS_POWER_ECTOPLASM_RESIDUE_ENERGY_LOSS_POWER.smartDescription": "下回合失去{Amount:energyIcons()}。"
 }

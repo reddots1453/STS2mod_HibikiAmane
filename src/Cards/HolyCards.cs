@@ -43,7 +43,7 @@ public sealed class PenanceSlash : MSHolyCard
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, cardPlay).Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_slash").Execute(choiceContext);
         await PowerCmd.Apply<FrailPower>(choiceContext, Owner.Creature,
-            DynamicVars["Frail"].BaseValue, Owner.Creature, this);
+            DynamicVars["FrailPower"].BaseValue, Owner.Creature, this);
     }
 
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);

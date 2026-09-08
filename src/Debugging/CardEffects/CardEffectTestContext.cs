@@ -8,6 +8,7 @@ using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Powers;
+using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.TestSupport;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Data;
@@ -59,8 +60,25 @@ internal sealed class CardEffectTestContext
         foreach (CardPile pile in Player.Piles.Where(pile => pile.IsCombatPile))
         {
             CardModel[] cards = pile.Cards.ToArray();
-            if (cards.Length > 0)
-                await CardPileCmd.RemoveFromCombat(cards, skipVisuals: true);
+            CardModel[] cardsWithNodes = cards
+                .Where(card => NCard.FindOnTable(card) != null)
+                .ToArray();
+            if (cardsWithNodes.Length > 0)
+            {
+                await CardPileCmd.RemoveFromCombat(
+                    cardsWithNodes,
+                    skipVisuals: false);
+            }
+            CardModel[] cardsWithoutNodes = cards
+                .Except(cardsWithNodes)
+                .Where(card => card.Pile?.IsCombatPile == true)
+                .ToArray();
+            if (cardsWithoutNodes.Length > 0)
+            {
+                await CardPileCmd.RemoveFromCombat(
+                    cardsWithoutNodes,
+                    skipVisuals: true);
+            }
         }
         _createdCards.Clear();
 
@@ -89,7 +107,10 @@ internal sealed class CardEffectTestContext
         CardModel canonical = ModelDb.GetById<CardModel>(ModelDb.GetId(cardType));
         CardModel card = Combat.CreateCard(canonical, Player);
         if (upgraded)
+        {
             card.UpgradeInternal();
+            card.FinalizeUpgradeInternal();
+        }
         _createdCards.Add(card);
         return card;
     }
@@ -97,18 +118,25 @@ internal sealed class CardEffectTestContext
     public T Create<T>(bool upgraded = false) where T : CardModel =>
         (T)Create(typeof(T), upgraded);
 
-    public async Task<T> Add<T>(PileType pile, bool upgraded = false)
+    public async Task<T> Add<T>(
+        PileType pile,
+        bool upgraded = false,
+        bool skipVisuals = true)
         where T : CardModel
     {
         T card = Create<T>(upgraded);
-        await CardPileCmd.Add(card, pile, skipVisuals: true);
+        await CardPileCmd.Add(card, pile, skipVisuals: skipVisuals);
         return card;
     }
 
-    public async Task<CardModel> Add(Type cardType, PileType pile, bool upgraded = false)
+    public async Task<CardModel> Add(
+        Type cardType,
+        PileType pile,
+        bool upgraded = false,
+        bool skipVisuals = true)
     {
         CardModel card = Create(cardType, upgraded);
-        await CardPileCmd.Add(card, pile, skipVisuals: true);
+        await CardPileCmd.Add(card, pile, skipVisuals: skipVisuals);
         return card;
     }
 

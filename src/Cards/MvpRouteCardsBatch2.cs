@@ -30,7 +30,7 @@ public sealed class PleasureDrowning : MSCorruptCard
         for (int i = 0; i < 2; i++)
             await CardPileCmd.Add(CombatState!.CreateCard<ArousalStatus>(Owner), PileType.Draw, CardPilePosition.Random);
     }
-    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(3);
+    protected override void OnUpgrade() { }
 }
 
 public sealed class DesireLockdown : MSCorruptCard

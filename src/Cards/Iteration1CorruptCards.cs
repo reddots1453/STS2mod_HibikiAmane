@@ -346,8 +346,7 @@ public sealed class LoversDagger : MSCorruptCard
         {
             damage *= 2;
         }
-        if (play.Target?.Monster?.NextMove.Intents.Any(
-                intent => intent is StunIntent) == true)
+        if (play.Target?.IsStunned == true)
         {
             damage *= 2;
         }
