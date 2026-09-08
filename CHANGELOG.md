@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-08 — 204张卡牌游戏内数值效果测试框架
+
+- 变更前快照：`maiden-pre-card-effect-tests-20260907` → `34c864d4ed413a0fb377b8dbec263a50f071b43e`。
+- 新增Debug专用游戏内命令`ms_test_cards confirm [all|CardTypeName]`；命令要求响木天音单人战斗和显式破坏性确认令牌。
+- 精确登记内容契约中的204张牌；201张具有真实结算断言，`ClimaxBanCurse`、`HypnosisCurse`以及用户明确要求暂时跳过的`DreamMist`记为`DESIGN_PENDING`，不会计为通过。
+- 测试预期固定为2026-08-24需求基线，不从实现侧`DynamicVars`反推；基础版、升级版及关键条件分支分别执行。
+- 断言覆盖伤害、格挡、抽牌、能量、欲望、堕落值、Power层数、牌堆迁移、升级、关键字、附魔、怪物意图，以及能力牌的后续抽牌、回合开始/结束、消耗、圣言触发、断罪审判、变身和欲望资源钩子。
+- `Rest`仅在该测试场景的作用域内拦截并记录`PlayerCmd.EndTurn`，避免自动测试推进当前战斗；其他效果仍由真实游戏命令结算。
+- JSON报告写入已加载程序集旁的`card-effect-test-results/`，保留每条断言的预期值、实际值和运行时异常。
+- 新增`ValidateCardEffectTests.ps1`并纳入`ValidateMod=true`：校验204张精确登记、201张可执行、3张明确待设计、基础/升级覆盖、非零效果断言和禁止方法存在性占位测试。
+- 验证：`dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=true`通过；0 error；内容契约、结构契约、204张卡文本审计、本地化格式契约和卡牌测试结构契约均通过。由于受限环境无法访问NuGet漏洞元数据端点，产生2个`NU1900`警告；依赖均从本地缓存成功还原，未影响编译或验证。
+- 部署：否；游戏内204张完整运行结果需由用户在专用测试跑局执行命令后查看JSON报告。
+
 ## 2026-09-07 — 中文描述与悬停格式版本部署
 
 - 部署前快照：`53b5f190eb1e3cf86c4dec1aeafa7118266132e0`（`refactor(maiden): standardize localization hover formatting`）。

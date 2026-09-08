@@ -1,0 +1,220 @@
+#if DEBUG
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Models;
+using MaidenSuccubus.Pools;
+
+namespace MaidenSuccubus.Debugging.CardEffects;
+
+internal static class CardEffectTestRunner
+{
+    private static readonly SemaphoreSlim Gate = new(1, 1);
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        Converters = { new JsonStringEnumConverter() },
+    };
+
+    public static async Task<string> Run(Player player, string requestedCard)
+    {
+        if (!await Gate.WaitAsync(0))
+            return "Card effect test suite is already running.";
+
+        try
+        {
+            CombatState? combat = CombatManager.Instance.DebugOnlyGetState();
+            if (!CombatManager.Instance.IsInProgress || combat == null)
+                return "Start a disposable combat before running card effect tests.";
+            if (combat.Players.Count != 1)
+                return "Card effect tests require a single-player disposable combat.";
+            if (player.Character.GetType().Name != "MaidenSuccubusCharacter")
+                return "Use the MaidenSuccubus character for this test suite.";
+
+            ValidateCatalog();
+            CardEffectSpec[] selected = SelectSpecs(requestedCard);
+            CardEffectTestReport report = new()
+            {
+                StartedAt = DateTimeOffset.Now,
+                RequestedCard = requestedCard,
+                ContractCardCount = selected.Length,
+            };
+
+            CardEffectTestContext context = new(combat, player);
+            await context.PrepareSuite();
+
+            foreach (CardEffectSpec spec in selected)
+            {
+                CardEffectCardResult cardResult = new()
+                {
+                    CardId = spec.CardId,
+                    Status = spec.IsDesignPending
+                        ? CardEffectTestStatus.DesignPending
+                        : CardEffectTestStatus.Passed,
+                    PendingReason = spec.PendingReason,
+                };
+                report.Cards.Add(cardResult);
+
+                if (spec.IsDesignPending)
+                {
+                    MaidenSuccubusMod.Logger.Info(
+                        $"[CardEffectTest] DESIGN_PENDING {spec.CardId}: {spec.PendingReason}");
+                    continue;
+                }
+
+                foreach (CardEffectScenario scenario in spec.Scenarios)
+                {
+                    CardEffectScenarioResult scenarioResult = new()
+                    {
+                        Name = scenario.Name,
+                        Upgraded = scenario.Upgraded,
+                        Status = CardEffectTestStatus.Passed,
+                    };
+                    cardResult.Scenarios.Add(scenarioResult);
+                    context.BeginScenario(scenarioResult);
+
+                    try
+                    {
+                        await context.Reset();
+                        CardModel card = context.Create(spec.CardType, scenario.Upgraded);
+                        await scenario.Execute(context, card);
+
+                        if (scenarioResult.EffectAssertionCount < scenario.MinimumEffectAssertions)
+                        {
+                            scenarioResult.Assertions.Add(new CardEffectAssertionResult
+                            {
+                                Name = "minimum effect assertion gate",
+                                Passed = false,
+                                Expected = scenario.MinimumEffectAssertions.ToString(),
+                                Actual = scenarioResult.EffectAssertionCount.ToString(),
+                            });
+                        }
+
+                        if (scenarioResult.Assertions.Count == 0
+                            || scenarioResult.Assertions.Any(assertion => !assertion.Passed))
+                        {
+                            scenarioResult.Status = CardEffectTestStatus.Failed;
+                            cardResult.Status = CardEffectTestStatus.Failed;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        scenarioResult.Status = CardEffectTestStatus.Failed;
+                        scenarioResult.Error = ex.ToString();
+                        cardResult.Status = CardEffectTestStatus.Failed;
+                    }
+
+                    string outcome = scenarioResult.Status == CardEffectTestStatus.Passed
+                        ? "PASS"
+                        : "FAIL";
+                    MaidenSuccubusMod.Logger.Info(
+                        $"[CardEffectTest] {outcome} {spec.CardId}/{scenario.Name} "
+                        + $"assertions={scenarioResult.Assertions.Count}");
+                }
+            }
+
+            await context.Reset();
+            report.FinishedAt = DateTimeOffset.Now;
+            string reportPath = await WriteReport(report);
+            string summary = $"Card effects: {report.Passed} passed, {report.Failed} failed, "
+                + $"{report.DesignPending} design-pending. Report: {reportPath}";
+            if (report.Success)
+                MaidenSuccubusMod.Logger.Info("[CardEffectTest] " + summary);
+            else
+                MaidenSuccubusMod.Logger.Error("[CardEffectTest] " + summary);
+            return summary;
+        }
+        finally
+        {
+            Gate.Release();
+        }
+    }
+
+    private static CardEffectSpec[] SelectSpecs(string requestedCard)
+    {
+        if (string.Equals(requestedCard, "all", StringComparison.OrdinalIgnoreCase))
+            return CardEffectTestCatalog.All.ToArray();
+
+        CardEffectSpec? selected = CardEffectTestCatalog.All.FirstOrDefault(spec =>
+            string.Equals(spec.CardId, requestedCard, StringComparison.OrdinalIgnoreCase));
+        if (selected == null)
+            throw new ArgumentException($"Unknown MaidenSuccubus card id: {requestedCard}");
+        return [selected];
+    }
+
+    private static void ValidateCatalog()
+    {
+        CardEffectSpec[] specs = CardEffectTestCatalog.All.ToArray();
+        string[] duplicateIds = specs.GroupBy(spec => spec.CardId, StringComparer.Ordinal)
+            .Where(group => group.Count() != 1)
+            .Select(group => group.Key)
+            .ToArray();
+        if (duplicateIds.Length > 0)
+            throw new InvalidOperationException(
+                "Duplicate card effect specifications: " + string.Join(", ", duplicateIds));
+
+        Type[] runtimeCards =
+        [
+            .. ModelDb.CardPool<MSNeutralCardPool>().AllCards.Select(card => card.GetType()),
+            .. ModelDb.CardPool<MSCorruptCardPool>().AllCards.Select(card => card.GetType()),
+            .. ModelDb.CardPool<MSHolyCardPool>().AllCards.Select(card => card.GetType()),
+            .. ModelDb.CardPool<MSInvasionCursePool>().AllCards.Select(card => card.GetType()),
+            .. ModelDb.CardPool<MSGeneratedCardPool>().AllCards.Select(card => card.GetType()),
+        ];
+        string[] expected = runtimeCards.Select(type => type.Name)
+            .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+        string[] actual = specs.Select(spec => spec.CardId)
+            .Order(StringComparer.Ordinal).ToArray();
+        if (expected.Length != 204 || !expected.SequenceEqual(actual, StringComparer.Ordinal))
+        {
+            string[] missing = expected.Except(actual, StringComparer.Ordinal).ToArray();
+            string[] extra = actual.Except(expected, StringComparer.Ordinal).ToArray();
+            throw new InvalidOperationException(
+                $"Card effect catalog mismatch (runtime={expected.Length}, catalog={actual.Length}); "
+                + $"missing=[{string.Join(",", missing)}], extra=[{string.Join(",", extra)}]");
+        }
+
+        string[] pending = specs.Where(spec => spec.IsDesignPending)
+            .Select(spec => spec.CardId).Order(StringComparer.Ordinal).ToArray();
+        string[] expectedPending =
+        [
+            nameof(Cards.Curses.ClimaxBanCurse),
+            nameof(Cards.Curses.HypnosisCurse),
+            nameof(Cards.DreamMist),
+        ];
+        Array.Sort(expectedPending, StringComparer.Ordinal);
+        if (!pending.SequenceEqual(expectedPending, StringComparer.Ordinal))
+            throw new InvalidOperationException(
+                "Only ClimaxBanCurse, HypnosisCurse, and DreamMist may be DESIGN_PENDING.");
+
+        foreach (CardEffectSpec spec in specs.Where(spec => !spec.IsDesignPending))
+        {
+            if (spec.Scenarios.Count == 0)
+                throw new InvalidOperationException($"{spec.CardId} has no executable scenarios.");
+            if (spec.Scenarios.Any(scenario => scenario.MinimumEffectAssertions <= 0))
+                throw new InvalidOperationException($"{spec.CardId} permits a zero-assertion scenario.");
+
+            bool hasBase = spec.Scenarios.Any(scenario => !scenario.Upgraded);
+            bool hasUpgrade = spec.Scenarios.Any(scenario => scenario.Upgraded);
+            if (!hasBase || (spec.UpgradePolicy == CardUpgradePolicy.BaseAndUpgraded && !hasUpgrade))
+                throw new InvalidOperationException($"{spec.CardId} is missing base/upgraded coverage.");
+        }
+    }
+
+    private static async Task<string> WriteReport(CardEffectTestReport report)
+    {
+        string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
+            ?? Environment.CurrentDirectory;
+        string reportDir = Path.Combine(assemblyDir, "card-effect-test-results");
+        Directory.CreateDirectory(reportDir);
+        string timestamp = report.StartedAt.ToString("yyyyMMdd-HHmmss");
+        string path = Path.Combine(reportDir, $"card-effects-{timestamp}.json");
+        string json = JsonSerializer.Serialize(report, JsonOptions);
+        await File.WriteAllTextAsync(path, json);
+        await File.WriteAllTextAsync(Path.Combine(reportDir, "latest.json"), json);
+        return path;
+    }
+}
+#endif
