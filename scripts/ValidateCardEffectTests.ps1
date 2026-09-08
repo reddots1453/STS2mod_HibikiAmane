@@ -6,11 +6,13 @@ $contractPath = Join-Path $ProjectDir "docs\content_contract_20260824.json"
 $catalogPath = Join-Path $ProjectDir "src\Debugging\CardEffects\CardEffectTestCatalog.cs"
 $runnerPath = Join-Path $ProjectDir "src\Debugging\CardEffects\CardEffectTestRunner.cs"
 $consolePath = Join-Path $ProjectDir "src\ConsoleCommands\CardEffectTestConsoleCmd.cs"
+$hotkeyPath = Join-Path $ProjectDir "src\Debugging\CardEffects\CardEffectTestHotkey.cs"
 
 $contract = Get-Content -Raw -Encoding UTF8 -LiteralPath $contractPath | ConvertFrom-Json
 $catalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $catalogPath
 $runner = Get-Content -Raw -Encoding UTF8 -LiteralPath $runnerPath
 $console = Get-Content -Raw -Encoding UTF8 -LiteralPath $consolePath
+$hotkey = Get-Content -Raw -Encoding UTF8 -LiteralPath $hotkeyPath
 
 $expected = @(
     $contract.cards.PSObject.Properties.Value |
@@ -101,5 +103,11 @@ if ($runner -notmatch 'expected\.Length\s*!=\s*204') {
 if ($console -notmatch 'ms_test_cards' -or $console -notmatch 'confirm') {
     throw "Destructive console command confirmation gate is missing."
 }
+if ($hotkey -notmatch 'Key\.F10' -or
+    $hotkey -notmatch 'CombatManager\.Instance\.IsInProgress' -or
+    $hotkey -notmatch 'MaidenSuccubusCharacter' -or
+    $hotkey -notmatch 'CardEffectTestRunner\.Run\(player, "all"\)') {
+    throw "Manual-entry F10 card-effect test trigger is missing or insufficiently guarded."
+}
 
-Write-Host "Validated card-effect tests: 204 exact registrations, 201 executable cards, 3 DESIGN_PENDING cards, no method-presence placeholders."
+Write-Host "Validated card-effect tests: 204 exact registrations, 201 executable cards, 3 DESIGN_PENDING cards, guarded manual-entry F10 trigger, no method-presence placeholders."

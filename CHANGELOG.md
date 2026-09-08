@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-08 — 卡牌效果测试人工进战斗/F10触发整改
+
+- 变更前快照：`maiden-pre-card-effect-runtime-test-20260908` → `f1ef1c3152c5019a663b42688b44623a874af5fa`。
+- 按工作区 `sts2_contrib_tests` 的成熟运行边界调整：不再要求自动化负责启动游戏或导航进战斗；玩家使用响木天音进入可放弃的单人战斗后按 `F10`，即在 Godot 主线程启动全部204张牌的精确效果测试。
+- `F10`入口检查战斗状态、单人模式和角色身份，并阻止重复并发启动；原`ms_test_cards confirm [all|CardTypeName]`入口继续用于单牌复测。
+- 修复当前游戏v0.111.0中Debug专用`PlayerCmd.EndTurn`拦截器的Harmony签名：该方法返回`void`，前缀不再声明错误的`Task __result`，避免测试补丁安装失败。
+- 结构验证新增人工进战斗/F10触发门，确保热键入口及其战斗/角色保护不会被意外移除。
+- 构建验证：`dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=true`通过，0 warning、0 error；内容契约、结构契约、204张卡文本审计、本地化格式和卡牌测试结构门全部通过。受限沙箱首次还原因NuGet网络访问失败，按用户约束允许`dotnet build`访问包源后成功还原并完成验证。
+- 部署：`dotnet build -c Debug -p:DeployMod=true -p:ValidateMod=true`通过，0 warning、0 error；已部署至`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`。源码与安装目录的DLL SHA-256均为`23B99E680E2F2FC4A8D43B2E3B9F396835ACAD60BC235B152AADCE0C6B1533C6`，PDB均为`211DD55A7125E2C29AAC5A05D6AF21968D4318C5B6FD790C2FF2F09693ECCE09`。
+- 游戏内结果：等待玩家启动游戏、进入响木天音单人战斗并按`F10`后生成实际数值报告。
+
 ## 2026-09-08 — 204张卡牌游戏内数值效果测试框架
 
 - 变更前快照：`maiden-pre-card-effect-tests-20260907` → `34c864d4ed413a0fb377b8dbec263a50f071b43e`。

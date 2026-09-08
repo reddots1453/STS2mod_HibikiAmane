@@ -22,12 +22,11 @@ internal static class CardEffectTestEndTurnInterception
         return new Scope();
     }
 
-    private static bool Prefix(ref Task __result)
+    private static bool Prefix()
     {
         if (_scopeDepth <= 0)
             return true;
         SuppressedCalls++;
-        __result = Task.CompletedTask;
         return false;
     }
 

@@ -14,6 +14,9 @@ using MaidenSuccubus.Patches;
 using MaidenSuccubus.Core.Features;
 using MaidenSuccubus.Keywords;
 using STS2RitsuLib.Keywords;
+#if DEBUG
+using MaidenSuccubus.Debugging.CardEffects;
+#endif
 
 namespace MaidenSuccubus;
 
@@ -42,6 +45,9 @@ public static class MaidenSuccubusMod
         }
         ModTypeDiscoveryHub.RegisterModAssembly(ModId, assembly);
         FrameworkSelfTests.Run(Logger);
+#if DEBUG
+        CardEffectTestHotkey.Register();
+#endif
 
         var harmony = new Harmony("com.maidensuccubus.sts2");
         EscapeEffectPatcher.Configure(harmony);
