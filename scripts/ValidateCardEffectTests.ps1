@@ -127,6 +127,11 @@ if ($catalog -notmatch 'DesireWhipProbe' -or
     $catalog -notmatch 'control-intent target stunned') {
     throw "DesireWhip must verify its conditional control/invasion-intent stun, not damage alone."
 }
+if ($catalog -notmatch 'projected card original effect is suppressed' -or
+    $catalog -notmatch 'projected card pays one escape point' -or
+    $catalog -notmatch 'projected card resolves to discard') {
+    throw "Control projection must verify effect suppression, exact escape payment, and result pile."
+}
 if ($holyPowers -notmatch '_pendingRestores' -or
     $holyPowers -notmatch 'AfterCardChangedPiles' -or
     $holyPowers -notmatch 'oldPileType\s*!=\s*PileType\.Play') {

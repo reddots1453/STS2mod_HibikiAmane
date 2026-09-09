@@ -843,7 +843,23 @@ internal static class CardEffectTestCatalog
                 resonance.PendingAmplification);
             ctx.AssertPower("one amplification per threshold", ctx.Self,
                 "MagicAmplificationPower", 1);
-        }, 3);
+
+            MagicResonance projected = await ctx.Add<MagicResonance>(
+                PileType.Hand, upgraded);
+            ControlPower control = (ControlPower)ModelDb.Power<ControlPower>().ToMutable();
+            control.ControlType = ControlType.Power;
+            await PowerCmd.Apply(new BlockingPlayerChoiceContext(), control,
+                ctx.Self, 3, ctx.PrimaryEnemy, null);
+            ctx.AssertTrue("power card is projected while controlled",
+                ControlQuery.GetProjection(projected) != null);
+            int resonanceAmount = resonance.Amount;
+            await ctx.Play(projected);
+            ctx.AssertEqual("projected card original effect is suppressed",
+                resonanceAmount, resonance.Amount);
+            ctx.AssertEqual("projected card pays one escape point", 2, control.Amount);
+            ctx.AssertEqual("projected card resolves to discard", PileType.Discard,
+                projected.Pile?.Type ?? PileType.None);
+        }, 7);
 
     private static void StudyPlanProbe() =>
         CustomVariants<StudyPlan>(async (ctx, card, upgraded) =>

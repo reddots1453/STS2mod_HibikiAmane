@@ -13,13 +13,15 @@ using MaidenSuccubus.Commands;
 using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Core.Intents;
 using MaidenSuccubus.UI;
+using STS2RitsuLib.Cards;
 
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
 public sealed class ControlPower :
     MaidenSuccubusPowerTemplate,
-    IPowerExtraIconAmountLabelSpecsProvider
+    IPowerExtraIconAmountLabelSpecsProvider,
+    ICardOnPlayHookListener
 {
     public override PowerType Type => PowerType.Debuff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -109,6 +111,14 @@ public sealed class ControlPower :
             EscapeProjectionTracker.Begin(cardPlay, this);
         }
         return Task.CompletedTask;
+    }
+
+    public Task<bool> BeforeCardOnPlay(BeforeCardOnPlayContext context)
+    {
+        bool suppressOriginal =
+            ControlQuery.GetProjection(context.CardPlay.Card) is { } projection
+            && ReferenceEquals(projection.Control, this);
+        return Task.FromResult(suppressOriginal);
     }
 
     public override async Task AfterCardPlayed(

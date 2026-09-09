@@ -80,6 +80,14 @@ card-effect-test-results/latest.json
 
 对应测试除原有复制类型和保留检查外，新增恢复牌升级状态及打出区清空断言。构建门要求保留“从`PileType.Play`离开后恢复”的生命周期边界。
 
+## 2026-09-09 拘束意图栈溢出回归
+
+第三轮完整测试结束后的人工战斗在敌人执行`MAIDENSUCCUBUS_CONTROL`时直接退出。`godot.log`最后记录为`MagicResonance.OnPlay`的挣脱投影补丁安装；Windows应用程序错误报告记录异常码`0xc00000fd`，确认是栈溢出而非普通托管异常。变更前快照为`maiden-pre-control-stack-overflow-fix-20260909`。
+
+根因路径是拘束Power的`AfterApplied`同步刷新所有战斗牌，并在此时调用Harmony动态改写每个新遇到的具体`OnPlay`方法。修复删除全部运行时卡牌效果补丁安装，改由RitsuLib 0.4.64的`ICardOnPlayHookListener.BeforeCardOnPlay`在统一`CardModel.OnPlayWrapper`内只抑制已登记投影实例的原始效果。费用、打出区、附魔/苦痛投影、`AfterCardPlayed`和结算移牌仍由原版包装流程负责。
+
+`MagicResonance`测试现在额外建立能力牌拘束，验证施加拘束不会中断、投影牌原效果不生效、1费精确减少1点挣脱值且最终进入弃牌堆。结构门禁止恢复`EscapeEffectPatcher`或在投影路径调用`Harmony.Patch`，并要求`ControlPower`保留RitsuLib的实例级出牌监听器。
+
 ## 构建期完整性门
 
 `ValidateMod=true` 会执行 `scripts/ValidateCardEffectTests.ps1`，并检查：

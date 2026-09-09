@@ -50,7 +50,6 @@ public static class MaidenSuccubusMod
 #endif
 
         var harmony = new Harmony("com.maidensuccubus.sts2");
-        EscapeEffectPatcher.Configure(harmony);
         var patchCount = 0;
         foreach (var type in assembly.GetTypes())
         {
@@ -66,7 +65,7 @@ public static class MaidenSuccubusMod
             catch (Exception ex) { Logger.Warn($"Harmony failed: {type.Name}: {ex.Message}"); }
         }
         if (MvpFeatureFlags.ControlAndInvasion)
-            Logger.Info("Escape projection uses instance-scoped, on-demand card effect patches.");
+            Logger.Info("Escape projection uses RitsuLib's instance-scoped card OnPlay hook.");
         Logger.Info($"Maiden & Succubus ready — {patchCount} patches applied");
     }
 

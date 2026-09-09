@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-09 — 拘束意图栈溢出修复
+
+- 变更前快照：`maiden-pre-control-stack-overflow-fix-20260909` → `60e4794`。
+- 人工测试在花园幽灵鳗执行`MAIDENSUCCUBUS_CONTROL`时闪退；`godot.log`最后一条模组记录是为`MagicResonance.OnPlay`安装挣脱投影补丁，Windows错误报告于20:31:26记录`0xc00000fd`/`StackHash_2264`，确认是栈溢出。
+- 根因是结构重构后的按需效果补丁仍在`ControlPower.AfterApplied`同步刷新过程中调用`Harmony.Patch`，即在战斗运行中动态重写首次遇到的具体卡牌`OnPlay`方法。
+- 删除`EscapeEffectPatcher`及所有运行时具体卡牌方法补丁；`ControlPower`改为实现RitsuLib 0.4.64的`ICardOnPlayHookListener`，在统一`CardModel.OnPlayWrapper`内仅对精确登记的投影实例抑制原始`OnPlay`，保留费用、原卡实例、打出与结算生命周期。
+- `MagicResonance`数值测试新增能力牌拘束场景，核对投影成功、原效果不生效、1费减少1点挣脱值并进入弃牌堆；结构验证禁止重新引入动态`Harmony.Patch`，手测清单增加三类拘束执行时不得卡死或闪退。
+- 无部署构建和显式部署构建均通过全部验证门（0 warning、0 error）；已部署至`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`。源码与安装目录DLL SHA-256均为`8CA155E2724270AE711FCC64342E3BE8E3812847C9F591234C06D93611BD0B84`，PDB均为`313E576D8817B2EFB7C45EA316E7335998335EAD77FEA1EE0A4C71E676E260F1`；修复后运行时复测待完成。
+
 ## 2026-09-09 — 204张卡牌第三轮实测修复
 
 - 变更前运行时快照：`maiden-card-test-third-run-20260909` → `bb95c33`；第三轮 F10 报告于20:04:21开始、20:11:53正常结束，结果为200张通过、1张失败、3张`DESIGN_PENDING`，不属于卡死或中断。

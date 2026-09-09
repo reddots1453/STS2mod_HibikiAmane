@@ -33,10 +33,15 @@ Assert-Contains "deploy gate" $project '<DeployMod Condition="''\$\(DeployMod\)'
 
 $escape = Read-Text "src\Patches\EscapeCardProjectionPatches.cs"
 Assert-NotContains "escape projection" $escape 'AppDomain\.CurrentDomain\.GetAssemblies'
-Assert-Contains "escape projection" $escape 'EnsurePatched\(CardModel card\)'
+Assert-NotContains "escape projection" $escape 'EscapeEffectPatcher|Harmony\.Patch\('
 
 $control = Read-Text "src\Core\Control\ControlQuery.cs"
 Assert-Contains "escape projection identity" $control 'ConditionalWeakTable<CardModel,'
+
+$controlPower = Read-Text "src\Powers\ControlPower.cs"
+Assert-Contains "escape effect dispatch" $controlPower 'ICardOnPlayHookListener'
+Assert-Contains "escape effect dispatch" $controlPower 'BeforeCardOnPlay\(BeforeCardOnPlayContext context\)'
+Assert-Contains "escape effect dispatch" $controlPower 'ReferenceEquals\(projection\.Control, this\)'
 
 $intent = Read-Text "src\Core\Intents\IntentMoveFactory.cs"
 Assert-NotContains "erotic intent ids" $intent 'Interlocked\.Increment'
@@ -67,4 +72,4 @@ if (!(Test-Path -LiteralPath $scenePath)) {
     throw "Character scene is missing: $scenePath"
 }
 
-Write-Host "Validated structural contracts: isolated build/deploy gates, exact escape projection, event-driven UI, dual-context desire UI, stable intent state, shared derivative pool, character scene."
+Write-Host "Validated structural contracts: isolated build/deploy gates, exact escape projection through RitsuLib OnPlay dispatch, event-driven UI, dual-context desire UI, stable intent state, shared derivative pool, character scene."

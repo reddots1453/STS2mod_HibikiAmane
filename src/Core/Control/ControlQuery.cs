@@ -3,7 +3,6 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Keywords;
-using MaidenSuccubus.Patches;
 using MaidenSuccubus.Powers;
 using System.Runtime.CompilerServices;
 
@@ -238,7 +237,6 @@ public static class ControlQuery
             card,
             GetUnprojectedTitle(card));
         Projections.Add(card, new ProjectionHolder { Projection = projection });
-        EscapeEffectPatcher.EnsurePatched(card);
         return projection;
     }
 

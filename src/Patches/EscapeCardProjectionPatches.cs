@@ -1,4 +1,3 @@
-using System.Reflection;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Localization;
@@ -131,69 +130,5 @@ internal static class EscapeCardProjectionPatches
             }
         }, "Escape.ResultPile");
         __result = result;
-    }
-}
-
-public static class EscapeEffectPatcher
-{
-    private static readonly object Sync = new();
-    private static readonly HashSet<MethodBase> PatchedMethods = [];
-    private static Harmony? _harmony;
-
-    public static void Configure(Harmony harmony)
-    {
-        lock (Sync)
-        {
-            _harmony = harmony;
-        }
-    }
-
-    public static void EnsurePatched(CardModel card)
-    {
-        Harmony? harmony;
-        MethodInfo? method = card.GetType().GetMethod(
-            "OnPlay",
-            BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-        if (method == null || method.ReturnType != typeof(Task))
-        {
-            throw new MissingMethodException(
-                card.GetType().FullName,
-                "OnPlay(PlayerChoiceContext, CardPlay)");
-        }
-
-        lock (Sync)
-        {
-            if (PatchedMethods.Contains(method))
-            {
-                return;
-            }
-            harmony = _harmony ?? throw new InvalidOperationException(
-                "EscapeEffectPatcher was not configured during mod initialization.");
-            harmony.Patch(
-                method,
-                prefix: new HarmonyMethod(
-                    typeof(EscapeEffectPatcher),
-                    nameof(OnPlayPrefix)));
-            PatchedMethods.Add(method);
-            MaidenSuccubusMod.Logger.Info(
-                $"Escape projection activated for card effect: "
-                + $"{method.DeclaringType?.FullName}.OnPlay");
-        }
-    }
-
-    private static bool OnPlayPrefix(CardModel __instance, ref Task __result)
-    {
-        bool runOriginal = true;
-        Task result = __result;
-        Safe.Run(() =>
-        {
-            if (ControlQuery.GetProjection(__instance) != null)
-            {
-                result = Task.CompletedTask;
-                runOriginal = false;
-            }
-        }, "Escape.OnPlay");
-        __result = result;
-        return runOriginal;
     }
 }
