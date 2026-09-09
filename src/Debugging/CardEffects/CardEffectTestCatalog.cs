@@ -1060,9 +1060,15 @@ internal static class CardEffectTestCatalog
                 replay.HasBeenRemovedFromState);
 
             await ctx.Play(projected, ctx.PrimaryEnemy);
-            ctx.AssertEqual("projection restores replay card after use", 1,
-                ctx.CountCards<BattleTechniqueReplay>(PileType.Discard));
-        }, 5);
+            BattleTechniqueReplay restored = PileType.Discard.GetPile(ctx.Player).Cards
+                .OfType<BattleTechniqueReplay>().Single();
+            ctx.AssertEqual("projection restores replay card after use",
+                typeof(BattleTechniqueReplay), restored.GetType());
+            ctx.AssertEqual("restored replay preserves upgrade", upgraded,
+                restored.IsUpgraded);
+            ctx.AssertEqual("played projection leaves play pile", 0,
+                PileType.Play.GetPile(ctx.Player).Cards.Count);
+        }, 7);
 
     private static void DesireWhipProbe() =>
         CustomVariants<DesireWhip>(async (ctx, card, _) =>

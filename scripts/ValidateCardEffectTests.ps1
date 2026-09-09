@@ -8,6 +8,7 @@ $runnerPath = Join-Path $ProjectDir "src\Debugging\CardEffects\CardEffectTestRun
 $consolePath = Join-Path $ProjectDir "src\ConsoleCommands\CardEffectTestConsoleCmd.cs"
 $hotkeyPath = Join-Path $ProjectDir "src\Debugging\CardEffects\CardEffectTestHotkey.cs"
 $intentFactoryPath = Join-Path $ProjectDir "src\Core\Intents\IntentMoveFactory.cs"
+$holyPowersPath = Join-Path $ProjectDir "src\Powers\Iteration1HolyPowers.cs"
 $cardsPath = Join-Path $ProjectDir "src\Cards"
 
 $contract = Get-Content -Raw -Encoding UTF8 -LiteralPath $contractPath | ConvertFrom-Json
@@ -16,6 +17,7 @@ $runner = Get-Content -Raw -Encoding UTF8 -LiteralPath $runnerPath
 $console = Get-Content -Raw -Encoding UTF8 -LiteralPath $consolePath
 $hotkey = Get-Content -Raw -Encoding UTF8 -LiteralPath $hotkeyPath
 $intentFactory = Get-Content -Raw -Encoding UTF8 -LiteralPath $intentFactoryPath
+$holyPowers = Get-Content -Raw -Encoding UTF8 -LiteralPath $holyPowersPath
 $cardSources = (Get-ChildItem -LiteralPath $cardsPath -Filter "*.cs" -File |
     ForEach-Object { Get-Content -Raw -Encoding UTF8 -LiteralPath $_.FullName }) -join "`n"
 
@@ -124,6 +126,11 @@ if ($cardSources -match 'CreatureCmd\.Stun\s*\(') {
 if ($catalog -notmatch 'DesireWhipProbe' -or
     $catalog -notmatch 'control-intent target stunned') {
     throw "DesireWhip must verify its conditional control/invasion-intent stun, not damage alone."
+}
+if ($holyPowers -notmatch '_pendingRestores' -or
+    $holyPowers -notmatch 'AfterCardChangedPiles' -or
+    $holyPowers -notmatch 'oldPileType\s*!=\s*PileType\.Play') {
+    throw "BattleTechniqueReplay must restore only after the played projection leaves PileType.Play."
 }
 
 Write-Host "Validated card-effect tests: 204 exact registrations, 201 executable cards, 3 DESIGN_PENDING cards, guarded manual-entry F10 trigger, no method-presence placeholders."

@@ -72,6 +72,14 @@ card-effect-test-results/latest.json
 
 审阅还发现 `DesireWhip` 原先只验证了7点伤害，没有验证“目标为拘束或侵犯意图时将其击晕”。该登记已改为建立真实拘束意图、打出卡牌并同时核对7点伤害和眩晕状态；构建门禁止卡牌源码绕过模组眩晕桥接，并要求保留这条条件断言。
 
+## 2026-09-09 第三轮实测基线
+
+第三轮完整 F10 测试于20:04:21开始、20:11:53正常结束，报告带有 `FinishedAt`，结果为200张通过、1张失败、3张按设计状态跳过。Git快照为`maiden-card-test-third-run-20260909`。
+
+唯一失败项为`BattleTechniqueReplay`：复制牌正确生成、继承升级保留并成功打出，但恢复后的原牌不在弃牌堆。当前游戏源码证明`AfterCardPlayed`在牌仍位于`PileType.Play`时触发；此时立即Transform会让恢复牌留在打出区，而原版稍后尝试移动的旧实例已经被Transform移除。修复后，`AfterCardPlayed`只登记待恢复实例，等原版将它从打出区移入实际结算牌堆并触发`AfterCardChangedPiles`后，再原地Transform回战技复读。
+
+对应测试除原有复制类型和保留检查外，新增恢复牌升级状态及打出区清空断言。构建门要求保留“从`PileType.Play`离开后恢复”的生命周期边界。
+
 ## 构建期完整性门
 
 `ValidateMod=true` 会执行 `scripts/ValidateCardEffectTests.ps1`，并检查：

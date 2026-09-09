@@ -115,6 +115,7 @@ public sealed class TacticalCorePower : MaidenSuccubusPowerTemplate
 public sealed class BattleTechniqueReplayPower : MaidenSuccubusPowerTemplate
 {
     private readonly Dictionary<CardModel, bool> _generatedOrigins = [];
+    private readonly Dictionary<CardModel, bool> _pendingRestores = [];
     private bool _changing;
 
     public override PowerType Type => PowerType.Buff;
@@ -138,21 +139,10 @@ public sealed class BattleTechniqueReplayPower : MaidenSuccubusPowerTemplate
         {
             if (TryGetReplayOrigin(cardPlay.Card, out bool originUpgraded))
             {
-                _generatedOrigins.Remove(cardPlay.Card);
-                BattleTechniqueReplay restored =
-                    Owner.CombatState.CreateCard<BattleTechniqueReplay>(Owner.Player);
-                if (originUpgraded)
-                {
-                    CardCmd.Upgrade(restored);
-                }
-                restored.DeckVersion = cardPlay.Card.DeckVersion;
-                if (cardPlay.Card.Pile != null)
-                {
-                    await CardCmd.Transform(
-                        cardPlay.Card,
-                        restored,
-                        MegaCrit.Sts2.Core.Nodes.CommonUi.CardPreviewStyle.None);
-                }
+                // AfterCardPlayed runs while the card is still in PileType.Play.
+                // Restoring it here strands the replacement there because the
+                // engine later moves the original (already removed) instance.
+                _pendingRestores[cardPlay.Card] = originUpgraded;
                 return;
             }
 
@@ -189,6 +179,48 @@ public sealed class BattleTechniqueReplayPower : MaidenSuccubusPowerTemplate
                     _generatedOrigins[result.Value.cardAdded] = upgraded;
                 }
             }
+        }
+        finally
+        {
+            _changing = false;
+        }
+    }
+
+    public override async Task AfterCardChangedPiles(
+        CardModel card,
+        PileType oldPileType,
+        AbstractModel? clonedBy)
+    {
+        if (_changing
+            || oldPileType != PileType.Play
+            || !_pendingRestores.Remove(card, out bool originUpgraded))
+        {
+            return;
+        }
+
+        _generatedOrigins.Remove(card);
+        if (card.Pile == null
+            || !card.IsTransformable
+            || Owner.Player == null
+            || Owner.CombatState == null)
+        {
+            return;
+        }
+
+        _changing = true;
+        try
+        {
+            BattleTechniqueReplay restored =
+                Owner.CombatState.CreateCard<BattleTechniqueReplay>(Owner.Player);
+            if (originUpgraded)
+            {
+                CardCmd.Upgrade(restored);
+            }
+            restored.DeckVersion = card.DeckVersion;
+            await CardCmd.Transform(
+                card,
+                restored,
+                MegaCrit.Sts2.Core.Nodes.CommonUi.CardPreviewStyle.None);
         }
         finally
         {
