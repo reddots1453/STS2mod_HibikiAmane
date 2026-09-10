@@ -4,7 +4,7 @@ using MegaCrit.Sts2.Core.Models;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Keywords;
 using MaidenSuccubus.Powers;
-using System.Runtime.CompilerServices;
+using STS2RitsuLib.Models.Capabilities;
 
 namespace MaidenSuccubus.Core.Control;
 
@@ -19,27 +19,24 @@ public readonly record struct EscapeProjection(
 
 public static class ControlQuery
 {
-    private sealed class ProjectionHolder
+    private sealed class PresentationScope : IDisposable
     {
-        public required EscapeProjection Projection { get; set; }
+        public void Dispose() => _presentationSuppressionDepth--;
     }
 
-    // Projection membership belongs to the concrete combat card instance.  The
-    // original card is never replaced or mutated; after loading a combat the table
-    // is deterministically rebuilt from the saved ControlPower instances.
-    private static readonly ConditionalWeakTable<CardModel, ProjectionHolder>
-        Projections = new();
-
-    // CardModel.Keywords is itself projected.  Portable detection must be able to
-    // inspect the unprojected keyword result once without recursively re-entering
-    // projection resolution.
     [ThreadStatic]
-    private static bool _resolvingProjection;
+    private static int _presentationSuppressionDepth;
+
+    internal static IDisposable SuppressPresentation()
+    {
+        _presentationSuppressionDepth++;
+        return new PresentationScope();
+    }
 
     public static IReadOnlyList<ControlPower> GetInstances(Player player)
     {
         List<ControlPower>? controls = null;
-        foreach (var power in player.Creature.Powers)
+        foreach (PowerModel power in player.Creature.Powers)
         {
             if (power is not ControlPower { Amount: > 0 } control)
             {
@@ -65,9 +62,7 @@ public static class ControlQuery
         return controls;
     }
 
-    private static int SourceBattlefieldIndex(
-        Player player,
-        ControlPower power)
+    private static int SourceBattlefieldIndex(Player player, ControlPower power)
     {
         IReadOnlyList<MegaCrit.Sts2.Core.Entities.Creatures.Creature>? enemies =
             player.Creature.CombatState?.Enemies;
@@ -87,7 +82,7 @@ public static class ControlQuery
 
     public static bool IsControlled(Player player)
     {
-        foreach (var power in player.Creature.Powers)
+        foreach (PowerModel power in player.Creature.Powers)
         {
             if (power is ControlPower { Amount: > 0 })
             {
@@ -97,13 +92,13 @@ public static class ControlQuery
         return false;
     }
 
-    private static ControlPower? FindMatchingControl(
+    internal static ControlPower? FindMatchingControl(
         Player player,
         CardType cardType)
     {
         ControlPower? best = null;
         int bestBattlefieldIndex = int.MaxValue;
-        foreach (var power in player.Creature.Powers)
+        foreach (PowerModel power in player.Creature.Powers)
         {
             if (power is not ControlPower { Amount: > 0 } control
                 || !control.ControlType.Matches(cardType))
@@ -126,52 +121,19 @@ public static class ControlQuery
 
     public static EscapeProjection? GetProjection(CardModel card)
     {
-        if (_resolvingProjection || !card.IsMutable)
+        if (_presentationSuppressionDepth > 0
+            || !card.IsMutable
+            || !ModelCapabilities.TryGet(card, out ModelCapabilitySet? capabilities))
         {
             return null;
         }
 
-        _resolvingProjection = true;
-        try
-        {
-            if (Projections.TryGetValue(card, out ProjectionHolder? existing)
-                && IsStillValid(card, existing.Projection, rawKeywords: null))
-            {
-                return existing.Projection;
-            }
-
-            return RefreshCard(card, rawKeywords: null);
-        }
-        finally
-        {
-            _resolvingProjection = false;
-        }
-    }
-
-    internal static EscapeProjection? GetProjection(
-        CardModel card,
-        IReadOnlySet<CardKeyword> rawKeywords)
-    {
-        if (_resolvingProjection || !card.IsMutable)
-        {
-            return null;
-        }
-
-        _resolvingProjection = true;
-        try
-        {
-            if (Projections.TryGetValue(card, out ProjectionHolder? existing)
-                && IsStillValid(card, existing.Projection, rawKeywords))
-            {
-                return existing.Projection;
-            }
-
-            return RefreshCard(card, rawKeywords);
-        }
-        finally
-        {
-            _resolvingProjection = false;
-        }
+        EscapeProjectionCapability? capability =
+            capabilities.Get<EscapeProjectionCapability>();
+        return capability != null
+            && capability.TryCreateProjection(out EscapeProjection projection)
+                ? projection
+                : null;
     }
 
     public static void Refresh(Player player)
@@ -192,79 +154,60 @@ public static class ControlQuery
             return;
         }
 
-        _resolvingProjection = true;
-        try
+        EscapeProjectionCapability? existing = null;
+        ModelCapabilitySet? capabilities = null;
+        if (ModelCapabilities.TryGet(card, out capabilities))
         {
-            RefreshCard(card, rawKeywords: null);
+            existing = capabilities.Get<EscapeProjectionCapability>();
         }
-        finally
+
+        ControlPower? control = null;
+        if (card.Pile?.IsCombatPile == true
+            && card.Owner.Character is MaidenSuccubusCharacter)
         {
-            _resolvingProjection = false;
+            bool portable;
+            using (SuppressPresentation())
+            {
+                portable = PortableKeyword.IsPortable(card);
+            }
+            if (!portable)
+            {
+                control = FindMatchingControl(card.Owner, card.Type);
+            }
         }
+
+        if (control == null)
+        {
+            if (existing != null)
+            {
+                capabilities!.Remove(existing);
+            }
+            return;
+        }
+
+        if (existing == null)
+        {
+            existing =
+                ModelCapabilityRegistry.Create<EscapeProjectionCapability>();
+            card.AddCapability(existing, allowMerge: false);
+        }
+        existing.Bind(control, GetUnprojectedTitle(card));
     }
 
-    private static EscapeProjection? RefreshCard(
-        CardModel card,
-        IReadOnlySet<CardKeyword>? rawKeywords)
-    {
-        Projections.Remove(card);
-        if (card.Pile?.IsCombatPile != true)
-        {
-            return null;
-        }
-
-        Player owner = card.Owner;
-        if (owner.Character is not MaidenSuccubusCharacter)
-        {
-            return null;
-        }
-
-        ControlPower? control = FindMatchingControl(owner, card.Type);
-        bool portable = rawKeywords?.Contains(PortableKeyword.Value)
-            ?? PortableKeyword.IsPortable(card);
-        if (control == null || portable)
-        {
-            return null;
-        }
-
-        EscapeProjection projection = new(
-            control,
-            card,
-            GetUnprojectedTitle(card));
-        Projections.Add(card, new ProjectionHolder { Projection = projection });
-        return projection;
-    }
-
-    private static bool IsStillValid(
-        CardModel card,
-        EscapeProjection projection,
-        IReadOnlySet<CardKeyword>? rawKeywords)
+    internal static bool IsValidBinding(CardModel card, ControlPower control)
     {
         if (card.Pile?.IsCombatPile != true
             || card.Owner.Character is not MaidenSuccubusCharacter
-            || projection.Control.Amount <= 0
-            || !projection.Control.ControlType.Matches(card.Type)
-            || !card.Owner.Creature.Powers.Contains(projection.Control))
+            || control.Amount <= 0
+            || !control.ControlType.Matches(card.Type)
+            || !card.Owner.Creature.Powers.Contains(control))
         {
-            Projections.Remove(card);
             return false;
         }
 
-        bool portable = rawKeywords?.Contains(PortableKeyword.Value)
-            ?? PortableKeyword.IsPortable(card);
-        if (portable)
-        {
-            Projections.Remove(card);
-            return false;
-        }
-
-        ControlPower? current = FindMatchingControl(card.Owner, card.Type);
-        if (!ReferenceEquals(current, projection.Control))
-        {
-            Projections.Remove(card);
-            return false;
-        }
-        return true;
+        return ReferenceEquals(
+            FindMatchingControl(card.Owner, card.Type),
+            control);
     }
 
     private static string GetUnprojectedTitle(CardModel card)

@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
+using MegaCrit.Sts2.Core.Models.Afflictions;
 using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Models.Monsters;
 using MegaCrit.Sts2.Core.Models.Powers;
@@ -847,6 +848,14 @@ internal static class CardEffectTestCatalog
 
             MagicResonance projected = await ctx.Add<MagicResonance>(
                 PileType.Hand, upgraded);
+            projected.AddKeyword(CardKeyword.Retain);
+            Glam originalEnchantment =
+                (Glam)ModelDb.Enchantment<Glam>().ToMutable();
+            projected.EnchantInternal(originalEnchantment, 1);
+            Bound originalAffliction =
+                (Bound)ModelDb.Affliction<Bound>().ToMutable();
+            projected.AfflictInternal(originalAffliction, 1);
+            originalAffliction.AfterApplied();
             ControlPower control = (ControlPower)ModelDb.Power<ControlPower>().ToMutable();
             control.ControlType = ControlType.Power;
             await PowerCmd.Apply(new BlockingPlayerChoiceContext(), control,
@@ -871,8 +880,14 @@ internal static class CardEffectTestCatalog
                 projectedDescription.Contains("3", StringComparison.Ordinal));
             ctx.AssertEqual("projected keywords remain hidden", 0,
                 projectedKeywords.Count);
+            ctx.AssertTrue("projected enchantment remains hidden",
+                projected.Enchantment == null);
+            ctx.AssertTrue("projected affliction remains hidden",
+                projected.Affliction == null);
             ctx.AssertEqual("projected target remains none", TargetType.None,
                 projectedTarget);
+            ctx.AssertTrue("serialization preserves original enchantment",
+                projected.ToSerializable().Enchantment != null);
             int resonanceAmount = resonance.Amount;
             await ctx.Play(projected);
             ctx.AssertEqual("projected card original effect is suppressed",
@@ -880,6 +895,13 @@ internal static class CardEffectTestCatalog
             ctx.AssertEqual("projected card pays one escape point", 2, control.Amount);
             ctx.AssertEqual("projected card resolves to discard", PileType.Discard,
                 projected.Pile?.Type ?? PileType.None);
+            await PowerCmd.Remove(control);
+            ctx.AssertTrue("original keyword restores after control",
+                projected.Keywords.Contains(CardKeyword.Retain));
+            ctx.AssertTrue("original enchantment restores after control",
+                projected.Enchantment is Glam);
+            ctx.AssertTrue("original affliction restores after control",
+                projected.Affliction is Bound);
         }, 7);
 
     private static void StudyPlanProbe() =>

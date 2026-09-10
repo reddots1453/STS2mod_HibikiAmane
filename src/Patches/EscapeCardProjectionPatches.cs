@@ -48,18 +48,6 @@ internal static class EscapeCardProjectionPatches
         __result = result;
     }
 
-    [HarmonyPatch(typeof(CardModel), nameof(CardModel.TargetType), MethodType.Getter)]
-    [HarmonyPostfix]
-    private static void TargetPostfix(CardModel __instance, ref TargetType __result)
-    {
-        TargetType result = __result;
-        Safe.Run(() =>
-        {
-            if (ControlQuery.GetProjection(__instance) != null) result = TargetType.None;
-        }, "Escape.Target");
-        __result = result;
-    }
-
     [HarmonyPatch(typeof(CardModel), nameof(CardModel.Keywords), MethodType.Getter)]
     [HarmonyPostfix]
     private static void KeywordsPostfix(
@@ -69,8 +57,7 @@ internal static class EscapeCardProjectionPatches
         IReadOnlySet<CardKeyword> result = __result;
         Safe.Run(() =>
         {
-            IReadOnlySet<CardKeyword> raw = result;
-            if (ControlQuery.GetProjection(__instance, raw) != null)
+            if (ControlQuery.GetProjection(__instance) != null)
             {
                 result = new HashSet<CardKeyword>();
             }
@@ -112,23 +99,4 @@ internal static class EscapeCardProjectionPatches
         __result = result;
     }
 
-    [HarmonyPatch(typeof(CardModel), "GetResultLocationForCardPlay")]
-    [HarmonyPostfix]
-    private static void ResultPilePostfix(
-        CardModel __instance,
-        ref CardLocation __result)
-    {
-        CardLocation result = __result;
-        Safe.Run(() =>
-        {
-            if (ControlQuery.GetProjection(__instance) != null)
-            {
-                result = new CardLocation(
-                    __instance.Owner,
-                    PileType.Discard,
-                    CardPilePosition.Bottom);
-            }
-        }, "Escape.ResultPile");
-        __result = result;
-    }
 }

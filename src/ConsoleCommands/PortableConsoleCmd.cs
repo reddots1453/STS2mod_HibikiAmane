@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using MaidenSuccubus.Characters;
+using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Keywords;
 
 namespace MaidenSuccubus.ConsoleCommands;
@@ -44,6 +45,7 @@ public sealed class PortableConsoleCmd : AbstractConsoleCmd
 
         CardModel card = hand[index];
         PortableKeyword.Apply(card);
+        ControlQuery.Refresh(card);
         return new CmdResult(true, $"Portable applied to hand[{index}] {card.Id.Entry}.");
     }
 }

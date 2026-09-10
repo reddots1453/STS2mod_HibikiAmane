@@ -23,8 +23,8 @@ public static class MvpPatchPolicy
         {
             bool? enabled = current.Name switch
             {
-                "IntentAdapterPatch" or "EscapeCardVisualPatch"
-                    or "EscapeCardProjectionPatches" =>
+                "IntentAdapterPatch" or "EscapeCardProjectionPatches"
+                    or "EscapeOriginalStateAccessPatches" =>
                     MvpFeatureFlags.ControlAndInvasion,
                 "MerchantInvasionCursePatch" =>
                     MvpFeatureFlags.SpecialInvasionMerchant,

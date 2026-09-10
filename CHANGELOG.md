@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-10 — 挣脱迁移为卡牌实例 capability
+
+- 变更前快照：`maiden-pre-escape-capability-refactor-20260910` → `30cc2a4`。
+- 参考原版女王的`ChainsOfBindingPower + Bound`实现，将“拘束状态附着到具体卡牌实例、由Power统一协调生命周期”作为本轮结构基准；没有复用原版`Bound`的“一回合只能打出一张”语义。
+- 删除`ControlQuery`的`ConditionalWeakTable`投影旁表。每张受拘束的实际战斗卡现在附着已注册、可克隆及可存档的`EscapeProjectionCapability`；Power数值或牌堆变化只负责协调 capability 的附着、换源和移除，getter 查询不再重建投影。
+- 目标改为无目标、打出后进入弃牌堆、锁链覆盖层、原牌预览/拘束Power悬停和原效果抑制均由RitsuLib capability接口承担；`ControlPower`不再充当全局`ICardOnPlayHookListener`。
+- 删除全局`NCard.UpdateVisuals`挣脱补丁，覆盖层改走RitsuLib原生 capability overlay 容器。因RitsuLib 0.4.64不能整段替换描述，也无法在替换标题时隐藏原升级后缀，标题、描述、关键字及原附魔/苦难隐藏仍保留精确getter补丁；这些补丁只查询已附着 capability，不搜索Power或刷新卡牌。
+- 为序列化、附魔/苦难变更和降级建立短生命周期“读取原状态”作用域，确保投影期间的保存及状态命令仍看到原关键字、附魔和苦难，解除拘束后恢复同一张卡的原状态。
+- `MagicResonance`运行时回归新增：连续getter读取、原效果抑制、精确挣脱值、弃牌结算、序列化保留附魔，以及解除后关键字/附魔/苦难恢复。
+- 完整无部署构建与全部验证门通过（0 warning、0 error）；尚未部署，等待本轮提交后的游戏内拘束意图复测。
+
 ## 2026-09-10 — 拘束投影重入与重复刷新修复
 
 - 变更前快照：`maiden-pre-control-projection-reentrancy-fix-20260910` → `b110101`。

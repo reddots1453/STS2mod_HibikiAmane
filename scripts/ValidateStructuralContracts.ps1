@@ -34,19 +34,41 @@ Assert-Contains "deploy gate" $project '<DeployMod Condition="''\$\(DeployMod\)'
 $escape = Read-Text "src\Patches\EscapeCardProjectionPatches.cs"
 Assert-NotContains "escape projection" $escape 'AppDomain\.CurrentDomain\.GetAssemblies'
 Assert-NotContains "escape projection" $escape 'EscapeEffectPatcher|Harmony\.Patch\('
+Assert-NotContains "escape capability-owned target" $escape 'nameof\(CardModel\.TargetType\)'
+Assert-NotContains "escape capability-owned result" $escape 'GetResultLocationForCardPlay'
 
 $control = Read-Text "src\Core\Control\ControlQuery.cs"
-Assert-Contains "escape projection identity" $control 'ConditionalWeakTable<CardModel,'
-Assert-Contains "escape projection reentrancy" $control 'if \(_resolvingProjection \|\| !card\.IsMutable\)'
+Assert-Contains "escape projection identity" $control 'ModelCapabilities\.TryGet\(card'
+Assert-Contains "escape capability creation" $control 'ModelCapabilityRegistry\.Create<EscapeProjectionCapability>\(\)'
+Assert-Contains "escape capability attachment" $control 'card\.AddCapability\(existing, allowMerge: false\)'
+Assert-NotContains "escape projection side table" $control 'ConditionalWeakTable<CardModel,'
+Assert-NotContains "escape getter-driven rebuild" $control 'RefreshCard\('
+
+$escapeCapability = Read-Text "src\Core\Control\EscapeProjectionCapability.cs"
+Assert-Contains "escape capability registration" $escapeCapability '\[RegisterModelCapability\('
+Assert-Contains "escape capability play dispatch" $escapeCapability 'CardPlayCapability'
+Assert-Contains "escape capability target" $escapeCapability 'ICardPropertyContributor'
+Assert-Contains "escape capability result" $escapeCapability 'ICardPlayResultContributor'
+Assert-Contains "escape capability overlay" $escapeCapability 'ICardOverlayContributor'
+Assert-Contains "escape capability hover" $escapeCapability 'ICardHoverTipContributor'
+Assert-Contains "escape capability suppression" $escapeCapability 'BeforeOwnerCardOnPlay'
 
 $controlPower = Read-Text "src\Powers\ControlPower.cs"
-Assert-Contains "escape effect dispatch" $controlPower 'ICardOnPlayHookListener'
-Assert-Contains "escape effect dispatch" $controlPower 'BeforeCardOnPlay\(BeforeCardOnPlayContext context\)'
-Assert-Contains "escape effect dispatch" $controlPower 'ReferenceEquals\(projection\.Control, this\)'
+Assert-NotContains "escape effect dispatch ownership" $controlPower 'ICardOnPlayHookListener|BeforeCardOnPlay\('
 Assert-NotContains "escape refresh lifecycle" $controlPower 'override Task AfterApplied'
 
 $controlCmd = Read-Text "src\Commands\ControlCmd.cs"
 Assert-NotContains "escape refresh ownership" $controlCmd 'EscapeCardVisuals\.Refresh'
+
+$legacyEscapeVisualPatch = Join-Path $ProjectDir "src\Patches\EscapeCardVisualPatch.cs"
+if (Test-Path -LiteralPath $legacyEscapeVisualPatch) {
+    throw "Legacy global EscapeCardVisualPatch must remain removed."
+}
+
+$originalState = Read-Text "src\Patches\EscapeOriginalStateAccessPatches.cs"
+Assert-Contains "escape save preservation" $originalState 'nameof\(CardModel\.ToSerializable\)'
+Assert-Contains "escape enchantment preservation" $originalState 'nameof\(CardCmd\.Enchant\)'
+Assert-Contains "escape affliction preservation" $originalState 'nameof\(CardCmd\.Afflict\)'
 
 $escapeVisuals = Read-Text "src\UI\EscapeCardVisuals.cs"
 Assert-Contains "escape visual reentrancy" $escapeVisuals '\[ThreadStatic\]\s+private static bool _refreshing'
@@ -81,4 +103,4 @@ if (!(Test-Path -LiteralPath $scenePath)) {
     throw "Character scene is missing: $scenePath"
 }
 
-Write-Host "Validated structural contracts: isolated build/deploy gates, exact escape projection through RitsuLib OnPlay dispatch, event-driven UI, dual-context desire UI, stable intent state, shared derivative pool, character scene."
+Write-Host "Validated structural contracts: isolated build/deploy gates, instance-attached Escape capability with preserved original state, event-driven UI, dual-context desire UI, stable intent state, shared derivative pool, character scene."

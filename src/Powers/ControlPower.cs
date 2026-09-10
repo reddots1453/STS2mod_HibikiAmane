@@ -13,15 +13,13 @@ using MaidenSuccubus.Commands;
 using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Core.Intents;
 using MaidenSuccubus.UI;
-using STS2RitsuLib.Cards;
 
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
 public sealed class ControlPower :
     MaidenSuccubusPowerTemplate,
-    IPowerExtraIconAmountLabelSpecsProvider,
-    ICardOnPlayHookListener
+    IPowerExtraIconAmountLabelSpecsProvider
 {
     public override PowerType Type => PowerType.Debuff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -45,6 +43,8 @@ public sealed class ControlPower :
 
     internal ControlBreakReason PendingBreakReason { get; set; } =
         ControlBreakReason.Direct;
+
+    internal void FlashForEscape() => Flash();
 
     public override PowerAssetProfile AssetProfile => CommonPowerAssets.Corruption;
 
@@ -97,36 +97,6 @@ public sealed class ControlPower :
                 ExtraIconAmountLabelCorner.TopRight,
                 ControlType.ShortLabel()),
         ];
-
-    public override Task BeforeCardPlayed(CardPlay cardPlay)
-    {
-        if (ControlQuery.GetProjection(cardPlay.Card) is { } projection
-            && ReferenceEquals(projection.Control, this)
-            && cardPlay.IsFirstInSeries)
-        {
-            EscapeProjectionTracker.Begin(cardPlay, this);
-        }
-        return Task.CompletedTask;
-    }
-
-    public Task<bool> BeforeCardOnPlay(BeforeCardOnPlayContext context)
-    {
-        bool suppressOriginal =
-            ControlQuery.GetProjection(context.CardPlay.Card) is { } projection
-            && ReferenceEquals(projection.Control, this);
-        return Task.FromResult(suppressOriginal);
-    }
-
-    public override async Task AfterCardPlayed(
-        PlayerChoiceContext choiceContext,
-        CardPlay cardPlay)
-    {
-        if (EscapeProjectionTracker.TryTake(cardPlay, this, out int amount))
-        {
-            Flash();
-            await ControlCmd.Escape(choiceContext, this, amount);
-        }
-    }
 
     public override async Task AfterDeath(
         PlayerChoiceContext choiceContext,

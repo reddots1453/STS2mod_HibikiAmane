@@ -96,6 +96,14 @@ card-effect-test-results/latest.json
 
 `MagicResonance`能力牌拘束场景现在连续32轮读取投影标题、描述、关键字和目标，再验证原效果抑制、挣脱值及结算牌堆。游戏内复测仍需覆盖成功施加拘束（格挡低于意图阈值）和被格挡的拘束两条分支。
 
+### 2026-09-10 卡牌实例 capability 重构
+
+进一步对照原版女王的`ChainsOfBindingPower`与`Bound`后，挣脱不再使用独立的弱引用投影表。每张符合条件的实际战斗卡附着`EscapeProjectionCapability`，由`ControlPower`在数值及牌堆生命周期中统一协调；标题等展示查询只读取已附着状态，不再从getter内部遍历Power并重建投影。
+
+RitsuLib capability现在负责无目标、弃牌结算、锁链覆盖层、原牌与拘束Power悬停，以及精确卡实例的原`OnPlay`抑制。RitsuLib 0.4.64不能完全替换描述，也不能在替换标题时去掉原牌升级后缀，因此严格展示仍保留标题、描述、关键字、附魔和苦难五个精确getter补丁，但这些补丁不再拥有生命周期或刷新职责。
+
+`MagicResonance`场景同时给被测牌附加保留、`Glam`和`Bound`，验证投影期间三者不可见、序列化仍保存原附魔、原效果不执行、只减少实际支付的挣脱值，并在移除拘束后于同一卡实例上恢复原关键字、附魔与苦难。该静态/游戏内回归不能替代敌人真实执行`MAIDENSUCCUBUS_CONTROL`的人工复测。
+
 ## 构建期完整性门
 
 `ValidateMod=true` 会执行 `scripts/ValidateCardEffectTests.ps1`，并检查：

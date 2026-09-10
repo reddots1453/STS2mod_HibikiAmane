@@ -65,7 +65,8 @@ public static class MaidenSuccubusMod
             catch (Exception ex) { Logger.Warn($"Harmony failed: {type.Name}: {ex.Message}"); }
         }
         if (MvpFeatureFlags.ControlAndInvasion)
-            Logger.Info("Escape projection uses RitsuLib's instance-scoped card OnPlay hook.");
+            Logger.Info(
+                "Escape projection uses a RitsuLib capability attached to each controlled card instance.");
         Logger.Info($"Maiden & Succubus ready — {patchCount} patches applied");
     }
 
