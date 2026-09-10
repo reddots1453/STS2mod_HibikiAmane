@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-10 — 拘束投影重入与重复刷新修复
+
+- 变更前快照：`maiden-pre-control-projection-reentrancy-fix-20260910` → `b110101`。
+- 复测仍在花园幽灵鳗执行`MAIDENSUCCUBUS_CONTROL`时退出；新一轮`godot.log`不再出现运行时`OnPlay`补丁安装，但Windows错误报告明确记录`coreclr.dll`异常码`0xc00000fd`，说明旧动态Harmony路径已删除后仍存在独立的托管栈溢出。
+- 投影查询的重入门现在覆盖“校验既有投影”和“重建投影”的完整过程；任何卡面getter或其他模组补丁在校验期间再次查询同一投影时都会读取未投影结果，不再递归进入`IsStillValid`。
+- 卡面批量刷新增加同线程重入门；拘束施加、挣脱和直接解除不再从命令层重复刷新，初次施加也不再同时走`AfterApplied`与全局`AfterPowerAmountChanged`两条刷新路径。刷新权威入口收敛为Power数值变化和移除生命周期。
+- 拘束Power数值变化时分别记录投影刷新开始、投影表完成和卡面刷新完成三个低频诊断点；若仍发生不可捕获的栈溢出，最新日志可直接区分模型投影与Godot卡面刷新阶段。
+- `MagicResonance`回归场景新增连续32轮读取投影标题、描述、关键字和目标的检查；结构门固定完整投影重入保护、卡面刷新重入保护及单一刷新所有权。
+- 无部署构建和显式部署构建均通过全部验证门（0 warning、0 error）；已部署至`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`。源码与安装目录DLL SHA-256均为`81B7D796A36A291B43AD64BC342EA05F210E48390D8BEFDD09A9E70E14170954`，PDB均为`BE4DC78E1E6BB8B0C9D2AC38759A030CB645BAEE47DEEB08A78F4263454ABE73`；修复后运行时结果待人工复测。
+
 ## 2026-09-09 — 拘束意图栈溢出修复
 
 - 变更前快照：`maiden-pre-control-stack-overflow-fix-20260909` → `60e4794`。

@@ -88,6 +88,14 @@ card-effect-test-results/latest.json
 
 `MagicResonance`测试现在额外建立能力牌拘束，验证施加拘束不会中断、投影牌原效果不生效、1费精确减少1点挣脱值且最终进入弃牌堆。结构门禁止恢复`EscapeEffectPatcher`或在投影路径调用`Harmony.Patch`，并要求`ControlPower`保留RitsuLib的实例级出牌监听器。
 
+### 2026-09-10 复测与第二层修复
+
+首次修复部署后的人工复测仍在`MAIDENSUCCUBUS_CONTROL`退出。最新日志已经没有动态`OnPlay`补丁记录，Windows错误报告则由模糊`StackHash`进一步定位为`coreclr.dll`中的`0xc00000fd`。这证明运行时Harmony安装是一个已移除风险，但不是唯一递归入口。
+
+第二层修复把`ControlQuery`的线程重入门从“仅重建投影”扩大到“校验或重建投影”的整个解析事务。投影卡的标题、描述、关键字、附魔、苦痛和目标均通过Harmony getter查询同一投影；完整重入门保证getter间接调用或第三方getter补丁只能看到该次解析的原始值。`EscapeCardVisuals.Refresh`也增加同线程重入门，同时删除一次Power变化中来自`AfterApplied`、`AfterPowerAmountChanged`和命令层的重复全牌堆刷新。
+
+`MagicResonance`能力牌拘束场景现在连续32轮读取投影标题、描述、关键字和目标，再验证原效果抑制、挣脱值及结算牌堆。游戏内复测仍需覆盖成功施加拘束（格挡低于意图阈值）和被格挡的拘束两条分支。
+
 ## 构建期完整性门
 
 `ValidateMod=true` 会执行 `scripts/ValidateCardEffectTests.ps1`，并检查：

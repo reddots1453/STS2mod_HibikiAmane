@@ -131,15 +131,15 @@ public static class ControlQuery
             return null;
         }
 
-        if (Projections.TryGetValue(card, out ProjectionHolder? existing)
-            && IsStillValid(card, existing.Projection, rawKeywords: null))
-        {
-            return existing.Projection;
-        }
-
         _resolvingProjection = true;
         try
         {
+            if (Projections.TryGetValue(card, out ProjectionHolder? existing)
+                && IsStillValid(card, existing.Projection, rawKeywords: null))
+            {
+                return existing.Projection;
+            }
+
             return RefreshCard(card, rawKeywords: null);
         }
         finally
@@ -152,18 +152,7 @@ public static class ControlQuery
         CardModel card,
         IReadOnlySet<CardKeyword> rawKeywords)
     {
-        if (!card.IsMutable)
-        {
-            return null;
-        }
-
-        if (Projections.TryGetValue(card, out ProjectionHolder? existing)
-            && IsStillValid(card, existing.Projection, rawKeywords))
-        {
-            return existing.Projection;
-        }
-
-        if (_resolvingProjection)
+        if (_resolvingProjection || !card.IsMutable)
         {
             return null;
         }
@@ -171,6 +160,12 @@ public static class ControlQuery
         _resolvingProjection = true;
         try
         {
+            if (Projections.TryGetValue(card, out ProjectionHolder? existing)
+                && IsStillValid(card, existing.Projection, rawKeywords))
+            {
+                return existing.Projection;
+            }
+
             return RefreshCard(card, rawKeywords);
         }
         finally

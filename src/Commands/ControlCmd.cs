@@ -6,7 +6,6 @@ using MaidenSuccubus.Characters;
 using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.Powers;
-using MaidenSuccubus.UI;
 
 namespace MaidenSuccubus.Commands;
 
@@ -59,7 +58,6 @@ public static class ControlCmd
             escapeAmount,
             source,
             null);
-        EscapeCardVisuals.Refresh(target.Player);
         return ControlResolutionResult.Applied;
     }
 
@@ -83,10 +81,6 @@ public static class ControlCmd
             -amount,
             control.Owner,
             null);
-        if (control.Owner.Player != null)
-        {
-            EscapeCardVisuals.Refresh(control.Owner.Player);
-        }
     }
 
     public static async Task Release(
@@ -102,10 +96,6 @@ public static class ControlCmd
         {
             power.PendingBreakReason = ControlBreakReason.Direct;
             await PowerCmd.Remove(power);
-        }
-        if (target.Player != null)
-        {
-            EscapeCardVisuals.Refresh(target.Player);
         }
     }
 }

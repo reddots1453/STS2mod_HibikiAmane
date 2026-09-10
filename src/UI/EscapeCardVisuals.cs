@@ -9,16 +9,32 @@ public static class EscapeCardVisuals
 {
     public const string OverlayName = "MaidenSuccubusEscapeOverlay";
 
+    [ThreadStatic]
+    private static bool _refreshing;
+
     public static void Refresh(Player player)
     {
-        foreach (PileType pileType in Enum.GetValues<PileType>()
-            .Where(type => type.IsCombatPile()))
+        if (_refreshing)
         {
-            foreach (var card in pileType.GetPile(player).Cards)
+            return;
+        }
+
+        _refreshing = true;
+        try
+        {
+            foreach (PileType pileType in Enum.GetValues<PileType>()
+                .Where(type => type.IsCombatPile()))
             {
-                NCard? node = NCard.FindOnTable(card);
-                node?.UpdateVisuals(pileType, CardPreviewMode.Normal);
+                foreach (var card in pileType.GetPile(player).Cards)
+                {
+                    NCard? node = NCard.FindOnTable(card);
+                    node?.UpdateVisuals(pileType, CardPreviewMode.Normal);
+                }
             }
+        }
+        finally
+        {
+            _refreshing = false;
         }
     }
 
@@ -53,4 +69,3 @@ public static class EscapeCardVisuals
         return root;
     }
 }
-

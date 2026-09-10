@@ -37,11 +37,20 @@ Assert-NotContains "escape projection" $escape 'EscapeEffectPatcher|Harmony\.Pat
 
 $control = Read-Text "src\Core\Control\ControlQuery.cs"
 Assert-Contains "escape projection identity" $control 'ConditionalWeakTable<CardModel,'
+Assert-Contains "escape projection reentrancy" $control 'if \(_resolvingProjection \|\| !card\.IsMutable\)'
 
 $controlPower = Read-Text "src\Powers\ControlPower.cs"
 Assert-Contains "escape effect dispatch" $controlPower 'ICardOnPlayHookListener'
 Assert-Contains "escape effect dispatch" $controlPower 'BeforeCardOnPlay\(BeforeCardOnPlayContext context\)'
 Assert-Contains "escape effect dispatch" $controlPower 'ReferenceEquals\(projection\.Control, this\)'
+Assert-NotContains "escape refresh lifecycle" $controlPower 'override Task AfterApplied'
+
+$controlCmd = Read-Text "src\Commands\ControlCmd.cs"
+Assert-NotContains "escape refresh ownership" $controlCmd 'EscapeCardVisuals\.Refresh'
+
+$escapeVisuals = Read-Text "src\UI\EscapeCardVisuals.cs"
+Assert-Contains "escape visual reentrancy" $escapeVisuals '\[ThreadStatic\]\s+private static bool _refreshing'
+Assert-Contains "escape visual reentrancy" $escapeVisuals 'if \(_refreshing\)'
 
 $intent = Read-Text "src\Core\Intents\IntentMoveFactory.cs"
 Assert-NotContains "erotic intent ids" $intent 'Interlocked\.Increment'

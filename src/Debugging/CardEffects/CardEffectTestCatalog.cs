@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Enchantments;
@@ -852,6 +853,26 @@ internal static class CardEffectTestCatalog
                 ctx.Self, 3, ctx.PrimaryEnemy, null);
             ctx.AssertTrue("power card is projected while controlled",
                 ControlQuery.GetProjection(projected) != null);
+            string projectedTitle = string.Empty;
+            string projectedDescription = string.Empty;
+            IReadOnlySet<CardKeyword> projectedKeywords = new HashSet<CardKeyword>();
+            TargetType projectedTarget = TargetType.AnyEnemy;
+            for (int i = 0; i < 32; i++)
+            {
+                projectedTitle = projected.Title;
+                projectedDescription = projected.GetDescriptionForPile(PileType.Hand);
+                projectedKeywords = projected.Keywords;
+                projectedTarget = projected.TargetType;
+            }
+            ctx.AssertEqual("projected title remains stable under repeated reads",
+                new LocString("cards", "MAIDENSUCCUBUS_ESCAPE.title")
+                    .GetFormattedText(), projectedTitle);
+            ctx.AssertTrue("projected description exposes escape amount",
+                projectedDescription.Contains("3", StringComparison.Ordinal));
+            ctx.AssertEqual("projected keywords remain hidden", 0,
+                projectedKeywords.Count);
+            ctx.AssertEqual("projected target remains none", TargetType.None,
+                projectedTarget);
             int resonanceAmount = resonance.Amount;
             await ctx.Play(projected);
             ctx.AssertEqual("projected card original effect is suppressed",

@@ -48,16 +48,6 @@ public sealed class ControlPower :
 
     public override PowerAssetProfile AssetProfile => CommonPowerAssets.Corruption;
 
-    public override Task AfterApplied(Creature? applier, CardModel? cardSource)
-    {
-        if (Owner.Player != null)
-        {
-            ControlQuery.Refresh(Owner.Player);
-            EscapeCardVisuals.Refresh(Owner.Player);
-        }
-        return Task.CompletedTask;
-    }
-
     public override Task AfterPowerAmountChanged(
         PlayerChoiceContext context,
         PowerModel power,
@@ -67,8 +57,14 @@ public sealed class ControlPower :
     {
         if (ReferenceEquals(power, this) && Owner.Player != null)
         {
+            MaidenSuccubusMod.Logger.Info(
+                $"[ControlProjection] refresh begin type={ControlType} amount={Amount}");
             ControlQuery.Refresh(Owner.Player);
+            MaidenSuccubusMod.Logger.Info(
+                "[ControlProjection] projection refresh complete");
             EscapeCardVisuals.Refresh(Owner.Player);
+            MaidenSuccubusMod.Logger.Info(
+                "[ControlProjection] card visual refresh complete");
         }
         return Task.CompletedTask;
     }
