@@ -16,6 +16,7 @@ using MaidenSuccubus.Keywords;
 using STS2RitsuLib.Keywords;
 #if DEBUG
 using MaidenSuccubus.Debugging.CardEffects;
+using MaidenSuccubus.Debugging.ControlIntents;
 #endif
 
 namespace MaidenSuccubus;
@@ -47,6 +48,7 @@ public static class MaidenSuccubusMod
         FrameworkSelfTests.Run(Logger);
 #if DEBUG
         CardEffectTestHotkey.Register();
+        ControlIntentTestHotkey.Register();
 #endif
 
         var harmony = new Harmony("com.maidensuccubus.sts2");

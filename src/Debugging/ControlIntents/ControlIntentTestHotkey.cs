@@ -3,18 +3,17 @@ using Godot;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Players;
 
-namespace MaidenSuccubus.Debugging.CardEffects;
+namespace MaidenSuccubus.Debugging.ControlIntents;
 
 /// <summary>
-/// Starts the destructive exact-effect suite only after the player has entered
-/// a disposable MaidenSuccubus combat. This mirrors the proven manual-entry
-/// boundary used by sts2_contrib_tests while retaining this suite's exact
-/// numerical assertions.
+/// Runs the destructive suite only after the player manually enters a
+/// disposable combat. Shift+F10 extends the established F10 test boundary
+/// without reserving another global function key.
 /// </summary>
-internal static class CardEffectTestHotkey
+internal static class ControlIntentTestHotkey
 {
     private static bool _registered;
-    private static bool _f10Pressed;
+    private static bool _chordPressed;
     private static bool _running;
 
     internal static async void Register()
@@ -24,18 +23,22 @@ internal static class CardEffectTestHotkey
 
         try
         {
-            while (Engine.GetMainLoop() is not SceneTree sceneTree || sceneTree.Root == null)
+            while (Engine.GetMainLoop() is not SceneTree sceneTree
+                || sceneTree.Root == null)
+            {
                 await Task.Delay(200);
+            }
 
             ((SceneTree)Engine.GetMainLoop()).ProcessFrame += OnProcessFrame;
             _registered = true;
             MaidenSuccubusMod.Logger.Info(
-                "[CardEffectTest] Ready. Enter a disposable MaidenSuccubus combat and press F10.");
+                "[ControlIntentTest] Ready. Enter a disposable "
+                + "MaidenSuccubus combat and press Shift+F10.");
         }
         catch (Exception ex)
         {
             MaidenSuccubusMod.Logger.Error(
-                "[CardEffectTest] Failed to register F10 trigger: " + ex);
+                "[ControlIntentTest] Failed to register Shift+F10 trigger: " + ex);
         }
     }
 
@@ -43,25 +46,25 @@ internal static class CardEffectTestHotkey
     {
         try
         {
-            bool f10Now = Input.IsKeyPressed(Key.F10);
-            bool shiftNow = Input.IsKeyPressed(Key.Shift);
-            if (f10Now && !shiftNow && !_f10Pressed)
-                RunAllFromActiveCombat();
-            _f10Pressed = f10Now;
+            bool chordNow = Input.IsKeyPressed(Key.F10)
+                && Input.IsKeyPressed(Key.Shift);
+            if (chordNow && !_chordPressed)
+                RunFromActiveCombat();
+            _chordPressed = chordNow;
         }
         catch (Exception ex)
         {
             MaidenSuccubusMod.Logger.Error(
-                "[CardEffectTest] F10 trigger failed: " + ex);
+                "[ControlIntentTest] Shift+F10 trigger failed: " + ex);
         }
     }
 
-    private static async void RunAllFromActiveCombat()
+    private static async void RunFromActiveCombat()
     {
         if (_running)
         {
             MaidenSuccubusMod.Logger.Info(
-                "[CardEffectTest] Exact card-effect suite is already running.");
+                "[ControlIntentTest] Suite is already running.");
             return;
         }
 
@@ -69,14 +72,14 @@ internal static class CardEffectTestHotkey
         if (!CombatManager.Instance.IsInProgress || combat == null)
         {
             MaidenSuccubusMod.Logger.Info(
-                "[CardEffectTest] Not in combat. Enter a disposable combat, then press F10.");
+                "[ControlIntentTest] Not in combat. Enter a disposable combat, "
+                + "then press Shift+F10.");
             return;
         }
-
         if (combat.Players.Count != 1)
         {
             MaidenSuccubusMod.Logger.Info(
-                "[CardEffectTest] A single-player disposable combat is required.");
+                "[ControlIntentTest] A single-player disposable combat is required.");
             return;
         }
 
@@ -84,22 +87,22 @@ internal static class CardEffectTestHotkey
         if (player.Character.GetType().Name != "MaidenSuccubusCharacter")
         {
             MaidenSuccubusMod.Logger.Info(
-                "[CardEffectTest] Use the MaidenSuccubus character before pressing F10.");
+                "[ControlIntentTest] Use MaidenSuccubus before pressing Shift+F10.");
             return;
         }
 
         _running = true;
         MaidenSuccubusMod.Logger.Info(
-            "[CardEffectTest] F10 accepted; starting all 204 registered card checks.");
+            "[ControlIntentTest] Shift+F10 accepted; starting 9 scenarios.");
         try
         {
-            string summary = await CardEffectTestRunner.Run(player, "all");
-            MaidenSuccubusMod.Logger.Info("[CardEffectTest] " + summary);
+            string summary = await ControlIntentTestRunner.Run(player);
+            MaidenSuccubusMod.Logger.Info("[ControlIntentTest] " + summary);
         }
         catch (Exception ex)
         {
             MaidenSuccubusMod.Logger.Error(
-                "[CardEffectTest] Suite aborted before report completion: " + ex);
+                "[ControlIntentTest] Suite aborted before report completion: " + ex);
         }
         finally
         {

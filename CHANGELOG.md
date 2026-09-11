@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-11 — 拘束意图九场景运行时测试套件
+
+- 变更前快照：`maiden-pre-control-intent-test-harness-20260911` → `59c68bbe32a03b432eafb4a6ddca8c9a20d8c071`。
+- 需求边界：只测试并提高`SYS-CTL-001/002`与`SYS-DES-002B`拘束链的验证效率；用户提出的初始卡路线“变奏（原升变）”留待下一版DesignDoc，本轮没有修改卡牌语义。
+- 新增Debug专用`Shift+F10`与`ms_test_control confirm`入口；沿用玩家启动游戏并手动进入一次性单人战斗的边界，不自动导航或启动战斗。
+- 九个场景通过真实怪物`PerformMove`、真实Power/牌堆命令、卡牌`SpendResources`和完整出牌包装器核对精确格挡、8欲望绕过、三种卡牌类型、随身豁免、原实例及升级/关键字/附魔/苦难保留、0/1/2费挣脱、多来源优先级与无溢出转移、来源死亡、权威目录意图及恢复意图。
+- 压力场景在三个战斗牌堆生成60张以上夹具并反复读取投影属性；真实行动、投影读取、出牌和死亡链前后记录检查点。每场景有30秒超时，完整预期/实际值和异常写入`control-intent-test-results/latest.json`。
+- 新增`ValidateControlIntentTests.ps1`并纳入`ValidateMod=true`，固定九场景、真实执行/支付/死亡/目录/报告路径及破坏性确认门。
+- 验证：`dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=true`通过，0 warning、0 error；204张卡文本审计、内容契约、结构契约、本地化格式、卡牌效果测试契约及新增9场景拘束测试契约全部通过。游戏内数值结果仍须在部署后运行`Shift+F10`取得，静态门不冒充运行时通过。
+- 部署：否；需用户明确要求后才部署，游戏内9场景结果尚待运行。
+
 ## 2026-09-11 — 第一批原作命名卡图与1000×760工作流
 
 - 变更前快照：分支`codex/maiden-controlled-merge-v2`，提交`b762924a36baadd8e533a177ab44d7ce495d5a21`；用户未提交的`DesignDoc.md`保持原样，写入前SHA-256为`2B3D19DF003DBE0106E19E386780D6A72C739C6861C6E063C409519C719A879E`。

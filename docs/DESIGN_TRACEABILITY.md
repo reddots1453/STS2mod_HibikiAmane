@@ -139,7 +139,7 @@
 | CHANGE | `SYS-DES-002A` | 满欲望按玩家回合立即、敌方回合/战斗外排队，并逐次结算 | `ITER1-1`重做时序和持久化计数 | IMPLEMENTED（待运行时验收） |
 | CHANGE | `SYS-TRF-001/002`、`KW-MAGIC-AMP-001`、`KW-OVERDRAFT-001` | 变身、耐久、增幅、透支采用新规则 | `ITER1-1`重做并全卡回归 | IMPLEMENTED（待运行时验收） |
 | ADD | `SYS-TRF-004` | 四档分层立绘与五类轻量动画 | `ITER1-3` | READY |
-| CHANGE | `SYS-CTL-001/002`、`SYS-INV-001/002` | 闭合多来源挣脱、恢复意图和商店清理 | `ITER1-2`替换延期状态；2026-09-10挣脱改为RitsuLib卡实例capability | IMPLEMENTED（capability重构待运行时验收） |
+| CHANGE | `SYS-CTL-001/002`、`SYS-INV-001/002` | 闭合多来源挣脱、恢复意图和商店清理 | `ITER1-2`替换延期状态；2026-09-10挣脱改为RitsuLib卡实例capability；2026-09-11增加9场景真实运行时拘束套件 | IMPLEMENTED（静态门通过后仍待游戏内自动套件与人工存读档/视觉验收） |
 | ADD | `SYS-DES-INTENT-001`、`MON-ERO-CATALOG-001`、`KW-STEADFAST-001` | 逐怪物色情意图、权重、次数、优先级与意志坚定 | `ITER1-2`；交付范围覆盖DesignDoc成熟度标签 | IMPLEMENTED（待运行时验收） |
 | CHANGE | 全部卡牌范围 | 所有类型、费用、效果完整的单卡均纳入第一轮 | `ITER1-4`全量资格审计和实现 | READY |
 | CLARIFY | `ENCH-INFECTION-001` | 寄生在被附魔牌离手前传播至相邻手牌 | `ITER1-4`按新生命周期回修 | READY |
