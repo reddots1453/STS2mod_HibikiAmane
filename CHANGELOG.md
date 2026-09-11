@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-11 — 第一批原作命名卡图与1000×760工作流
+
+- 变更前快照：分支`codex/maiden-controlled-merge-v2`，提交`b762924a36baadd8e533a177ab44d7ce495d5a21`；用户未提交的`DesignDoc.md`保持原样，写入前SHA-256为`2B3D19DF003DBE0106E19E386780D6A72C739C6861C6E063C409519C719A879E`。
+- 通过《魔法少女天穹法妮雅》本地`Skills/Items/Weapons/Armors/States`数据库精确匹配当前DesignDoc正式卡名，建立78张第一批清单：中立21、圣洁27、堕落30；其余卡牌明确留待第二批。
+- ComfyUI用户工作流`Advanced_V31.json`的实际宽高控制节点已改为`1000×760`，潜空间节点同步为`1000×760×1`；修改前副本保存为`Advanced_V31_before_1000x760.json`。
+- 使用`waiNSFWIllustrious_v140.safetensors`与`celesphonia-1.8.safetensors`生成78张`v01`卡图，按`序号_实现类_中文名_版本`一一命名并存入`图片素材/第一批卡图/`；视觉焦点按卡框遮挡规则约束在中央偏上安全区。
+- 新增机器可读`first_batch_manifest.json`、人工审阅清单、三张路线总览和可重复执行的`GenerateFirstBatchCardArt.ps1`；`065 反射屏障`采用此前已确认定稿候选的1000×760裁切版，纯文生图初稿另行保留。
+- 验证：78/78清单文件存在，0缺失、0多余、0重复索引、0重复实现类、0不可读图片，全部尺寸严格为`1000×760`；生成脚本PowerShell语法0错误。视觉抽查已在清单中标记9张优先复查候选。
+- 部署：否；本轮只生成设计美术资产、清单和工作流，不改动游戏实现或已安装Mod。
+
 ## 2026-09-10 — 挣脱迁移为卡牌实例 capability
 
 - 变更前快照：`maiden-pre-escape-capability-refactor-20260910` → `30cc2a4`。
