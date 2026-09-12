@@ -7,7 +7,7 @@
 - 实现：`BattleTechniqueReplayPower`覆盖原生`PowerModel.IsVisibleInternal`并返回`false`；Power仍保留在`Creature.Powers`中执行原有卡牌生命周期钩子，但不再创建状态栏图标、悬停说明或施加视觉等待，不新增Harmony/UI补丁。
 - 回归：卡牌效果用例同时断言监听Power已安装且不可见；结构契约固定隐藏属性；Plan、追踪矩阵和手测清单同步记录。
 - 无部署构建：`dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=true`通过，`0 warning / 0 error`；204张卡内容与本地化、201张可执行卡效果、3张`DESIGN_PENDING`跳过项、9个拘束场景及隐藏监听Power结构契约全部通过。首次受限环境中的NuGet服务索引请求失败，获准联网后成功。
-- 范围提交与部署：待提交完成后立即进行定向部署，仅同步DLL/PDB及此前尚未部署的意图本地化，不复制并行美术资产。
+- 范围提交：`e076f2f`；原有624个并行暂存文件保持不变。游戏进程退出后已立即定向部署DLL/PDB，并补齐此前因文件锁未部署的“欲望攻击”中文意图文本；未复制并行美术资产。源码与安装DLL SHA-256均为`4E95118C0F56B8026FE67DA15773A4C3E8456FE31619826FBFBFDC4AB8253C56`，PDB均为`7EADE5ED7079BB2FD1945142C0B184E2F141AF630E4266E26FAF3E6A96E02249`；源码、安装目录及热加载目录的`intents.json`均为`3C3525CAEB4A3FB94FCE8EC30BFED7FFAC13D6AACEBD7494B11DDDECD2904AE9`。
 
 ## 2026-09-12 — “战技复读”复制牌来源阴影遮罩
 
