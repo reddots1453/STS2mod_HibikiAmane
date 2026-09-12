@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-13 — 第一批卡图下一组构图底稿与ComfyUI统一候选
+
+- 变更前快照：`maiden-pre-next-neutral-card-art-20260913` → `d5bcd8c`；仅新增卡图试制工作区，未修改或提交玩家正在编辑的`DesignDoc.md`及工作区中的无关代码/素材。
+- 本轮根据完整卡牌效果制作`剑之裁决`、`冰冻手环`、`精神统一`、`妨碍射击`与`光之矢`五张审阅候选；`梦幻之雾`因DesignDoc暂无效果正文而明确跳过，不凭名称擅自补设计。
+- 首先进行本地WAI纯文生图与V2参考重绘对照，确认其容易将“攻防同时”、“打断意图”和“手环生成冰壁”退化为普通摆拍；试验稿保留供对比，不进入推荐清单。
+- 最终工作流为“高保真模型只生成动作/镜头构图底稿 → 本地ComfyUI的`waiNSFWIllustrious_v140.safetensors` + `celesphonia-1.8.safetensors`重绘统一画风”；最终候选不直接使用高保真输出。
+- 推荐审阅稿为`001_SwordVerdict_r02.png`、`003_FrozenBracelet_r04.png`、`005_MentalUnity_r04.png`、`006_ObstructingShot_r02.png`与`007_LightArrow_r04.png`；全部为`1000×760` PNG，主体和效果放在中央偏上安全区。
+- `review_manifest.json`、完整提示词/采样配置、可重复生成脚本与`review_contact_sheet.jpg`已归档；五张仅标记为待玩家审阅，未自动写入`完成版卡图/`。
+- 部署：否；本轮仅新增卡图候选与可重现工作流，不修改Mod运行时逻辑。
+
 ## 2026-09-13 — “光子伏特”右手接合与“精液变换”ComfyUI风格统一候选
 
 - 变更前快照：`maiden-pre-photon-hand-semen-object-art-20260912` → `e076f2f`；未修改或提交玩家正在编辑的`DesignDoc.md`及工作区中的无关代码/研究资产。
