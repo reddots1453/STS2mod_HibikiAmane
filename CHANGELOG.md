@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-12 — 战斗中保留左侧欲望计量条
+
+- 变更前快照：`maiden-pre-combat-desire-meter-visible-20260912` → `8680191`；未修改或提交玩家正在编辑的`DesignDoc.md`及并行美术资产。
+- 根因：`DesireMeter.Refresh()`在玩家拥有战斗`CombatState`时主动隐藏节点，进入战斗事件又执行`Visible = !inCombat`；因此左侧条必然在战斗开始时消失，并非RitsuLib资源数值或渲染异常。
+- 修复：移除两处战斗隐藏条件；房间切换事件只延迟刷新角色、位置和数值。左侧竖条现在战斗内外持续显示，战斗中的RitsuLib费用旁计数器继续保留并与其共享唯一欲望数据源。
+- 回归：结构验证器禁止重新引入`Visible = !inCombat`或按`CombatManager.IsInProgress`屏蔽左侧条；Plan、追踪矩阵和第一轮手测清单同步记录“双显示”要求。
+- 无部署构建：`dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=true`通过，`0 warning / 0 error`；内容、本地化、卡牌效果、拘束场景和新增“双显示”结构契约全部通过。首次受限环境中的NuGet恢复被网络权限拒绝，获准恢复依赖后成功；范围提交后立即部署并补录安装哈希。
+
 ## 2026-09-12 — 校服裤袜脚部连续性修复与永恒天衣三档立绘
 
 - 变更前快照：`maiden-pre-school-tights-eternal-robe-assets-20260912` → `8680191`；未修改或提交玩家正在编辑的`DesignDoc.md`。

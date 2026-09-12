@@ -1,5 +1,4 @@
 using Godot;
-using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization;
@@ -16,7 +15,7 @@ using MaidenSuccubus.Core.Desire;
 namespace MaidenSuccubus.UI;
 
 /// <summary>
-/// Character-only vertical desire meter displayed along the left side.
+/// Character-only vertical desire meter displayed along the left side in and out of combat.
 /// </summary>
 [RegisterNodeAttachment(
     typeof(NTopBar),
@@ -164,9 +163,7 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
 
         var player = LocalContext.GetMe(runState);
         _player = player;
-        if (player?.Character is not MaidenSuccubusCharacter
-            || (CombatManager.Instance.IsInProgress
-                && player.Creature.CombatState != null))
+        if (player?.Character is not MaidenSuccubusCharacter)
         {
             Visible = false;
             return;
@@ -185,17 +182,12 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
         UpdateValue(change.NewValue);
     }
 
-    private void OnCombatVisibilityChanged(bool inCombat)
+    private void OnCombatVisibilityChanged(bool _)
     {
-        if (_player?.Character is not MaidenSuccubusCharacter)
-        {
-            return;
-        }
-        Visible = !inCombat;
-        if (!inCombat)
-        {
-            UpdateValue(Desire.Get(_player));
-        }
+        // Combat changes the player creature instance and top-bar layout, but it
+        // must not hide the persistent left-side meter. Refresh after the room
+        // transition while the RitsuLib combat counter remains visible as well.
+        CallDeferred(nameof(Refresh));
     }
 
     private void UpdateValue(int value)

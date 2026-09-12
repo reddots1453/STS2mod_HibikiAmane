@@ -54,7 +54,7 @@
 | `SYS-SEA-001` | 封印区、跨战斗快照和火堆移除 | READY | M1 | IMPLEMENTED | REST-3/封印回归 |
 | `SYS-COR-004` | 事件门槛和遗物阈值 | OPEN | 下一轮内容填充 | DEFERRED | 不进入MVP验收 |
 | `ACT4-001` | 第四幕、路线任务与路线Boss | OPEN | MVP回归＋后续内容 | IMPLEMENTED（MVP流程框架；待运行时回归） | 已恢复任务选择、进度、碎片、献祭、阶段替换、入场判定和占位Act；新敌人与Boss内容仍延期 |
-| `SYS-DES-001` | 跨战斗欲望资源和UI | READY | M2 | IMPLEMENTED | M2回归 |
+| `SYS-DES-001` | 跨战斗欲望资源和UI | READY | M2 | IMPLEMENTED（左侧条战斗内外持续显示；战斗内同时显示RitsuLib计数器） | M2回归 |
 | `SYS-DES-002A` | 10点欲望与高潮平复 | READY | MVP | IMPLEMENTED | M2核心回归 |
 | `SYS-DES-002B` | 5/8点欲望与控制联动 | READY | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 | `SYS-DES-003A` | 卡牌/遗物/事件/火堆等欲望来源 | OPEN | MVP内容填充 | READY（框架） | MVP卡牌与Run回归 |

@@ -94,7 +94,7 @@ git diff --word-diff=plain HEAD -- "mods/sts2_Maiden&Succubus/DesignDoc.md"
 | 堕落值RunSavedData | Query/Cmd/Changed已完成 | 后续接入全部玩法来源 |
 | 堕落值顶栏UI | M1悬停与阈值说明已接入 | 后续替换正式天平美术 |
 | 欲望SecondaryResource | M2机制实现已完成 | 完整运行时验收 |
-| 欲望左侧UI | 已读取统一SecondaryResource | 补正式视觉与事件驱动刷新 |
+| 欲望左侧UI | 已读取统一SecondaryResource，战斗内外持续显示 | 与战斗费用旁RitsuLib计数器同时回归验收 |
 | 欲望满值Power | 已接入统一资源变更Hook | 运行时验收 |
 | 临时附魔保护层 | M3锋利/伶俐适配已完成 | 补感染正式附魔与运行时验收 |
 | 随身关键词 | M3基础闭环已完成 | 后续接入控制投影并运行时验收 |

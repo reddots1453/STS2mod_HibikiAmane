@@ -95,8 +95,10 @@ $desireResource = Read-Text "src\Core\Desire\DesireResource.cs"
 $desireMeter = Read-Text "src\UI\DesireMeter.cs"
 Assert-Contains "combat desire UI" $desireResource 'RegisterCombatUi\('
 Assert-Contains "combat desire UI" $desireResource 'AlwaysShowInCombatUiForCharacter<MaidenSuccubusCharacter>'
-Assert-Contains "noncombat desire UI" $desireMeter 'Character-only vertical desire meter displayed along the left side'
-Assert-Contains "noncombat desire UI" $desireMeter 'Visible\s*=\s*!inCombat'
+Assert-Contains "persistent left-side desire UI" $desireMeter 'displayed along the left side in and out of combat'
+Assert-Contains "combat transition refreshes left-side desire UI" $desireMeter 'private\s+void\s+OnCombatVisibilityChanged\(bool\s+_\)'
+Assert-NotContains "combat must not hide left-side desire UI" $desireMeter 'Visible\s*=\s*!inCombat'
+Assert-NotContains "combat must not suppress left-side desire UI refresh" $desireMeter 'CombatManager\.Instance\.IsInProgress'
 
 $fourthRouteScreen = Read-Text "src\UI\FourthRouteSelectionScreen.cs"
 Assert-Contains "fourth-route map modal" $fourthRouteScreen 'IScreenContext'
@@ -131,4 +133,4 @@ if (!(Test-Path -LiteralPath $scenePath)) {
     throw "Character scene is missing: $scenePath"
 }
 
-Write-Host "Validated structural contracts: isolated build/deploy gates, instance-attached Escape capability with preserved original state, event-driven UI, dual-context desire UI, stable intent state, shared derivative pool, map-safe fourth-route modal, unified sacrifice/sealed-card rest-site action, character scene."
+Write-Host "Validated structural contracts: isolated build/deploy gates, instance-attached Escape capability with preserved original state, event-driven UI, simultaneous left-side and combat desire UI, stable intent state, shared derivative pool, map-safe fourth-route modal, unified sacrifice/sealed-card rest-site action, character scene."
