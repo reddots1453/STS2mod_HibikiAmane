@@ -1106,6 +1106,8 @@ internal static class CardEffectTestCatalog
             await card.BeforeCombatStart();
             ctx.AssertEqual("combat-start replay power installed", 1,
                 ctx.PowerAmount<BattleTechniqueReplayPower>(ctx.Self));
+            ctx.AssertEqual("replay listener power stays hidden", false,
+                ctx.Self.GetPower<BattleTechniqueReplayPower>()!.IsVisible);
             BattleTechniqueReplay replay = await ctx.Add<BattleTechniqueReplay>(
                 PileType.Hand, upgraded, skipVisuals: false);
             MaidenStrike strike = ctx.Create<MaidenStrike>();

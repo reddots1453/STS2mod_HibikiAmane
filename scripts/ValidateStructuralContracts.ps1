@@ -78,6 +78,7 @@ $battleReplayPower = Read-Text "src\Powers\Iteration1HolyPowers.cs"
 $battleReplayCapability = Read-Text "src\Core\Replay\BattleReplayOriginCapability.cs"
 $battleReplayVisuals = Read-Text "src\UI\BattleReplayCardVisuals.cs"
 Assert-Contains "battle replay instance marker" $battleReplayPower 'ModelCapabilityRegistry\.Create<BattleReplayOriginCapability>\(\)'
+Assert-Contains "battle replay listener remains hidden" $battleReplayPower 'BattleTechniqueReplayPower[\s\S]*?protected override bool IsVisibleInternal => false;'
 Assert-Contains "battle replay overlay registration" $battleReplayCapability '\[RegisterModelCapability\('
 Assert-Contains "battle replay overlay ownership" $battleReplayCapability 'ICardOverlayContributor'
 Assert-Contains "battle replay overlay factory" $battleReplayCapability 'maiden_battle_replay_shadow'

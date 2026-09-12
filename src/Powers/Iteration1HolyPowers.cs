@@ -122,6 +122,7 @@ public sealed class BattleTechniqueReplayPower : MaidenSuccubusPowerTemplate
 
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
+    protected override bool IsVisibleInternal => false;
 
     public override async Task AfterCardPlayed(
         PlayerChoiceContext context,

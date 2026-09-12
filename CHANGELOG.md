@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-12 — 隐藏“战技复读”内部监听Power
+
+- 变更前快照：`maiden-pre-hide-battle-replay-internal-power-20260912` → `9c0000d`；未修改或提交玩家正在编辑的`DesignDoc.md`、并行美术资产及`.review`研究资料。
+- 玩家确认：“战技复读”Power仅承担上一张牌记录、复制实例变化和离开打出区后的恢复，不应作为玩家状态显示。
+- 实现：`BattleTechniqueReplayPower`覆盖原生`PowerModel.IsVisibleInternal`并返回`false`；Power仍保留在`Creature.Powers`中执行原有卡牌生命周期钩子，但不再创建状态栏图标、悬停说明或施加视觉等待，不新增Harmony/UI补丁。
+- 回归：卡牌效果用例同时断言监听Power已安装且不可见；结构契约固定隐藏属性；Plan、追踪矩阵和手测清单同步记录。
+- 无部署构建：`dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=true`通过，`0 warning / 0 error`；204张卡内容与本地化、201张可执行卡效果、3张`DESIGN_PENDING`跳过项、9个拘束场景及隐藏监听Power结构契约全部通过。首次受限环境中的NuGet服务索引请求失败，获准联网后成功。
+- 范围提交与部署：待提交完成后立即进行定向部署，仅同步DLL/PDB及此前尚未部署的意图本地化，不复制并行美术资产。
+
 ## 2026-09-12 — “战技复读”复制牌来源阴影遮罩
 
 - 变更前快照：`maiden-pre-battle-replay-shadow-overlay-20260912` → `d9b1e09`；未修改或提交玩家正在编辑的`DesignDoc.md`、并行美术资产及`.review`研究资料。
