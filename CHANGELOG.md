@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-13 — “光子伏特”保留构图的整图重绘与背景替换
+
+- 变更前快照：`maiden-pre-photon-volt-full-redraw-20260913` → `750e2b9`；未修改或提交玩家正在编辑的`DesignDoc.md`及工作区中的无关代码/素材。
+- 确认旧`022_PhotonVolt_style_matched_hand_v06.png`仍是前臂护具、袖口和手部局部供体的拼接结果，不再进行局部修补；保留原斜向身体、右上攻击点和左下握拳的画面构图，重新生成整个人物。
+- 右臂按肩—上臂—肘—前臂—贴合护具—腕—开掌重建为一条连续肢体，左臂和握拳同步重建；取消马尾环状物，仅保留蓝色发带。
+- 背景替换为深色魔导遗迹走廊，以破损青色能量管线形成透视，完全移除原图的圆形靶心/界面化图形。
+- 整图重绘底稿再经本地ComfyUI的`waiNSFWIllustrious_v140.safetensors` + `celesphonia-1.8.safetensors`以0.22/0.32重绘强度生成两个画风统一版；当前推荐`022_PhotonVolt_full_redraw_v02.png`，规格`1000×760 RGB PNG`。
+- 第一批V3选择清单与`selected/022_PhotonVolt.png`、联系表已切换到新`v02`；状态仍为`recommended`，未在玩家确认前写入`完成版卡图/`。
+- 部署：否；本轮仅更新卡图候选、选择清单和可重现生成资料，不修改Mod运行时逻辑。
+
 ## 2026-09-13 — 第一批卡图下一组构图底稿与ComfyUI统一候选
 
 - 变更前快照：`maiden-pre-next-neutral-card-art-20260913` → `d5bcd8c`；仅新增卡图试制工作区，未修改或提交玩家正在编辑的`DesignDoc.md`及工作区中的无关代码/素材。
