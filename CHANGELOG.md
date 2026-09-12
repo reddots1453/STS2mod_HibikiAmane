@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-09-12 — “终极耀斑”发型与高位俯视透视修正
+
+- 变更前快照：`maiden-pre-ultimate-flare-overhead-hair-fix-20260912` → `c9f4ca7`；未修改或提交玩家正在编辑的`DesignDoc.md`。
+- 根据玩家反馈淘汰`014_UltimateFlare_red_overhead_v01.png`：该版错误地将浅金长发改成偏粉棕色，同时镜头仍接近正面，未形成高位俯拍透视。
+- 新候选`014_UltimateFlare_red_overhead_v02.png`将镜头置于角色正上方、以约75～85度向地面俯拍；通过可见头顶和肩部上表面、向远处缩短的躯干与腿部、无地平线的环形地面建立明确鸟瞰关系。
+- 发型重新锁定旧参考图：浅金色长发、下段浅桃粉渐变、画面右侧高位侧马尾、三枚粗金环和根部蓝色饰件；继续保留青蓝眼睛与白蓝金魔法少女服装。
+- 头顶保留单一红白高亮耀斑及猩红放射线；新图规范化为`1000×760 RGB`，保存高分辨率源图、完整生成规格和独立可重复规范化脚本，等待玩家确认。
+- 部署：否；本轮只修正卡图候选，不修改正式选择清单或Mod运行时代码。
+
+## 2026-09-12 — Bug修复自动部署规则与第四层修复交付
+
+- 变更前快照：`maiden-pre-auto-deploy-policy-and-fourth-route-deploy-20260912` → `c9f4ca7`；未修改或提交玩家正在编辑的`DesignDoc.md`。
+- 将玩家的长期交付要求写入`docs/DESIGN_CHANGE_PROTOCOL.md`：此后每个Bug修复在无部署构建/验证、范围提交完成后立即部署，并核对安装产物哈希，无需再次等待单独部署口令。
+- 部署前诊断：源码产物`MaidenSuccubus.dll`为`C20653A9…AAB51D`，安装目录仍为2026-09-12 12:09的旧DLL `4B233E26…E6A4D4`；因此本轮测试没有加载提交`9109302`的第四层模态/地图旅行恢复修复，也没有加载提交`dc0d8a6`的统一献祭行动修复。
+- 无部署构建：`dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=true`通过，`0 warning / 0 error`；204张卡内容与本地化契约、结构契约、201张可执行卡效果测试、3张`DESIGN_PENDING`跳过项及9个拘束意图场景契约全部通过。首次在受限环境中的NuGet恢复被网络权限拒绝，获准恢复依赖后成功，未把环境错误误判为代码错误。
+- 已立即执行`dotnet build -c Debug -p:DeployMod=true -p:ValidateMod=true`并通过，`0 warning / 0 error`。源码与安装目录DLL SHA-256均为`F175BAC231D3751F51381A22C4FDD8A909731BE9E03007920C62F3CA433392B5`，PDB均为`41E1DE01DDFA01D29ADC17F4ADCC1456DE5DFAE83E8086A117742BE3850A7630`；42个资源文件在安装目录和热加载目录中的84份副本全部与源码哈希一致，manifest哈希一致。
+
 ## 2026-09-12 — “心眼”与“反射屏障”定稿、“终极耀斑”红光俯视候选
 
 - 变更前快照：`maiden-pre-card-art-acceptance-ultimate-flare-red-20260912` → `b0ab504`；未修改或提交玩家正在编辑的`DesignDoc.md`。
