@@ -110,9 +110,25 @@ $fourthRoutePatch = Read-Text "src\Patches\FourthRouteQuestSelectionPatch.cs"
 Assert-Contains "fourth-route travel suspension" $fourthRoutePatch 'map\.SetTravelEnabled\(false\)'
 Assert-Contains "fourth-route travel restoration" $fourthRoutePatch 'currentMap\.SetTravelEnabled\(true\)'
 
+$restSiteSealPatch = Read-Text "src\Patches\RestSiteSealPatch.cs"
+$sacrificeOption = Read-Text "src\RestSite\SacrificeRestSiteOption.cs"
+$twinSoulChalice = Read-Text "src\Relics\TwinSoulChalice.cs"
+Assert-Contains "unified sacrifice option registration" $restSiteSealPatch 'new\s+SacrificeRestSiteOption\(__0\)'
+Assert-Contains "unified sacrifice sealed-card source" $sacrificeOption 'CombatSealQuery\.GetSealedDeckCards\(Owner\)'
+Assert-Contains "unified sacrifice removes all confirmed sealed cards" $sacrificeOption 'CardPileCmd\.RemoveFromDeck\(confirmed\)'
+Assert-Contains "unified sacrifice advances fourth route" $sacrificeOption 'FourthRouteProgressService\.AdvanceStage\(Owner,\s*2\)'
+Assert-NotContains "fourth-route relic must not add a second sacrifice option" $twinSoulChalice 'TryModifyRestSiteOptions|FourthRouteSacrificeOption'
+foreach ($legacyRestSiteOption in @(
+    "src\RestSite\FourthRouteSacrificeOption.cs",
+    "src\RestSite\RemoveSealedCardsRestSiteOption.cs")) {
+    if (Test-Path -LiteralPath (Join-Path $ProjectDir $legacyRestSiteOption)) {
+        throw "Legacy split rest-site action must remain removed: $legacyRestSiteOption"
+    }
+}
+
 $scenePath = Join-Path $ProjectDir "MaidenSuccubus\scenes\maiden_succubus_character.tscn"
 if (!(Test-Path -LiteralPath $scenePath)) {
     throw "Character scene is missing: $scenePath"
 }
 
-Write-Host "Validated structural contracts: isolated build/deploy gates, instance-attached Escape capability with preserved original state, event-driven UI, dual-context desire UI, stable intent state, shared derivative pool, map-safe fourth-route modal, character scene."
+Write-Host "Validated structural contracts: isolated build/deploy gates, instance-attached Escape capability with preserved original state, event-driven UI, dual-context desire UI, stable intent state, shared derivative pool, map-safe fourth-route modal, unified sacrifice/sealed-card rest-site action, character scene."

@@ -1,9 +1,8 @@
 {
-  "MAIDEN_SUCCUBUS_REMOVE_SEALED": "确认移除所有被封印的卡牌（共 {Amount} 张）",
+  "MAIDEN_SUCCUBUS_SACRIFICE": "确认献祭所有封印区卡牌（共 {Amount} 张）",
   "MAIDEN_SUCCUBUS_TO_DRAW_TOP": "选择置于抽牌堆顶的牌。",
   "MAIDEN_SUCCUBUS_TO_PLAY_FROM_EXHAUST": "选择要从消耗堆打出的牌。",
   "MAIDEN_SUCCUBUS_TO_DISCARD_FROM_DRAW": "选择要从抽牌堆放入弃牌堆的牌。",
   "MAIDEN_SUCCUBUS_TO_DRAW_BOTTOM": "选择要置于抽牌堆底部的手牌。",
-  "MAIDEN_SUCCUBUS_TO_HAND_FROM_DISCARD": "选择要从弃牌堆加入手牌的牌。",
-  "MAIDEN_SUCCUBUS_FOURTH_ROUTE_SACRIFICE": "选择1张对立路线卡牌献祭。"
+  "MAIDEN_SUCCUBUS_TO_HAND_FROM_DISCARD": "选择要从弃牌堆加入手牌的牌。"
 }

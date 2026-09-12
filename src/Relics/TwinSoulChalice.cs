@@ -17,9 +17,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Potions;
 using MegaCrit.Sts2.Core.Entities.Merchant;
-using MegaCrit.Sts2.Core.Entities.RestSite;
 using MaidenSuccubus.Relics;
-using MaidenSuccubus.RestSite;
 using MaidenSuccubus.Patches;
 using MaidenSuccubus.UI;
 
@@ -124,19 +122,6 @@ public sealed class TwinSoulChalice : ModRelicTemplate
 
     public override decimal ModifyMerchantPrice(Player player, MerchantEntry entry, decimal cost) =>
         player == Owner && entry is MerchantRelicEntry { Model: FourthRouteFragmentRelic } ? 199m : cost;
-
-    public override bool TryModifyRestSiteOptions(Player player, ICollection<RestSiteOption> options)
-    {
-        if (player != Owner || player.RunState is not RunState runState) return false;
-        M5ProgressState state = M5Progress.Handle.Get(runState);
-        if (state.FourthRouteRelicStage != 2 || !FourthRouteProgressService.TryGetQuest(runState, out FourthRouteQuest quest))
-            return false;
-        bool dark = FourthRouteProgressService.AlignmentOf(quest) == FourthRouteAlignment.Dark;
-        if (!player.Deck.Cards.Any(card => dark ? Core.Routes.RouteCardQuery.IsHoly(card) : Core.Routes.RouteCardQuery.IsCorrupt(card)))
-            return false;
-        options.Add(new FourthRouteSacrificeOption(player));
-        return true;
-    }
 
     public override Task AfterPotionUsed(PotionModel potion, MegaCrit.Sts2.Core.Entities.Creatures.Creature? target) =>
         TrackSimple(FourthRouteQuest.Gluttony);

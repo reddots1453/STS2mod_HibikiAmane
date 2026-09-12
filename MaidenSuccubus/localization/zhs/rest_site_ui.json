@@ -1,8 +1,6 @@
 {
-  "OPTION_MAIDEN_SUCCUBUS_REMOVE_SEALED.name": "解除封印",
-  "OPTION_MAIDEN_SUCCUBUS_REMOVE_SEALED.description": "确认并移除牌组中当前被封印的所有卡牌。此操作不会消耗本次休息处行动。",
+  "OPTION_MAIDEN_SUCCUBUS_SACRIFICE.name": "献祭",
+  "OPTION_MAIDEN_SUCCUBUS_SACRIFICE.description": "移除牌组中所有当前处于封印区的卡牌。若路线遗物处于生长阶段，此次献祭会使其成长。此行动不占用火堆次数。",
   "OPTION_MAIDEN_SUCCUBUS_MASTURBATE.name": "自慰",
   "OPTION_MAIDEN_SUCCUBUS_MASTURBATE.description": "将欲望降低至3点。此操作会消耗本次休息处行动。"
-  ,"OPTION_MAIDEN_SUCCUBUS_FOURTH_ROUTE_SACRIFICE.name": "献祭",
-  "OPTION_MAIDEN_SUCCUBUS_FOURTH_ROUTE_SACRIFICE.description": "献祭1张对立路线卡牌，使路线遗物成长。此行动不占用火堆次数。"
 }

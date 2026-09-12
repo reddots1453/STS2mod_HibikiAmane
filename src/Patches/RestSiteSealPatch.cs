@@ -30,7 +30,7 @@ public static class RestSiteSealPatch
 
                 if (CombatSealQuery.GetSealedDeckCards(__0).Count > 0)
                 {
-                    __result.Add(new RemoveSealedCardsRestSiteOption(__0));
+                    __result.Add(new SacrificeRestSiteOption(__0));
                 }
 
                 if (Desire.Get(__0) >= 5)

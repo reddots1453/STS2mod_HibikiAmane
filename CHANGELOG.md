@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-12 — 合并第四层献祭与封印区火堆行动
+
+- 变更前快照：`maiden-pre-unified-sacrifice-rest-site-action-20260912` → `9109302b0e2f7817df7929983f8168863d701943`；早先同一提交上的诊断标签`maiden-pre-fourth-route-sacrifice-dedup-fix-20260912`保留。用户未提交的`DesignDoc.md`、`.review`研究资料和卡图资产未纳入修改。
+- 玩家澄清设计：第四层路线“献祭”就是牌组中因路线进入封印区的卡牌所使用的火堆清除行动，不应另有一个“选1张对立路线牌”的并列行动。旧实现分别由`RestSiteSealPatch`和`TwinSoulChalice.TryModifyRestSiteOptions`注入两个不同`OptionId`，因此界面同时显示“解除封印”和“献祭”；这不是同一监听器的重复调用。
+- 删除拆分的`RemoveSealedCardsRestSiteOption`与`FourthRouteSacrificeOption`，改成唯一`SacrificeRestSiteOption`；仅在存在封印牌时生成，确认后一次移除全部封印牌，取消则不产生任何变化，并继续使用一次性保留策略确保不占正常火堆行动。
+- 路线遗物不再自行添加火堆选项。统一献祭在确认的封印牌中包含当前任务所要求的对立路线牌、且路线遗物正处于生长阶段时调用既有阶段推进服务，使遗物成长为繁荣；不满足该条件时只执行普通封印区献祭。
+- 中文火堆标题统一为“献祭”，删除“解除封印”和“选择1张对立路线牌”的旧文案；结构验证与两份手测清单增加“只存在一个行动、批量移除、条件推进”的回归门。
+- 验证：`dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=true`通过，0 warning、0 error；204张卡本地化、内容契约、结构契约、文本格式、卡牌效果测试契约和9场景拘束测试契约全部通过。首次受限构建仅因NuGet签名源网络权限失败，获准访问后恢复并完成。
+- 部署：否；等待用户明确要求后再部署。
+
 ## 2026-09-12 — 第四层路线地图触发与奖励后旅行修复
 
 - 变更前快照：`maiden-pre-fourth-route-map-modal-fix-20260912` → `230f32cc80a1aaeaa2da4be7cfa3e7507d40bc7e`；用户未提交的`DesignDoc.md`和卡图配置修改保持原样。
