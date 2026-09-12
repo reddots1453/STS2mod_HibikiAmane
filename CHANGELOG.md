@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-12 — “心眼”与“反射屏障”定稿、“终极耀斑”红光俯视候选
+
+- 变更前快照：`maiden-pre-card-art-acceptance-ultimate-flare-red-20260912` → `b0ab504`；未修改或提交玩家正在编辑的`DesignDoc.md`。
+- 玩家确认单眼特写`008_MindsEye_eye_focus_v01.png`作为“心眼”正式卡图；`selection_manifest.json`改为`accepted`并更新`selected/008_MindsEye.png`标准化副本。
+- 玩家确认第一批`065_ReflectiveBarrier_反射屏障_v01.png`作为“反射屏障”正式卡图；将其加入V3选择清单并新增`selected/065_ReflectiveBarrier.png`标准化副本。
+- 以旧候选`014_UltimateFlare_u01.png`为姿势和服装参考重构“终极耀斑”：镜头改为高位俯视，角色继续悬空并展开双臂，头顶出现单一亮红色高强度耀斑；移除蓝色巨环、机械边框和蛛网状构件，背景改为下方的黑蓝色环形废墟。
+- 新候选`014_UltimateFlare_red_overhead_v01.png`已规范化为`1000×760 RGB`，保存原始高分辨率图、完整生成规格与可重复规范化脚本；等待玩家确认，未擅自替换正式`selected/014_UltimateFlare.png`。
+- 部署：否；本轮只更新卡图选择记录与候选资产，不修改或部署Mod运行时代码。
+
 ## 2026-09-12 — 变身立绘归档与“心眼”单眼构图候选
 
 - 变更前快照：`maiden-pre-transform-archive-mindseye-eye-20260912` → `c69471f`；未修改或提交玩家正在编辑的`DesignDoc.md`。

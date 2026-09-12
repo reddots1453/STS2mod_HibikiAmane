@@ -53,10 +53,15 @@ def main() -> None:
         x = 24 + column * (THUMB[0] + 18)
         y = 24 + row * (THUMB[1] + 106)
         sheet.paste(image, (x, y))
-        status_color = (112, 219, 157) if item["status"] == "recommended" else (244, 193, 96)
+        status_color = {
+            "accepted": (90, 224, 139),
+            "recommended": (112, 219, 157),
+            "provisional": (244, 193, 96),
+        }.get(item["status"], (205, 210, 220))
         draw.text((x, y + THUMB[1] + 8), f"{int(item['index']):03d}  {item['title']}", fill=(242, 245, 250), font=title_font)
         draw.text((x, y + THUMB[1] + 42), item["status"], fill=status_color, font=small_font)
-        draw.text((x + 135, y + THUMB[1] + 42), item["source"], fill=(166, 176, 194), font=small_font)
+        source_label = Path(item["source"]).name
+        draw.text((x + 135, y + THUMB[1] + 42), source_label, fill=(166, 176, 194), font=small_font)
 
     sheet.save(SHEET, quality=92, subsampling=0)
     print(f"selected={len(items)}")
