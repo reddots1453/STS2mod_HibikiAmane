@@ -74,6 +74,18 @@ $escapeVisuals = Read-Text "src\UI\EscapeCardVisuals.cs"
 Assert-Contains "escape visual reentrancy" $escapeVisuals '\[ThreadStatic\]\s+private static bool _refreshing'
 Assert-Contains "escape visual reentrancy" $escapeVisuals 'if \(_refreshing\)'
 
+$battleReplayPower = Read-Text "src\Powers\Iteration1HolyPowers.cs"
+$battleReplayCapability = Read-Text "src\Core\Replay\BattleReplayOriginCapability.cs"
+$battleReplayVisuals = Read-Text "src\UI\BattleReplayCardVisuals.cs"
+Assert-Contains "battle replay instance marker" $battleReplayPower 'ModelCapabilityRegistry\.Create<BattleReplayOriginCapability>\(\)'
+Assert-Contains "battle replay overlay registration" $battleReplayCapability '\[RegisterModelCapability\('
+Assert-Contains "battle replay overlay ownership" $battleReplayCapability 'ICardOverlayContributor'
+Assert-Contains "battle replay overlay factory" $battleReplayCapability 'maiden_battle_replay_shadow'
+Assert-Contains "battle replay shadow visuals" $battleReplayVisuals 'CreateShadowOverlay'
+Assert-Contains "battle replay edge shadow" $battleReplayVisuals 'AddEdgeBands'
+Assert-NotContains "battle replay type-wide overlay" $battleReplayPower 'OverlayPath'
+Assert-NotContains "battle replay persistent visual timer" $battleReplayVisuals 'new\s+Timer'
+
 $intent = Read-Text "src\Core\Intents\IntentMoveFactory.cs"
 Assert-NotContains "erotic intent ids" $intent 'Interlocked\.Increment'
 Assert-Contains "erotic intent ids" $intent '\$"MAIDENSUCCUBUS_\{kind\}"'
@@ -144,4 +156,4 @@ if (!(Test-Path -LiteralPath $scenePath)) {
     throw "Character scene is missing: $scenePath"
 }
 
-Write-Host "Validated structural contracts: isolated build/deploy gates, instance-attached Escape capability with preserved original state, event-driven UI, simultaneous left-side and combat desire UI, canonical and collision-safe desire intent display, stable intent state, shared derivative pool, map-safe fourth-route modal, unified sacrifice/sealed-card rest-site action, character scene."
+Write-Host "Validated structural contracts: isolated build/deploy gates, instance-attached Escape capability with preserved original state, instance-attached Battle Replay shadow, event-driven UI, simultaneous left-side and combat desire UI, canonical and collision-safe desire intent display, stable intent state, shared derivative pool, map-safe fourth-route modal, unified sacrifice/sealed-card rest-site action, character scene."

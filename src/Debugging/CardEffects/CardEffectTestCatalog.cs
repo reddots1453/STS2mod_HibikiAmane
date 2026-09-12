@@ -20,10 +20,12 @@ using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Core.Intents;
+using MaidenSuccubus.Core.Replay;
 using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.Powers;
 using STS2RitsuLib.Combat.SecondaryResources;
+using STS2RitsuLib.Models.Capabilities;
 
 namespace MaidenSuccubus.Debugging.CardEffects;
 
@@ -1115,6 +1117,8 @@ internal static class CardEffectTestCatalog
                 typeof(MaidenStrike), projected.GetType());
             ctx.AssertEqual("upgraded replay projection retains", upgraded,
                 projected.Keywords.Contains(CardKeyword.Retain));
+            ctx.AssertTrue("replay projection carries source shadow",
+                projected.TryGetCapability<BattleReplayOriginCapability>(out _));
             ctx.AssertTrue("original replay instance was transformed",
                 replay.HasBeenRemovedFromState);
 
@@ -1125,6 +1129,8 @@ internal static class CardEffectTestCatalog
                 typeof(BattleTechniqueReplay), restored.GetType());
             ctx.AssertEqual("restored replay preserves upgrade", upgraded,
                 restored.IsUpgraded);
+            ctx.AssertEqual("restored replay drops source shadow", false,
+                restored.TryGetCapability<BattleReplayOriginCapability>(out _));
             ctx.AssertEqual("played projection leaves play pile", 0,
                 PileType.Play.GetPile(ctx.Player).Cards.Count);
         }, 7);

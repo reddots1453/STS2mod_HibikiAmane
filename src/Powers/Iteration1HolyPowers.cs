@@ -5,9 +5,11 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MaidenSuccubus.Cards;
+using MaidenSuccubus.Core.Replay;
 using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Keywords;
 using STS2RitsuLib.Interop.AutoRegistration;
+using STS2RitsuLib.Models.Capabilities;
 using STS2RitsuLib.Scaffolding.Content;
 
 namespace MaidenSuccubus.Powers;
@@ -166,6 +168,9 @@ public sealed class BattleTechniqueReplayPower : MaidenSuccubusPowerTemplate
                 CardModel copy = Owner.CombatState.CloneCard(cardPlay.Card);
                 copy.DeckVersion = replay.DeckVersion;
                 copy.AddKeyword(BattleReplayKeyword.Value);
+                copy.AddCapability(
+                    ModelCapabilityRegistry.Create<BattleReplayOriginCapability>(),
+                    allowMerge: false);
                 if (upgraded)
                 {
                     copy.AddKeyword(CardKeyword.Retain);
