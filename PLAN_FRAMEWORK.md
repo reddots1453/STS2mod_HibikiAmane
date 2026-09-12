@@ -788,6 +788,7 @@ PowerLayerQuery.CountDebuffLayers(creature)
 - WORD-2：圣言Power在状态栏按剩余回合显示。
 - WORD-3：回合开始/结束型圣言按各自时点触发。
 - WORD-4：每次实际圣言效果触发都会发布`ScriptureTriggered`。
+- WORD-5：生成或变化圣言的来源牌不展开具体圣言卡图悬停预览，避免多张衍生牌越过屏幕；正文中的圣言术语说明仍保留。
 - LAYER-1：利用增益/负面层数的测试卡与Power Amount总和一致。
 
 ---

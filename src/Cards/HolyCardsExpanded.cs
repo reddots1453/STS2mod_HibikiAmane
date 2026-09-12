@@ -497,9 +497,6 @@ public sealed class FinalJudgment : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class Chant : MSHolyCard
 {
-    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
-        ScriptureCardPreview.All();
-
     public Chant()
         : base(1, CardType.Skill, CardRarity.Common, TargetType.Self)
     {
@@ -556,12 +553,6 @@ public sealed class Chant : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class Gospel : MSHolyCard
 {
-    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
-    [
-        HoverTipFactory.FromCard<GuardianScripture>(IsUpgraded),
-        HoverTipFactory.FromCard<PunishmentScripture>(IsUpgraded),
-    ];
-
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [CardKeyword.Exhaust];
 

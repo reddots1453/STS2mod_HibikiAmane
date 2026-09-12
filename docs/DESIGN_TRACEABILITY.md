@@ -68,7 +68,7 @@
 | `KW-PORTABLE-001` | 随身 | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 | `KW-CONDEMNATION-001` | 断罪与审判 | READY | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 | `KW-PURIFICATION-001` | 净化 | READY | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
-| `SYS-SCR-001` | 六种圣言及持续Power | READY | 下一轮 | DEFERRED（样本保留） | 不进入MVP验收 |
+| `SYS-SCR-001` | 六种圣言及持续Power | READY | 下一轮 | DEFERRED（样本保留） | 不进入MVP验收；来源牌不展开圣言卡图悬停预览 |
 | `SYS-BLS-001` | Boss后光明/黑暗恩赐 | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 
 ## 3. 内容章节追踪

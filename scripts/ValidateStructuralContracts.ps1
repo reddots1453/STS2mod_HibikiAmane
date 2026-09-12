@@ -90,6 +90,11 @@ $allSource = (Get-ChildItem -LiteralPath (Join-Path $ProjectDir "src") -Recurse 
     Get-Content -Raw) -join "`n"
 Assert-NotContains "event-driven runtime" $allSource 'new\s+Timer\s*\('
 Assert-NotContains "scripture pool" $allSource 'MSScriptureCardPool'
+Assert-NotContains "scripture source-card hover previews" $allSource 'HoverTipFactory\.FromCard<(Guardian|Nimble|Punishment|Wisdom|Vitality|Bliss)Scripture>'
+$scripturePreviewHelper = Join-Path $ProjectDir "src\Cards\Scriptures\ScriptureCardPreview.cs"
+if (Test-Path -LiteralPath $scripturePreviewHelper) {
+    throw "Scripture card-preview helper must remain removed: $scripturePreviewHelper"
+}
 
 $desireResource = Read-Text "src\Core\Desire\DesireResource.cs"
 $desireMeter = Read-Text "src\UI\DesireMeter.cs"
