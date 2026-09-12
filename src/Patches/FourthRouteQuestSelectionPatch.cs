@@ -15,8 +15,9 @@ namespace MaidenSuccubus.Patches;
 
 /// <summary>
 /// Opens route selection and pending route rewards only after the map scene is
-/// stable. Both flows use a dedicated overlay and never run from room-entry or
-/// combat-start hooks, which are still inside the scene transition lifecycle.
+/// stable. Both flows use the original map-compatible modal container and never
+/// run from room-entry or combat-start hooks, which are still inside the scene
+/// transition lifecycle.
 /// </summary>
 [HarmonyPatch(typeof(NMapScreen), nameof(NMapScreen.Open))]
 public static class FourthRouteQuestSelectionPatch
@@ -90,6 +91,8 @@ public static class FourthRouteQuestSelectionPatch
         if (restoreTravel) map.SetTravelEnabled(false);
         try
         {
+            MaidenSuccubusMod.Logger.Info(
+                $"Fourth-route map modal ready: quest={needsQuest}, reward={needsReward}, mapOpen={map.IsOpen}.");
             if (!FourthRouteProgressService.TryGetQuest(runState, out _))
                 await chalice.EnsureFourthRouteQuestSelected();
             if (FourthRouteProgressService.HasPendingInitialReward(runState))
@@ -100,7 +103,11 @@ public static class FourthRouteQuestSelectionPatch
             if (restoreTravel
                 && RunManager.Instance.DebugOnlyGetState() == runState
                 && NMapScreen.Instance is { IsOpen: true } currentMap)
+            {
                 currentMap.SetTravelEnabled(true);
+                MaidenSuccubusMod.Logger.Info(
+                    $"Fourth-route map travel restored: enabled={currentMap.IsTravelEnabled}.");
+            }
         }
     }
 

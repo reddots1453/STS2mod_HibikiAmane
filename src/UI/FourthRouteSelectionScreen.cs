@@ -1,18 +1,20 @@
 using Godot;
 using MegaCrit.Sts2.addons.mega_text;
-using MegaCrit.Sts2.Core.Entities.Multiplayer;
-using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
+using MegaCrit.Sts2.Core.Helpers;
+using MegaCrit.Sts2.Core.Nodes.CommonUi;
+using MegaCrit.Sts2.Core.Nodes.Screens.ScreenContext;
 using MaidenSuccubus.Acts;
 using MaidenSuccubus.Relics;
 
 namespace MaidenSuccubus.UI;
 
 /// <summary>
-/// Dedicated fourth-route screen based on the overlay pattern used by the
-/// locally installed Hextech Runes mod. It deliberately contains no CardModel
-/// nodes, so route choices can no longer be mistaken for card rewards.
+/// Dedicated fourth-route modal. The original map deliberately hides
+/// NOverlayStack while it is open, so map-gated choices must use the same
+/// NModalContainer path as the original map tutorial. It deliberately contains
+/// no CardModel nodes, so route choices cannot be mistaken for card rewards.
 /// </summary>
-public sealed partial class FourthRouteSelectionScreen : Control, IOverlayScreen
+public sealed partial class FourthRouteSelectionScreen : Control, IScreenContext
 {
     private enum ScreenMode { QuestChoice, Reward }
 
@@ -25,8 +27,6 @@ public sealed partial class FourthRouteSelectionScreen : Control, IOverlayScreen
     private bool _resolved;
     private bool _closed;
 
-    public NetScreenType ScreenType => NetScreenType.Rewards;
-    public bool UseSharedBackstop => true;
     public Control? DefaultFocusedControl => _buttons.FirstOrDefault();
 
     private FourthRouteSelectionScreen(
@@ -48,20 +48,28 @@ public sealed partial class FourthRouteSelectionScreen : Control, IOverlayScreen
         FourthRouteQuest dark,
         FourthRouteQuest light)
     {
-        NOverlayStack stack = NOverlayStack.Instance
-            ?? throw new InvalidOperationException("Route selection requires NOverlayStack.");
         FourthRouteSelectionScreen screen = new(ScreenMode.QuestChoice, dark, light);
-        stack.Push(screen);
+        AddToModalContainer(screen, "Route selection");
         return await screen._questCompletion.Task;
     }
 
     public static async Task<bool> ShowReward(FourthRouteQuest quest)
     {
-        NOverlayStack stack = NOverlayStack.Instance
-            ?? throw new InvalidOperationException("Route reward requires NOverlayStack.");
         FourthRouteSelectionScreen screen = new(ScreenMode.Reward, quest);
-        stack.Push(screen);
+        AddToModalContainer(screen, "Route reward");
         return await screen._rewardCompletion.Task;
+    }
+
+    private static void AddToModalContainer(
+        FourthRouteSelectionScreen screen,
+        string operation)
+    {
+        NModalContainer container = NModalContainer.Instance
+            ?? throw new InvalidOperationException($"{operation} requires NModalContainer.");
+        if (container.OpenModal is not null)
+            throw new InvalidOperationException($"{operation} cannot replace an active modal.");
+        container.Add(screen);
+        Callable.From(() => screen.DefaultFocusedControl?.GrabFocus()).CallDeferred();
     }
 
     private void BuildUi(FourthRouteQuest first, FourthRouteQuest? second)
@@ -362,7 +370,7 @@ public sealed partial class FourthRouteSelectionScreen : Control, IOverlayScreen
         _resolved = true;
         DisableButtons();
         _questCompletion.TrySetResult(quest);
-        NOverlayStack.Instance?.Remove(this);
+        CloseModal();
     }
 
     private void ResolveReward()
@@ -371,7 +379,7 @@ public sealed partial class FourthRouteSelectionScreen : Control, IOverlayScreen
         _resolved = true;
         DisableButtons();
         _rewardCompletion.TrySetResult(true);
-        NOverlayStack.Instance?.Remove(this);
+        CloseModal();
     }
 
     private void DisableButtons()
@@ -379,14 +387,28 @@ public sealed partial class FourthRouteSelectionScreen : Control, IOverlayScreen
         foreach (Button button in _buttons) button.Disabled = true;
     }
 
-    public void AfterOverlayOpened()
+    private void CloseModal()
     {
-        Visible = true;
-        DefaultFocusedControl?.GrabFocus();
+        NModalContainer? container = NModalContainer.Instance;
+        if (container is not null && ReferenceEquals(container.OpenModal, this))
+            container.Clear();
+        else
+            QueueFree();
     }
 
-    public void AfterOverlayClosed()
+    public override void _EnterTree()
     {
+        FocusMode = FocusModeEnum.All;
+        FocusNeighborBottom = GetPath();
+        FocusNeighborTop = GetPath();
+        FocusNeighborLeft = GetPath();
+        FocusNeighborRight = GetPath();
+        NHotkeyManager.Instance?.AddBlockingScreen(this);
+    }
+
+    public override void _ExitTree()
+    {
+        NHotkeyManager.Instance?.RemoveBlockingScreen(this);
         if (_closed) return;
         _closed = true;
         if (!_resolved)
@@ -394,16 +416,7 @@ public sealed partial class FourthRouteSelectionScreen : Control, IOverlayScreen
             _questCompletion.TrySetResult(null);
             _rewardCompletion.TrySetResult(false);
         }
-        QueueFree();
     }
-
-    public void AfterOverlayShown()
-    {
-        Visible = true;
-        DefaultFocusedControl?.GrabFocus();
-    }
-
-    public void AfterOverlayHidden() => Visible = false;
 }
 
 internal static class FourthRouteLabelExtensions

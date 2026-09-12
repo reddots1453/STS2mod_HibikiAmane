@@ -98,9 +98,21 @@ Assert-Contains "combat desire UI" $desireResource 'AlwaysShowInCombatUiForChara
 Assert-Contains "noncombat desire UI" $desireMeter 'Character-only vertical desire meter displayed along the left side'
 Assert-Contains "noncombat desire UI" $desireMeter 'Visible\s*=\s*!inCombat'
 
+$fourthRouteScreen = Read-Text "src\UI\FourthRouteSelectionScreen.cs"
+Assert-Contains "fourth-route map modal" $fourthRouteScreen 'IScreenContext'
+Assert-Contains "fourth-route map modal" $fourthRouteScreen 'NModalContainer\.Instance'
+Assert-Contains "fourth-route map modal" $fourthRouteScreen 'container\.Add\(screen\)'
+Assert-Contains "fourth-route input blocking" $fourthRouteScreen 'AddBlockingScreen\(this\)'
+Assert-Contains "fourth-route input cleanup" $fourthRouteScreen 'RemoveBlockingScreen\(this\)'
+Assert-NotContains "fourth-route map-hidden overlay" $fourthRouteScreen 'NOverlayStack\.Instance'
+
+$fourthRoutePatch = Read-Text "src\Patches\FourthRouteQuestSelectionPatch.cs"
+Assert-Contains "fourth-route travel suspension" $fourthRoutePatch 'map\.SetTravelEnabled\(false\)'
+Assert-Contains "fourth-route travel restoration" $fourthRoutePatch 'currentMap\.SetTravelEnabled\(true\)'
+
 $scenePath = Join-Path $ProjectDir "MaidenSuccubus\scenes\maiden_succubus_character.tscn"
 if (!(Test-Path -LiteralPath $scenePath)) {
     throw "Character scene is missing: $scenePath"
 }
 
-Write-Host "Validated structural contracts: isolated build/deploy gates, instance-attached Escape capability with preserved original state, event-driven UI, dual-context desire UI, stable intent state, shared derivative pool, character scene."
+Write-Host "Validated structural contracts: isolated build/deploy gates, instance-attached Escape capability with preserved original state, event-driven UI, dual-context desire UI, stable intent state, shared derivative pool, map-safe fourth-route modal, character scene."

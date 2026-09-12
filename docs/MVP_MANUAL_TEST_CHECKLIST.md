@@ -66,6 +66,7 @@
 
 使用`ms_route set <Quest>`和`ms_route state`逐条验证；自然触发至少选一条暗路线和一条光路线，其余可用调试命令缩短流程。
 
+- [ ] 首次路线选择和任务完成奖励均在地图保持打开时立即显示；无需手动关闭地图，领取奖励后当前可达地图节点立即恢复悬停、聚焦与选择。
 - [ ] 七宗罪任务：Pride精英3、Greed持有300金币、Lust欲望≥5结束战斗3、Envy移除2牌、Gluttony用3药水、Wrath三回合内胜利4、Sloth火堆休息2。
 - [ ] 七美德任务：Humility升级2张初始牌、Generosity跳过1宝箱、Chastity欲望≤2结束战斗3、Benevolence加5牌、Temperance跳过2卡牌奖励、Patience普通战5、Diligence火堆锻造3。
 - [ ] 完成任务只结算一次：暗路线+1堕落、光路线-1堕落，获得对应“始源”遗物并标记碎片待售。

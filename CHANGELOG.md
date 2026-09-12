@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-12 — 第四层路线地图触发与奖励后旅行修复
+
+- 变更前快照：`maiden-pre-fourth-route-map-modal-fix-20260912` → `230f32cc80a1aaeaa2da4be7cfa3e7507d40bc7e`；用户未提交的`DesignDoc.md`和卡图配置修改保持原样。
+- 运行日志在本轮报告时没有包含新的第四层复现记录；根据稳定复现症状和原版UI源码定位到同一根因：`NOverlayStack`在`NMapScreen.Opened`时主动隐藏全部overlay，旧路线界面却在地图打开后压入该栈，因此必须关闭地图才可见；奖励结算时地图已经关闭，又使原有`SetTravelEnabled(true)`恢复分支被跳过。
+- 路线任务选择和始源奖励界面改用原版`NMapSelectFtue`在地图上方采用的`NModalContainer`路径；界面直接实现`IScreenContext`，进入/退出树时登记和移除阻断输入，关闭时只清理自己占用的modal，并在外部清理时完成等待任务，避免悬挂异步流程。
+- 保留地图稳定门：等待开幕动画、原版地图教程及已有modal结束后再显示路线界面；显示期间暂停地图旅行，奖励/任务状态结算后重新调用原版`SetTravelEnabled(true)`刷新可达节点，并增加低频日志记录modal打开与旅行恢复结果。
+- 结构验证新增第四层地图modal、输入清理、禁止重新使用地图隐藏overlay及旅行开关成对出现的回归门；MVP与第一轮手测清单新增“地图不关闭即显示、领奖后节点立即可选”的精确验收项。
+- 验证：`dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=true`通过，0 warning、0 error；204张卡本地化、内容契约、结构契约、文本格式、卡牌效果测试契约和9场景拘束测试契约全部通过。
+- 部署：否；等待用户明确要求后再部署并进行第四层地图实测。
+
 ## 2026-09-12 — 燃烧手环右臂与肤色修复
 
 - 变更前快照：`maiden-pre-card-art-burning-bracelet-fix-20260912` → `230f32cc80a1aaeaa2da4be7cfa3e7507d40bc7e`；用户未提交的`DesignDoc.md`未修改，SHA-256保持`2B3D19DF003DBE0106E19E386780D6A72C739C6861C6E063C409519C719A879E`。
