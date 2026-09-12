@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-12 — “终极耀斑”定稿与完成版卡图集中归档
+
+- 变更前快照：`maiden-pre-final-card-art-consolidation-20260912` → `2ba7816`；未修改或提交玩家正在编辑的`DesignDoc.md`。
+- 玩家确认`014_UltimateFlare_abstract_overhead_v03.png`作为“终极耀斑”正式卡图；将选择清单来源切换至该版本并设为`accepted`，同步更新`selected/014_UltimateFlare.png`。
+- 补记玩家此前对燃烧手环`t03`的正式确认，将其状态由`recommended`改为`accepted`；光子伏特仍为推荐候选、精液变换仍为暂定候选，均未混入完成版。
+- 新建`图片素材/完成版卡图/`，按`三位编号_英文类名_中文卡名.png`统一归档燃烧手环、心眼、终极耀斑、黑暗元素和反射屏障五张完成版；新增README与包含来源、状态和SHA-256的清单。
+- 验证：五张图片均为`1000×760` PNG，完成版副本与各自已确认源文件SHA-256一致，清单JSON可解析。
+- 部署：否；本轮只确认并整理卡图资产，不修改或部署Mod运行时代码。
+
 ## 2026-09-12 — 校服形态归档与原作永恒天衣素材核查
 
 - 变更前快照：`maiden-pre-school-form-archive-eternal-audit-20260912` → `2763828`；未修改或提交玩家正在编辑的`DesignDoc.md`。
