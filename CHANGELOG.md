@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-12 — 燃烧手环右臂与肤色修复
+
+- 变更前快照：`maiden-pre-card-art-burning-bracelet-fix-20260912` → `230f32cc80a1aaeaa2da4be7cfa3e7507d40bc7e`；用户未提交的`DesignDoc.md`未修改，SHA-256保持`2B3D19DF003DBE0106E19E386780D6A72C739C6861C6E063C409519C719A879E`。
+- 针对玩家指出的“手臂变形、变色”，先验证WAI局部遮罩重绘；两张结果均产生肉质纹理块，明确淘汰，不进入候选集。
+- 改用高保真精确对象编辑，仅重建前伸右臂、腕部、手环、手掌及接缝：右臂恢复连续正常肤色，肘腕比例合理，五指完整，火焰从手环外侧产生且不再侵入皮肤。
+- 输出以居中Lanczos裁切规范化为`1000×760`，保存为`targeted/002_BurningBracelet_t03.png`；`selection_manifest.json`和本地`selected/`候选已指向修复版。完整输入、方法和提示词记录在`precision_edit_manifest.json`。
+- 部署：否；本轮只调整单张卡图，不修改或部署Mod运行时代码。
+
 ## 2026-09-12 — V3final逐卡精修与局部语义修正
 
 - 变更前快照：`maiden-pre-card-art-v3-refinement-20260912` → `d87fca2ce8b573727afd3be6af8b2b57aa4028b9`；用户未提交的`DesignDoc.md`未修改，SHA-256保持`2B3D19DF003DBE0106E19E386780D6A72C739C6861C6E063C409519C719A879E`。
