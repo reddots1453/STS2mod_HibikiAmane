@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-12 — 黑暗元素卡图正式确认
+
+- 变更前快照：`maiden-pre-card-art-dark-element-finalize-20260912` → `019147e`；未修改玩家正在编辑的`DesignDoc.md`。
+- 玩家确认`049_DarkElement_orb_identity_03.png`作为“黑暗元素”正式卡图；`selection_manifest.json`来源改指该图并将状态设为`accepted`，标准化副本更新为`selected/049_DarkElement.png`。
+- 正式图使用原作黑暗元素动画的紫色球体语言表现攻击，以独立月牙屏障表现魔力解放格挡；局部双手通过原作堕落形态护手保留响木天音身份特征，不依赖完整人物展示。
+- 验证：正式源文件与`selected/`副本SHA-256一致，均为可读取的`1000×760` PNG；选择清单JSON可解析。
+- 部署：否；仅确认第一批卡图资产，不修改或部署Mod运行时代码。
+
 ## 2026-09-12 — 黑暗元素手部角色特征修正
 
 - 变更前快照：`maiden-pre-card-art-dark-element-hand-identity-fix-20260912` → `405a94d`；未修改玩家正在编辑的`DesignDoc.md`。
