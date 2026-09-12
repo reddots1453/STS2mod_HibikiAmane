@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-12 — 拘束意图测试套件部署
+
+- 部署前快照：`maiden-pre-control-intent-test-deploy-20260912` → `a8a74c646096fe6088cdfc42d5a58ab4ad2e1582`；该HEAD包含拘束意图九场景测试提交`fcba973b954d5ef95fe30956aca8f82854580659`及其后的首批卡图V2生成流程提交，用户未提交的`DesignDoc.md`、`.review`资料和素材保持原样。
+- 显式执行`dotnet build -c Debug -p:DeployMod=true -p:ValidateMod=true`；内容契约、结构契约、204张卡本地化、文本格式、204张卡效果测试契约（201张可执行、3张`DESIGN_PENDING`）及9场景拘束意图测试契约全部通过，0 warning、0 error。
+- 已部署至`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`，并同步33个运行资源至安装目录与`D:\game_backup\steam\steamapps\common\Slay the Spire 2\MaidenSuccubus`热加载目录；两处资源均为0缺失、0哈希不一致。
+- 源码产物与安装目录SHA-256一致：DLL `4B233E26ECFC5B0CD9A3F94490325DD7A9E89260C51F4110B615E1BBBAE6A4D4`，PDB `8E482014C34AF1BBB2A14CB4AFAEDCC9E5C2A747E9F75448B2CAA8293EA17D3D`，manifest `B30F2B6A2999AA5DBD7ACD3649A1B51666AA19B38221C42A38A4A06EB84542A3`。
+- 游戏内验证：尚待玩家在一次性单人战斗中按`Shift+F10`（或控制台执行`ms_test_control confirm`）运行破坏性的9场景测试；结果写入已加载模组程序集旁的`control-intent-test-results/latest.json`，测试后应放弃该局。
+
 ## 2026-09-11 — 第一批卡图V2多参考图与十变体批处理
 
 - 变更前快照：分支`codex/maiden-controlled-merge-v2`，提交`59c68bbe32a03b432eafb4a6ddca8c9a20d8c071`；用户未提交的`DesignDoc.md`保持原样，写入前SHA-256为`2B3D19DF003DBE0106E19E386780D6A72C739C6861C6E063C409519C719A879E`。
