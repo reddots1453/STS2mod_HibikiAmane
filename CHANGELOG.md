@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-13 — “光子伏特”弃用旧图的纯文生图重制
+
+- 变更前快照：`maiden-pre-photon-volt-text2img-20260913`；未修改或提交玩家正在编辑的`DesignDoc.md`及工作区中的无关代码/素材。
+- 按玩家反馈彻底停止沿用旧图：新工作流从`EmptyLatentImage`开始，未加载任何旧版光子伏特、参考图或中间供体，也未使用图生图、IPAdapter、ControlNet或局部重绘。
+- 保留既定文字提示中的响木天音外观、白蓝金魔法少女服、斜向攻击动作和掌心释放光子攻击；背景更换为夜间未来都市与深蓝天空。
+- 以本地ComfyUI的`waiNSFWIllustrious_v140.safetensors` + `celesphonia-1.8.safetensors`生成六个纯文生图版本；前三张因锁链误读淘汰，纠偏后推荐`022_PhotonVolt_text2img_v05.png`，双臂均从肩部连续连接至手掌。
+- 推荐稿规格为`1000×760 RGB PNG`；选择清单与`selected/022_PhotonVolt.png`切换到新`v05`，状态仍为`recommended`，未在玩家确认前写入`完成版卡图/`。
+- 部署：否；本轮仅更新卡图候选、选择清单和可复现生成资料，不修改Mod运行时逻辑。
+
 ## 2026-09-13 — “光子伏特”保留构图的整图重绘与背景替换
 
 - 变更前快照：`maiden-pre-photon-volt-full-redraw-20260913` → `750e2b9`；未修改或提交玩家正在编辑的`DesignDoc.md`及工作区中的无关代码/素材。
