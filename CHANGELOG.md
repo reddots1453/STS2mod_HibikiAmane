@@ -6,7 +6,8 @@
 - 运行时证据：玩家截图显示“神圣惩戒”悬停时多张圣言卡图纵向堆叠并越过屏幕；同一时段日志连续出现`Asset not cached: res://scenes/ui/card_hover_tip.tscn`，没有圣言效果执行异常。
 - 修复：移除“吟唱”“奉献”“神圣惩戒”“福音”的具体圣言`FromCard`悬停预览，并删除不再使用的`ScriptureCardPreview`六牌预览辅助类；圣言效果、选择界面、卡牌变化及正文术语不变。
 - 回归：结构验证器禁止六种圣言重新通过`HoverTipFactory.FromCard<T>()`挂到来源牌；Plan、追踪矩阵和手测清单记录悬停边界。
-- 无部署构建：`dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=true`通过，`0 warning / 0 error`；204张卡内容与本地化、201张可执行卡效果、3张`DESIGN_PENDING`跳过项、9个拘束场景及新增圣言悬停结构契约全部通过。首次受限环境中的NuGet签名检查被拒绝，获准恢复后成功；范围提交后立即部署并补录安装哈希。
+- 无部署构建：`dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=true`通过，`0 warning / 0 error`；204张卡内容与本地化、201张可执行卡效果、3张`DESIGN_PENDING`跳过项、9个拘束场景及新增圣言悬停结构契约全部通过。首次受限环境中的NuGet签名检查被拒绝，获准恢复后成功。
+- 范围提交：`b6a219b`。提交后立即尝试范围部署；进程`SlayTheSpire2`（PID 22760）正在使用安装DLL，Windows拒绝覆盖。PDB已更新，但安装DLL仍为上一版`239A58AE…EDD131`，与本次源码DLL `5B09FB70…F77ED9`不一致，因此本修复明确标记为“尚未部署”；不擅自终止游戏，待进程关闭后立即重试并补录最终哈希。
 
 ## 2026-09-12 — 战斗中保留左侧欲望计量条
 
