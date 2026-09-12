@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-12 — 欲望攻击意图名称与并排布局修复
+
+- 变更前快照：`maiden-pre-desire-intent-display-fix-20260912` → `61c3ab9`；未修改或提交玩家正在编辑的`DesignDoc.md`、并行美术资产及`.review`研究资料。
+- 运行时证据：玩家截图中欲望攻击的悬停标题错误显示为“诱惑”；其`+1`角标位于图标右下方，与同一行动右侧的“策略”意图挤叠。同期日志没有该意图的未处理异常，问题限定在本地化与布局层。
+- 根因与修复：中文`MAIDENSUCCUBUS_DESIRE.title`改为DesignDoc正式术语“欲望攻击”；欲望数值不再占用RitsuLib明确保留给原版数值的`BottomRight`槽位，改在当前意图自身`64×63`区域的底部数值带居中显示。
+- 回归：结构验证器固定正式标题、居中自定义数值槽，并禁止`DesireGainIntent`重新使用右下角保留槽；Plan、追踪矩阵和M4手测清单同步补充与攻击、策略等其他意图并排时不得重叠的验收项。
+- 无部署构建：`dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=true`通过，`0 warning / 0 error`；204张卡内容与本地化、201张可执行卡效果、3张`DESIGN_PENDING`跳过项、9个拘束场景及新增意图展示结构契约全部通过。首次受限环境中的NuGet还原/签名检查被拒绝，获准联网后成功。
+- 范围提交：本提交；提交后立即进行定向部署，仅同步DLL、PDB和本轮修改的意图本地化文件，不复制工作区中的并行美术改动。
+
 ## 2026-09-12 — 取消圣言来源牌的衍生卡悬停预览
 
 - 变更前快照：`maiden-pre-scripture-hover-preview-removal-20260912` → `1a77e08`；未修改或提交玩家正在编辑的`DesignDoc.md`及`.review`研究资产。

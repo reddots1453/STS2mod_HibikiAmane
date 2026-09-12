@@ -131,9 +131,15 @@ public sealed class DesireGainIntent :
     public IReadOnlyList<ExtraIconAmountLabelSpec>
         GetIntentExtraCornerAmountLabelSpecs() =>
         [
-            ExtraIconAmountLabelSpec.Plain(
-                ExtraIconAmountLabelCorner.BottomRight,
-                $"+{Amount}"),
+            // RitsuLib reserves BottomRight for the vanilla value label. Center
+            // the desire amount inside this intent's own value band so it does
+            // not lean into an adjacent supplemental intent icon.
+            ExtraIconAmountLabelSpec.PlainCustom(
+                $"+{Amount}",
+                2f,
+                40f,
+                64f,
+                63f),
         ];
 
     protected override LocString GetIntentDescription(

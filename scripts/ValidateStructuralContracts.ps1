@@ -78,6 +78,12 @@ $intent = Read-Text "src\Core\Intents\IntentMoveFactory.cs"
 Assert-NotContains "erotic intent ids" $intent 'Interlocked\.Increment'
 Assert-Contains "erotic intent ids" $intent '\$"MAIDENSUCCUBUS_\{kind\}"'
 
+$intentModels = Read-Text "src\Core\Intents\MaidenSuccubusIntents.cs"
+$intentLocalization = Read-Text "MaidenSuccubus\localization\zhs\intents.json"
+Assert-Contains "desire intent canonical title" $intentLocalization '"MAIDENSUCCUBUS_DESIRE\.title"\s*:\s*"\u6B32\u671B\u653B\u51FB"'
+Assert-Contains "desire intent centered amount label" $intentModels 'DesireGainIntent[\s\S]*?ExtraIconAmountLabelSpec\.PlainCustom\('
+Assert-NotContains "desire intent reserved vanilla corner" $intentModels 'DesireGainIntent[\s\S]*?ExtraIconAmountLabelCorner\.BottomRight'
+
 $runtimePower = Read-Text "src\Powers\EroticIntentRuntimePower.cs"
 foreach ($field in @(
     "ForceStun", "ControlDisabled", "DesireIntentUses", "ControlIntentUses",
@@ -138,4 +144,4 @@ if (!(Test-Path -LiteralPath $scenePath)) {
     throw "Character scene is missing: $scenePath"
 }
 
-Write-Host "Validated structural contracts: isolated build/deploy gates, instance-attached Escape capability with preserved original state, event-driven UI, simultaneous left-side and combat desire UI, stable intent state, shared derivative pool, map-safe fourth-route modal, unified sacrifice/sealed-card rest-site action, character scene."
+Write-Host "Validated structural contracts: isolated build/deploy gates, instance-attached Escape capability with preserved original state, event-driven UI, simultaneous left-side and combat desire UI, canonical and collision-safe desire intent display, stable intent state, shared derivative pool, map-safe fourth-route modal, unified sacrifice/sealed-card rest-site action, character scene."
