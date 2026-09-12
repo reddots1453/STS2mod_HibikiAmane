@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-13 — “光子伏特”右手接合与“精液变换”ComfyUI风格统一候选
+
+- 变更前快照：`maiden-pre-photon-hand-semen-object-art-20260912` → `e076f2f`；未修改或提交玩家正在编辑的`DesignDoc.md`及工作区中的无关代码/研究资产。
+- 光子伏特：确认原`t01`的具体问题是蓝色袖口与前臂发射器之间被黑色冲击线切断。全幅高保真重绘造成画风漂移，本地扩散遮罩又会把小手误生成为巨型手套/护臂，因此最终只取精确编辑后的前臂—袖口—手部作为局部供体，以9像素羽化遮罩合回原ComfyUI图；新候选为`PhotonVolt_HandFix_ComfyUI_20260912/022_PhotonVolt_style_matched_hand_v06.png`。
+- 精液变换：构图保持“无人物、单个乳白试剂瓶、粉色魔力流向蓝色法阵”，再使用本地ComfyUI的`waiNSFWIllustrious_v140.safetensors`以较低重绘强度统一成现有卡图的简洁线条与软赛璐璐层次；推荐候选为`SemenConversion_ObjectOnly_ComfyUI_20260912/056_SemenConversion_comfy_style_v01.png`。
+- 两张候选均为`1000×760 RGB PNG`；保存完整提示词、生成规格和可重复合成/采样参数。高保真全图和巨型护臂试验明确淘汰，不再进入选择清单。
+- 选择清单、`selected/`副本与联系表同步更新；两张均标记为`recommended`等待玩家确认，未提前写入`完成版卡图/`。
+- 部署：否；本轮仅更新卡图候选与审阅资产，不修改Mod运行时逻辑。
+
 ## 2026-09-12 — 隐藏“战技复读”内部监听Power
 
 - 变更前快照：`maiden-pre-hide-battle-replay-internal-power-20260912` → `9c0000d`；未修改或提交玩家正在编辑的`DesignDoc.md`、并行美术资产及`.review`研究资料。
