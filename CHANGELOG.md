@@ -8,6 +8,7 @@
 - 回归：结构验证器固定正式标题、居中自定义数值槽，并禁止`DesireGainIntent`重新使用右下角保留槽；Plan、追踪矩阵和M4手测清单同步补充与攻击、策略等其他意图并排时不得重叠的验收项。
 - 无部署构建：`dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=true`通过，`0 warning / 0 error`；204张卡内容与本地化、201张可执行卡效果、3张`DESIGN_PENDING`跳过项、9个拘束场景及新增意图展示结构契约全部通过。首次受限环境中的NuGet还原/签名检查被拒绝，获准联网后成功。
 - 范围提交：本提交；提交后立即进行定向部署，仅同步DLL、PDB和本轮修改的意图本地化文件，不复制工作区中的并行美术改动。
+- 部署尝试：进程`SlayTheSpire2`（PID 22760）锁定安装DLL，Windows拒绝覆盖；源DLL SHA-256为`EF77C360B7048A13B75BC28C5D95036D62D4A3C3E2E1CA37900BD75B69BAFACC`，安装DLL仍为旧版`239A58AE9FA407E515E111DD7BDF3697288BEE2317B66EC09DFFD0F482EDD131`。部署按DLL优先顺序中止，PDB及安装/热加载目录的意图本地化均未复制，未形成半部署；不擅自终止游戏，待进程退出后立即重试。
 
 ## 2026-09-12 — 取消圣言来源牌的衍生卡悬停预览
 
