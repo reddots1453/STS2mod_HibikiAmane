@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-13 — 百科卡牌总览三路线过滤修复
+
+- 变更前快照：`maiden-pre-card-library-route-filter-order-fix-20260913` → `b930c03`；未修改或提交玩家正在编辑的`DesignDoc.md`、并行卡图和研究资产。
+- 根因：RitsuLib在`NCardLibrary._Ready`后置阶段为响木天音建立默认角色过滤器，该谓词只匹配角色主卡池`MSNeutralCardPool`；本Mod原有覆盖补丁先于RitsuLib执行，找不到尚未注册的角色过滤器并静默返回，因此卡牌总览恰好只显示40张中立牌。
+- 修复：让三路线覆盖补丁显式晚于`com.ritsukage.sts2-RitsuLib.framework-character-assets`执行，并置于最终优先级；过滤范围保持154张正式路线牌，额外仅放行初始基础牌“打击”“防御”，不放行圣言、状态、诅咒或整个共享衍生池。
+- 回归门：结构验证新增RitsuLib Harmony顺序、最终优先级、三路线接口、两张初始基础牌及共享衍生池隔离断言；手测清单明确总览应为154张正式路线牌加2张初始基础牌，共156张。
+- 构建验证：首次受限构建仅因NuGet网络权限失败；允许NuGet访问后，同一不部署命令通过，0 warning、0 error，204张本地化审计0 failure，内容契约、结构契约、201张可执行卡效果测试与9项拘束意图结构测试全部通过。部署状态待范围提交后补记。
+
 ## 2026-09-13 — 三张候选定稿与“精神统一”色彩收敛
 
 - 变更前快照：`maiden-pre-card-art-accept-three-mental-style-fix-20260913` → `9091689`；读取当前`DesignDoc.md`差异作为卡牌语义输入，但未修改或提交玩家正在编辑的设计文档及其他并行资产。

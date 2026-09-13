@@ -115,6 +115,13 @@ if (Test-Path -LiteralPath $scripturePreviewHelper) {
     throw "Scripture card-preview helper must remain removed: $scripturePreviewHelper"
 }
 
+$cardLibraryRoutePool = Read-Text "src\Patches\CardLibraryRoutePoolPatch.cs"
+Assert-Contains "card-library Ritsu ordering" $cardLibraryRoutePool '\[HarmonyAfter\("com\.ritsukage\.sts2-RitsuLib\.framework-character-assets"\)\]'
+Assert-Contains "card-library final priority" $cardLibraryRoutePool '\[HarmonyPriority\(Priority\.Last\)\]'
+Assert-Contains "card-library route cards" $cardLibraryRoutePool 'card\s+is\s+IMaidenSuccubusRouteCard'
+Assert-Contains "card-library starter basics" $cardLibraryRoutePool 'card\s+is\s+MaidenStrike\s+or\s+MaidenDefend'
+Assert-NotContains "card-library generated-pool leak" $cardLibraryRoutePool 'MSGeneratedCardPool'
+
 $desireResource = Read-Text "src\Core\Desire\DesireResource.cs"
 $desireMeter = Read-Text "src\UI\DesireMeter.cs"
 Assert-Contains "combat desire UI" $desireResource 'RegisterCombatUi\('
@@ -157,4 +164,4 @@ if (!(Test-Path -LiteralPath $scenePath)) {
     throw "Character scene is missing: $scenePath"
 }
 
-Write-Host "Validated structural contracts: isolated build/deploy gates, instance-attached Escape capability with preserved original state, instance-attached Battle Replay shadow, event-driven UI, simultaneous left-side and combat desire UI, canonical and collision-safe desire intent display, stable intent state, shared derivative pool, map-safe fourth-route modal, unified sacrifice/sealed-card rest-site action, character scene."
+Write-Host "Validated structural contracts: isolated build/deploy gates, instance-attached Escape capability with preserved original state, instance-attached Battle Replay shadow, event-driven UI, simultaneous left-side and combat desire UI, canonical and collision-safe desire intent display, stable intent state, ordered three-route compendium filter without generated-pool leakage, shared derivative pool, map-safe fourth-route modal, unified sacrifice/sealed-card rest-site action, character scene."

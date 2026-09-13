@@ -16,6 +16,8 @@ namespace MaidenSuccubus.Patches;
 /// so the compendium predicate must group those pools without merging reward
 /// generation pools.
 /// </summary>
+[HarmonyAfter("com.ritsukage.sts2-RitsuLib.framework-character-assets")]
+[HarmonyPriority(Priority.Last)]
 [HarmonyPatch(typeof(NCardLibrary), nameof(NCardLibrary._Ready))]
 public static class CardLibraryRoutePoolPatch
 {
@@ -32,10 +34,14 @@ public static class CardLibraryRoutePoolPatch
 
                 if (entry.Key is null || entry.Value is null)
                 {
+                    MaidenSuccubusMod.Logger.Warn(
+                        "[CardLibraryRoutePoolPatch] Maiden character filter was not registered by RitsuLib.");
                     return;
                 }
 
                 ____poolFilters[entry.Value] = IsMaidenSuccubusCompendiumCard;
+                MaidenSuccubusMod.Logger.Info(
+                    "[CardLibraryRoutePoolPatch] Installed three-route compendium filter.");
             },
             nameof(CardLibraryRoutePoolPatch));
     }
