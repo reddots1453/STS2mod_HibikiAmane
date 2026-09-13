@@ -24,6 +24,7 @@ using MaidenSuccubus.Core.Replay;
 using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.Powers;
+using MaidenSuccubus.Powers.Scriptures;
 using STS2RitsuLib.Combat.SecondaryResources;
 using STS2RitsuLib.Models.Capabilities;
 
@@ -705,6 +706,8 @@ internal static class CardEffectTestCatalog
                 await ctx.AddFillerCards(PileType.Draw, duration + 1);
             if (card is BlissScripture)
                 await MaidenSuccubus.Data.Desire.Set(ctx.Player, 1);
+            if (card is GuardianScripture)
+                await ctx.ApplyPower<DexterityPower>(ctx.Self, 2);
 
             int block = ctx.Self.Block;
             int energy = ctx.Player.PlayerCombatState!.Energy;
@@ -736,7 +739,10 @@ internal static class CardEffectTestCatalog
             }
 
             if (card is GuardianScripture)
-                ctx.AssertBlock("three block per duration", block, 3 * duration);
+                ctx.AssertBlock(
+                    "three base block plus dexterity per duration",
+                    block,
+                    (GuardianScriptureBlockVar.BaseBlock + 2) * duration);
             else if (card is PunishmentScripture)
                 ctx.AssertEqual("one condemnation per duration", duration,
                     ctx.Enemies.Sum(enemy => ctx.PowerAmount(enemy, "CondemnationPower")));

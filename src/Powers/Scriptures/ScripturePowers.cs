@@ -4,7 +4,6 @@ using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
-using MegaCrit.Sts2.Core.ValueProps;
 using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Content;
 using MaidenSuccubus.Commands;
@@ -19,7 +18,7 @@ public sealed class GuardianScripturePower : ScripturePowerTemplate
         ScriptureTriggerTiming.TurnEnd;
 
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new BlockVar(3, ValueProp.Move)];
+        [new GuardianScriptureBlockVar()];
 
     public override PowerAssetProfile AssetProfile => ScriptureAssets.Profile;
 

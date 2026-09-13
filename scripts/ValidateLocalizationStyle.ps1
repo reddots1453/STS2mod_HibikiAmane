@@ -105,6 +105,7 @@ foreach ($entry in $cards.GetEnumerator()) {
 $staticPowerVariableAllowList = @{
     "MAIDEN_SUCCUBUS_POWER_MAGIC_ARMOR_POWER.description" = @("Chance")
     "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.description" = @("Source", "ControlType", "Amount")
+    "MAIDEN_SUCCUBUS_POWER_GUARDIAN_SCRIPTURE_POWER.description" = @("Block")
 }
 
 foreach ($entry in $powers.GetEnumerator()) {
@@ -124,6 +125,7 @@ foreach ($entry in $powers.GetEnumerator()) {
 
 $smartPowerVariableAllowList = @{
     "MAIDEN_SUCCUBUS_POWER_ABNORMAL_ADAPTATION_POWER.smartDescription" = @("RemainingTriggers")
+    "MAIDEN_SUCCUBUS_POWER_GUARDIAN_SCRIPTURE_POWER.smartDescription" = @("Block")
 }
 
 foreach ($entry in $powers.GetEnumerator()) {

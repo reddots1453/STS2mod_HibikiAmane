@@ -27,8 +27,8 @@
   "MAIDEN_SUCCUBUS_POWER_PURIFICATION_POWER.smartDescription": "每回合开始时，每层[gold]净化[/gold]从当前存在的[gold]易伤[/gold]、[gold]虚弱[/gold]、[gold]脆弱[/gold]和[gold]断罪[/gold]中等概率选择一种，并移除1层。",
 
   "MAIDEN_SUCCUBUS_POWER_GUARDIAN_SCRIPTURE_POWER.title": "守护圣言",
-  "MAIDEN_SUCCUBUS_POWER_GUARDIAN_SCRIPTURE_POWER.description": "剩余回合内，每回合结束时获得3点[gold]格挡[/gold]。",
-  "MAIDEN_SUCCUBUS_POWER_GUARDIAN_SCRIPTURE_POWER.smartDescription": "剩余回合内，每回合结束时获得3点[gold]格挡[/gold]。",
+  "MAIDEN_SUCCUBUS_POWER_GUARDIAN_SCRIPTURE_POWER.description": "剩余回合内，每回合结束时获得{Block}点[gold]格挡[/gold]。",
+  "MAIDEN_SUCCUBUS_POWER_GUARDIAN_SCRIPTURE_POWER.smartDescription": "剩余回合内，每回合结束时获得{Block}点[gold]格挡[/gold]。",
   "MAIDEN_SUCCUBUS_POWER_NIMBLE_SCRIPTURE_POWER.title": "轻灵圣言",
   "MAIDEN_SUCCUBUS_POWER_NIMBLE_SCRIPTURE_POWER.description": "获得2点[gold]敏捷[/gold]；持续时间结束时失去这2点[gold]敏捷[/gold]。",
   "MAIDEN_SUCCUBUS_POWER_NIMBLE_SCRIPTURE_POWER.smartDescription": "获得2点[gold]敏捷[/gold]；持续时间结束时失去这2点[gold]敏捷[/gold]。",

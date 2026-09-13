@@ -87,6 +87,30 @@ Assert-Contains "battle replay edge shadow" $battleReplayVisuals 'AddEdgeBands'
 Assert-NotContains "battle replay type-wide overlay" $battleReplayPower 'OverlayPath'
 Assert-NotContains "battle replay persistent visual timer" $battleReplayVisuals 'new\s+Timer'
 
+$scripturePowers = Read-Text "src\Powers\Scriptures\ScripturePowers.cs"
+$guardianScriptureBlock = Read-Text "src\Powers\Scriptures\GuardianScriptureBlockVar.cs"
+$cardEffectCatalog = Read-Text "src\Debugging\CardEffects\CardEffectTestCatalog.cs"
+$powerLocalization = Read-Text "MaidenSuccubus\localization\zhs\powers.json"
+Assert-Contains "guardian scripture powered block var" $scripturePowers 'GuardianScripturePower[\s\S]*?new\s+GuardianScriptureBlockVar\(\)'
+Assert-Contains "guardian scripture canonical gain path" $scripturePowers 'GuardianScripturePower[\s\S]*?CreatureCmd\.GainBlock\(Owner,\s*DynamicVars\.Block,\s*null\)'
+Assert-Contains "guardian scripture dynamic hook preview" $guardianScriptureBlock 'Hook\.ModifyBlock\('
+Assert-Contains "guardian scripture powered move property" $guardianScriptureBlock 'ValueProp\.Move'
+Assert-Contains "guardian scripture dexterity effect test" $cardEffectCatalog 'GuardianScripture[\s\S]*?ApplyPower<DexterityPower>\(ctx\.Self,\s*2\)[\s\S]*?GuardianScriptureBlockVar\.BaseBlock\s*\+\s*2'
+Assert-Contains "guardian scripture dynamic power text" $powerLocalization 'GUARDIAN_SCRIPTURE_POWER\.smartDescription"\s*:\s*"[^"]*\{Block\}'
+Assert-NotContains "guardian scripture hard-coded power text" $powerLocalization 'GUARDIAN_SCRIPTURE_POWER\.(description|smartDescription)"\s*:\s*"[^"]*\u83B73\u70B9'
+
+$scripturePowers = Read-Text "src\Powers\Scriptures\ScripturePowers.cs"
+$guardianScriptureBlock = Read-Text "src\Powers\Scriptures\GuardianScriptureBlockVar.cs"
+$cardEffectCatalog = Read-Text "src\Debugging\CardEffects\CardEffectTestCatalog.cs"
+$powerLocalization = Read-Text "MaidenSuccubus\localization\zhs\powers.json"
+Assert-Contains "guardian scripture powered block var" $scripturePowers 'GuardianScripturePower[\s\S]*?new\s+GuardianScriptureBlockVar\(\)'
+Assert-Contains "guardian scripture canonical gain path" $scripturePowers 'GuardianScripturePower[\s\S]*?CreatureCmd\.GainBlock\(Owner,\s*DynamicVars\.Block,\s*null\)'
+Assert-Contains "guardian scripture dynamic hook preview" $guardianScriptureBlock 'Hook\.ModifyBlock\('
+Assert-Contains "guardian scripture powered move property" $guardianScriptureBlock 'ValueProp\.Move'
+Assert-Contains "guardian scripture dexterity effect test" $cardEffectCatalog 'GuardianScripture[\s\S]*?ApplyPower<DexterityPower>\(ctx\.Self,\s*2\)[\s\S]*?GuardianScriptureBlockVar\.BaseBlock\s*\+\s*2'
+Assert-Contains "guardian scripture dynamic power text" $powerLocalization 'GUARDIAN_SCRIPTURE_POWER\.smartDescription"\s*:\s*"[^"]*\{Block\}'
+Assert-NotContains "guardian scripture hard-coded power text" $powerLocalization 'GUARDIAN_SCRIPTURE_POWER\.(description|smartDescription)"\s*:\s*"[^"]*\u83B73\u70B9'
+
 $intent = Read-Text "src\Core\Intents\IntentMoveFactory.cs"
 Assert-NotContains "erotic intent ids" $intent 'Interlocked\.Increment'
 Assert-Contains "erotic intent ids" $intent '\$"MAIDENSUCCUBUS_\{kind\}"'

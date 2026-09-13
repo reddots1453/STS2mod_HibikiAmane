@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-13 — 守护圣言敏捷格挡修正
+
+- 变更前快照：`maiden-pre-guardian-scripture-dexterity-fix-20260913` → `a3b23e4`；未提交或覆盖玩家正在编辑的`DesignDoc.md`、并行美术和研究资产。
+- DesignDoc明确要求守护圣言以3点为基础格挡，并受到敏捷等原版格挡状态增益，Power格挡数值不得写死；最新日志中卡牌与Power注册成功且无本Mod异常，定位为确定性的数值覆盖不足。
+- 实际结算继续唯一调用`CreatureCmd.GainBlock(..., DynamicVars.Block, null)`，由`ValueProp.Move`进入原版`Hook.ModifyBlock`，不手工预计算或重复叠加敏捷；新增动态Power格挡变量，仅为状态栏文本预览同一Hook的当前结算值。
+- 卡牌效果测试为守护圣言施加2敏捷，并逐回合断言每次获得`3+2=5`格挡；结构门同时锁定Powered标记、唯一结算路径、动态Hook预览、非硬编码Power文本和敏捷数值断言。
+- 构建验证：受限环境两次仅因NuGet访问被阻止；允许依赖访问后编译成功，首次验证发现并补齐守护圣言Power的`{Block}`精确本地化白名单，最终不部署构建0 warning、0 error，204张卡本地化审计、内容契约、结构契约、201张可执行卡测试定义与9项拘束测试门全部通过；游戏内敏捷数值断言待新DLL部署后执行。部署状态待范围提交后补记。
+
 ## 2026-09-13 — 路线翼饰 V3 卡面接入交接
 
 - 前置快照：`maiden-pre-route-wing-integration-20260913` → `3476768`。
