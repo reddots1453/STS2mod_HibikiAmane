@@ -23,4 +23,6 @@ public sealed class EroticIntentRuntimePower : MaidenSuccubusPowerTemplate
     [SavedProperty] public int ControlIntentUses { get; set; }
     [SavedProperty] public int InvasionIntentUses { get; set; }
     [SavedProperty] public int LastNaturalRollTurn { get; set; } = -1;
+    [SavedProperty] public int DesireCooldownThroughTurn { get; set; } = -1;
+    [SavedProperty] public int ControlCooldownThroughTurn { get; set; } = -1;
 }

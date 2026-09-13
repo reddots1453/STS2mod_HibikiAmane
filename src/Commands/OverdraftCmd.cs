@@ -16,7 +16,9 @@ public static class OverdraftCmd
         int armorCost)
     {
         if (armorCost != 1)
-            throw new ArgumentOutOfRangeException(nameof(armorCost), "透支固定支付1层魔力增幅或魔装耐久。");
+            throw new ArgumentOutOfRangeException(
+                nameof(armorCost),
+                "魔力解放固定支付1层魔力增幅或魔装耐久。");
         return await TransformationCmd.PayOverdraft(
             choiceContext, source.Owner.Creature, source);
     }

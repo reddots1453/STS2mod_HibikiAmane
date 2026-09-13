@@ -72,6 +72,12 @@ public sealed class FlameBloom : MSNeutralCard
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         await PowerCmd.Apply<BurningPower>(
             context, play.Target, 2, Owner.Creature, this);
+        if (await Core.Transformation.TransformationCmd.PayOverdraft(
+                context, Owner.Creature, this))
+        {
+            await PowerCmd.Apply<BurningPower>(
+                context, play.Target, 1, Owner.Creature, this);
+        }
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
 }

@@ -129,10 +129,12 @@ public sealed class MagicSword : MSNeutralCard
 public sealed class ChangePanties : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<SlipperyPower>(2), new PowerVar<VulnerablePower>(2)];
-    public ChangePanties() : base(2, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
+        [new PowerVar<SlipperyPower>(2), new PowerVar<VulnerablePower>(2),
+            new DynamicVar("Threshold", 6)];
+    public ChangePanties() : base(2, CardType.Power, CardRarity.Uncommon, TargetType.Self) { }
     public override bool ShouldPlay(CardModel card, AutoPlayType autoPlayType) =>
-        card != this || Data.Desire.Get(Owner) >= 5;
+        card != this
+            || Data.Desire.Get(Owner) >= DynamicVars["Threshold"].IntValue;
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         await PowerCmd.Apply<SlipperyPower>(context, Owner.Creature,
@@ -140,5 +142,6 @@ public sealed class ChangePanties : MSCorruptCard
         await PowerCmd.Apply<VulnerablePower>(context, Owner.Creature,
             DynamicVars["VulnerablePower"].BaseValue, Owner.Creature, this);
     }
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade() =>
+        DynamicVars["Threshold"].UpgradeValueBy(-1);
 }

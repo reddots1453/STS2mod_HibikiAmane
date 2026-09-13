@@ -74,7 +74,7 @@ public sealed class MagicOverdraft : MSCorruptCard
 public sealed class WinterHolly : MSCorruptCard
 {
     public override bool GainsBlock => true;
-    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Ethereal];
     protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(10, ValueProp.Move)];
     public WinterHolly() : base(0, CardType.Skill, CardRarity.Uncommon, TargetType.Self) =>
         this.SecondaryCosts().Set(DesireResource.Id, 2);
@@ -83,7 +83,8 @@ public sealed class WinterHolly : MSCorruptCard
         await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
         ArgumentNullException.ThrowIfNull(CombatState);
         CardModel copy = CombatState.CloneCard(this);
-        copy.AddKeyword(CardKeyword.Ethereal);
+        copy.RemoveKeyword(CardKeyword.Ethereal);
+        copy.AddKeyword(CardKeyword.Exhaust);
         await CardPileCmd.Add(copy, PileType.Hand);
     }
     protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(3);

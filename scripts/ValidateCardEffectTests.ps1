@@ -26,8 +26,8 @@ $expected = @(
         ForEach-Object { $_ } |
         Sort-Object -Unique
 )
-if ($expected.Count -ne 204) {
-    throw "Content contract must contain exactly 204 unique cards; found $($expected.Count)."
+if ($expected.Count -ne 215) {
+    throw "Content contract must contain exactly 215 unique cards; found $($expected.Count)."
 }
 
 $registrationStart = $catalog.IndexOf("private static void RegisterNeutral", [StringComparison]::Ordinal)
@@ -74,7 +74,7 @@ if ($registration -match '(?m)^\s*ConfigureQuestChoice\(\);') {
 $duplicates = @($actual | Group-Object | Where-Object Count -ne 1 | ForEach-Object Name)
 $missing = @($expected | Where-Object { $actual -notcontains $_ })
 $extra = @($actual | Where-Object { $expected -notcontains $_ } | Sort-Object -Unique)
-if ($actual.Count -ne 204 -or $duplicates.Count -gt 0 -or
+if ($actual.Count -ne $expected.Count -or $duplicates.Count -gt 0 -or
     $missing.Count -gt 0 -or $extra.Count -gt 0) {
     throw "Card-effect catalog mismatch: registrations=$($actual.Count); duplicates=[$($duplicates -join ',')]; missing=[$($missing -join ',')]; extra=[$($extra -join ',')]."
 }
@@ -82,9 +82,9 @@ if ($actual.Count -ne 204 -or $duplicates.Count -gt 0 -or
 $pending = @([regex]::Matches($registration, 'Pending<(?<card>[A-Za-z0-9_.]+)>') |
     ForEach-Object { $_.Groups['card'].Value.Split('.')[-1] } |
     Sort-Object)
-$expectedPending = @('ClimaxBanCurse', 'DreamMist', 'HypnosisCurse')
+$expectedPending = @('ClimaxBanCurse', 'HypnosisCurse')
 if (($pending -join ',') -ne ($expectedPending -join ',')) {
-    throw "Only ClimaxBanCurse, DreamMist, and HypnosisCurse may be DESIGN_PENDING; found [$($pending -join ',')]."
+    throw "Only ClimaxBanCurse and HypnosisCurse may be DESIGN_PENDING; found [$($pending -join ',')]."
 }
 
 $forbidden = @(
@@ -104,8 +104,9 @@ foreach ($pattern in $forbidden) {
 if ($runner -notmatch 'EffectAssertionCount\s*<\s*scenario\.MinimumEffectAssertions') {
     throw "Runtime minimum-effect-assertion gate is missing."
 }
-if ($runner -notmatch 'expected\.Length\s*!=\s*204') {
-    throw "Runtime 204-card identity gate is missing."
+if ($runner -notmatch 'ExpectedCardCount\s*=\s*215' -or
+    $runner -notmatch 'expected\.Length\s*!=\s*ExpectedCardCount') {
+    throw "Runtime 215-card identity gate is missing."
 }
 if ($console -notmatch 'ms_test_cards' -or $console -notmatch 'confirm') {
     throw "Destructive console command confirmation gate is missing."
@@ -138,4 +139,4 @@ if ($holyPowers -notmatch '_pendingRestores' -or
     throw "BattleTechniqueReplay must restore only after the played projection leaves PileType.Play."
 }
 
-Write-Host "Validated card-effect tests: 204 exact registrations, 201 executable cards, 3 DESIGN_PENDING cards, guarded manual-entry F10 trigger, no method-presence placeholders."
+Write-Host "Validated card-effect tests: 215 exact registrations, 213 executable cards, 2 DESIGN_PENDING cards, guarded manual-entry F10 trigger, no method-presence placeholders."

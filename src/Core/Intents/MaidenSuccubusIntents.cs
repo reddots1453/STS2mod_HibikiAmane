@@ -9,6 +9,33 @@ using MaidenSuccubus.Core.Control;
 
 namespace MaidenSuccubus.Core.Intents;
 
+public readonly record struct EroticIntentVisual(
+    Creature Target,
+    EroticIntentKind Kind);
+
+public static class EroticIntentVisualEvents
+{
+    public static event Action<EroticIntentVisual>? Triggered;
+
+    internal static void Publish(Creature target, EroticIntentKind kind)
+    {
+        foreach (Action<EroticIntentVisual> handler in
+            Triggered?.GetInvocationList().Cast<Action<EroticIntentVisual>>()
+            ?? [])
+        {
+            try
+            {
+                handler(new EroticIntentVisual(target, kind));
+            }
+            catch (Exception ex)
+            {
+                MaidenSuccubusMod.Logger.Warn(
+                    $"Erotic intent visual listener failed: {ex.Message}");
+            }
+        }
+    }
+}
+
 public sealed class ControlIntent :
     AbstractIntent,
     IIntentExtraCornerAmountLabelSpecsProvider
@@ -148,6 +175,60 @@ public sealed class DesireGainIntent :
     {
         LocString description = base.GetIntentDescription(targets, owner);
         description.Add("Effect", EroticIntentDisplayText.Format(EffectText));
+        return description;
+    }
+}
+
+public sealed class TearClothingIntent :
+    AbstractIntent,
+    IIntentExtraCornerAmountLabelSpecsProvider
+{
+    public override IntentType IntentType => IntentType.DebuffStrong;
+    protected override string IntentPrefix => "MAIDENSUCCUBUS_TEAR_CLOTHING";
+    protected override string SpritePath =>
+        "atlases/intent_atlas.sprites/intent_card_debuff.tres";
+
+    public override string GetAnimation(
+        IEnumerable<Creature> targets,
+        Creature owner) => IntentAnimData.cardDebuff;
+
+    public IReadOnlyList<ExtraIconAmountLabelSpec>
+        GetIntentExtraCornerAmountLabelSpecs() =>
+        [ExtraIconAmountLabelSpec.PlainCustom("1", 2f, 40f, 64f, 63f)];
+}
+
+public sealed class ClothingHazardIntent : AbstractIntent
+{
+    private readonly string _cardName;
+
+    public ClothingHazardIntent(string cardName) => _cardName = cardName;
+
+    public override IntentType IntentType => IntentType.StatusCard;
+    protected override LocString IntentLabelFormat =>
+        new("intents", "FORMAT_STATUS_CARD_COUNT");
+    protected override string IntentPrefix => "MAIDENSUCCUBUS_CLOTHING_HAZARD";
+    protected override string SpritePath =>
+        "atlases/intent_atlas.sprites/intent_status_card.tres";
+
+    public override string GetAnimation(
+        IEnumerable<Creature> targets,
+        Creature owner) => IntentAnimData.debuff;
+
+    public override LocString GetIntentLabel(
+        IEnumerable<Creature> targets,
+        Creature owner)
+    {
+        LocString label = IntentLabelFormat;
+        label.Add("CardCount", 1);
+        return label;
+    }
+
+    protected override LocString GetIntentDescription(
+        IEnumerable<Creature> targets,
+        Creature owner)
+    {
+        LocString description = base.GetIntentDescription(targets, owner);
+        description.Add("CardName", _cardName);
         return description;
     }
 }

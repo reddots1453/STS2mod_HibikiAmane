@@ -13,6 +13,7 @@ using MaidenSuccubus.Data;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Core.Invasion;
 using MaidenSuccubus.Core.Transformation;
+using MaidenSuccubus.Core.Temptation;
 using MaidenSuccubus.Powers;
 
 namespace MaidenSuccubus.Cards.Curses;
@@ -116,13 +117,8 @@ public sealed class ParalyticSlimeCurse : MSInvasionCurseTemplate
 [RegisterCard(typeof(MSInvasionCursePool))]
 public sealed class CorrosiveSlimeCurse : MSInvasionCurseTemplate
 {
-    protected override async Task ResolveEffect(PlayerChoiceContext context)
-    {
-        await PowerCmd.Apply<VulnerablePower>(
-            context, Owner.Creature, 1, Owner.Creature, this);
-        await PowerCmd.Apply<FrailPower>(
-            context, Owner.Creature, 1, Owner.Creature, this);
-    }
+    protected override Task ResolveEffect(PlayerChoiceContext context) =>
+        TransformationCmd.LoseArmor(context, Owner.Creature, 1, this);
 }
 
 [RegisterCard(typeof(MSInvasionCursePool))]
@@ -305,36 +301,21 @@ public sealed class LewdMarkCompleteCurse : MSEventCurseTemplate
 [RegisterCard(typeof(MSGeneratedCardPool))]
 public sealed class TransparentOutfitCurse : MSEventCurseTemplate
 {
-    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Unplayable];
+    public override IEnumerable<CardKeyword> CanonicalKeywords =>
+        [CardKeyword.Unplayable, CardKeyword.Retain];
 
     public override Task AfterCardChangedPiles(
         CardModel card,
         PileType oldPileType,
         AbstractModel? source)
     {
-        if (Pile?.Type == PileType.Hand
-            || (ReferenceEquals(card, this) && oldPileType == PileType.Hand))
+        if (ReferenceEquals(card, this)
+            && Owner.Creature.CombatState != null
+            && (Pile?.Type == PileType.Hand || oldPileType == PileType.Hand))
         {
-            foreach (CardModel handCard in PileType.Hand.GetPile(Owner).Cards)
-            {
-                NCard.FindOnTable(handCard)?.UpdateVisuals(
-                    PileType.Hand,
-                    CardPreviewMode.Normal);
-            }
+            Temptation.NotifyHandChanged(Owner);
         }
         return Task.CompletedTask;
-    }
-
-    public static bool ProjectsEtherealOnto(CardModel card)
-    {
-        CardPile? pile = card.Pile;
-        if (pile?.Type != PileType.Hand)
-        {
-            return false;
-        }
-        return pile.Cards.Any(candidate =>
-            candidate is TransparentOutfitCurse
-            && !ReferenceEquals(candidate, card));
     }
 }
 

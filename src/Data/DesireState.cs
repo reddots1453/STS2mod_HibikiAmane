@@ -14,9 +14,15 @@ public sealed class DesireState
     public bool PendingFirstTurnStun { get; set; }
 
     /// <summary>
-    /// Full-desire penalties waiting for the next legal player-turn start.
-    /// Kept as a count because separate gains can reach ten more than once
-    /// before that resolution point.
+    /// A full-desire penalty waiting for the next legal player-turn start.
+    /// Desire is capped at ten, so an unresolved full value cannot enqueue a
+    /// second distinct resolution.
+    /// </summary>
+    public bool PendingClimaxResolution { get; set; }
+
+    /// <summary>
+    /// Legacy save field from the count-based implementation. A positive
+    /// value is migrated to the single pending flag when the save is read.
     /// </summary>
     public int PendingClimaxResolutions { get; set; }
 }

@@ -39,7 +39,7 @@ public sealed class SwordVerdict : MSNeutralCard
 public sealed class LightningRecoil : MSNeutralCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(4, ValueProp.Move)];
+        [new DamageVar(5, ValueProp.Move)];
     public LightningRecoil() : base(0, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {

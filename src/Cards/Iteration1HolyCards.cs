@@ -87,47 +87,55 @@ public sealed class ResistanceGloves : MSHolyCard, IEscapeCard
         [PortableKeyword.Value];
 
     public ResistanceGloves()
-        : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
+        : base(0, CardType.Skill, CardRarity.Common, TargetType.Self) { }
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ControlPower? control = ControlQuery.GetInstances(Owner).FirstOrDefault();
         if (control != null)
         {
-            await ControlCmd.Escape(context, control, 2);
+            await ControlCmd.Escape(context, control, IsUpgraded ? 3 : 2);
         }
     }
 
-    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
+    protected override void OnUpgrade() { }
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]
-public sealed class RestraintEvasion : MSHolyCard
+public sealed class RestraintEvasion : MSHolyCard, IEscapeCard
 {
     public override bool GainsBlock => true;
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [PortableKeyword.Value];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
     [
-        new CalculationBaseVar(6),
-        new CalculationExtraVar(1),
-        new CalculatedBlockVar(ValueProp.Move).WithMultiplier(
-            static (_, target) => target?.Monster?.NextMove.Intents
-                .OfType<ControlIntent>()
-                .FirstOrDefault()?.BlockRequired ?? 0),
+        new BlockVar(6, ValueProp.Move),
     ];
 
     public RestraintEvasion()
         : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.AnyEnemy) { }
 
-    protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
-        CreatureCmd.GainBlock(
-            Owner.Creature,
-            DynamicVars.CalculatedBlock.Calculate(play.Target),
-            DynamicVars.CalculatedBlock.Props,
-            play);
+    protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
+    {
+        await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
+        ControlIntent? intent = play.Target?.Monster?.NextMove.Intents
+            .OfType<ControlIntent>()
+            .FirstOrDefault();
+        if (intent != null)
+        {
+            await CreatureCmd.GainBlock(
+                Owner.Creature, intent.BlockRequired, DynamicVars.Block.Props, play);
+        }
+        ControlPower? control = ControlQuery.GetInstances(Owner)
+            .FirstOrDefault(candidate =>
+                play.Target == null || ReferenceEquals(candidate.Applier, play.Target));
+        if (control != null)
+        {
+            await ControlCmd.Escape(context, control, 1);
+        }
+    }
 
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(3);
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]
@@ -161,20 +169,25 @@ public sealed class RegenerativeMagicFiber : MSHolyCard
         [PortableKeyword.Value];
 
     public RegenerativeMagicFiber()
-        : base(1, CardType.Power, CardRarity.Uncommon, TargetType.Self) { }
+        : base(2, CardType.Power, CardRarity.Rare, TargetType.Self) { }
 
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
         PowerCmd.Apply<RegenerativeMagicFiberPower>(
             context, Owner.Creature, 1, Owner.Creature, this);
 
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class LightPowerRelease : MSHolyCard
 {
+    public override IEnumerable<CardKeyword> CanonicalKeywords =>
+        [SinkingKeyword.Value];
     public LightPowerRelease()
         : base(3, CardType.Power, CardRarity.Rare, TargetType.Self) { }
+
+    public override bool ShouldPlay(CardModel card, AutoPlayType autoPlayType) =>
+        card != this || !TransformationCmd.IsTransformed(Owner.Creature);
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {

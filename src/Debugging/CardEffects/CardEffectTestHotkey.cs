@@ -90,7 +90,7 @@ internal static class CardEffectTestHotkey
 
         _running = true;
         MaidenSuccubusMod.Logger.Info(
-            "[CardEffectTest] F10 accepted; starting all 204 registered card checks.");
+            "[CardEffectTest] F10 accepted; starting all 215 registered card checks.");
         try
         {
             string summary = await CardEffectTestRunner.Run(player, "all");

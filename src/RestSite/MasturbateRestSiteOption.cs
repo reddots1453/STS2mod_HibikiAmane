@@ -2,6 +2,8 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Localization;
 using STS2RitsuLib.Scaffolding.Content;
 using MaidenSuccubus.Data;
+using MaidenSuccubus.Core.Corruption;
+using MegaCrit.Sts2.Core.Runs;
 
 namespace MaidenSuccubus.RestSite;
 
@@ -34,6 +36,11 @@ public sealed class MasturbateRestSiteOption : ModRestSiteOptionTemplate
         }
 
         await Desire.Set(Owner, Desire.ValueAfterOverflow);
+        if (Owner.RunState is RunState runState
+            && CorruptionCmd.TryTriggerOnce(runState, "SYS-CORRUPTION-FIRST-MASTURBATION"))
+        {
+            CorruptionCmd.Modify(runState, 1, CorruptionChangeSource.Unknown);
+        }
         return true;
     }
 }

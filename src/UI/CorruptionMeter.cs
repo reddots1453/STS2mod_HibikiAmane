@@ -86,8 +86,10 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
                     Position = new Vector2(i * (SegmentSize + SegmentGap), 0),
                     Size = new Vector2(SegmentSize, SegmentSize),
                     Color = value == Corruption.Neutral ? baseColor : baseColor.Darkened(0.55f),
-                    MouseFilter = MouseFilterEnum.Ignore,
+                    MouseFilter = MouseFilterEnum.Stop,
                 };
+                segment.MouseEntered += () => ShowHoverTipForValue(value);
+                segment.MouseExited += ClearHoverTip;
                 AddChild(segment);
             }
 
@@ -240,14 +242,25 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
 
     private void ShowHoverTip()
     {
+        ShowHoverTipForValue(null);
+    }
+
+    private void ShowHoverTipForValue(int? value)
+    {
         if (!Visible)
         {
             return;
         }
 
-        var description = new LocString(
-            "static_hover_tips",
-            "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.description");
+        string descriptionKey = value switch
+        {
+            3 => "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.plus3",
+            5 => "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.plus5",
+            -3 => "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.minus3",
+            -5 => "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.minus5",
+            _ => "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.description",
+        };
+        var description = new LocString("static_hover_tips", descriptionKey);
         description.Add("Current", _displayedValue);
         var hoverTip = new HoverTip(
             new LocString(

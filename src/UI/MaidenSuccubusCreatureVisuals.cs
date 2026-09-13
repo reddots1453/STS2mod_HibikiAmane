@@ -1,6 +1,12 @@
 using Godot;
 using MegaCrit.Sts2.Core.Nodes.Combat;
+using MegaCrit.Sts2.Core.Runs;
+using MaidenSuccubus.Core.Corruption;
+using MaidenSuccubus.Core.Desire;
+using MaidenSuccubus.Core.Intents;
 using MaidenSuccubus.Core.Transformation;
+using MaidenSuccubus.Data;
+using MaidenSuccubus.Powers;
 
 namespace MaidenSuccubus.UI;
 
@@ -27,8 +33,13 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
 
     private Node2D? _visualRoot;
     private Sprite2D? _characterSprite;
-    private int _shownArmor = int.MinValue;
+    private Sprite2D? _expressionSprite;
+    private string? _shownAppearance;
+    private string? _shownExpression;
     private Tween? _feedbackTween;
+    private Tween? _edgeTween;
+    private CanvasLayer? _edgeLayer;
+    private Control? _edgeVisual;
     private bool _feedbackActive;
     private bool _dead;
 
@@ -55,6 +66,14 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         LoadTexture("character_armor_1.png");
         LoadTexture("character_armor_2.png");
         LoadTexture("character_armor_3.png");
+        LoadTexture("character_corrupt_armor_1.png");
+        LoadTexture("character_corrupt_armor_2.png");
+        LoadTexture("character_corrupt_armor_3.png");
+        LoadTexture("character_eternal_armor_1.png");
+        LoadTexture("character_eternal_armor_2.png");
+        LoadTexture("character_eternal_armor_3.png");
+        PreloadExpressionTextures();
+        LoadTexture("climax.jpg");
 
         PackedScene? scene = ResourceLoader.Load<PackedScene>(ScenePath);
         if (scene == null)
@@ -83,6 +102,13 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
             return null;
         }
         root._characterSprite.Texture = appearance;
+        root._expressionSprite = new Sprite2D
+        {
+            Name = "ExpressionSprite",
+            FlipH = true,
+            ZIndex = root._characterSprite.ZIndex + 1,
+        };
+        root._visualRoot.AddChild(root._expressionSprite);
         return root;
     }
 
@@ -91,13 +117,22 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         base._Ready();
         SetProcess(false);
         TransformationEvents.Changed += OnTransformationChanged;
+        DesireEvents.Changed += OnDesireChanged;
+        CorruptionEvents.Changed += OnCorruptionChanged;
+        EroticIntentVisualEvents.Triggered += OnEroticIntentVisual;
+        BuildEdgeVisual();
         RefreshAppearance();
+        RefreshExpressionAndEdge();
     }
 
     public override void _ExitTree()
     {
         TransformationEvents.Changed -= OnTransformationChanged;
+        DesireEvents.Changed -= OnDesireChanged;
+        CorruptionEvents.Changed -= OnCorruptionChanged;
+        EroticIntentVisualEvents.Triggered -= OnEroticIntentVisual;
         _feedbackTween?.Kill();
+        _edgeTween?.Kill();
         base._ExitTree();
     }
 
@@ -110,6 +145,75 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
             RefreshAppearance();
         }
     }
+
+    private void OnDesireChanged(DesireChanged change)
+    {
+        if (!IsOwnedCreature(change.Player.Creature))
+        {
+            return;
+        }
+
+        RefreshExpressionAndEdge();
+        if (change.OldValue < Data.Desire.Max
+            && change.NewValue >= Data.Desire.Max)
+        {
+            PlayClimaxCutIn();
+        }
+    }
+
+    private void OnCorruptionChanged(CorruptionChanged change)
+    {
+        if (GetParent() is NCreature node
+            && node.Entity.Player?.RunState is RunState runState
+            && ReferenceEquals(change.RunState, runState))
+        {
+            RefreshExpressionAndEdge();
+        }
+    }
+
+    private void OnEroticIntentVisual(EroticIntentVisual visual)
+    {
+        if (!IsOwnedCreature(visual.Target))
+        {
+            return;
+        }
+
+        switch (visual.Kind)
+        {
+            case EroticIntentKind.Desire:
+                PlayPinkEdgeFlash();
+                PlayHeartBubbles();
+                PlayTransient(
+                    new Vector2(-8f, -199f),
+                    -0.018f,
+                    Vector2.One * 0.365f,
+                    new Color(1f, 0.68f, 0.86f),
+                    0.32f);
+                break;
+            case EroticIntentKind.Control:
+                PlayTransient(
+                    new Vector2(-13f, -194f),
+                    -0.045f,
+                    RestScale,
+                    new Color(0.82f, 0.55f, 0.92f),
+                    0.4f);
+                break;
+            case EroticIntentKind.Invasion:
+                PlayPinkEdgeFlash();
+                PlayTransient(
+                    new Vector2(-21f, -191f),
+                    -0.075f,
+                    Vector2.One * 0.355f,
+                    new Color(1f, 0.38f, 0.62f),
+                    0.48f);
+                break;
+        }
+    }
+
+    private bool IsOwnedCreature(
+        MegaCrit.Sts2.Core.Entities.Creatures.Creature creature) =>
+        GetParent() is NCreature node
+        && ReferenceEquals(node.Entity, creature);
 
     public void PlayFeedback(string trigger)
     {
@@ -203,6 +307,218 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
             _visualRoot, "modulate", new Color(0.45f, 0.45f, 0.52f, 0.25f), 0.7f);
     }
 
+    private void RefreshExpressionAndEdge()
+    {
+        if (_expressionSprite == null
+            || GetParent() is not NCreature node
+            || node.Entity.Player is not { } player
+            || player.RunState is not RunState runState)
+        {
+            return;
+        }
+
+        int desire = Data.Desire.Get(player);
+        string route = CorruptionQuery.Get(runState) switch
+        {
+            >= 3 => "corrupt",
+            <= -3 => "holy",
+            _ => "neutral",
+        };
+        string range = desire switch
+        {
+            >= 10 => "10",
+            >= 8 => "8_9",
+            >= 5 => "5_7",
+            _ => "0_4",
+        };
+        string file = $"expressions/{route}_desire_{range}.png";
+        if (file != _shownExpression)
+        {
+            Texture2D? expression = LoadTexture(file);
+            if (expression != null)
+            {
+                _expressionSprite.Texture = expression;
+                _shownExpression = file;
+            }
+        }
+
+        SetPersistentPinkEdge(desire >= 8);
+    }
+
+    private void BuildEdgeVisual()
+    {
+        _edgeLayer = new CanvasLayer
+        {
+            Name = "HighDesireEdgeLayer",
+            Layer = 80,
+        };
+        AddChild(_edgeLayer);
+
+        _edgeVisual = new Control
+        {
+            Name = "PinkEdges",
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            Modulate = Colors.Transparent,
+        };
+        _edgeLayer.AddChild(_edgeVisual);
+        _edgeVisual.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+
+        AddEdgeRect("Top", 0f, 0f, 1f, 0f, 0f, 0f, 0f, 46f);
+        AddEdgeRect("Bottom", 0f, 1f, 1f, 1f, 0f, -46f, 0f, 0f);
+        AddEdgeRect("Left", 0f, 0f, 0f, 1f, 0f, 0f, 46f, 0f);
+        AddEdgeRect("Right", 1f, 0f, 1f, 1f, -46f, 0f, 0f, 0f);
+    }
+
+    private void AddEdgeRect(
+        string name,
+        float anchorLeft,
+        float anchorTop,
+        float anchorRight,
+        float anchorBottom,
+        float offsetLeft,
+        float offsetTop,
+        float offsetRight,
+        float offsetBottom)
+    {
+        if (_edgeVisual == null)
+        {
+            return;
+        }
+
+        var edge = new ColorRect
+        {
+            Name = name,
+            Color = new Color(1f, 0.16f, 0.55f, 0.48f),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            AnchorLeft = anchorLeft,
+            AnchorTop = anchorTop,
+            AnchorRight = anchorRight,
+            AnchorBottom = anchorBottom,
+            OffsetLeft = offsetLeft,
+            OffsetTop = offsetTop,
+            OffsetRight = offsetRight,
+            OffsetBottom = offsetBottom,
+        };
+        _edgeVisual.AddChild(edge);
+    }
+
+    private void SetPersistentPinkEdge(bool enabled)
+    {
+        if (_edgeVisual == null)
+        {
+            return;
+        }
+
+        _edgeTween?.Kill();
+        _edgeTween = null;
+        if (!enabled)
+        {
+            _edgeVisual.Modulate = Colors.Transparent;
+            return;
+        }
+
+        _edgeVisual.Modulate = new Color(1f, 1f, 1f, 0f);
+        _edgeTween = CreateTween().SetLoops();
+        _edgeTween.TweenInterval(0.8f);
+        _edgeTween.TweenProperty(
+            _edgeVisual, "modulate:a", 0.34f, 0.35f);
+        _edgeTween.TweenInterval(0.35f);
+        _edgeTween.TweenProperty(
+            _edgeVisual, "modulate:a", 0f, 0.65f);
+        _edgeTween.TweenInterval(1.25f);
+    }
+
+    private void PlayPinkEdgeFlash()
+    {
+        if (_edgeLayer == null)
+        {
+            return;
+        }
+
+        var flash = new ColorRect
+        {
+            Name = "EroticIntentPinkFlash",
+            Color = new Color(1f, 0.18f, 0.56f, 0f),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        _edgeLayer.AddChild(flash);
+        flash.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        Tween tween = CreateTween();
+        tween.TweenProperty(flash, "color:a", 0.19f, 0.12f);
+        tween.TweenProperty(flash, "color:a", 0f, 0.42f);
+        tween.TweenCallback(Callable.From(flash.QueueFree));
+    }
+
+    private void PlayHeartBubbles()
+    {
+        if (_visualRoot == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            var heart = new Label
+            {
+                Text = "♡",
+                Position = new Vector2(-72f + i * 62f, -550f - i * 18f),
+                Modulate = new Color(1f, 0.32f, 0.69f, 0.9f),
+                Scale = Vector2.One * (2.2f + i * 0.25f),
+                ZIndex = 5,
+            };
+            heart.AddThemeColorOverride(
+                "font_outline_color", new Color(0.35f, 0.02f, 0.2f));
+            heart.AddThemeConstantOverride("outline_size", 2);
+            _visualRoot.AddChild(heart);
+            Tween tween = CreateTween().SetParallel();
+            tween.TweenProperty(
+                heart, "position:y", heart.Position.Y - 105f, 0.85f);
+            tween.TweenProperty(heart, "modulate:a", 0f, 0.85f);
+            tween.Chain().TweenCallback(Callable.From(heart.QueueFree));
+        }
+    }
+
+    private void PlayClimaxCutIn()
+    {
+        Texture2D? texture = LoadTexture("climax.jpg");
+        if (texture == null)
+        {
+            return;
+        }
+
+        var layer = new CanvasLayer
+        {
+            Name = "ClimaxCutIn",
+            Layer = 110,
+        };
+        AddChild(layer);
+        var backdrop = new ColorRect
+        {
+            Color = new Color(0.08f, 0f, 0.05f, 0f),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        layer.AddChild(backdrop);
+        backdrop.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        var cutIn = new TextureRect
+        {
+            Texture = texture,
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            Modulate = new Color(1f, 0.85f, 0.95f, 0f),
+        };
+        layer.AddChild(cutIn);
+        cutIn.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+
+        Tween tween = CreateTween().SetParallel();
+        tween.TweenProperty(backdrop, "color:a", 0.72f, 0.18f);
+        tween.TweenProperty(cutIn, "modulate:a", 1f, 0.18f);
+        tween.Chain().TweenInterval(0.72f);
+        tween.Chain().TweenProperty(backdrop, "color:a", 0f, 0.35f);
+        tween.Parallel().TweenProperty(cutIn, "modulate:a", 0f, 0.35f);
+        tween.Chain().TweenCallback(Callable.From(layer.QueueFree));
+    }
+
     private void RefreshAppearance()
     {
         if (_characterSprite == null || GetParent() is not NCreature node)
@@ -213,18 +529,22 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         int armor = TransformationCmd.IsTransformed(node.Entity)
             ? TransformationCmd.GetArmor(node.Entity)?.Amount ?? 0
             : 0;
-        if (armor == _shownArmor)
+        string prefix = node.Entity.HasPower<EternalRobePower>()
+            ? "character_eternal_armor_"
+            : node.Entity.HasPower<CorruptRobePower>()
+                ? "character_corrupt_armor_"
+                : "character_armor_";
+        string file = armor switch
+        {
+            >= 3 => prefix + "3.png",
+            2 => prefix + "2.png",
+            1 => prefix + "1.png",
+            _ => "character_normal.png",
+        };
+        if (file == _shownAppearance)
         {
             return;
         }
-
-        string file = armor switch
-        {
-            >= 3 => "character_armor_3.png",
-            2 => "character_armor_2.png",
-            1 => "character_armor_1.png",
-            _ => "character_normal.png",
-        };
         Texture2D? nextTexture = LoadTexture(file);
         if (nextTexture == null)
         {
@@ -234,7 +554,7 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         }
 
         _characterSprite.Texture = nextTexture;
-        _shownArmor = armor;
+        _shownAppearance = file;
     }
 
     private static Texture2D? LoadTexture(string file)
@@ -264,7 +584,10 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         // two full error stacks for every failed GD.Load call. Decode the PNG
         // bytes directly instead; FileAccess also works when assets are packed.
         using var image = new Image();
-        Error error = image.LoadPngFromBuffer(pngBytes);
+        Error error = file.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+            || file.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase)
+                ? image.LoadJpgFromBuffer(pngBytes)
+                : image.LoadPngFromBuffer(pngBytes);
         if (error != Error.Ok || image.IsEmpty())
         {
             FailedTextureLoads.Add(file);
@@ -276,6 +599,19 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         Texture2D texture = ImageTexture.CreateFromImage(image);
         TextureCache[file] = texture;
         return texture;
+    }
+
+    private static void PreloadExpressionTextures()
+    {
+        string[] routes = ["neutral", "holy", "corrupt"];
+        string[] ranges = ["0_4", "5_7", "8_9", "10"];
+        foreach (string route in routes)
+        {
+            foreach (string range in ranges)
+            {
+                LoadTexture($"expressions/{route}_desire_{range}.png");
+            }
+        }
     }
 
     private static void AdoptSceneChildren(Node source, Node destination)

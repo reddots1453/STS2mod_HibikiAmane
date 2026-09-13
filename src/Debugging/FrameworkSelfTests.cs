@@ -21,8 +21,8 @@ public static class FrameworkSelfTests
         AssertProbabilities(-1, 0.15m, 0.10m, 0.75m);
         AssertProbabilities(2, 0.10m, 0.20m, 0.70m);
         AssertProbabilities(-2, 0.20m, 0.10m, 0.70m);
-        AssertProbabilities(3, 0.05m, 0.25m, 0.70m);
-        AssertProbabilities(-3, 0.25m, 0.05m, 0.70m);
+        AssertProbabilities(3, 0.05m, 0.30m, 0.65m);
+        AssertProbabilities(-3, 0.30m, 0.05m, 0.65m);
         AssertProbabilities(4, 0.00m, 0.35m, 0.65m);
         AssertProbabilities(-4, 0.35m, 0.00m, 0.65m);
         AssertProbabilities(5, 0.00m, 0.50m, 0.50m);

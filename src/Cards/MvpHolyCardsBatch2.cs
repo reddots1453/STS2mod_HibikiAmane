@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Commands;
 using MaidenSuccubus.Pools;
@@ -19,7 +20,7 @@ public sealed class Consecration : MSHolyCard
     public Consecration() : base(1, CardType.Power, CardRarity.Uncommon, TargetType.Self) { }
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
         PowerCmd.Apply<ConsecrationPower>(context, Owner.Creature, 1, Owner.Creature, this);
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade() => AddKeyword(CardKeyword.Innate);
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]
@@ -37,7 +38,15 @@ public sealed class HolyPunishment : MSHolyCard
         CardModel? card = (await CardSelectCmd.FromCombatPile(context, draw, Owner,
             new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, 1),
             candidate => candidate.IsTransformable)).FirstOrDefault();
-        if (card != null) await ScriptureCmd.TransformToRandomScripture(card);
+        CardModel? transformed = card == null
+            ? null
+            : await ScriptureCmd.TransformToRandomScripture(card);
+        if (transformed != null
+            && await Core.Transformation.TransformationCmd.PayOverdraft(
+                context, Owner.Creature, this))
+        {
+            await CardPileCmd.Add(transformed, PileType.Hand);
+        }
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
 }
@@ -93,7 +102,7 @@ public sealed class AutoReactionArmor : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class MemoryImprint : MSHolyCard
 {
-    public MemoryImprint() : base(1, CardType.Power, CardRarity.Rare, TargetType.Self) { }
+    public MemoryImprint() : base(1, CardType.Power, CardRarity.Uncommon, TargetType.Self) { }
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
         PowerCmd.Apply<MemoryImprintPower>(context, Owner.Creature, 1, Owner.Creature, this);
     protected override void OnUpgrade() => AddKeyword(CardKeyword.Innate);
@@ -113,7 +122,7 @@ public sealed class TacticalAnalyzer : MSHolyCard
         if (card != null)
         {
             CardCmd.Upgrade(card);
-            CardCmd.ApplyKeyword(card, CardKeyword.Retain);
+            CombatEnchantmentCmd.ApplyVanilla<Steady>(card, 1);
         }
     }
     protected override void OnUpgrade() => DynamicVars.Cards.UpgradeValueBy(1);

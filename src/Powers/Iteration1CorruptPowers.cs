@@ -63,7 +63,7 @@ public sealed class DarkFlameBarrierPower : MaidenSuccubusPowerTemplate
     {
         if (player.Creature == Owner)
         {
-            await PowerCmd.Remove(this);
+            await PowerCmd.Decrement(this);
         }
     }
 }

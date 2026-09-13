@@ -42,9 +42,9 @@ public sealed class DoubleDefense : MSNeutralCard
 {
     protected override HashSet<CardTag> CanonicalTags => [CardTag.Defend];
     public override bool GainsBlock => true;
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(6, ValueProp.Move)];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(4, ValueProp.Move)];
 
-    public DoubleDefense() : base(2, CardType.Skill, CardRarity.Common, TargetType.Self) { }
+    public DoubleDefense() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
 
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
@@ -52,5 +52,5 @@ public sealed class DoubleDefense : MSNeutralCard
         await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, cardPlay);
     }
 
-    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(2);
+    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(1);
 }

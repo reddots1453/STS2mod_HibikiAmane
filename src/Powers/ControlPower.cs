@@ -23,8 +23,7 @@ public sealed class ControlPower :
 {
     public override PowerType Type => PowerType.Debuff;
     public override PowerStackType StackType => PowerStackType.Counter;
-    public override PowerInstanceType InstanceType =>
-        PowerInstanceType.InstancedPerApplier;
+    public override PowerInstanceType InstanceType => PowerInstanceType.Instanced;
 
     [SavedProperty]
     public ControlType ControlType { get; set; }

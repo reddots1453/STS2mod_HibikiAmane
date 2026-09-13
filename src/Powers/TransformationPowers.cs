@@ -11,6 +11,7 @@ using MegaCrit.Sts2.Core.ValueProps;
 using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Content;
 using MaidenSuccubus.Core.Transformation;
+using MaidenSuccubus.Core.Temptation;
 
 namespace MaidenSuccubus.Powers;
 
@@ -23,12 +24,14 @@ public sealed class ImmaculateRobePower : MaidenSuccubusPowerTemplate
     public override Task AfterApplied(Creature? applier, CardModel? cardSource)
     {
         TransformationEvents.Publish(Owner);
+        TemptationEvents.Publish(Owner);
         return Task.CompletedTask;
     }
 
     public override Task AfterRemoved(Creature oldOwner)
     {
         TransformationEvents.Publish(oldOwner);
+        TemptationEvents.Publish(oldOwner);
         return Task.CompletedTask;
     }
 
@@ -47,6 +50,35 @@ public sealed class ImmaculateRobePower : MaidenSuccubusPowerTemplate
 }
 
 [RegisterPower]
+public sealed class CorruptRobePower : MaidenSuccubusPowerTemplate
+{
+    public override PowerType Type => PowerType.Buff;
+    public override PowerStackType StackType => PowerStackType.Single;
+
+    public override Task AfterApplied(Creature? applier, CardModel? cardSource)
+    {
+        TransformationEvents.Publish(Owner);
+        TemptationEvents.Publish(Owner);
+        return Task.CompletedTask;
+    }
+
+    public override Task AfterRemoved(Creature oldOwner)
+    {
+        TransformationEvents.Publish(oldOwner);
+        TemptationEvents.Publish(oldOwner);
+        return Task.CompletedTask;
+    }
+
+    public override Task AfterPlayerTurnStart(
+        PlayerChoiceContext choiceContext,
+        MegaCrit.Sts2.Core.Entities.Players.Player player) =>
+        ReferenceEquals(player.Creature, Owner)
+            ? PowerCmd.Apply<MagicAmplificationPower>(
+                choiceContext, Owner, 1, Owner, null)
+            : Task.CompletedTask;
+}
+
+[RegisterPower]
 public sealed class MagicArmorPower : MaidenSuccubusPowerTemplate
 {
     private bool _pendingDecrement;
@@ -62,13 +94,6 @@ public sealed class MagicArmorPower : MaidenSuccubusPowerTemplate
         get
         {
             LocString description = base.Description;
-            description.Add("Chance", Amount switch
-            {
-                >= 3 => "10%",
-                2 => "30%",
-                1 => "50%",
-                _ => "0%",
-            });
             return description;
         }
     }
@@ -76,10 +101,11 @@ public sealed class MagicArmorPower : MaidenSuccubusPowerTemplate
     public override Task AfterApplied(Creature? applier, CardModel? cardSource)
     {
         TransformationEvents.Publish(Owner);
+        TemptationEvents.Publish(Owner);
         return Task.CompletedTask;
     }
 
-    public override Task AfterPowerAmountChanged(
+    public override async Task AfterPowerAmountChanged(
         PlayerChoiceContext context,
         PowerModel power,
         decimal amount,
@@ -89,8 +115,14 @@ public sealed class MagicArmorPower : MaidenSuccubusPowerTemplate
         if (ReferenceEquals(power, this))
         {
             TransformationEvents.Publish(Owner);
+            TemptationEvents.Publish(Owner);
+            if (amount < 0
+                && Owner.HasPower<CorruptRobePower>()
+                && Owner.Player is { } player)
+            {
+                await Data.Desire.Modify(player, 1);
+            }
         }
-        return Task.CompletedTask;
     }
 
     public override Task BeforeSideTurnStart(
@@ -149,14 +181,14 @@ public sealed class MagicArmorPower : MaidenSuccubusPowerTemplate
     public override async Task AfterRemoved(Creature oldOwner)
     {
         TransformationEvents.Publish(oldOwner);
+        TemptationEvents.Publish(oldOwner);
         if (SuppressFormRemoval)
         {
             return;
         }
-        ImmaculateRobePower? form = oldOwner.Powers
-            .OfType<ImmaculateRobePower>()
-            .FirstOrDefault();
-        if (form != null)
+        foreach (PowerModel form in oldOwner.Powers
+            .Where(power => power is ImmaculateRobePower or CorruptRobePower)
+            .ToArray())
         {
             await PowerCmd.Remove(form);
         }

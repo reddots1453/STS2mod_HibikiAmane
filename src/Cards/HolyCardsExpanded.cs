@@ -12,6 +12,7 @@ using MaidenSuccubus.Cards.Scriptures;
 using MaidenSuccubus.Commands;
 using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Core.Powers;
+using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
 using STS2RitsuLib.Combat.SecondaryResources;
@@ -367,6 +368,12 @@ public sealed class Judgment : MSHolyCard
             DynamicVars["Condemnation"].BaseValue,
             Owner.Creature,
             this);
+        if (await TransformationCmd.PayOverdraft(
+                choiceContext, Owner.Creature, this))
+        {
+            await CondemnationCmd.Apply(
+                choiceContext, cardPlay.Target, 1, Owner.Creature, this);
+        }
     }
 
     protected override void OnUpgrade() =>

@@ -121,6 +121,10 @@ def declared_vars(block: str) -> set[str]:
         names.add(match.group("name"))
     for match in re.finditer(r'SecondaryResourceVars\.ForLocal\(\s*"(?P<name>[^"]+)"', block):
         names.add(match.group("name"))
+    for match in re.finditer(
+        r'description\.Add\(\s*"(?P<name>[^"]+)"', block
+    ):
+        names.add(match.group("name"))
     return names
 
 

@@ -52,7 +52,10 @@ public sealed class MemoryImprintPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
-    public override async Task AfterPlayerTurnStart(PlayerChoiceContext context, Player player)
+    public override async Task BeforeHandDraw(
+        Player player,
+        PlayerChoiceContext context,
+        MegaCrit.Sts2.Core.Combat.ICombatState combatState)
     {
         if (player.Creature != Owner) return;
         CardPile discard = PileType.Discard.GetPile(player);

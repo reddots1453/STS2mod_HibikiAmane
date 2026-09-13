@@ -18,6 +18,8 @@ public sealed class IntentRuntimeState
     private int _controlIntentUses;
     private int _invasionIntentUses;
     private int _lastNaturalRollTurn = -1;
+    private int _desireCooldownThroughTurn = -1;
+    private int _controlCooldownThroughTurn = -1;
 
     public bool ForceStun
     {
@@ -55,6 +57,18 @@ public sealed class IntentRuntimeState
         set { _lastNaturalRollTurn = value; Sync(); }
     }
 
+    public int DesireCooldownThroughTurn
+    {
+        get => _desireCooldownThroughTurn;
+        set { _desireCooldownThroughTurn = value; Sync(); }
+    }
+
+    public int ControlCooldownThroughTurn
+    {
+        get => _controlCooldownThroughTurn;
+        set { _controlCooldownThroughTurn = value; Sync(); }
+    }
+
     public bool SteadfastScheduled { get; set; }
     public bool PersistenceScheduled { get; set; }
 
@@ -85,6 +99,8 @@ public sealed class IntentRuntimeState
         _controlIntentUses = carrier.ControlIntentUses;
         _invasionIntentUses = carrier.InvasionIntentUses;
         _lastNaturalRollTurn = carrier.LastNaturalRollTurn;
+        _desireCooldownThroughTurn = carrier.DesireCooldownThroughTurn;
+        _controlCooldownThroughTurn = carrier.ControlCooldownThroughTurn;
     }
 
     public void AttachNew(EroticIntentRuntimePower carrier)
@@ -103,6 +119,8 @@ public sealed class IntentRuntimeState
             _carrier.ControlIntentUses = _controlIntentUses;
             _carrier.InvasionIntentUses = _invasionIntentUses;
             _carrier.LastNaturalRollTurn = _lastNaturalRollTurn;
+            _carrier.DesireCooldownThroughTurn = _desireCooldownThroughTurn;
+            _carrier.ControlCooldownThroughTurn = _controlCooldownThroughTurn;
         }
     }
 }
@@ -146,31 +164,33 @@ public static class IntentAdapterRegistry
     public static async Task Initialize(MonsterModel monster)
     {
         IntentRuntimeState state = GetRuntime(monster);
-        if (monster.Creature.GetPower<EroticIntentRuntimePower>() != null
-            || state.PersistenceScheduled)
+        if (state.PersistenceScheduled)
         {
             return;
         }
 
-        state.PersistenceScheduled = true;
-        try
+        if (monster.Creature.GetPower<EroticIntentRuntimePower>() == null)
         {
-            EroticIntentRuntimePower? carrier =
-                await PowerCmd.Apply<EroticIntentRuntimePower>(
-                    new ThrowingPlayerChoiceContext(),
-                    monster.Creature,
-                    1m,
-                    monster.Creature,
-                    null,
-                    silent: true);
-            if (carrier != null)
+            state.PersistenceScheduled = true;
+            try
             {
-                state.AttachNew(carrier);
+                EroticIntentRuntimePower? carrier =
+                    await PowerCmd.Apply<EroticIntentRuntimePower>(
+                        new ThrowingPlayerChoiceContext(),
+                        monster.Creature,
+                        1m,
+                        monster.Creature,
+                        null,
+                        silent: true);
+                if (carrier != null)
+                {
+                    state.AttachNew(carrier);
+                }
             }
-        }
-        finally
-        {
-            state.PersistenceScheduled = false;
+            finally
+            {
+                state.PersistenceScheduled = false;
+            }
         }
 
         if (EroticAttackCatalog.Get(monster)?.Steadfast == true
@@ -183,6 +203,11 @@ public static class IntentAdapterRegistry
                 monster.Creature,
                 null,
                 silent: true);
+        }
+
+        if (EroticAttackCatalog.Get(monster) is { Steadfast: false } spec)
+        {
+            await EroticIntentThresholdPower.ApplyAll(monster, spec);
         }
     }
 

@@ -35,6 +35,7 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
     private const float TotalHeight = TitleHeight + MeterHeight + ValueHeight;
 
     private readonly List<ColorRect> _segments = [];
+    private CpuParticles2D? _bubbles;
     private Label? _valueLabel;
     private NTopBar? _topBar;
     private MegaCrit.Sts2.Core.Entities.Players.Player? _player;
@@ -127,8 +128,10 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
                     TitleHeight + i * (SegmentHeight + SegmentGap)),
                 Size = new Vector2(SegmentWidth, SegmentHeight),
                 Color = GetSegmentColor(requiredValue, filled: false),
-                MouseFilter = MouseFilterEnum.Ignore,
+                MouseFilter = MouseFilterEnum.Stop,
             };
+            segment.MouseEntered += () => ShowHoverTipForValue(requiredValue);
+            segment.MouseExited += ClearHoverTip;
             visuals.AddChild(segment);
             _segments.Add(segment);
         }
@@ -147,6 +150,27 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
         _valueLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
         _valueLabel.AddThemeConstantOverride("outline_size", 4);
         visuals.AddChild(_valueLabel);
+
+        _bubbles = new CpuParticles2D
+        {
+            Name = "HighDesireBubbles",
+            Position = new Vector2(27f, TitleHeight + MeterHeight - 6f),
+            Amount = 14,
+            Lifetime = 2.2,
+            Emitting = false,
+            LocalCoords = true,
+            Direction = Vector2.Up,
+            Spread = 24f,
+            Gravity = new Vector2(0f, -8f),
+            InitialVelocityMin = 18f,
+            InitialVelocityMax = 34f,
+            ScaleAmountMin = 0.45f,
+            ScaleAmountMax = 1f,
+            Color = new Color(1f, 0.42f, 0.72f, 0.82f),
+            Texture = CreateBubbleTexture(),
+            ZIndex = 3,
+        };
+        visuals.AddChild(_bubbles);
     }
 
     private void Refresh()
@@ -213,14 +237,29 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
                 requiredValue,
                 value >= requiredValue);
         }
+        if (_bubbles != null)
+        {
+            _bubbles.Emitting = value >= 5;
+        }
     }
 
     private void ShowHoverTip()
+    {
+        ShowHoverTipForValue(null);
+    }
+
+    private void ShowHoverTipForValue(int? value)
     {
         if (!Visible)
         {
             return;
         }
+        string descriptionKey = value switch
+        {
+            8 => "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.threshold8",
+            10 => "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.threshold10",
+            _ => "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.description",
+        };
         NHoverTipSet.CreateAndShow(
             this,
             new HoverTip(
@@ -229,7 +268,7 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
                     "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.title"),
                 new LocString(
                     "static_hover_tips",
-                    "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.description")),
+                    descriptionKey)),
             HoverTip.GetHoverTipAlignment(this));
     }
 
@@ -258,5 +297,23 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
         return filled
             ? baseColor
             : new Color(baseColor.R * 0.24f, baseColor.G * 0.24f, baseColor.B * 0.24f, 0.82f);
+    }
+
+    private static Texture2D CreateBubbleTexture()
+    {
+        const int size = 20;
+        using var image = Image.CreateEmpty(
+            size, size, false, Image.Format.Rgba8);
+        Vector2 center = Vector2.One * ((size - 1) / 2f);
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float radius = new Vector2(x, y).DistanceTo(center);
+                float alpha = Math.Clamp(1f - Math.Abs(radius - 7f), 0f, 1f);
+                image.SetPixel(x, y, new Color(1f, 0.7f, 0.9f, alpha));
+            }
+        }
+        return ImageTexture.CreateFromImage(image);
     }
 }

@@ -61,7 +61,11 @@ public sealed class LightArrow : MSNeutralCard, IDoubleMagicAmplification
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
     }
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade()
+    {
+        DynamicVars.Damage.UpgradeValueBy(2);
+        DynamicVars.Block.UpgradeValueBy(2);
+    }
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]

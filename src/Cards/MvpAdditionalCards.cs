@@ -71,7 +71,7 @@ public sealed class LastStand : MSCorruptCard
 public sealed class LightningKick : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(10, ValueProp.Move), new PowerVar<ShatterPower>(3)];
+        [new DamageVar(10, ValueProp.Move), new PowerVar<ShatterPower>(4)];
     public LightningKick() : base(2, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
@@ -139,7 +139,7 @@ public sealed class MagicBurst : MSHolyCard
                     ? PowerLayerQuery.CountBuffLayers(card.Owner.Creature)
                     : 0),
     ];
-    public MagicBurst() : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
+    public MagicBurst() : base(0, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
@@ -161,20 +161,30 @@ public sealed class MagicBurst : MSHolyCard
 public sealed class DreamMist : MSNeutralCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new PowerVar<WeakPower>(3)];
-    public DreamMist() : base(1, CardType.Skill, CardRarity.Common, TargetType.AllEnemies) { }
+    protected override IEnumerable<DynamicVar> CanonicalVars =>
+        [new PowerVar<WeakPower>(2), new PowerVar<VulnerablePower>(2)];
+    public DreamMist() : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.AllEnemies) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         await PowerCmd.Apply<WeakPower>(context, Owner.Creature,
             DynamicVars["WeakPower"].BaseValue, Owner.Creature, this);
+        await PowerCmd.Apply<VulnerablePower>(context, Owner.Creature,
+            DynamicVars["VulnerablePower"].BaseValue, Owner.Creature, this);
         if (CombatState != null)
         {
             foreach (var enemy in CombatState.HittableEnemies.ToArray())
                 await PowerCmd.Apply<WeakPower>(context, enemy,
                     DynamicVars["WeakPower"].BaseValue, Owner.Creature, this);
+            foreach (var enemy in CombatState.HittableEnemies.ToArray())
+                await PowerCmd.Apply<VulnerablePower>(context, enemy,
+                    DynamicVars["VulnerablePower"].BaseValue, Owner.Creature, this);
         }
     }
-    protected override void OnUpgrade() => RemoveKeyword(CardKeyword.Exhaust);
+    protected override void OnUpgrade()
+    {
+        DynamicVars["WeakPower"].UpgradeValueBy(1);
+        DynamicVars["VulnerablePower"].UpgradeValueBy(1);
+    }
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]
@@ -191,5 +201,6 @@ public sealed class CycloneRupture : MSNeutralCard
         await PowerCmd.Apply<ShatterPower>(context, play.Target,
             DynamicVars["ShatterPower"].BaseValue, Owner.Creature, this);
     }
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
+    protected override void OnUpgrade() =>
+        DynamicVars["ShatterPower"].UpgradeValueBy(1);
 }

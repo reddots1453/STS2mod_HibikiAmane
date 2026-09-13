@@ -6,10 +6,10 @@ public readonly record struct RouteRewardProbabilities(
     decimal Neutral)
 {
     private static readonly decimal[] FavoredByMagnitude =
-        [0.10m, 0.15m, 0.20m, 0.25m, 0.35m, 0.50m];
+        [0.10m, 0.15m, 0.20m, 0.30m, 0.45m, 0.65m];
 
     private static readonly decimal[] OpposedByMagnitude =
-        [0.10m, 0.10m, 0.10m, 0.05m, 0.00m, 0.00m];
+        [0.10m, 0.10m, 0.08m, 0.05m, 0.00m, 0.00m];
 
     public decimal Total => Holy + Corrupt + Neutral;
 

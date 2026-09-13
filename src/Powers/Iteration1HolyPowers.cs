@@ -94,6 +94,21 @@ public sealed class EternalRobePower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
+
+    public override Task AfterApplied(
+        MegaCrit.Sts2.Core.Entities.Creatures.Creature? applier,
+        CardModel? cardSource)
+    {
+        TransformationEvents.Publish(Owner);
+        return Task.CompletedTask;
+    }
+
+    public override Task AfterRemoved(
+        MegaCrit.Sts2.Core.Entities.Creatures.Creature oldOwner)
+    {
+        TransformationEvents.Publish(oldOwner);
+        return Task.CompletedTask;
+    }
 }
 
 [RegisterPower]

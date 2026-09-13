@@ -40,11 +40,17 @@ public static class ControlCmd
 
         ControlPower? existing = target.Powers
             .OfType<ControlPower>()
-            .FirstOrDefault(power => ReferenceEquals(power.Applier, source));
+            .FirstOrDefault(power => ReferenceEquals(power.Applier, source)
+                && power.ControlType == type);
         if (existing != null)
         {
-            existing.PendingBreakReason = ControlBreakReason.Direct;
-            await PowerCmd.Remove(existing);
+            await PowerCmd.ModifyAmount(
+                choiceContext,
+                existing,
+                escapeAmount,
+                source,
+                null);
+            return ControlResolutionResult.Applied;
         }
 
         ControlPower power = (ControlPower)ModelDb

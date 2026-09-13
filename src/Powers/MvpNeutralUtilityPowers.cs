@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Powers;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Saves.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
@@ -77,6 +78,15 @@ public sealed class UltimateFlarePower : MaidenSuccubusPowerTemplate
     [SavedProperty] public decimal Damage { get; set; }
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
+    public override LocString Description
+    {
+        get
+        {
+            LocString description = base.Description;
+            description.Add("Damage", Damage);
+            return description;
+        }
+    }
     public override async Task AfterSideTurnStart(
         CombatSide side, IReadOnlyList<Creature> participants, ICombatState combatState)
     {

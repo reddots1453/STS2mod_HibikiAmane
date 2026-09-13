@@ -5,6 +5,9 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MaidenSuccubus.Cards.Curses;
 using MaidenSuccubus.Core.Intents;
 using MaidenSuccubus.Powers;
+using MaidenSuccubus.Core.Corruption;
+using MaidenSuccubus.Data;
+using MegaCrit.Sts2.Core.Runs;
 
 namespace MaidenSuccubus.Commands;
 
@@ -26,6 +29,14 @@ public static class InvasionCmd
     {
         if (source.Creature.IsDead || target.Creature.IsDead) return false;
 
+        await DamageCmd.Attack(spec.Damage)
+            .FromMonster(source)
+            .WithNoAttackerAnim()
+            .Execute(choiceContext);
+
+        // Chastity Defense prevents natural invasion selection. If an invasion
+        // was already selected before the protection appeared, its attack still
+        // resolves, but the curse and recovery intent are cancelled.
         ChastityDefensePower? protection =
             target.Creature.GetPower<ChastityDefensePower>();
         if (protection != null)
@@ -34,17 +45,22 @@ public static class InvasionCmd
             return false;
         }
 
-        await DamageCmd.Attack(spec.Damage)
-            .FromMonster(source)
-            .WithNoAttackerAnim()
-            .Execute(choiceContext);
-
         MSInvasionCurseTemplate? curse = await AddCurse(target, spec.CurseName);
         if (curse == null)
         {
             return false;
         }
         curse.SourceMonsterId = source.Id.Entry;
+
+        if (target.RunState is RunState runState)
+        {
+            bool firstInvasion = Corruption.Handle.Get(runState).VirginMark;
+            if (firstInvasion)
+            {
+                Corruption.Handle.Modify(runState, state => state.VirginMark = false);
+                CorruptionCmd.Modify(runState, 1, CorruptionChangeSource.Unknown);
+            }
+        }
 
         IntentRuntimeState runtime = IntentAdapterRegistry.GetRuntime(source);
         runtime.ControlDisabled = true;
@@ -55,27 +71,27 @@ public static class InvasionCmd
     private static async Task<MSInvasionCurseTemplate?> AddCurse(
         Player target,
         string name) => name switch
-    {
-        "腥臭黏液" or "腥臭粘液" =>
-            await Add<FoulSlimeCurse>(target),
-        "催情液" => await Add<AphrodisiacCurse>(target),
-        "孢子胶质" => await Add<SporeMucusCurse>(target),
-        "麻痹黏液" => await Add<ParalyticSlimeCurse>(target),
-        "腐蚀黏液" => await Add<CorrosiveSlimeCurse>(target),
-        "虫卵" => await Add<InsectEggCurse>(target),
-        "寄生卵" => await Add<ParasiticEggCurse>(target),
-        "墨色体液" => await Add<InkFluidCurse>(target),
-        "灼热体液" => await Add<ScorchingFluidCurse>(target),
-        "灵质残液" => await Add<EctoplasmResidueCurse>(target),
-        "魔力残液" => await Add<MagicResidueCurse>(target),
-        "藤蔓种子" => await Add<VineSeedCurse>(target),
-        "淤泥精液" => await Add<SludgeSemenCurse>(target),
-        "深海黏液" => await Add<DeepSeaSlimeCurse>(target),
-        "实验药液" => await Add<ExperimentalLiquidCurse>(target),
-        "王家精华" => await Add<RoyalEssenceCurse>(target),
-        _ => throw new InvalidDataException(
-            $"Unregistered invasion curse name: {name}"),
-    };
+        {
+            "腥臭黏液" or "腥臭粘液" =>
+                await Add<FoulSlimeCurse>(target),
+            "催情液" => await Add<AphrodisiacCurse>(target),
+            "孢子胶质" => await Add<SporeMucusCurse>(target),
+            "麻痹黏液" => await Add<ParalyticSlimeCurse>(target),
+            "腐蚀黏液" => await Add<CorrosiveSlimeCurse>(target),
+            "虫卵" => await Add<InsectEggCurse>(target),
+            "寄生卵" => await Add<ParasiticEggCurse>(target),
+            "墨色体液" => await Add<InkFluidCurse>(target),
+            "灼热体液" => await Add<ScorchingFluidCurse>(target),
+            "灵质残液" => await Add<EctoplasmResidueCurse>(target),
+            "魔力残液" => await Add<MagicResidueCurse>(target),
+            "藤蔓种子" => await Add<VineSeedCurse>(target),
+            "淤泥精液" => await Add<SludgeSemenCurse>(target),
+            "深海黏液" => await Add<DeepSeaSlimeCurse>(target),
+            "实验药液" => await Add<ExperimentalLiquidCurse>(target),
+            "王家精华" => await Add<RoyalEssenceCurse>(target),
+            _ => throw new InvalidDataException(
+                $"Unregistered invasion curse name: {name}"),
+        };
 
     private static async Task<MSInvasionCurseTemplate?> Add<T>(Player target)
         where T : MSInvasionCurseTemplate =>

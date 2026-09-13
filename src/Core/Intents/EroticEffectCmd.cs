@@ -12,6 +12,7 @@ using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Cards;
 using MaidenSuccubus.Commands;
 using MaidenSuccubus.Powers;
+using MaidenSuccubus.Core.Transformation;
 
 namespace MaidenSuccubus.Core.Intents;
 
@@ -33,6 +34,10 @@ public static class EroticEffectCmd
             {
                 await MaidenSuccubus.Data.Desire.Modify(target.Player, desire);
             }
+        }
+        if (effect.Contains("撕裂衣服", StringComparison.Ordinal))
+        {
+            await TransformationCmd.LoseArmor(context, target, 1, source);
         }
         await ApplyOtherEnemyResources(context, source, effect);
         await ApplySelfResources(context, source, effect);
@@ -162,6 +167,22 @@ public static class EroticEffectCmd
             {
                 await AddToCombat<Infection>(target.Player, pile, count, source);
             }
+            else if (card.Contains("倒刺钩", StringComparison.Ordinal))
+            {
+                await AddToCombat<BarbedHookStatus>(target.Player, pile, count, source);
+            }
+            else if (card.Contains("衣物燃烧", StringComparison.Ordinal))
+            {
+                await AddToCombat<ClothingBurnStatus>(target.Player, pile, count, source);
+            }
+            else if (card.Contains("咬衣纸片", StringComparison.Ordinal))
+            {
+                await AddToCombat<BitingPaperStatus>(target.Player, pile, count, source);
+            }
+            else if (card.Contains("溶解液", StringComparison.Ordinal))
+            {
+                await AddToCombat<DissolvingFluidStatus>(target.Player, pile, count, source);
+            }
         }
     }
 
@@ -188,6 +209,7 @@ public static class EroticEffectCmd
             @"失败则拘束(?:攻击|技能|能力)牌",
             @"挣脱值\d+",
             @"将\d+张[“""][^”""]+[”""]加入牌组",
+            @"撕裂衣服",
         ];
         foreach (string pattern in supportedPatterns)
         {
@@ -222,7 +244,10 @@ public static class EroticEffectCmd
         }
         int statusCount = Regex.Matches(
                 effect,
-                @"将(\d+)张[^；。，]+?(?:置入弃牌堆|洗入弃牌堆|洗入抽牌堆)")
+                @"将(\d+)张([^；。，]+?)(?:置入弃牌堆|洗入弃牌堆|洗入抽牌堆)")
+            .Where(match => !Regex.IsMatch(
+                match.Groups[2].Value,
+                "倒刺钩|衣物燃烧|咬衣纸片|溶解液"))
             .Sum(match => int.Parse(match.Groups[1].Value));
         if (statusCount > 0)
         {
@@ -235,6 +260,16 @@ public static class EroticEffectCmd
         if (kind == EroticIntentKind.Invasion)
         {
             intents.Add(new CardDebuffIntent());
+        }
+        if (effect.Contains("撕裂衣服", StringComparison.Ordinal))
+        {
+            intents.Add(new TearClothingIntent());
+        }
+        foreach (Match match in Regex.Matches(
+            effect,
+            @"将\d+张(倒刺钩|衣物燃烧|咬衣纸片|溶解液)(?:置入弃牌堆|洗入弃牌堆|洗入抽牌堆)"))
+        {
+            intents.Add(new ClothingHazardIntent(match.Groups[1].Value));
         }
         return intents;
     }

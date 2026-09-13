@@ -20,6 +20,7 @@ using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
 using STS2RitsuLib.Combat.SecondaryResources;
 using STS2RitsuLib.Interop.AutoRegistration;
+using MaidenSuccubus.Core.Temptation;
 
 namespace MaidenSuccubus.Cards;
 
@@ -28,20 +29,29 @@ public sealed class Exhibitionist : MSCorruptCard
 {
     public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new BlockVar(18, ValueProp.Move)];
+    [
+        new CalculationBaseVar(0),
+        new CalculationExtraVar(1),
+        new CalculatedBlockVar(ValueProp.Move).WithMultiplier(
+            static (card, _) => Temptation.Get(card.Owner)),
+    ];
 
     public Exhibitionist()
         : base(2, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
-        await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
+        await CreatureCmd.GainBlock(
+            Owner.Creature,
+            DynamicVars.CalculatedBlock.Calculate(null),
+            DynamicVars.CalculatedBlock.Props,
+            play);
         CardModel status = CombatState!.CreateCard(
             ModelDb.Card<NakedDesireStatus>(), Owner);
         await CardPileCmd.AddGeneratedCardToCombat(status, PileType.Hand, Owner);
     }
 
-    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(6);
+    protected override void OnUpgrade() { }
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]
@@ -69,17 +79,22 @@ public sealed class LordOfBlaze : MSCorruptCard
 public sealed class DarkFlameBarrier : MSCorruptCard
 {
     public override bool GainsBlock => true;
+    public override IEnumerable<CardKeyword> CanonicalKeywords =>
+        [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new BlockVar(5, ValueProp.Move)];
+        [new BlockVar(6, ValueProp.Move), new DynamicVar("Turns", 2)];
 
     public DarkFlameBarrier()
         : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
-        await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
         await PowerCmd.Apply<DarkFlameBarrierPower>(
-            context, Owner.Creature, 1, Owner.Creature, this);
+            context, Owner.Creature, DynamicVars["Turns"].BaseValue, Owner.Creature, this);
+        if (await TransformationCmd.PayOverdraft(context, Owner.Creature, this))
+        {
+            await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
+        }
     }
 
     protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(3);
@@ -106,7 +121,7 @@ public sealed class MiasmaConversion : MSCorruptCard
         }
         if (cards.Length > 0)
         {
-            await PowerCmd.Apply<StrengthPower>(
+            await PowerCmd.Apply<MagicAmplificationPower>(
                 context, Owner.Creature, cards.Length, Owner.Creature, this);
         }
     }
@@ -250,42 +265,37 @@ public sealed class DemonStaff : MSCorruptCard
 public sealed class LureDeep : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DynamicVar("Escape", 3)];
-    public override IEnumerable<CardKeyword> CanonicalKeywords =>
-        [CardKeyword.Exhaust];
+        [new DynamicVar("Temptation", 10), new CardsVar(1)];
 
     public LureDeep()
-        : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.AnyEnemy) { }
+        : base(0, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
 
-    protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
+    protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
-        if (play.Target?.Monster != null)
-        {
-            IntentMoveFactory.TryForceControl(
-                play.Target.Monster, Owner, DynamicVars["Escape"].IntValue);
-        }
-        return Task.CompletedTask;
+        await Temptation.Modify(context, Owner, DynamicVars["Temptation"].IntValue);
+        await CardPileCmd.Draw(context, DynamicVars.Cards.IntValue, Owner);
     }
 
-    protected override void OnUpgrade() => DynamicVars["Escape"].UpgradeValueBy(-1);
+    protected override void OnUpgrade() => DynamicVars["Temptation"].UpgradeValueBy(5);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class ExposePlay : MSCorruptCard
 {
-    public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new BlockVar(3, ValueProp.Move)];
+        [new DynamicVar("Temptation", 20), new DynamicVar("ArmorThreshold", 1)];
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
-        [PortableKeyword.Value];
+        [CardKeyword.Exhaust];
 
     public ExposePlay()
-        : base(0, CardType.Skill, CardRarity.Common, TargetType.Self) { }
+        : base(0, CardType.Skill, CardRarity.Common, TargetType.Self) =>
+        this.SecondaryCosts().Set(DesireResource.Id, 1);
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
-        await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
-        if ((TransformationCmd.GetArmor(Owner.Creature)?.Amount ?? 0) > 1
+        await Temptation.Modify(context, Owner, DynamicVars["Temptation"].IntValue);
+        if ((TransformationCmd.GetArmor(Owner.Creature)?.Amount ?? 0)
+                > DynamicVars["ArmorThreshold"].IntValue
             || CombatState!.HittableEnemies.Count == 0)
         {
             return;
@@ -296,7 +306,8 @@ public sealed class ExposePlay : MSCorruptCard
         IntentMoveFactory.TryForceErotic(enemy.Monster!, Owner);
     }
 
-    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(2);
+    protected override void OnUpgrade() =>
+        DynamicVars["ArmorThreshold"].UpgradeValueBy(1);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]
@@ -360,7 +371,7 @@ public sealed class LoversDagger : MSCorruptCard
 public sealed class DesireWhip : MSCorruptCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
-        [PortableKeyword.Value];
+        [PortableKeyword.Value, CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new DamageVar(7, ValueProp.Move)];
 
@@ -379,7 +390,7 @@ public sealed class DesireWhip : MSCorruptCard
         }
     }
 
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]
@@ -392,13 +403,13 @@ public sealed class PleasureGarden : MSCorruptCard
         : base(0, CardType.Skill, CardRarity.Rare, TargetType.AllEnemies) =>
         this.SecondaryCosts().Set(DesireResource.Id, 2);
 
-    protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
+    protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
+        await Temptation.Modify(context, Owner, 30);
         foreach (var enemy in CombatState!.HittableEnemies)
         {
             IntentMoveFactory.TryForceErotic(enemy.Monster!, Owner);
         }
-        return Task.CompletedTask;
     }
 
     protected override void OnUpgrade() { }
@@ -429,7 +440,7 @@ public sealed class SemenAppetite : MSCorruptCard
 public sealed class BiteInvader : MSCorruptCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
-        [CardKeyword.Retain];
+        [PortableKeyword.Value];
 
     public BiteInvader()
         : base(2, CardType.Skill, CardRarity.Common, TargetType.AnyEnemy) { }

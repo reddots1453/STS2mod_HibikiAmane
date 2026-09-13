@@ -11,6 +11,7 @@ namespace MaidenSuccubus.Debugging.CardEffects;
 
 internal static class CardEffectTestRunner
 {
+    private const int ExpectedCardCount = 215;
     private static readonly SemaphoreSlim Gate = new(1, 1);
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -167,7 +168,8 @@ internal static class CardEffectTestRunner
             .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
         string[] actual = specs.Select(spec => spec.CardId)
             .Order(StringComparer.Ordinal).ToArray();
-        if (expected.Length != 204 || !expected.SequenceEqual(actual, StringComparer.Ordinal))
+        if (expected.Length != ExpectedCardCount
+            || !expected.SequenceEqual(actual, StringComparer.Ordinal))
         {
             string[] missing = expected.Except(actual, StringComparer.Ordinal).ToArray();
             string[] extra = actual.Except(expected, StringComparer.Ordinal).ToArray();

@@ -46,7 +46,6 @@ public sealed class MiasmaFrenzy : MSCorruptCard
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
 
-[RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class MagicExcess : MSCorruptCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
@@ -152,10 +151,23 @@ public sealed class ReflectiveBarrier : MSCorruptCard
     public ReflectiveBarrier() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
         CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
-    public override Task AfterCardExhausted(PlayerChoiceContext context, CardModel card, bool causedByEthereal) =>
-        card == this
-            ? CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block.BaseValue, DynamicVars.Block.Props, null)
-            : Task.CompletedTask;
+    public override async Task AfterCardExhausted(
+        PlayerChoiceContext context,
+        CardModel card,
+        bool causedByEthereal)
+    {
+        if (card != this)
+        {
+            return;
+        }
+        await CreatureCmd.GainBlock(
+            Owner.Creature,
+            DynamicVars.Block.BaseValue,
+            DynamicVars.Block.Props,
+            null);
+        await PowerCmd.Apply<MagicAmplificationPower>(
+            context, Owner.Creature, 1, Owner.Creature, this);
+    }
     protected override void OnUpgrade() => AddKeyword(CardKeyword.Exhaust);
 }
 

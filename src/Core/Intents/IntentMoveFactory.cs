@@ -10,6 +10,7 @@ using MaidenSuccubus.Commands;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Powers;
+using MaidenSuccubus.Core.Transformation;
 
 namespace MaidenSuccubus.Core.Intents;
 
@@ -18,7 +19,14 @@ public static class IntentMoveFactory
     public static bool TryForceControl(MonsterModel monster, Player player, int escape)
     {
         ControlIntentSpec? spec = EroticAttackCatalog.Get(monster)?.Control;
-        if (spec == null || IsSteadfast(monster)) return false;
+        if (spec == null
+            || IsSteadfast(monster)
+            || !IsKindLegal(monster, player, EroticIntentKind.Control, false))
+        {
+            return false;
+        }
+        IntentAdapterRegistry.GetRuntime(monster)
+            .Increment(EroticIntentKind.Control);
         SetTransient(
             monster,
             CreateControl(monster, spec with { EscapeRequired = escape }));
@@ -33,6 +41,7 @@ public static class IntentMoveFactory
         {
             Creature? target = FindMaidenSuccubus(targets);
             if (target == null) return;
+            EroticIntentVisualEvents.Publish(target, EroticIntentKind.Control);
             ControlResolutionResult result = await ControlCmd.ResolveIntent(
                 new BlockingPlayerChoiceContext(),
                 source.Creature,
@@ -42,6 +51,9 @@ public static class IntentMoveFactory
                 spec.EscapeRequired);
             if (result == ControlResolutionResult.Applied)
             {
+                IntentAdapterRegistry.GetRuntime(source)
+                    .ControlCooldownThroughTurn =
+                        source.CombatState.RoundNumber + 1;
                 await EroticEffectCmd.Resolve(
                     new BlockingPlayerChoiceContext(),
                     source,
@@ -59,6 +71,7 @@ public static class IntentMoveFactory
         {
             Creature? target = FindMaidenSuccubus(targets);
             if (target?.Player == null) return;
+            EroticIntentVisualEvents.Publish(target, EroticIntentKind.Invasion);
             bool succeeded = await InvasionCmd.Resolve(
                 new BlockingPlayerChoiceContext(),
                 source,
@@ -84,6 +97,7 @@ public static class IntentMoveFactory
         {
             Creature? target = FindMaidenSuccubus(targets);
             if (target?.Player == null) return;
+            EroticIntentVisualEvents.Publish(target, EroticIntentKind.Desire);
             if (spec.Damage > 0)
             {
                 await DamageCmd.Attack(spec.Damage)
@@ -92,7 +106,11 @@ public static class IntentMoveFactory
                     .WithNoAttackerAnim()
                     .Execute(new BlockingPlayerChoiceContext());
             }
-            await MaidenSuccubus.Data.Desire.Modify(target.Player, spec.Desire);
+            if (spec.Desire > 0)
+            {
+                await MaidenSuccubus.Data.Desire.Modify(
+                    target.Player, spec.Desire);
+            }
             await EroticEffectCmd.Resolve(
                 new BlockingPlayerChoiceContext(),
                 source,
@@ -110,10 +128,13 @@ public static class IntentMoveFactory
                 ? new MultiAttackIntent(spec.Damage, spec.Hits)
                 : new SingleAttackIntent(spec.Damage));
         }
-        intents.Add(new DesireGainIntent(
-            spec.Desire,
-            spec.DisplayName,
-            spec.EffectText));
+        if (spec.Desire > 0)
+        {
+            intents.Add(new DesireGainIntent(
+                spec.Desire,
+                spec.DisplayName,
+                spec.EffectText));
+        }
         intents.AddRange(EroticEffectCmd.BuildSupplementalIntents(
             spec.EffectText,
             EroticIntentKind.Desire));
@@ -186,37 +207,48 @@ public static class IntentMoveFactory
         EroticMonsterSpec? spec = EroticAttackCatalog.Get(monster);
         if (spec == null || IsSteadfast(monster))
             return false;
-        IntentRuntimeState runtime = IntentAdapterRegistry.GetRuntime(monster);
-        var available = new List<(EroticIntentKind Kind, MoveState Move, int Weight)>();
-        if (spec.Desire != null)
-        {
-            available.Add((
-                EroticIntentKind.Desire,
-                CreateDesire(monster, spec.Desire),
-                spec.Preferred == EroticIntentKind.Desire ? 3 : 1));
-        }
-        if (spec.Control != null && !runtime.ControlDisabled
-            && !ControlQuery.GetInstances(player).Any(x => ReferenceEquals(x.Applier, monster.Creature)))
-        {
-            available.Add((
-                EroticIntentKind.Control,
-                CreateControl(monster, spec.Control),
-                spec.Preferred == EroticIntentKind.Control ? 3 : 1));
-        }
-        if (spec.Invasion != null && !runtime.ControlDisabled && ControlQuery.IsControlled(player))
-        {
-            available.Add((
-                EroticIntentKind.Invasion,
-                CreateInvasion(monster, spec.Invasion),
-                spec.Preferred == EroticIntentKind.Invasion ? 3 : 1));
-        }
+        List<EroticIntentKind> available = Enum.GetValues<EroticIntentKind>()
+            .Where(kind => IsKindLegal(monster, player, kind, false))
+            .ToList();
         if (available.Count == 0) return false;
-        (EroticIntentKind Kind, MoveState Move, int Weight) selected =
-            available.Count == 1
-                ? available[0]
-                : SelectWeighted(monster, available);
-        // Player-forced changes never consume the per-combat natural-use cap.
-        SetTransient(monster, selected.Move);
+        EroticIntentKind selected = available[
+            monster.RunRng.MonsterAi.NextInt(available.Count)];
+        MarkSelected(monster, selected);
+        SetTransient(monster, CreateMove(monster, spec, selected));
+        return true;
+    }
+
+    public static bool TryApplyNaturalErotic(MonsterModel monster, Player player)
+    {
+        EroticMonsterSpec? spec = EroticAttackCatalog.Get(monster);
+        if (spec == null
+            || IsSteadfast(monster)
+            || monster.Creature.IsDead
+            || IsEroticMove(monster.NextMove)
+            || monster.NextMove.StateId == "STUNNED"
+            || monster.NextMove.Intents.Any(intent => intent is StunIntent))
+        {
+            return false;
+        }
+
+        int temptation = Core.Temptation.Temptation.Get(player);
+        List<(EroticIntentKind Kind, int Threshold)> candidates =
+            Enum.GetValues<EroticIntentKind>()
+                .Where(kind => IsKindLegal(monster, player, kind, true))
+                .Select(kind => (kind, Threshold(spec, kind)))
+                .Where(candidate => temptation >= candidate.Item2)
+                .ToList();
+        if (candidates.Count == 0)
+        {
+            return false;
+        }
+
+        EroticIntentKind selected = candidates
+            .OrderByDescending(candidate => candidate.Threshold)
+            .ThenBy(candidate => candidate.Kind)
+            .First().Kind;
+        MarkSelected(monster, selected);
+        SetTransient(monster, CreateMove(monster, spec, selected));
         return true;
     }
 
@@ -232,20 +264,70 @@ public static class IntentMoveFactory
         SetTransient(monster, proxy);
     }
 
-    private static (EroticIntentKind Kind, MoveState Move, int Weight)
-        SelectWeighted(
-            MonsterModel monster,
-            IReadOnlyList<(EroticIntentKind Kind, MoveState Move, int Weight)> candidates)
+    private static bool IsKindLegal(
+        MonsterModel monster,
+        Player player,
+        EroticIntentKind kind,
+        bool requireThreshold)
     {
-        int roll = monster.RunRng.MonsterAi.NextInt(
-            candidates.Sum(candidate => candidate.Weight));
-        foreach (var candidate in candidates.OrderBy(candidate => candidate.Kind))
+        EroticMonsterSpec? spec = EroticAttackCatalog.Get(monster);
+        if (spec == null)
         {
-            if (roll < candidate.Weight) return candidate;
-            roll -= candidate.Weight;
+            return false;
         }
-        return candidates[^1];
+        IntentRuntimeState runtime = IntentAdapterRegistry.GetRuntime(monster);
+        int round = monster.CombatState.RoundNumber;
+        return kind switch
+        {
+            EroticIntentKind.Desire => spec.Desire is { } desire
+                && (!requireThreshold || spec.DesireThreshold > 0)
+                && runtime.DesireIntentUses < desire.MaxUsesPerCombat
+                && round > runtime.DesireCooldownThroughTurn,
+            EroticIntentKind.Control => spec.Control is { } control
+                && (!requireThreshold || spec.ControlThreshold > 0)
+                && !runtime.ControlDisabled
+                && runtime.ControlIntentUses < control.MaxUsesPerCombat
+                && round > runtime.ControlCooldownThroughTurn,
+            EroticIntentKind.Invasion => spec.Invasion is { } invasion
+                && (!requireThreshold || spec.InvasionThreshold > 0)
+                && !runtime.ControlDisabled
+                && runtime.InvasionIntentUses < invasion.MaxUsesPerCombat
+                && ControlQuery.IsControlled(player)
+                && TransformationCmd.IsTransformed(player.Creature)
+                && TransformationCmd.GetArmor(player.Creature) is { Amount: <= 1 }
+                && !player.Creature.HasPower<ChastityDefensePower>(),
+            _ => false,
+        };
     }
+
+    private static void MarkSelected(MonsterModel monster, EroticIntentKind kind)
+    {
+        IntentRuntimeState runtime = IntentAdapterRegistry.GetRuntime(monster);
+        runtime.Increment(kind);
+        if (kind == EroticIntentKind.Desire)
+        {
+            runtime.DesireCooldownThroughTurn =
+                monster.CombatState.RoundNumber + 1;
+        }
+    }
+
+    private static int Threshold(EroticMonsterSpec spec, EroticIntentKind kind) =>
+        kind switch
+        {
+            EroticIntentKind.Desire => spec.DesireThreshold,
+            EroticIntentKind.Control => spec.ControlThreshold,
+            _ => spec.InvasionThreshold,
+        };
+
+    private static MoveState CreateMove(
+        MonsterModel monster,
+        EroticMonsterSpec spec,
+        EroticIntentKind kind) => kind switch
+        {
+            EroticIntentKind.Desire => CreateDesire(monster, spec.Desire!),
+            EroticIntentKind.Control => CreateControl(monster, spec.Control!),
+            _ => CreateInvasion(monster, spec.Invasion!),
+        };
 
     private static bool IsSteadfast(MonsterModel monster) =>
         EroticAttackCatalog.Get(monster)?.Steadfast == true
@@ -265,21 +347,7 @@ public static class IntentMoveFactory
         }
         else
         {
-            string successorId = current.GetNextState(
-                monster.Creature,
-                monster.RunRng.MonsterAi);
-            if (!monster.MoveStateMachine!.States.TryGetValue(
-                    successorId,
-                    out MonsterState? successor))
-            {
-                throw new InvalidOperationException(
-                    $"Original move {current.StateId} has invalid continuation "
-                    + $"{successorId} for {monster.Id.Entry}.");
-            }
-            // Continue after the replaced action. Pointing back to `current`
-            // would force the monster to perform the action that the erotic
-            // intent replaced, contrary to SYS-TRF-003.
-            move.FollowUpState = successor;
+            move.FollowUpState = current;
         }
         // Keep transient states addressable by a stable id. The state machine
         // is scoped to one monster, so one slot per intent kind is sufficient
@@ -287,6 +355,11 @@ public static class IntentMoveFactory
         monster.MoveStateMachine!.States[move.StateId] = move;
         monster.SetMoveImmediate(move, forceTransition: true);
     }
+
+    private static bool IsEroticMove(MoveState move) =>
+        move.StateId.StartsWith("MAIDENSUCCUBUS_DESIRE", StringComparison.Ordinal)
+        || move.StateId.StartsWith("MAIDENSUCCUBUS_CONTROL", StringComparison.Ordinal)
+        || move.StateId.StartsWith("MAIDENSUCCUBUS_INVASION", StringComparison.Ordinal);
 
     private static MoveState NewMove(
         MonsterModel source,

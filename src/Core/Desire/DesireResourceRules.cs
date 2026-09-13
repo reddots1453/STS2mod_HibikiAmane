@@ -66,6 +66,22 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
             context.OldAmount,
             context.NewAmount));
 
+        WetPower? wet = context.Player.Creature.GetPower<WetPower>();
+        if (context.NewAmount >= 8 && wet == null)
+        {
+            await PowerCmd.Apply<WetPower>(
+                new ThrowingPlayerChoiceContext(),
+                context.Player.Creature,
+                1,
+                context.Player.Creature,
+                null,
+                silent: true);
+        }
+        else if (context.NewAmount < 8 && wet != null)
+        {
+            await PowerCmd.Remove(wet);
+        }
+
         if (context.NewAmount < Data.Desire.Max
             || !DesireRuleModifiers.ShouldTriggerPenalty(context.Player)
             || !ResolvingPlayers.Add(context.Player))
@@ -80,8 +96,6 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
                 return;
             }
 
-            GrantFirstMaximumCorruption(runState);
-
             bool inCombat = CombatManager.Instance.IsInProgress
                 && !CombatManager.Instance.IsEnding
                 && context.Player.Creature.CombatState != null;
@@ -92,7 +106,7 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
             {
                 Data.Desire.Handle.Modify(
                     runState,
-                    state => state.PendingClimaxResolutions++);
+                    state => state.PendingClimaxResolution = true);
                 return;
             }
 
@@ -107,6 +121,7 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
                 1m,
                 context.Player.Creature,
                 null);
+            GrantFirstMaximumCorruption(runState);
         }
         finally
         {
@@ -114,7 +129,7 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
         }
     }
 
-    private static void GrantFirstMaximumCorruption(RunState runState)
+    internal static void GrantFirstMaximumCorruption(RunState runState)
     {
         bool grant = false;
         Data.Desire.Handle.Modify(

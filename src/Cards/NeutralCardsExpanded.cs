@@ -89,7 +89,6 @@ public sealed class BorrowedForceStrike : MSNeutralCard
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
 }
 
-[RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class SteadyGuard : MSNeutralCard
 {
     public override bool GainsBlock => true;

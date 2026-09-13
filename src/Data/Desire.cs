@@ -74,9 +74,10 @@ public static class Desire
         }
 
         DesireState state = Handle.Get(runState);
-        int pending = state.PendingClimaxResolutions
-            + (state.PendingFirstTurnStun ? 1 : 0);
-        if (pending <= 0)
+        bool pending = state.PendingClimaxResolution
+            || state.PendingClimaxResolutions > 0
+            || state.PendingFirstTurnStun;
+        if (!pending)
         {
             return;
         }
@@ -86,6 +87,7 @@ public static class Desire
             saved =>
             {
                 saved.PendingFirstTurnStun = false;
+                saved.PendingClimaxResolution = false;
                 saved.PendingClimaxResolutions = 0;
             });
         await SecondaryResourceCmd.Set(
@@ -95,8 +97,9 @@ public static class Desire
         await PowerCmd.Apply<DesireStunPower>(
             choiceContext,
             player.Creature,
-            pending,
+            1,
             player.Creature,
             null);
+        DesireResourceRules.GrantFirstMaximumCorruption(runState);
     }
 }

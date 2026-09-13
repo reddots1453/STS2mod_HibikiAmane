@@ -106,6 +106,7 @@ $staticPowerVariableAllowList = @{
     "MAIDEN_SUCCUBUS_POWER_MAGIC_ARMOR_POWER.description" = @("Chance")
     "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.description" = @("Source", "ControlType", "Amount")
     "MAIDEN_SUCCUBUS_POWER_GUARDIAN_SCRIPTURE_POWER.description" = @("Block")
+    "MAIDEN_SUCCUBUS_POWER_ULTIMATE_FLARE_POWER.description" = @("Damage")
 }
 
 foreach ($entry in $powers.GetEnumerator()) {

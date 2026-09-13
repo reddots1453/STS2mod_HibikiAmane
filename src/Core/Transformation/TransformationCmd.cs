@@ -17,7 +17,7 @@ public static class TransformationCmd
     {
         foreach (var power in creature.Powers)
         {
-            if (power is ImmaculateRobePower)
+            if (power is ImmaculateRobePower or CorruptRobePower)
             {
                 return true;
             }
@@ -90,6 +90,30 @@ public static class TransformationCmd
             choiceContext, creature, MaxArmor, creature, source);
     }
 
+    public static async Task EnterCorruptRobe(
+        PlayerChoiceContext choiceContext,
+        Creature creature,
+        CardModel? source)
+    {
+        foreach (var form in creature.Powers
+            .Where(power => power is ImmaculateRobePower or CorruptRobePower)
+            .ToArray())
+        {
+            await PowerCmd.Remove(form);
+        }
+        await PowerCmd.Apply<CorruptRobePower>(
+            choiceContext, creature, 1m, creature, source);
+
+        MagicArmorPower? oldArmor = GetArmor(creature);
+        if (oldArmor != null)
+        {
+            oldArmor.SuppressFormRemoval = true;
+            await PowerCmd.Remove(oldArmor);
+        }
+        await PowerCmd.Apply<MagicArmorPower>(
+            choiceContext, creature, MaxArmor, creature, source);
+    }
+
     public static async Task<bool> GainArmor(
         PlayerChoiceContext choiceContext,
         Creature creature,
@@ -102,23 +126,39 @@ public static class TransformationCmd
         }
 
         MagicArmorPower? armor = GetArmor(creature);
-        int current = armor?.Amount ?? 0;
-        int gain = Math.Min(amount, MaxArmor - current);
-        if (gain <= 0)
-        {
-            return false;
-        }
-
         if (armor == null)
         {
             await PowerCmd.Apply<MagicArmorPower>(
-                choiceContext, creature, gain, creature, source);
+                choiceContext, creature, amount, creature, source);
         }
         else
         {
             await PowerCmd.ModifyAmount(
-                choiceContext, armor, gain, creature, source);
+                choiceContext, armor, amount, creature, source);
         }
+        return true;
+    }
+
+    public static async Task<bool> LoseArmor(
+        PlayerChoiceContext choiceContext,
+        Creature creature,
+        int amount,
+        AbstractModel? source)
+    {
+        MagicArmorPower? armor = GetArmor(creature);
+        if (amount <= 0
+            || !IsTransformed(creature)
+            || armor is not { Amount: > 0 })
+        {
+            return false;
+        }
+
+        await PowerCmd.ModifyAmount(
+            choiceContext,
+            armor,
+            -Math.Min(amount, (int)armor.Amount),
+            creature,
+            source as CardModel);
         return true;
     }
 
@@ -132,10 +172,9 @@ public static class TransformationCmd
             armor.SuppressFormRemoval = true;
             await PowerCmd.Remove(armor);
         }
-        ImmaculateRobePower? form = creature.Powers
-            .OfType<ImmaculateRobePower>()
-            .FirstOrDefault();
-        if (form != null)
+        foreach (var form in creature.Powers
+            .Where(power => power is ImmaculateRobePower or CorruptRobePower)
+            .ToArray())
         {
             await PowerCmd.Remove(form);
         }

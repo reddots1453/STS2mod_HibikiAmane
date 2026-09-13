@@ -9,6 +9,7 @@ using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Core.Desire;
+using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
 using STS2RitsuLib.Combat.SecondaryResources;
@@ -304,7 +305,7 @@ public sealed class FearAura : MSCorruptCard
         [new PowerVar<FearAuraStrengthLossPower>(3)];
 
     public FearAura()
-        : base(0, CardType.Skill, CardRarity.Uncommon, TargetType.AllEnemies)
+        : base(0, CardType.Skill, CardRarity.Common, TargetType.AllEnemies)
     {
     }
 
@@ -322,6 +323,14 @@ public sealed class FearAura : MSCorruptCard
                 loss,
                 Owner.Creature,
                 this);
+        }
+        if (await TransformationCmd.PayOverdraft(
+                choiceContext, Owner.Creature, this))
+        {
+            await PowerCmd.Apply<StrengthPower>(
+                choiceContext, Owner.Creature, loss, Owner.Creature, this);
+            await PowerCmd.Apply<RestoreStrengthAtTurnEndPower>(
+                choiceContext, Owner.Creature, -loss, Owner.Creature, this);
         }
     }
 

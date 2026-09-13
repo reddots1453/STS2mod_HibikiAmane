@@ -22,6 +22,7 @@ using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Core.Intents;
 using MaidenSuccubus.Characters.Starts;
 using MaidenSuccubus.UI;
+using MaidenSuccubus.Core.Temptation;
 using CorruptionData = MaidenSuccubus.Data.Corruption;
 
 namespace MaidenSuccubus.Characters;
@@ -95,6 +96,13 @@ public class MaidenSuccubusCharacter
         }
 
         await Desire.ResolvePendingFirstTurnStun(choiceContext, player);
+        foreach (var enemy in player.Creature.CombatState?.Enemies ?? [])
+        {
+            if (enemy.Monster != null)
+            {
+                IntentMoveFactory.TryApplyNaturalErotic(enemy.Monster, player);
+            }
+        }
     }
 
     public override async Task BeforeCombatStart()
@@ -113,6 +121,23 @@ public class MaidenSuccubusCharacter
                 && EroticAttackCatalog.Get(enemy.Monster) != null)
             {
                 await IntentAdapterRegistry.Initialize(enemy.Monster);
+            }
+        }
+        Player? player = combatState.Players.FirstOrDefault(candidate =>
+            ReferenceEquals(candidate.Character, this));
+        if (player != null)
+        {
+            await Temptation.Initialize(
+                new ThrowingPlayerChoiceContext(), player);
+            if (!player.Creature.HasPower<TakemikazuchiTrackerPower>())
+            {
+                await PowerCmd.Apply<TakemikazuchiTrackerPower>(
+                    new ThrowingPlayerChoiceContext(),
+                    player.Creature,
+                    1,
+                    player.Creature,
+                    null,
+                    silent: true);
             }
         }
     }
@@ -154,6 +179,20 @@ public class MaidenSuccubusCharacter
         {
             await Desire.Modify(player, 1);
         }
+    }
+
+    public override Task AfterActEntered()
+    {
+        if (RunManager.Instance.DebugOnlyGetState() is RunState runState
+            && runState.CurrentActIndex > 0
+            && CorruptionData.Handle.Get(runState).VirginMark
+            && CorruptionCmd.TryTriggerOnce(
+                runState,
+                $"SYS-CORRUPTION-VIRGIN-ACT-{runState.CurrentActIndex}"))
+        {
+            CorruptionCmd.Modify(runState, -1, CorruptionChangeSource.Unknown);
+        }
+        return Task.CompletedTask;
     }
 
     protected override NCreatureVisuals? TryCreateCreatureVisuals() =>

@@ -22,6 +22,9 @@ public sealed class EroticMonsterSpec
     public DesireIntentSpec? Desire { get; set; }
     public ControlIntentSpec? Control { get; set; }
     public InvasionIntentSpec? Invasion { get; set; }
+    public int DesireThreshold { get; set; }
+    public int ControlThreshold { get; set; }
+    public int InvasionThreshold { get; set; }
     public bool StunAfterEscape { get; set; }
     public string? RecoveryMoveId { get; set; }
 }
@@ -68,6 +71,7 @@ public static partial class EroticAttackCatalog
             StringComparer.OrdinalIgnoreCase);
 
         ParseAssignments(assignments, result);
+        ParseThresholds(assignments, result);
         ParseIntentDetails(intents, result);
         ParseRecovery(assignments, result);
 
@@ -97,16 +101,13 @@ public static partial class EroticAttackCatalog
             if (spec.Desire is { } desire)
             {
                 ValidateCap(spec, EroticIntentKind.Desire, desire.MaxUsesPerCombat);
-                if (desire.Desire <= 0)
-                {
-                    throw new InvalidDataException(
-                        $"Desire intent has no Desire gain: {spec.MonsterId}.");
-                }
+                ValidateThreshold(spec, EroticIntentKind.Desire, spec.DesireThreshold);
                 EroticEffectCmd.Validate(desire.EffectText, EroticIntentKind.Desire);
             }
             if (spec.Control is { } control)
             {
                 ValidateCap(spec, EroticIntentKind.Control, control.MaxUsesPerCombat);
+                ValidateThreshold(spec, EroticIntentKind.Control, spec.ControlThreshold);
                 if (control.BlockRequired <= 0 || control.EscapeRequired <= 0)
                 {
                     throw new InvalidDataException(
@@ -128,6 +129,7 @@ public static partial class EroticAttackCatalog
             if (spec.Invasion is { } invasion)
             {
                 ValidateCap(spec, EroticIntentKind.Invasion, invasion.MaxUsesPerCombat);
+                ValidateThreshold(spec, EroticIntentKind.Invasion, spec.InvasionThreshold);
                 if (string.IsNullOrWhiteSpace(invasion.CurseName))
                 {
                     throw new InvalidDataException(
@@ -169,6 +171,19 @@ public static partial class EroticAttackCatalog
         {
             throw new InvalidDataException(
                 $"{kind} cap must be 1..4 for {spec.MonsterId}, got {cap}.");
+        }
+    }
+
+    private static void ValidateThreshold(
+        EroticMonsterSpec spec,
+        EroticIntentKind kind,
+        int threshold)
+    {
+        if (threshold <= 0 || threshold % 5 != 0)
+        {
+            throw new InvalidDataException(
+                $"{kind} threshold must be a positive multiple of 5 for "
+                + $"{spec.MonsterId}, got {threshold}.");
         }
     }
 
@@ -257,6 +272,30 @@ public static partial class EroticAttackCatalog
             {
                 spec.Invasion = ParseInvasion(cells[3], iCap);
             }
+        }
+    }
+
+    private static void ParseThresholds(
+        string markdown,
+        IDictionary<string, EroticMonsterSpec> result)
+    {
+        foreach (string line in Lines(markdown))
+        {
+            string[] cells = Cells(line);
+            if (cells.Length != 5)
+            {
+                continue;
+            }
+            Match idMatch = SingleIdRegex().Match(cells[0]);
+            if (!idMatch.Success
+                || !result.TryGetValue(idMatch.Groups[1].Value, out EroticMonsterSpec? spec))
+            {
+                continue;
+            }
+
+            spec.DesireThreshold = ParseCap(cells[1]);
+            spec.ControlThreshold = ParseCap(cells[2]);
+            spec.InvasionThreshold = ParseCap(cells[3]);
         }
     }
 

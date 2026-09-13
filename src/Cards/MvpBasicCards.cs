@@ -2,11 +2,15 @@ using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
+using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.ValueProps;
+using MegaCrit.Sts2.Core.Models;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
 using MaidenSuccubus.Core.Transformation;
 using STS2RitsuLib.Interop.AutoRegistration;
+using MaidenSuccubus.Core.Corruption;
+using MegaCrit.Sts2.Core.Runs;
 
 namespace MaidenSuccubus.Cards;
 
@@ -56,8 +60,19 @@ public sealed class Transform : MSHolyCard
 
     public Transform() : base(1, CardType.Skill, CardRarity.Basic, TargetType.Self) { }
 
+    public override bool ShouldPlay(CardModel card, AutoPlayType autoPlayType) =>
+        card != this || !TransformationCmd.IsTransformed(Owner.Creature);
+
+    protected override void AddExtraArgsToDescription(LocString description) =>
+        description.Add(
+            "IsCorrupt",
+            Owner?.RunState is RunState runState
+                && CorruptionQuery.Get(runState) >= 3);
+
     protected override Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay) =>
-        TransformationCmd.EnterImmaculateRobe(choiceContext, Owner.Creature, this);
+        Owner.RunState is RunState runState && CorruptionQuery.Get(runState) >= 3
+            ? TransformationCmd.EnterCorruptRobe(choiceContext, Owner.Creature, this)
+            : TransformationCmd.EnterImmaculateRobe(choiceContext, Owner.Creature, this);
 
     protected override void OnUpgrade() => AddKeyword(CardKeyword.Innate);
 }
@@ -71,6 +86,12 @@ public sealed class DarkElement : MSCorruptCard
 
     public DarkElement() : base(0, CardType.Attack, CardRarity.Basic, TargetType.AnyEnemy) { }
 
+    protected override void AddExtraArgsToDescription(LocString description) =>
+        description.Add(
+            "IsCorrupt",
+            Owner?.RunState is RunState runState
+                && CorruptionQuery.Get(runState) > 3);
+
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target);
@@ -79,9 +100,23 @@ public sealed class DarkElement : MSCorruptCard
             .Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_slash")
             .Execute(choiceContext);
-        if (await Core.Transformation.TransformationCmd.PayOverdraft(
+        if (!await Core.Transformation.TransformationCmd.PayOverdraft(
                 choiceContext, Owner.Creature, this))
+        {
+            return;
+        }
+        if (Owner.RunState is RunState runState && CorruptionQuery.Get(runState) > 3)
+        {
+            await DamageCmd.Attack(DynamicVars.Damage.BaseValue)
+                .FromCard(this, cardPlay)
+                .Targeting(cardPlay.Target)
+                .WithHitFx("vfx/vfx_attack_slash")
+                .Execute(choiceContext);
+        }
+        else
+        {
             await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, cardPlay);
+        }
     }
 
     protected override void OnUpgrade()

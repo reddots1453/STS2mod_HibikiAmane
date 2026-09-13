@@ -30,7 +30,7 @@ public sealed class MentalUnity : MSNeutralCard
     public override bool GainsBlock => true;
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(8, ValueProp.Move),
+        [new DamageVar(6, ValueProp.Move),
             new BlockVar(2, ValueProp.Unpowered | ValueProp.Move)];
     public MentalUnity() : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
@@ -38,9 +38,7 @@ public sealed class MentalUnity : MSNeutralCard
         ArgumentNullException.ThrowIfNull(play.Target);
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
-        if (play.Target.IsAlive
-            && await TransformationCmd.PayOverdraft(
-                context, Owner.Creature, this))
+        if (play.Target.IsAlive)
         {
             decimal block = DynamicVars.Block.BaseValue;
             if (Enchantment is { } enchantment)
@@ -48,8 +46,6 @@ public sealed class MentalUnity : MSNeutralCard
                 block += enchantment.EnchantBlockAdditive(block);
                 block *= enchantment.EnchantBlockMultiplicative(block);
             }
-            block = TransformationCmd.ApplyAmplificationToDelayedValue(
-                Owner.Creature, this, block);
             await PowerCmd.Apply<MentalUnityPower>(
                 context, play.Target, block, Owner.Creature, this);
         }
@@ -104,7 +100,7 @@ public sealed class MindsEye : MSNeutralCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(4, ValueProp.Move), new PowerVar<WeakPower>(1), new PowerVar<VulnerablePower>(1)];
+        [new DamageVar(3, ValueProp.Move), new PowerVar<WeakPower>(1), new PowerVar<VulnerablePower>(1)];
     public MindsEye() : base(0, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
@@ -146,27 +142,21 @@ public sealed class ExplosiveImpact : MSNeutralCard
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class UltimateFlare : MSNeutralCard
 {
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(24, ValueProp.Move)];
-    public UltimateFlare() : base(2, CardType.Attack, CardRarity.Uncommon, TargetType.AllEnemies) { }
-    protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
+    protected override bool HasEnergyCostX => true;
+    protected override IEnumerable<DynamicVar> CanonicalVars =>
+        [new DamageVar(6, ValueProp.Move)];
+    public UltimateFlare() : base(0, CardType.Attack, CardRarity.Uncommon, TargetType.AllEnemies) { }
+    protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
-        UltimateFlarePower power = (UltimateFlarePower)ModelDb.Power<UltimateFlarePower>().ToMutable();
-        decimal damage = DynamicVars.Damage.BaseValue;
-        if (Enchantment is { } enchantment)
-        {
-            damage += enchantment.EnchantDamageAdditive(damage, DynamicVars.Damage.Props);
-            damage *= enchantment.EnchantDamageMultiplicative(damage, DynamicVars.Damage.Props);
-        }
-        power.Damage = TransformationCmd.ApplyAmplificationToDelayedValue(
-            Owner.Creature, this, damage);
-        await PowerCmd.Apply(context, power, Owner.Creature, 1, Owner.Creature, this);
-        if (await TransformationCmd.PayOverdraft(
-                context, Owner.Creature, this))
-        {
-            await PlayerCmd.GainEnergy(1, Owner);
-        }
+        ArgumentNullException.ThrowIfNull(CombatState);
+        return DamageCmd.Attack(
+                DynamicVars.Damage.BaseValue * ResolveEnergyXValue())
+            .FromCard(this, play)
+            .TargetingAllOpponents(CombatState)
+            .WithHitFx("vfx/vfx_attack_slash")
+            .Execute(context);
     }
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(8);
+    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]
