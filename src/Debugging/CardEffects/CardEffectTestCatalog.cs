@@ -2279,6 +2279,17 @@ internal static class CardEffectTestCatalog
     private static void MentalUnityProbe() =>
         CustomVariants<MentalUnity>(async (ctx, card, upgraded) =>
         {
+            await ctx.ApplyPower<DexterityPower>(ctx.Self, 2);
+            decimal expectedBlock = upgraded ? 3m : 2m;
+            card.DynamicVars.Block.UpdateCardPreview(
+                card,
+                CardPreviewMode.Normal,
+                ctx.PrimaryEnemy,
+                runGlobalHooks: true);
+            ctx.AssertEqual(
+                "delayed unpowered block preview ignores dexterity",
+                expectedBlock,
+                card.DynamicVars.Block.PreviewValue);
             await ctx.ApplyPower<MaidenSuccubus.Powers.MagicArmorPower>(ctx.Self, 1);
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(card, ctx.PrimaryEnemy, selectedIndices: [0]);
@@ -2286,7 +2297,22 @@ internal static class CardEffectTestCatalog
             ctx.AssertPower("delayed block per target attack", ctx.PrimaryEnemy,
                 "MentalUnityPower", upgraded ? 3 : 2);
             ctx.AssertPower("overdraft armor payment", ctx.Self, "MagicArmorPower", 0);
-        }, 3);
+            MentalUnityPower power = ctx.PrimaryEnemy.Powers
+                .OfType<MentalUnityPower>()
+                .Single();
+            int block = ctx.Self.Block;
+            await power.BeforeDamageReceived(
+                new BlockingPlayerChoiceContext(),
+                ctx.Self,
+                1m,
+                ValueProp.Move,
+                ctx.PrimaryEnemy,
+                null);
+            ctx.AssertBlock(
+                "triggered unpowered block ignores dexterity",
+                block,
+                (int)expectedBlock);
+        }, 5);
 
     private static void CurseInfectionProbe() =>
         CustomVariants<CurseInfection>(async (ctx, card, _) =>

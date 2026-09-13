@@ -99,6 +99,12 @@ Assert-Contains "guardian scripture dexterity effect test" $cardEffectCatalog 'G
 Assert-Contains "guardian scripture dynamic power text" $powerLocalization 'GUARDIAN_SCRIPTURE_POWER\.smartDescription"\s*:\s*"[^"]*\{Block\}'
 Assert-NotContains "guardian scripture hard-coded power text" $powerLocalization 'GUARDIAN_SCRIPTURE_POWER\.(description|smartDescription)"\s*:\s*"[^"]*\u83B73\u70B9'
 
+$neutralCardsBatch2 = Read-Text "src\Cards\MvpNeutralCardsBatch2.cs"
+$neutralUtilityPowers = Read-Text "src\Powers\MvpNeutralUtilityPowers.cs"
+Assert-Contains "mental unity unpowered block preview" $neutralCardsBatch2 'MentalUnity[\s\S]*?new\s+BlockVar\(2,\s*ValueProp\.Unpowered\s*\|\s*ValueProp\.Move\)'
+Assert-Contains "mental unity unpowered trigger" $neutralUtilityPowers 'MentalUnityPower[\s\S]*?CreatureCmd\.GainBlock\(beneficiary,\s*Amount,\s*ValueProp\.Unpowered,\s*null\)'
+Assert-Contains "mental unity dexterity preview test" $cardEffectCatalog 'MentalUnityProbe[\s\S]*?ApplyPower<DexterityPower>\(ctx\.Self,\s*2\)[\s\S]*?UpdateCardPreview\([\s\S]*?runGlobalHooks:\s*true\)[\s\S]*?triggered unpowered block ignores dexterity'
+
 $scripturePowers = Read-Text "src\Powers\Scriptures\ScripturePowers.cs"
 $guardianScriptureBlock = Read-Text "src\Powers\Scriptures\GuardianScriptureBlockVar.cs"
 $cardEffectCatalog = Read-Text "src\Debugging\CardEffects\CardEffectTestCatalog.cs"

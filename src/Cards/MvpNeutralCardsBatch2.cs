@@ -30,7 +30,8 @@ public sealed class MentalUnity : MSNeutralCard
     public override bool GainsBlock => true;
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(8, ValueProp.Move), new BlockVar(2, ValueProp.Move)];
+        [new DamageVar(8, ValueProp.Move),
+            new BlockVar(2, ValueProp.Unpowered | ValueProp.Move)];
     public MentalUnity() : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
