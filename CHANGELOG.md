@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-09-15 — 本地色情卡图受控工作流V6试产
+
+- 变更前快照：`maiden-pre-local-card-art-workflow-v6-20260914` → `b136888`；工作区已有玩家未保存的`DesignDoc.md`及并行代码、美术和Changelog修改，本轮不覆盖、不暂存这些内容。
+- 审计旧本地脚本与`Advanced_V31`后确认：旧物件卡分支把风格IP-Adapter权重设为0；单次采样同时承担语义、人物身份、姿势、构图、画风和接触结构；基础流程没有ControlNet分层、手部细化或阶段间模型卸载。
+- 安装并校验本地约束组件：NoobAI OpenPose、SDXL Canny/Depth ControlLoRA、Illustrious XL 1.1 inpainting ControlNet及Remacri放大模型；全部文件SHA-256与发布源一致。
+- 新增`GenerateEroticCardArtLocalV6.ps1`及本地候选目录说明。V6将“被虐的恍惚”拆为两阶段：A阶段仅用角色LoRA与OpenPose锁定人体；强制卸载模型后，B阶段用角色LoRA、风格/构图IP-Adapter及脸/手Detailer完成画风和局部结构；Remacri放大为可选独立C阶段。
+- 增加可用物理内存门禁、ComfyUI失联快速失败、20分钟任务超时、逐阶段API图、固定种子和`LOCAL_COMFYUI`来源标记，避免系统杀死ComfyUI后脚本无限等待或与内置模型结果混用。
+- 验证：PowerShell语法解析通过；首次单图压力测试证明旧式同图驻留底模、OpenPose、IP-Adapter与Canny时会使ComfyUI进程退出；重构后的内存门禁在仅3.1GB可用内存且STS2/EU4运行时正确阻止加载。关闭高内存进程后，以`--lowvram --reserve-vram 1.0`完成四张两阶段本地候选，阶段间卸载后可用内存恢复且ComfyUI未再崩溃；4/4图片均为`1000×760`，清单包含4个`LOCAL_COMFYUI`任务，PowerShell解析0错误，范围`git diff --check`通过。
+- 视觉初审：V6-01结构最稳定；V6-02因头顶不明金色结构淘汰；V6-03的表情、衣装与色情表现最好；V6-04在保持人体结构的同时生成紫色负面粒子与青色转化痕迹，证明效果语义可在第二阶段单独加强。候选尚未写入`完成版卡图/`，等待玩家选择或提出下一轮局部效果要求。
+- 部署：否；仅修改候选美术工作流和记录，不写入`完成版卡图/`或Mod运行时安装目录。
+
+
 ## 2026-09-14 — “精液变换”正式归档与色情语义卡图结构重制
 
 - 变更前快照：`maiden-pre-semen-conversion-formal-and-erotic-redraw-v2-20260913`；未修改或提交玩家正在编辑的`DesignDoc.md`、运行时代码及并行角色表情/状态图标资产。
