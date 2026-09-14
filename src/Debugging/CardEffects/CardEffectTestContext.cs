@@ -230,7 +230,11 @@ internal sealed class CardEffectTestContext
             Actual = actual?.ToString() ?? "null",
         });
         if (effect)
+        {
             Result.EffectAssertionCount++;
+            if (IsNumeric(typeof(T)))
+                Result.NumericEffectAssertionCount++;
+        }
     }
 
     public void AssertTrue(string name, bool actual, bool effect = true) =>
@@ -282,5 +286,21 @@ internal sealed class CardEffectTestContext
 
     private CardEffectScenarioResult Result => _result
         ?? throw new InvalidOperationException("No active card effect test scenario.");
+
+    private static bool IsNumeric(Type type)
+    {
+        type = Nullable.GetUnderlyingType(type) ?? type;
+        return Type.GetTypeCode(type) is TypeCode.Byte
+            or TypeCode.SByte
+            or TypeCode.UInt16
+            or TypeCode.UInt32
+            or TypeCode.UInt64
+            or TypeCode.Int16
+            or TypeCode.Int32
+            or TypeCode.Int64
+            or TypeCode.Decimal
+            or TypeCode.Double
+            or TypeCode.Single;
+    }
 }
 #endif

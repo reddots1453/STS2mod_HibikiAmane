@@ -12,7 +12,10 @@ $paths = @(
     (Join-Path $localizationDir "cards.json"),
     (Join-Path $localizationDir "powers.json"),
     (Join-Path $localizationDir "enchantments.json"),
-    (Join-Path $localizationDir "static_hover_tips.json")
+    (Join-Path $localizationDir "static_hover_tips.json"),
+    (Join-Path $localizationDir "card_keywords.json"),
+    (Join-Path $localizationDir "relics.json"),
+    (Join-Path $localizationDir "intents.json")
 )
 
 $mechanicTermsPath = Join-Path $PSScriptRoot "localization_gold_terms.txt"
@@ -25,6 +28,46 @@ $fullStop = [string][char]0x3002
 $termPattern = ($mechanicTerms | ForEach-Object { [regex]::Escape($_) }) -join "|"
 $protectedPattern = '(\[(?:gold|purple|red|blue|green|aqua|orange|pink)\].*?\[/(?:gold|purple|red|blue|green|aqua|orange|pink)\]|\[img\].*?\[/img\])'
 $entryPattern = '^(?<prefix>\s*"(?<key>[^"]+)"\s*:\s*")(?<value>(?:\\.|[^"])*)"(?<suffix>\s*,?\s*)$'
+$specialColorsPath = Join-Path $PSScriptRoot "localization_special_colors.txt"
+$specialColors = @(Get-Content -LiteralPath $specialColorsPath -Encoding UTF8 |
+    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+    ForEach-Object { ,($_ -split '\|', 2) })
+$specialColorByTerm = @{}
+foreach ($item in $specialColors) {
+    $specialColorByTerm[$item[0]] = $item[1]
+}
+$specialPattern = ($specialColors | ForEach-Object {
+    [regex]::Escape($_[0])
+}) -join "|"
+
+function Normalize-SpecialColors([string]$value) {
+    foreach ($item in $specialColors) {
+        $term = [regex]::Escape($item[0])
+        $color = $item[1]
+        $value = [regex]::Replace(
+            $value,
+            "\[(?:gold|purple|pink)\]$term\[/(?:gold|purple|pink)\]",
+            "[$color]$($item[0])[/$color]")
+    }
+    return $value
+}
+
+function Add-SpecialHighlight([string]$value) {
+    $parts = [regex]::Split($value, $protectedPattern)
+    for ($index = 0; $index -lt $parts.Count; $index++) {
+        if ([regex]::IsMatch($parts[$index], '^\[(gold|purple|red|blue|green|aqua|orange|pink|img)\]')) {
+            continue
+        }
+        $parts[$index] = [regex]::Replace(
+            $parts[$index],
+            $specialPattern,
+            { param($match)
+                $color = $specialColorByTerm[$match.Value]
+                "[$color]$($match.Value)[/$color]"
+            })
+    }
+    return $parts -join ""
+}
 
 function Add-MechanicHighlight([string]$value) {
     $parts = [regex]::Split($value, $protectedPattern)
@@ -59,6 +102,8 @@ foreach ($path in $paths) {
 
         $value = $match.Groups["value"].Value
         $value = $value -replace '\[/(gold|purple|red|blue|green|aqua|orange|pink)\]\1', '[/$1]'
+        $value = Normalize-SpecialColors $value
+        $value = Add-SpecialHighlight $value
         $value = Add-MechanicHighlight $value
         if ($isCardFile -and $key.EndsWith(".description")) {
             $sentencePattern = [regex]::Escape($fullStop) + '(?!\\n)(?=.)'

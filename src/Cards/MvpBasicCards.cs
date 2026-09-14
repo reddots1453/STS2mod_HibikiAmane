@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.ValueProps;
@@ -55,6 +56,9 @@ public sealed class MaidenDefend : MSGeneratedCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class Transform : MSHolyCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [CardHoverTipSupport.Static("MAIDENSUCCUBUS_VARIATION")];
+
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [CardKeyword.Exhaust];
 
@@ -80,6 +84,9 @@ public sealed class Transform : MSHolyCard
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class DarkElement : MSCorruptCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [CardHoverTipSupport.Static("MAIDENSUCCUBUS_VARIATION")];
+
     public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new DamageVar(4, ValueProp.Move), new BlockVar(4, ValueProp.Move)];

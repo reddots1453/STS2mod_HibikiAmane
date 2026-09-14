@@ -4,6 +4,7 @@ $ErrorActionPreference = "Stop"
 
 $contractPath = Join-Path $ProjectDir "docs\content_contract_20260824.json"
 $catalogPath = Join-Path $ProjectDir "src\Debugging\CardEffects\CardEffectTestCatalog.cs"
+$iteration2ContractPath = Join-Path $ProjectDir "src\Debugging\CardEffects\Iteration2CardEffectContract.cs"
 $runnerPath = Join-Path $ProjectDir "src\Debugging\CardEffects\CardEffectTestRunner.cs"
 $consolePath = Join-Path $ProjectDir "src\ConsoleCommands\CardEffectTestConsoleCmd.cs"
 $hotkeyPath = Join-Path $ProjectDir "src\Debugging\CardEffects\CardEffectTestHotkey.cs"
@@ -13,6 +14,7 @@ $cardsPath = Join-Path $ProjectDir "src\Cards"
 
 $contract = Get-Content -Raw -Encoding UTF8 -LiteralPath $contractPath | ConvertFrom-Json
 $catalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $catalogPath
+$iteration2Contract = Get-Content -Raw -Encoding UTF8 -LiteralPath $iteration2ContractPath
 $runner = Get-Content -Raw -Encoding UTF8 -LiteralPath $runnerPath
 $console = Get-Content -Raw -Encoding UTF8 -LiteralPath $consolePath
 $hotkey = Get-Content -Raw -Encoding UTF8 -LiteralPath $hotkeyPath
@@ -104,6 +106,26 @@ foreach ($pattern in $forbidden) {
 if ($runner -notmatch 'EffectAssertionCount\s*<\s*scenario\.MinimumEffectAssertions') {
     throw "Runtime minimum-effect-assertion gate is missing."
 }
+if ($runner -notmatch 'Iteration2CardEffectContract\.Contains\(spec\.CardType\)' -or
+    $runner -notmatch 'NumericEffectAssertionCount\s*==\s*0' -or
+    $runner -notmatch 'requestedCard,\s*"iteration2"') {
+    throw "Focused iteration-two selection or numeric-effect assertion gate is missing."
+}
+$iteration2Types = @([regex]::Matches(
+    $iteration2Contract,
+    'typeof\(Cards\.(?:Curses\.)?(?<card>[A-Za-z0-9_]+)\)') |
+    ForEach-Object { $_.Groups['card'].Value })
+$iteration2Duplicates = @($iteration2Types | Group-Object |
+    Where-Object Count -ne 1 | ForEach-Object Name)
+if ($iteration2Contract -notmatch 'ExpectedCardCount\s*=\s*59' -or
+    $iteration2Types.Count -ne 59 -or $iteration2Duplicates.Count -gt 0) {
+    throw "Iteration-two changed-card contract must contain 59 unique card types; found $($iteration2Types.Count), duplicates=[$($iteration2Duplicates -join ',')]."
+}
+$missingIteration2Registrations = @($iteration2Types |
+    Where-Object { $actual -notcontains $_ })
+if ($missingIteration2Registrations.Count -gt 0) {
+    throw "Iteration-two changed cards are missing runtime tests: [$($missingIteration2Registrations -join ',')]."
+}
 if ($runner -notmatch 'ExpectedCardCount\s*=\s*215' -or
     $runner -notmatch 'expected\.Length\s*!=\s*ExpectedCardCount') {
     throw "Runtime 215-card identity gate is missing."
@@ -112,9 +134,10 @@ if ($console -notmatch 'ms_test_cards' -or $console -notmatch 'confirm') {
     throw "Destructive console command confirmation gate is missing."
 }
 if ($hotkey -notmatch 'Key\.F10' -or
+    $hotkey -notmatch 'shiftNow\s*\?\s*"iteration2"\s*:\s*"all"' -or
     $hotkey -notmatch 'CombatManager\.Instance\.IsInProgress' -or
     $hotkey -notmatch 'MaidenSuccubusCharacter' -or
-    $hotkey -notmatch 'CardEffectTestRunner\.Run\(player, "all"\)') {
+    $hotkey -notmatch 'CardEffectTestRunner\.Run\(player, requested\)') {
     throw "Manual-entry F10 card-effect test trigger is missing or insufficiently guarded."
 }
 if ($intentFactory -notmatch 'new\s+MoveState\("STUNNED"' -or
@@ -133,10 +156,14 @@ if ($catalog -notmatch 'projected card original effect is suppressed' -or
     $catalog -notmatch 'projected card resolves to discard') {
     throw "Control projection must verify effect suppression, exact escape payment, and result pile."
 }
+if ($catalog -notmatch 'fatal hit triggers one chained random hit' -or
+    $catalog -notmatch 'magic amplification triggers one random hit') {
+    throw "SummonThunder must verify both amplified and fatal-chain damage."
+}
 if ($holyPowers -notmatch '_pendingRestores' -or
     $holyPowers -notmatch 'AfterCardChangedPiles' -or
     $holyPowers -notmatch 'oldPileType\s*!=\s*PileType\.Play') {
     throw "BattleTechniqueReplay must restore only after the played projection leaves PileType.Play."
 }
 
-Write-Host "Validated card-effect tests: 215 exact registrations, 213 executable cards, 2 DESIGN_PENDING cards, guarded manual-entry F10 trigger, no method-presence placeholders."
+Write-Host "Validated card-effect tests: 215 exact registrations, 213 executable cards, 2 DESIGN_PENDING cards, 59-card iteration-two numeric suite, guarded manual-entry F10 trigger, no method-presence placeholders."

@@ -93,6 +93,18 @@ internal static class CardEffectTestRunner
                             });
                         }
 
+                        if (Iteration2CardEffectContract.Contains(spec.CardType)
+                            && scenarioResult.NumericEffectAssertionCount == 0)
+                        {
+                            scenarioResult.Assertions.Add(new CardEffectAssertionResult
+                            {
+                                Name = "iteration-two numeric effect assertion gate",
+                                Passed = false,
+                                Expected = "at least 1 numeric effect assertion",
+                                Actual = "0",
+                            });
+                        }
+
                         if (scenarioResult.Assertions.Count == 0
                             || scenarioResult.Assertions.Any(assertion => !assertion.Passed))
                         {
@@ -137,6 +149,14 @@ internal static class CardEffectTestRunner
     {
         if (string.Equals(requestedCard, "all", StringComparison.OrdinalIgnoreCase))
             return CardEffectTestCatalog.All.ToArray();
+
+        if (string.Equals(requestedCard, "iteration2", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(requestedCard, "changed", StringComparison.OrdinalIgnoreCase))
+        {
+            return CardEffectTestCatalog.All
+                .Where(spec => Iteration2CardEffectContract.Contains(spec.CardType))
+                .ToArray();
+        }
 
         CardEffectSpec? selected = CardEffectTestCatalog.All.FirstOrDefault(spec =>
             string.Equals(spec.CardId, requestedCard, StringComparison.OrdinalIgnoreCase));
@@ -184,12 +204,43 @@ internal static class CardEffectTestRunner
         [
             nameof(Cards.Curses.ClimaxBanCurse),
             nameof(Cards.Curses.HypnosisCurse),
-            nameof(Cards.DreamMist),
         ];
         Array.Sort(expectedPending, StringComparer.Ordinal);
         if (!pending.SequenceEqual(expectedPending, StringComparer.Ordinal))
             throw new InvalidOperationException(
-                "Only ClimaxBanCurse, HypnosisCurse, and DreamMist may be DESIGN_PENDING.");
+                "Only ClimaxBanCurse and HypnosisCurse may be DESIGN_PENDING.");
+
+        if (Iteration2CardEffectContract.CardTypes.Count
+                != Iteration2CardEffectContract.ExpectedCardCount)
+        {
+            throw new InvalidOperationException(
+                $"Iteration-two contract count mismatch: "
+                + $"expected={Iteration2CardEffectContract.ExpectedCardCount}, "
+                + $"actual={Iteration2CardEffectContract.CardTypes.Count}.");
+        }
+
+        Type[] missingIteration2 = Iteration2CardEffectContract.CardTypes
+            .Except(specs.Select(spec => spec.CardType))
+            .OrderBy(type => type.Name, StringComparer.Ordinal)
+            .ToArray();
+        if (missingIteration2.Length > 0)
+        {
+            throw new InvalidOperationException(
+                "Iteration-two cards missing executable specifications: "
+                + string.Join(", ", missingIteration2.Select(type => type.Name)));
+        }
+
+        string[] pendingIteration2 = specs
+            .Where(spec => spec.IsDesignPending
+                && Iteration2CardEffectContract.Contains(spec.CardType))
+            .Select(spec => spec.CardId)
+            .ToArray();
+        if (pendingIteration2.Length > 0)
+        {
+            throw new InvalidOperationException(
+                "Iteration-two cards cannot be design-pending: "
+                + string.Join(", ", pendingIteration2));
+        }
 
         foreach (CardEffectSpec spec in specs.Where(spec => !spec.IsDesignPending))
         {

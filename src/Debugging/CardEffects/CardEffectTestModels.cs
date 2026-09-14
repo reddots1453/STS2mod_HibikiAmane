@@ -51,6 +51,8 @@ internal sealed class CardEffectScenarioResult
 
     [JsonIgnore]
     public int EffectAssertionCount { get; set; }
+
+    public int NumericEffectAssertionCount { get; set; }
 }
 
 internal sealed class CardEffectCardResult
@@ -64,7 +66,7 @@ internal sealed class CardEffectCardResult
 internal sealed class CardEffectTestReport
 {
     public string SchemaVersion { get; init; } = "1";
-    public string Baseline { get; init; } = "DesignDoc/Plan state 2026-08-24";
+    public string Baseline { get; init; } = "DesignDoc state 2026-09-14";
     public required DateTimeOffset StartedAt { get; init; }
     public DateTimeOffset FinishedAt { get; set; }
     public required string RequestedCard { get; init; }

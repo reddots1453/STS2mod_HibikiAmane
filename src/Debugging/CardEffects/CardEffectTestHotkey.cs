@@ -30,7 +30,8 @@ internal static class CardEffectTestHotkey
             ((SceneTree)Engine.GetMainLoop()).ProcessFrame += OnProcessFrame;
             _registered = true;
             MaidenSuccubusMod.Logger.Info(
-                "[CardEffectTest] Ready. Enter a disposable MaidenSuccubus combat and press F10.");
+                "[CardEffectTest] Ready. In a disposable MaidenSuccubus combat, "
+                + "press F10 for all cards or Shift+F10 for the 59 iteration-two cards.");
         }
         catch (Exception ex)
         {
@@ -45,8 +46,8 @@ internal static class CardEffectTestHotkey
         {
             bool f10Now = Input.IsKeyPressed(Key.F10);
             bool shiftNow = Input.IsKeyPressed(Key.Shift);
-            if (f10Now && !shiftNow && !_f10Pressed)
-                RunAllFromActiveCombat();
+            if (f10Now && !_f10Pressed)
+                RunFromActiveCombat(shiftNow ? "iteration2" : "all");
             _f10Pressed = f10Now;
         }
         catch (Exception ex)
@@ -56,7 +57,7 @@ internal static class CardEffectTestHotkey
         }
     }
 
-    private static async void RunAllFromActiveCombat()
+    private static async void RunFromActiveCombat(string requested)
     {
         if (_running)
         {
@@ -90,10 +91,12 @@ internal static class CardEffectTestHotkey
 
         _running = true;
         MaidenSuccubusMod.Logger.Info(
-            "[CardEffectTest] F10 accepted; starting all 215 registered card checks.");
+            requested == "iteration2"
+                ? "[CardEffectTest] Shift+F10 accepted; starting 59 iteration-two card checks."
+                : "[CardEffectTest] F10 accepted; starting all 215 registered card checks.");
         try
         {
-            string summary = await CardEffectTestRunner.Run(player, "all");
+            string summary = await CardEffectTestRunner.Run(player, requested);
             MaidenSuccubusMod.Logger.Info("[CardEffectTest] " + summary);
         }
         catch (Exception ex)

@@ -8,5 +8,5 @@
   "MAIDENSUCCUBUS_TEAR_CLOTHING.title": "撕裂衣服",
   "MAIDENSUCCUBUS_TEAR_CLOTHING.description": "这名敌人将要降低天音1层[gold]魔装耐久[/gold]。",
   "MAIDENSUCCUBUS_CLOTHING_HAZARD.title": "状态牌",
-  "MAIDENSUCCUBUS_CLOTHING_HAZARD.description": "这名敌人将把1张[gold]{CardName}[/gold]置入弃牌堆。"
+  "MAIDENSUCCUBUS_CLOTHING_HAZARD.description": "这名敌人将把1张[gold]{CardName}[/gold]置入[gold]弃牌堆[/gold]。"
 }

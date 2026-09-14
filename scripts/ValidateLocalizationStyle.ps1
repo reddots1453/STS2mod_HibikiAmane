@@ -48,6 +48,10 @@ function Test-TitleDescriptionPairs([string]$tableName, [hashtable]$table) {
         }
     }
     foreach ($stem in $stems.Keys) {
+        if ($tableName -eq "relics" -and
+            $stem -match 'MAIDEN_SUCCUBUS_RELIC_FOURTH_ROUTE_STAGE(?:_[1-4])?$') {
+            continue
+        }
         foreach ($required in @("title", "description")) {
             if (-not $stems[$stem].ContainsKey($required)) {
                 $failures.Add("$tableName/${stem}: missing $required")
@@ -61,16 +65,87 @@ $powers = Read-LocTable "powers"
 $keywords = Read-LocTable "card_keywords"
 $hoverTips = Read-LocTable "static_hover_tips"
 $enchantments = Read-LocTable "enchantments"
+$relics = Read-LocTable "relics"
+$intents = Read-LocTable "intents"
+$tablesByName = @{
+    "cards" = $cards
+    "powers" = $powers
+    "card_keywords" = $keywords
+    "static_hover_tips" = $hoverTips
+    "enchantments" = $enchantments
+    "relics" = $relics
+    "intents" = $intents
+}
+
+$formatContractPath = Join-Path $PSScriptRoot "localization_format_contract_20260914.json"
+$formatContract = Get-Content -Raw -Encoding UTF8 -LiteralPath $formatContractPath |
+    ConvertFrom-Json
+foreach ($tableProperty in $formatContract.PSObject.Properties) {
+    $tableName = $tableProperty.Name
+    if (-not $tablesByName.ContainsKey($tableName)) {
+        $failures.Add("format contract references unknown table: $tableName")
+        continue
+    }
+    foreach ($entry in $tableProperty.Value.PSObject.Properties) {
+        $actualText = $tablesByName[$tableName][$entry.Name]
+        if ($null -eq $actualText) {
+            $failures.Add("$tableName/$($entry.Name): required DesignDoc format entry is missing")
+        }
+        elseif (-not [string]::Equals(
+                [string]$entry.Value,
+                [string]$actualText,
+                [StringComparison]::Ordinal)) {
+            $failures.Add("$tableName/$($entry.Name): differs from DesignDoc format contract")
+        }
+    }
+}
 
 foreach ($pair in @(
     @("cards", $cards),
     @("powers", $powers),
     @("card_keywords", $keywords),
     @("static_hover_tips", $hoverTips),
-    @("enchantments", $enchantments)
+    @("enchantments", $enchantments),
+    @("relics", $relics),
+    @("intents", $intents)
 )) {
     Test-RichText $pair[0] $pair[1]
     Test-TitleDescriptionPairs $pair[0] $pair[1]
+}
+
+$specialColorTerms = @{}
+$specialColorsPath = Join-Path $PSScriptRoot "localization_special_colors.txt"
+Get-Content -LiteralPath $specialColorsPath -Encoding UTF8 |
+    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+    ForEach-Object {
+        $parts = $_ -split '\|', 2
+        $specialColorTerms[$parts[0]] = $parts[1]
+    }
+foreach ($pair in @(
+    @("cards", $cards),
+    @("powers", $powers),
+    @("card_keywords", $keywords),
+    @("static_hover_tips", $hoverTips),
+    @("enchantments", $enchantments),
+    @("relics", $relics),
+    @("intents", $intents)
+)) {
+    foreach ($entry in $pair[1].GetEnumerator()) {
+        if ($entry.Key -notmatch '\.(description|smartDescription|extraCardText)$') {
+            continue
+        }
+        $text = [string]$entry.Value
+        foreach ($term in $specialColorTerms.Keys |
+            Sort-Object { $_.Length } -Descending) {
+            $wrongColors = @("gold", "purple", "pink") |
+                Where-Object { $_ -ne $specialColorTerms[$term] }
+            foreach ($wrong in $wrongColors) {
+                if ($text -match "\[$wrong\]$([regex]::Escape($term))\[/$wrong\]") {
+                    $failures.Add("$($pair[0])/$($entry.Key): $term must use [$($specialColorTerms[$term])] color")
+                }
+            }
+        }
+    }
 }
 
 $mechanicTermsPath = Join-Path $PSScriptRoot "localization_gold_terms.txt"
@@ -155,4 +230,4 @@ if ($failures.Count -gt 0) {
     exit 1
 }
 
-Write-Host "Localization style contract passed: cards, keywords, powers, enchantments and hover tips."
+Write-Host "Localization style contract passed: cards, keywords, powers, enchantments, relics, intents and hover tips."

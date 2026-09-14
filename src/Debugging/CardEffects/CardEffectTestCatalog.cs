@@ -358,13 +358,31 @@ internal static class CardEffectTestCatalog
     private static void SummonThunderProbe() =>
         CustomVariants<SummonThunder>(async (ctx, card, upgraded) =>
         {
+            int damage = upgraded ? 10 : 7;
             await ctx.ApplyPower<MagicAmplificationPower>(ctx.Self, 1);
             int hp = ctx.Enemies.Sum(enemy => enemy.CurrentHp);
             await ctx.Play(card, ctx.PrimaryEnemy);
             ctx.AssertEqual("magic amplification triggers one random hit",
                 upgraded ? 20 : 14,
                 hp - ctx.Enemies.Sum(enemy => enemy.CurrentHp));
-        }, 1);
+
+            Creature fatalTarget = await CreatureCmd.Add<Byrdonis>(ctx.Combat);
+            try
+            {
+                await CreatureCmd.SetMaxAndCurrentHp(fatalTarget, damage);
+                int allHp = ctx.Enemies.Sum(enemy => enemy.CurrentHp);
+                await ctx.Play(ctx.Create<SummonThunder>(upgraded), fatalTarget);
+                ctx.AssertEqual("fatal hit triggers one chained random hit",
+                    damage * 2,
+                    allHp - ctx.Enemies.Sum(enemy => enemy.CurrentHp));
+                ctx.AssertEqual("fatal target defeated", 0, fatalTarget.CurrentHp);
+            }
+            finally
+            {
+                if (!fatalTarget.IsDead)
+                    await CreatureCmd.Escape(fatalTarget);
+            }
+        }, 3);
 
     private static void TakemikazuchiProbe() =>
         CustomVariants<Takemikazuchi>(async (ctx, card, upgraded) =>

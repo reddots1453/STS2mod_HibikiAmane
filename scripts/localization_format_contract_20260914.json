@@ -1,0 +1,35 @@
+{
+  "card_keywords": {
+    "MAIDEN_SUCCUBUS_KEYWORD_PORTABLE.description": "[gold]随身[/gold]关键字的牌不会变化为[gold]挣脱[/gold]，且第一张进入[gold]手牌[/gold]的[gold]随身[/gold]牌不会被回合结束的弃牌所自动丢弃。",
+    "MAIDEN_SUCCUBUS_KEYWORD_SINKING.description": "战斗开始时，将这张牌放入[gold]弃牌堆[/gold]。",
+    "MAIDEN_SUCCUBUS_KEYWORD_BATTLE_REPLAY.description": "这张牌由[gold]战技复读[/gold]变化而来，打出后恢复为[gold]战技复读[/gold]。",
+    "MAIDEN_SUCCUBUS_KEYWORD_CURSE_INFECTION.description": "当这张牌被[gold]消耗[/gold]时，抽2张牌，并将这一效果附加到随机[gold]手牌[/gold]上。不能叠加给已有该效果的牌。"
+  },
+  "static_hover_tips": {
+    "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.description": "响木天音的[pink]欲望[/pink]，会因遭受[pink]色情攻击[/pink]而提高。最高10点，跨回合、跨战斗持续累计。\n[pink]欲望[/pink]过高或达到满时将对战斗产生巨大的负面效果，但[purple]堕落[/purple]路线的部分卡牌可以利用[pink]欲望[/pink]。",
+    "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.threshold8": "8点[pink]欲望[/pink]或以上，将无法格挡防御怪物的拘束类意图；",
+    "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.threshold10": "达到10点[pink]欲望[/pink]时，天音将被快感淹没，一回合内无法打出卡牌。之后[pink]欲望[/pink]恢复到3点。",
+    "MAIDENSUCCUBUS_OVERDRAFT.description": "如果这张牌[gold]消耗[/gold]了[gold]魔力增幅[/gold]，则触发效果。如果没有[gold]魔力增幅[/gold]，可以选择失去1层[gold]魔装耐久[/gold]并触发效果。",
+    "MAIDENSUCCUBUS_VARIATION.description": "满足条件时，变化为另一个效果。",
+    "MAIDENSUCCUBUS_TEMPTATION.description": "当前[gold]诱惑度[/gold]：[blue]{Current}[/blue]。\n（来源：基础诱惑度[blue]{Base}[/blue] + [gold]魔装耐久[/gold][blue]{Armor}[/blue] + ...）\n[gold]诱惑度[/gold]决定敌人是否会使用[pink]色情攻击[/pink]。"
+  },
+  "powers": {
+    "MAIDEN_SUCCUBUS_POWER_MAGIC_ARMOR_POWER.description": "每回合第一次受到未[gold]格挡[/gold]的伤害时，[gold]消耗[/gold]1层[gold]魔装耐久[/gold]，并使生命损失减半。低[gold]魔装耐久[/gold]将会提高[gold]诱惑度[/gold]，从而导致敌人发动[pink]色情攻击[/pink]。",
+    "MAIDEN_SUCCUBUS_POWER_MAGIC_AMPLIFICATION_POWER.description": "打出的下1张攻击牌或技能牌造成的伤害和[gold]格挡[/gold]增加50%。",
+    "MAIDEN_SUCCUBUS_POWER_DESIRE_STUN_POWER.description": "本回合无法打出[gold]手牌[/gold]。",
+    "MAIDEN_SUCCUBUS_POWER_WET_POWER.description": "无法[gold]格挡[/gold]防御怪物的[gold]拘束[/gold]类意图。",
+    "MAIDEN_SUCCUBUS_POWER_BURNING_POWER.description": "攻击时，受到等同于[gold]燃烧[/gold]层数的伤害。",
+    "MAIDEN_SUCCUBUS_POWER_STEADFAST_POWER.description": "这名敌人不会进行[pink]色情攻击[/pink]。",
+    "MAIDEN_SUCCUBUS_POWER_IMMACULATE_ROBE_POWER.description": "每回合开始时获得1层[gold]魔力增幅[/gold]。",
+    "MAIDEN_SUCCUBUS_POWER_CORRUPT_ROBE_POWER.description": "每回合开始时获得1层[gold]魔力增幅[/gold]。失去[gold]魔装耐久[/gold]时获得1点[pink]欲望[/pink]。",
+    "MAIDEN_SUCCUBUS_POWER_ETERNAL_ROBE_POWER.description": "每回合开始时获得9层[gold]魔力增幅[/gold]。",
+    "MAIDEN_SUCCUBUS_POWER_DESIRE_INTENT_THRESHOLD_POWER.smartDescription": "这名敌人在天音的[gold]诱惑度[/gold]达到{Amount}时，将会使用[pink]欲望攻击[/pink]。",
+    "MAIDEN_SUCCUBUS_POWER_CONTROL_INTENT_THRESHOLD_POWER.smartDescription": "这名敌人在天音的[gold]诱惑度[/gold]达到{Amount}时，将会使用[gold]拘束[/gold]意图。",
+    "MAIDEN_SUCCUBUS_POWER_INVASION_INTENT_THRESHOLD_POWER.smartDescription": "这名敌人在天音的[gold]诱惑度[/gold]达到{Amount}时，将会使用[gold]侵犯[/gold]意图。"
+  },
+  "enchantments": {
+    "MAIDEN_SUCCUBUS_ENCHANTMENT_CHARGE_ENCHANTMENT.description": "第一次打出这张牌时，获得{Amount:energyIcons()}。",
+    "MAIDEN_SUCCUBUS_ENCHANTMENT_PROLIFERATION_ENCHANTMENT.description": "打出后，将1张这张牌的复制洗入[gold]抽牌堆[/gold]。",
+    "MAIDEN_SUCCUBUS_ENCHANTMENT_IRON_WALL_ENCHANTMENT.description": "获得等量与造成伤害的[gold]格挡[/gold]。"
+  }
+}
