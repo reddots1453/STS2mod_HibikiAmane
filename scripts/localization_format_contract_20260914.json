@@ -14,6 +14,8 @@
     "MAIDENSUCCUBUS_TEMPTATION.description": "当前[gold]诱惑度[/gold]：[blue]{Current}[/blue]。\n（来源：基础诱惑度[blue]{Base}[/blue] + [gold]魔装耐久[/gold][blue]{Armor}[/blue] + ...）\n[gold]诱惑度[/gold]决定敌人是否会使用[pink]色情攻击[/pink]。"
   },
   "powers": {
+    "MAIDEN_SUCCUBUS_POWER_PURIFICATION_POWER.description": "回合开始时，每有1层[gold]净化[/gold]，随机失去1层可叠加的负面状态。",
+    "MAIDEN_SUCCUBUS_POWER_PURIFICATION_POWER.smartDescription": "回合开始时，每有1层[gold]净化[/gold]，随机失去1层可叠加的负面状态。",
     "MAIDEN_SUCCUBUS_POWER_MAGIC_ARMOR_POWER.description": "每回合第一次受到未[gold]格挡[/gold]的伤害时，[gold]消耗[/gold]1层[gold]魔装耐久[/gold]，并使生命损失减半。低[gold]魔装耐久[/gold]将会提高[gold]诱惑度[/gold]，从而导致敌人发动[pink]色情攻击[/pink]。",
     "MAIDEN_SUCCUBUS_POWER_MAGIC_AMPLIFICATION_POWER.description": "打出的下1张攻击牌或技能牌造成的伤害和[gold]格挡[/gold]增加50%。",
     "MAIDEN_SUCCUBUS_POWER_DESIRE_STUN_POWER.description": "本回合无法打出[gold]手牌[/gold]。",

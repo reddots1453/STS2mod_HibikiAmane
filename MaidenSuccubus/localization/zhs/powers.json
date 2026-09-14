@@ -23,8 +23,8 @@
   "MAIDEN_SUCCUBUS_POWER_CONDEMNATION_POWER.description": "达到7层时立即触发审判：每层造成7点固定伤害，然后清除全部[gold]断罪[/gold]。",
   "MAIDEN_SUCCUBUS_POWER_CONDEMNATION_POWER.smartDescription": "达到7层时立即触发审判：每层造成7点固定伤害，然后清除全部[gold]断罪[/gold]。",
   "MAIDEN_SUCCUBUS_POWER_PURIFICATION_POWER.title": "净化",
-  "MAIDEN_SUCCUBUS_POWER_PURIFICATION_POWER.description": "每回合开始时，每层[gold]净化[/gold]从当前存在的[gold]易伤[/gold]、[gold]虚弱[/gold]、[gold]脆弱[/gold]和[gold]断罪[/gold]中等概率选择一种，并移除1层。",
-  "MAIDEN_SUCCUBUS_POWER_PURIFICATION_POWER.smartDescription": "每回合开始时，每层[gold]净化[/gold]从当前存在的[gold]易伤[/gold]、[gold]虚弱[/gold]、[gold]脆弱[/gold]和[gold]断罪[/gold]中等概率选择一种，并移除1层。",
+  "MAIDEN_SUCCUBUS_POWER_PURIFICATION_POWER.description": "回合开始时，每有1层[gold]净化[/gold]，随机失去1层可叠加的负面状态。",
+  "MAIDEN_SUCCUBUS_POWER_PURIFICATION_POWER.smartDescription": "回合开始时，每有1层[gold]净化[/gold]，随机失去1层可叠加的负面状态。",
 
   "MAIDEN_SUCCUBUS_POWER_GUARDIAN_SCRIPTURE_POWER.title": "守护圣言",
   "MAIDEN_SUCCUBUS_POWER_GUARDIAN_SCRIPTURE_POWER.description": "剩余回合内，每回合结束时获得{Block}点[gold]格挡[/gold]。",

@@ -117,6 +117,13 @@ Assert-Contains "guardian scripture dexterity effect test" $cardEffectCatalog 'G
 Assert-Contains "guardian scripture dynamic power text" $powerLocalization 'GUARDIAN_SCRIPTURE_POWER\.smartDescription"\s*:\s*"[^"]*\{Block\}'
 Assert-NotContains "guardian scripture hard-coded power text" $powerLocalization 'GUARDIAN_SCRIPTURE_POWER\.(description|smartDescription)"\s*:\s*"[^"]*\u83B73\u70B9'
 
+$purificationPower = Read-Text "src\Powers\PurificationPower.cs"
+Assert-Contains "purification enumerates all owner powers" $purificationPower 'Owner\.Powers'
+Assert-Contains "purification only considers stackable counters" $purificationPower 'power\.StackType\s*==\s*PowerStackType\.Counter'
+Assert-Contains "purification follows current debuff type" $purificationPower 'power\.TypeForCurrentAmount\s*==\s*PowerType\.Debuff'
+Assert-Contains "purification selects uniformly by status type" $purificationPower '\.GroupBy\(power\s*=>\s*power\.Id\)'
+Assert-NotContains "purification hard-coded debuff catalog" $purificationPower 'AddIfPresent<(Vulnerable|Weak|Frail|Condemnation)Power>'
+
 $intent = Read-Text "src\Core\Intents\IntentMoveFactory.cs"
 Assert-NotContains "erotic intent ids" $intent 'Interlocked\.Increment'
 Assert-Contains "erotic intent ids" $intent '\$"MAIDENSUCCUBUS_\{kind\}"'

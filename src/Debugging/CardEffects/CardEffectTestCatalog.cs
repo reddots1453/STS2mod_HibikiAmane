@@ -1708,27 +1708,39 @@ internal static class CardEffectTestCatalog
             await purification.AfterPlayerTurnStart(
                 new BlockingPlayerChoiceContext(), ctx.Player);
             ctx.AssertPower("two weak cleansed", ctx.Self, "WeakPower", 0);
+            ctx.AssertPower("purification persists after triggering", ctx.Self,
+                "PurificationPower", 2);
 
             int hp = ctx.Self.CurrentHp;
             await CreatureCmd.Damage(new BlockingPlayerChoiceContext(), ctx.Self,
                 10, ValueProp.Move, ctx.PrimaryEnemy);
             ctx.AssertDamage("incoming damage halved", ctx.Self, hp, 5);
-        }, 6);
+        }, 7);
 
     private static void WorshipProbe() =>
         CustomVariants<Worship>(async (ctx, card, upgraded) =>
         {
             int amount = upgraded ? 2 : 1;
-            await ctx.ApplyPower<WeakPower>(ctx.Self, 2);
+            await ctx.ApplyPower<PoisonPower>(ctx.Self, 2);
+            await ctx.ApplyPower<NoDrawPower>(ctx.Self, 1);
             await ctx.Play(card);
             ctx.AssertPower("dexterity", ctx.Self, "DexterityPower", amount);
             PurificationPower purification =
                 ctx.Self.Powers.OfType<PurificationPower>().Single();
+            IReadOnlyList<PowerModel> candidates = purification.GetCandidates();
+            ctx.AssertEqual("all stackable debuff types are discovered", true,
+                candidates.Any(power => power is PoisonPower));
+            ctx.AssertEqual("single debuffs are not purification candidates", false,
+                candidates.Any(power => power is NoDrawPower));
             await purification.AfterPlayerTurnStart(
                 new BlockingPlayerChoiceContext(), ctx.Player);
-            ctx.AssertPower("purification removes exact weak layers", ctx.Self,
-                "WeakPower", 2 - amount);
-        }, 2);
+            ctx.AssertPower("non-hardcoded stackable debuff loses exact layers", ctx.Self,
+                "PoisonPower", 2 - amount);
+            ctx.AssertPower("single debuff remains", ctx.Self, "NoDrawPower", 1);
+            ctx.AssertPower("buff remains", ctx.Self, "DexterityPower", amount);
+            ctx.AssertPower("purification amount is permanent", ctx.Self,
+                "PurificationPower", amount);
+        }, 7);
 
     private static void IceMistProbe() =>
         CustomVariants<IceMist>(async (ctx, card, upgraded) =>

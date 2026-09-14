@@ -47,29 +47,17 @@ public sealed class PurificationPower : MaidenSuccubusPowerTemplate
             await PowerCmd.ModifyAmount(
                 choiceContext,
                 selected,
-                -1m,
+                selected.Amount > 0 ? -1m : 1m,
                 Owner,
                 null);
         }
     }
 
-    internal List<PowerModel> GetCandidates()
-    {
-        List<PowerModel> candidates = [];
-        AddIfPresent<VulnerablePower>(candidates);
-        AddIfPresent<WeakPower>(candidates);
-        AddIfPresent<FrailPower>(candidates);
-        AddIfPresent<CondemnationPower>(candidates);
-        return candidates;
-    }
-
-    private void AddIfPresent<T>(ICollection<PowerModel> candidates)
-        where T : PowerModel
-    {
-        T? power = Owner.GetPower<T>();
-        if (power is { Amount: > 0 })
-        {
-            candidates.Add(power);
-        }
-    }
+    internal List<PowerModel> GetCandidates() => Owner.Powers
+        .Where(power => power.Amount != 0)
+        .Where(power => power.StackType == PowerStackType.Counter)
+        .Where(power => power.TypeForCurrentAmount == PowerType.Debuff)
+        .GroupBy(power => power.Id)
+        .Select(group => group.First())
+        .ToList();
 }
