@@ -2622,6 +2622,8 @@ internal static class CardEffectTestCatalog
     private static void SunDanceProbe() =>
         CustomVariants<SunDance>(async (ctx, card, upgraded) =>
         {
+            ctx.AssertEqual("base and upgraded cost are zero", 0,
+                card.EnergyCost.GetWithModifiers(CostModifiers.All));
             await ctx.ApplyPower<MegaCrit.Sts2.Core.Models.Powers.StrengthPower>(ctx.Self, 2);
             await ctx.Play(card);
             ctx.AssertPower("dexterity equals buff layers", ctx.Self, "DexterityPower", 2);
@@ -2629,7 +2631,7 @@ internal static class CardEffectTestCatalog
                 "RestoreDexterityAtTurnEndPower", 2);
             ctx.AssertEqual("upgrade grants retain", upgraded,
                 card.Keywords.Contains(CardKeyword.Retain));
-        }, 3);
+        }, 4);
 
     private static void SuperRegenerationProbe() =>
         CustomVariants<SuperRegeneration>(async (ctx, card, upgraded) =>
