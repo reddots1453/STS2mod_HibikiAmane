@@ -1,4 +1,7 @@
 {
+  "cards": {
+    "MAIDEN_SUCCUBUS_CARD_FORGE_NIMBLE.description": "获得{Block:diff()}点[gold]格挡[/gold]。\n为1张牌[gold]附魔[/gold]：[purple]伶俐[/purple]。"
+  },
   "card_keywords": {
     "MAIDEN_SUCCUBUS_KEYWORD_PORTABLE.description": "[gold]随身[/gold]关键字的牌不会变化为[gold]挣脱[/gold]，且第一张进入[gold]手牌[/gold]的[gold]随身[/gold]牌不会被回合结束的弃牌所自动丢弃。",
     "MAIDEN_SUCCUBUS_KEYWORD_SINKING.description": "战斗开始时，将这张牌放入[gold]弃牌堆[/gold]。",

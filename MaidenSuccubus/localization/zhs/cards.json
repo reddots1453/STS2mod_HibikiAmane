@@ -238,7 +238,7 @@
   "MAIDEN_SUCCUBUS_CARD_ETERNAL_DAMNATION.title": "万劫不复",
   "MAIDEN_SUCCUBUS_CARD_ETERNAL_DAMNATION.description": "[gold]断罪审判[/gold]不再清除[gold]断罪[/gold]层数。",
   "MAIDEN_SUCCUBUS_CARD_FORGE_NIMBLE.title": "锻成・伶俐",
-  "MAIDEN_SUCCUBUS_CARD_FORGE_NIMBLE.description": "获得{Block:diff()}点[gold]格挡[/gold]，为1张牌[gold]附魔[/gold]“伶俐”。",
+  "MAIDEN_SUCCUBUS_CARD_FORGE_NIMBLE.description": "获得{Block:diff()}点[gold]格挡[/gold]。\n为1张牌[gold]附魔[/gold]：[purple]伶俐[/purple]。",
   "MAIDEN_SUCCUBUS_CARD_REST.title": "休憩",
   "MAIDEN_SUCCUBUS_CARD_REST.description": "只能在[gold]变身[/gold]时使用。\n退出[gold]变身[/gold]，结束你的回合。\n下个回合抽2张牌并获得{energyPrefix:energyIcons(2)}。",
   "MAIDEN_SUCCUBUS_CARD_MULTIPLE_REPRODUCTION.title": "多重再现",

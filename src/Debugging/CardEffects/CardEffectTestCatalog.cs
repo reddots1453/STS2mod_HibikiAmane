@@ -2378,11 +2378,15 @@ internal static class CardEffectTestCatalog
             int block = ctx.Self.Block;
             await ctx.Play(card, selectedCards: [selected]);
             ctx.AssertBlock("block", block, upgraded ? 8 : 5);
-            ctx.AssertEqual("selected card nimble amount", 3,
+            ctx.AssertEqual("selected card adroit amount", 3,
                 selected.Enchantment?.Amount ?? 0);
-            ctx.AssertEqual("selected card nimble type", "Nimble",
+            ctx.AssertEqual("selected card uses Kifuda Adroit enchantment", "Adroit",
                 selected.Enchantment?.GetType().Name ?? "none");
-        }, 3);
+            int blockBeforeEnchantedCard = ctx.Self.Block;
+            await ctx.Play(selected);
+            ctx.AssertBlock("Adroit adds three block when enchanted card is played",
+                blockBeforeEnchantedCard, 8);
+        }, 4);
 
     private static void HolyCurseProbe() =>
         CustomVariants<HolyCurse>(async (ctx, card, upgraded) =>

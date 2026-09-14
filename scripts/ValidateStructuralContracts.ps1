@@ -124,6 +124,12 @@ Assert-Contains "purification follows current debuff type" $purificationPower 'p
 Assert-Contains "purification selects uniformly by status type" $purificationPower '\.GroupBy\(power\s*=>\s*power\.Id\)'
 Assert-NotContains "purification hard-coded debuff catalog" $purificationPower 'AddIfPresent<(Vulnerable|Weak|Frail|Condemnation)Power>'
 
+$holyCardsBatch3 = Read-Text "src\Cards\MvpHolyCardsBatch3.cs"
+Assert-Contains "Forge Nimble uses Kifuda Adroit hover" $holyCardsBatch3 'ForgeNimble[\s\S]*?FromEnchantment<Adroit>\(3\)'
+Assert-Contains "Forge Nimble selects Adroit-compatible cards" $holyCardsBatch3 'ForgeNimble[\s\S]*?ModelDb\.Enchantment<Adroit>\(\)\.CanEnchant\(card\)'
+Assert-Contains "Forge Nimble applies Kifuda Adroit" $holyCardsBatch3 'ForgeNimble[\s\S]*?ApplyVanilla<Adroit>\(selected,\s*3\)'
+Assert-NotContains "Forge Nimble must not use block-scaling Nimble" $holyCardsBatch3 'ForgeNimble[\s\S]*?(FromEnchantment|Enchantment|ApplyVanilla)<Nimble>'
+
 $intent = Read-Text "src\Core\Intents\IntentMoveFactory.cs"
 Assert-NotContains "erotic intent ids" $intent 'Interlocked\.Increment'
 Assert-Contains "erotic intent ids" $intent '\$"MAIDENSUCCUBUS_\{kind\}"'

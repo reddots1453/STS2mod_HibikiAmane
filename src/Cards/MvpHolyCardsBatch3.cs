@@ -122,7 +122,7 @@ public sealed class EternalDamnation : MSHolyCard
 public sealed class ForgeNimble : MSHolyCard
 {
     protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
-        HoverTipFactory.FromEnchantment<Nimble>(3);
+        HoverTipFactory.FromEnchantment<Adroit>(3);
     public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(5, ValueProp.Move)];
     public ForgeNimble() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
@@ -133,10 +133,10 @@ public sealed class ForgeNimble : MSHolyCard
             context,
             Owner,
             new CardSelectorPrefs(CardSelectorPrefs.EnchantSelectionPrompt, 1),
-            card => card != this && card.Enchantment == null && ModelDb.Enchantment<Nimble>().CanEnchant(card),
+            card => card != this && card.Enchantment == null && ModelDb.Enchantment<Adroit>().CanEnchant(card),
             this)).FirstOrDefault();
         if (selected != null)
-            CombatEnchantmentCmd.ApplyVanilla<Nimble>(selected, 3);
+            CombatEnchantmentCmd.ApplyVanilla<Adroit>(selected, 3);
     }
     protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(3);
 }
