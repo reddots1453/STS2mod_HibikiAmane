@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Powers;
@@ -33,6 +34,12 @@ public abstract class MSInvasionCurseTemplate :
 
     public override CardAssetProfile AssetProfile => new(
         PortraitPath: "res://images/packed/card_portraits/ironclad/bash.png");
+
+    protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
+    protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
+        CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)
+            .Concat(CardHoverTipSupport.FromDescriptionReferences(this))
+            .Concat(CardSpecificHoverTips);
 
     protected MSInvasionCurseTemplate(int cost = 1)
         : base(cost, CardType.Curse, CardRarity.Curse, TargetType.None, true) { }
@@ -124,6 +131,9 @@ public sealed class CorrosiveSlimeCurse : MSInvasionCurseTemplate
 [RegisterCard(typeof(MSInvasionCursePool))]
 public sealed class InsectEggCurse : MSInvasionCurseTemplate
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [HoverTipFactory.FromCard<ArousalStatus>()];
+
     protected override Task ResolveEffect(PlayerChoiceContext context) =>
         GenerateIntoDraw<ArousalStatus>();
 }
@@ -178,6 +188,9 @@ public sealed class EctoplasmResidueCurse : MSInvasionCurseTemplate
 [RegisterCard(typeof(MSInvasionCursePool))]
 public sealed class MagicResidueCurse : MSInvasionCurseTemplate
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [HoverTipFactory.FromCard<Slimed>()];
+
     protected override Task ResolveEffect(PlayerChoiceContext context) =>
         GenerateIntoDraw<Slimed>();
 }
@@ -185,6 +198,9 @@ public sealed class MagicResidueCurse : MSInvasionCurseTemplate
 [RegisterCard(typeof(MSInvasionCursePool))]
 public sealed class VineSeedCurse : MSInvasionCurseTemplate
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [HoverTipFactory.FromCard<SporeMind>()];
+
     protected override Task ResolveEffect(PlayerChoiceContext context) =>
         GenerateIntoDraw<SporeMind>();
 }
@@ -240,6 +256,11 @@ public abstract class MSEventCurseTemplate : ModCardTemplate
     public override CardPoolModel Pool => ModelDb.CardPool<MSGeneratedCardPool>();
     public override CardAssetProfile AssetProfile => new(
         PortraitPath: "res://images/packed/card_portraits/ironclad/bash.png");
+    protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
+    protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
+        CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)
+            .Concat(CardHoverTipSupport.FromDescriptionReferences(this))
+            .Concat(CardSpecificHoverTips);
     protected MSEventCurseTemplate(int cost = -1)
         : base(cost, CardType.Curse, CardRarity.Curse, TargetType.None, true) { }
 }
@@ -247,6 +268,8 @@ public abstract class MSEventCurseTemplate : ModCardTemplate
 [RegisterCard(typeof(MSGeneratedCardPool))]
 public sealed class LewdMarkMinorCurse : MSEventCurseTemplate
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [HoverTipFactory.FromCard<ArousalStatus>()];
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Unplayable];
     public override bool HasTurnEndInHandEffect => true;
 
@@ -267,6 +290,8 @@ public sealed class LewdMarkMinorCurse : MSEventCurseTemplate
 [RegisterCard(typeof(MSGeneratedCardPool))]
 public sealed class LewdMarkSpreadCurse : MSEventCurseTemplate
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [HoverTipFactory.FromCard<ArousalStatus>()];
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Unplayable];
     public override bool HasTurnEndInHandEffect => true;
 
@@ -284,6 +309,8 @@ public sealed class LewdMarkSpreadCurse : MSEventCurseTemplate
 [RegisterCard(typeof(MSGeneratedCardPool))]
 public sealed class LewdMarkCompleteCurse : MSEventCurseTemplate
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [HoverTipFactory.FromCard<ArousalStatus>()];
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Unplayable, CardKeyword.Retain];
     public override bool HasTurnEndInHandEffect => true;
 

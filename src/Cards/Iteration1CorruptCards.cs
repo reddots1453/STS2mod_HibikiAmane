@@ -28,6 +28,8 @@ namespace MaidenSuccubus.Cards;
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class Exhibitionist : MSCorruptCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [HoverTipFactory.FromCard<NakedDesireStatus>()];
     public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars =>
     [

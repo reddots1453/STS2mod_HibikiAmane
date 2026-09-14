@@ -157,8 +157,9 @@ if ($catalog -notmatch 'projected card original effect is suppressed' -or
     throw "Control projection must verify effect suppression, exact escape payment, and result pile."
 }
 if ($catalog -notmatch 'fatal hit triggers one chained random hit' -or
-    $catalog -notmatch 'magic amplification triggers one random hit') {
-    throw "SummonThunder must verify both amplified and fatal-chain damage."
+    $catalog -notmatch 'magic release triggers one random hit' -or
+    $catalog -notmatch 'magic release pays one armor') {
+    throw "SummonThunder must verify magic-release payment and fatal-chain damage."
 }
 if ($holyPowers -notmatch '_pendingRestores' -or
     $holyPowers -notmatch 'AfterCardChangedPiles' -or

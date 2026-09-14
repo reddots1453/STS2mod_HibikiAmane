@@ -32,11 +32,14 @@ public sealed class ControlPower :
     {
         get
         {
-            LocString description = base.Description;
-            description.Add("Amount", Amount);
-            description.Add("ControlType", ControlType.LocalizedName());
-            description.Add("Source", Applier?.Name ?? "未知来源");
-            return description;
+            string suffix = ControlType switch
+            {
+                ControlType.Attack => "attackDescription",
+                ControlType.Skill => "skillDescription",
+                ControlType.Power => "powerDescription",
+                _ => "description",
+            };
+            return new LocString("powers", $"{Id.Entry}.{suffix}");
         }
     }
 

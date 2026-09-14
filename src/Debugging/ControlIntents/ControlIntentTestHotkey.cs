@@ -7,8 +7,8 @@ namespace MaidenSuccubus.Debugging.ControlIntents;
 
 /// <summary>
 /// Runs the destructive suite only after the player manually enters a
-/// disposable combat. Shift+F10 extends the established F10 test boundary
-/// without reserving another global function key.
+/// disposable combat. Ctrl+F10 keeps this destructive suite separate from
+/// the card-effect suite's Shift+F10 iteration-two shortcut.
 /// </summary>
 internal static class ControlIntentTestHotkey
 {
@@ -33,12 +33,12 @@ internal static class ControlIntentTestHotkey
             _registered = true;
             MaidenSuccubusMod.Logger.Info(
                 "[ControlIntentTest] Ready. Enter a disposable "
-                + "MaidenSuccubus combat and press Shift+F10.");
+                + "MaidenSuccubus combat and press Ctrl+F10.");
         }
         catch (Exception ex)
         {
             MaidenSuccubusMod.Logger.Error(
-                "[ControlIntentTest] Failed to register Shift+F10 trigger: " + ex);
+                "[ControlIntentTest] Failed to register Ctrl+F10 trigger: " + ex);
         }
     }
 
@@ -47,7 +47,7 @@ internal static class ControlIntentTestHotkey
         try
         {
             bool chordNow = Input.IsKeyPressed(Key.F10)
-                && Input.IsKeyPressed(Key.Shift);
+                && Input.IsKeyPressed(Key.Ctrl);
             if (chordNow && !_chordPressed)
                 RunFromActiveCombat();
             _chordPressed = chordNow;
@@ -55,7 +55,7 @@ internal static class ControlIntentTestHotkey
         catch (Exception ex)
         {
             MaidenSuccubusMod.Logger.Error(
-                "[ControlIntentTest] Shift+F10 trigger failed: " + ex);
+                "[ControlIntentTest] Ctrl+F10 trigger failed: " + ex);
         }
     }
 
@@ -73,7 +73,7 @@ internal static class ControlIntentTestHotkey
         {
             MaidenSuccubusMod.Logger.Info(
                 "[ControlIntentTest] Not in combat. Enter a disposable combat, "
-                + "then press Shift+F10.");
+                + "then press Ctrl+F10.");
             return;
         }
         if (combat.Players.Count != 1)
@@ -87,13 +87,13 @@ internal static class ControlIntentTestHotkey
         if (player.Character.GetType().Name != "MaidenSuccubusCharacter")
         {
             MaidenSuccubusMod.Logger.Info(
-                "[ControlIntentTest] Use MaidenSuccubus before pressing Shift+F10.");
+                "[ControlIntentTest] Use MaidenSuccubus before pressing Ctrl+F10.");
             return;
         }
 
         _running = true;
         MaidenSuccubusMod.Logger.Info(
-            "[ControlIntentTest] Shift+F10 accepted; starting 9 scenarios.");
+            "[ControlIntentTest] Ctrl+F10 accepted; starting 9 scenarios.");
         try
         {
             string summary = await ControlIntentTestRunner.Run(player);

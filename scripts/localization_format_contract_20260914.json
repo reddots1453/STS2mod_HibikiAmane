@@ -1,6 +1,14 @@
 {
   "cards": {
-    "MAIDEN_SUCCUBUS_CARD_FORGE_NIMBLE.description": "获得{Block:diff()}点[gold]格挡[/gold]。\n为1张牌[gold]附魔[/gold]：[purple]伶俐[/purple]。"
+    "MAIDEN_SUCCUBUS_CARD_FORGE_NIMBLE.description": "获得{Block:diff()}点[gold]格挡[/gold]。\n为1张牌[gold]附魔[/gold]：[purple]伶俐[/purple]。",
+    "MAIDEN_SUCCUBUS_CARD_SUMMON_THUNDER.description": "造成{Damage:diff()}点伤害。\n[gold]斩杀时[/gold]和[gold]魔力解放[/gold]：随机造成{Damage:diff()}点伤害。",
+    "MAIDEN_SUCCUBUS_CARD_BATH.description": "获得{Energy:energyIcons()}。\n移除牌组中的所有精液[gold]诅咒牌[/gold]。\n[gold]魔力解放[/gold]：下回合获得{NextEnergy:energyIcons()}。",
+    "MAIDEN_SUCCUBUS_CARD_MAGIC_SWORD.description": "造成{Damage:diff()}点伤害。\n拾起时，为这张牌[gold]附魔[/gold]：[purple]充能：2[/purple]。",
+    "MAIDEN_SUCCUBUS_CARD_RESISTANCE_GLOVES.description": "[gold]挣脱[/gold]{Escape:diff()}。",
+    "MAIDEN_SUCCUBUS_CARD_PLAYING_WITH_FIRE.description": "获得1层[gold]燃烧[/gold]。\n抽{Cards:diff()}张牌。",
+    "MAIDEN_SUCCUBUS_CARD_FLAME_BLOOM.description": "造成{Damage:diff()}点伤害。\n给予2层[gold]燃烧[/gold]。\n[gold]魔力解放[/gold]：给予1层[gold]燃烧[/gold]。",
+    "MAIDEN_SUCCUBUS_CARD_TACTICAL_CORE.description": "获得{Block:diff()}点[gold]格挡[/gold]。\n{Turns:diff()}回合内，[gold]魔力增幅[/gold]对于[gold]附魔牌[/gold]的效果翻倍。",
+    "MAIDEN_SUCCUBUS_CARD_SEMEN_APPETITE.title": "精液食粮"
   },
   "card_keywords": {
     "MAIDEN_SUCCUBUS_KEYWORD_PORTABLE.description": "[gold]随身[/gold]关键字的牌不会变化为[gold]挣脱[/gold]，且第一张进入[gold]手牌[/gold]的[gold]随身[/gold]牌不会被回合结束的弃牌所自动丢弃。",
@@ -14,6 +22,9 @@
     "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.threshold10": "达到10点[pink]欲望[/pink]时，天音将被快感淹没，一回合内无法打出卡牌。之后[pink]欲望[/pink]恢复到3点。",
     "MAIDENSUCCUBUS_OVERDRAFT.description": "如果这张牌[gold]消耗[/gold]了[gold]魔力增幅[/gold]，则触发效果。如果没有[gold]魔力增幅[/gold]，可以选择失去1层[gold]魔装耐久[/gold]并触发效果。",
     "MAIDENSUCCUBUS_VARIATION.description": "满足条件时，变化为另一个效果。",
+    "MAIDENSUCCUBUS_SCRIPTURE.description": "一系列持续生效多个回合的0费衍生牌。",
+    "MAIDENSUCCUBUS_ESCAPE_KEYWORD.description": "减少[gold]拘束[/gold]状态相应层数。",
+    "MAIDENSUCCUBUS_CONTROL.description": "相应类型的非[gold]随身[/gold]牌临时变为[gold]挣脱[/gold]。尽快[gold]挣脱[/gold]以避免遭受[gold]侵犯[/gold]。",
     "MAIDENSUCCUBUS_TEMPTATION.description": "当前[gold]诱惑度[/gold]：[blue]{Current}[/blue]。\n（来源：基础诱惑度[blue]{Base}[/blue] + [gold]魔装耐久[/gold][blue]{Armor}[/blue] + ...）\n[gold]诱惑度[/gold]决定敌人是否会使用[pink]色情攻击[/pink]。"
   },
   "powers": {
@@ -30,7 +41,10 @@
     "MAIDEN_SUCCUBUS_POWER_ETERNAL_ROBE_POWER.description": "每回合开始时获得9层[gold]魔力增幅[/gold]。",
     "MAIDEN_SUCCUBUS_POWER_DESIRE_INTENT_THRESHOLD_POWER.smartDescription": "这名敌人在天音的[gold]诱惑度[/gold]达到{Amount}时，将会使用[pink]欲望攻击[/pink]。",
     "MAIDEN_SUCCUBUS_POWER_CONTROL_INTENT_THRESHOLD_POWER.smartDescription": "这名敌人在天音的[gold]诱惑度[/gold]达到{Amount}时，将会使用[gold]拘束[/gold]意图。",
-    "MAIDEN_SUCCUBUS_POWER_INVASION_INTENT_THRESHOLD_POWER.smartDescription": "这名敌人在天音的[gold]诱惑度[/gold]达到{Amount}时，将会使用[gold]侵犯[/gold]意图。"
+    "MAIDEN_SUCCUBUS_POWER_INVASION_INTENT_THRESHOLD_POWER.smartDescription": "这名敌人在天音的[gold]诱惑度[/gold]达到{Amount}时，将会使用[gold]侵犯[/gold]意图。",
+    "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.attackDescription": "天音被[gold]拘束[/gold]了！双臂被控制，乳房毫无防备，所有攻击牌临时变为[gold]挣脱[/gold]。尽快[gold]挣脱[/gold]以避免遭受[gold]侵犯[/gold]。",
+    "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.skillDescription": "天音被[gold]拘束[/gold]了！嘴巴被堵住，所有技能牌临时变为[gold]挣脱[/gold]。尽快[gold]挣脱[/gold]以避免遭受[gold]侵犯[/gold]。",
+    "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.powerDescription": "天音被[gold]拘束[/gold]了！小穴被玩弄得乱七八糟，所有能力牌临时变为[gold]挣脱[/gold]。尽快[gold]挣脱[/gold]以避免遭受[gold]侵犯[/gold]。"
   },
   "enchantments": {
     "MAIDEN_SUCCUBUS_ENCHANTMENT_CHARGE_ENCHANTMENT.description": "第一次打出这张牌时，获得{Amount:energyIcons()}。",

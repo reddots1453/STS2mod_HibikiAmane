@@ -129,7 +129,7 @@ public sealed class SacrificialFrenzy : MSCorruptCard
     ];
 
     public SacrificialFrenzy()
-        : base(2, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy)
+        : base(2, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy)
     {
     }
 

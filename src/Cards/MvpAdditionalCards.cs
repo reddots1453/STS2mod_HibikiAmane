@@ -139,7 +139,7 @@ public sealed class MagicBurst : MSHolyCard
                     ? PowerLayerQuery.CountBuffLayers(card.Owner.Creature)
                     : 0),
     ];
-    public MagicBurst() : base(0, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
+    public MagicBurst() : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);

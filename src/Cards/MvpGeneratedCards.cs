@@ -20,6 +20,7 @@ public abstract class MSGeneratedCard : ModCardTemplate
     protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
     protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
         CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)
+            .Concat(CardHoverTipSupport.FromDescriptionReferences(this))
             .Concat(CardSpecificHoverTips);
     protected MSGeneratedCard(
         int cost,

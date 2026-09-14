@@ -98,7 +98,6 @@ public sealed class CounterDefense : MSNeutralCard
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class MindsEye : MSNeutralCard
 {
-    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new DamageVar(3, ValueProp.Move), new PowerVar<WeakPower>(1), new PowerVar<VulnerablePower>(1)];
     public MindsEye() : base(0, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }

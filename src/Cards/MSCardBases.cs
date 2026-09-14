@@ -18,6 +18,7 @@ public abstract class MSNeutralCardTemplate : ModCardTemplate, IMaidenSuccubusRo
     protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
     protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
         CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)
+            .Concat(CardHoverTipSupport.FromDescriptionReferences(this))
             .Concat(CardSpecificHoverTips);
 
     protected MSNeutralCardTemplate(
@@ -45,6 +46,7 @@ public abstract class MSCorruptCardTemplate : ModCardTemplate, IMaidenSuccubusRo
     protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
     protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
         CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)
+            .Concat(CardHoverTipSupport.FromDescriptionReferences(this))
             .Concat(CardSpecificHoverTips);
 
     protected MSCorruptCardTemplate(
@@ -72,6 +74,7 @@ public abstract class MSHolyCardTemplate : ModCardTemplate, IMaidenSuccubusRoute
     protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
     protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
         CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)
+            .Concat(CardHoverTipSupport.FromDescriptionReferences(this))
             .Concat(CardSpecificHoverTips);
 
     protected MSHolyCardTemplate(

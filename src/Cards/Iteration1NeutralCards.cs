@@ -284,8 +284,6 @@ public sealed class Bath : MSNeutralCard
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
-        bool amplified = TransformationCmd.GetAmplification(Owner.Creature)
-            ?.IsAmplifying(this) == true;
         CardModel[] curses = Owner.Deck.Cards
             .OfType<MSInvasionCurseTemplate>()
             .ToArray();
@@ -295,7 +293,8 @@ public sealed class Bath : MSNeutralCard
         }
 
         await PlayerCmd.GainEnergy(DynamicVars.Energy.IntValue, Owner);
-        if (amplified)
+        if (await TransformationCmd.PayOverdraft(
+            context, Owner.Creature, this))
         {
             await PowerCmd.Apply<EnergyNextTurnPower>(
                 context,

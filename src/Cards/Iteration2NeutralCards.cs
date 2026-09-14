@@ -62,8 +62,8 @@ public sealed class SummonThunder : MSNeutralCard
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
-        bool amplified = TransformationCmd.GetAmplification(Owner.Creature)
-            ?.IsAmplifying(this) == true;
+        bool released = await TransformationCmd.PayOverdraft(
+            context, Owner.Creature, this);
         bool initialFatalEligible = play.Target.Powers.All(
             power => power.ShouldOwnerDeathTriggerFatal());
         var initial = await DamageCmd.Attack(DynamicVars.Damage.BaseValue)
@@ -75,7 +75,7 @@ public sealed class SummonThunder : MSNeutralCard
                 ? initial.Results.SelectMany(group => group)
                     .Count(result => result.WasTargetKilled)
                 : 0)
-            + (amplified ? 1 : 0);
+            + (released ? 1 : 0);
         while (pending-- > 0 && CombatState?.HittableEnemies.Count > 0)
         {
             var enemies = CombatState.HittableEnemies;

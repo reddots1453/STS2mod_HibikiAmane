@@ -2,13 +2,12 @@
 
 ## 范围与需求基线
 
-本测试工具以 `DesignDoc.md` 和 `docs/content_contract_20260824.json` 的 2026-08-24 状态为测试预期，不自动从卡牌实现的 `DynamicVars` 反推出期望值。这样，代码中的错误数值不会同时污染测试预期。
+本测试工具以当前 `DesignDoc.md` 为测试预期，并以内容契约校验注册集合；不自动从卡牌实现的 `DynamicVars` 反推出期望值。这样，代码中的错误数值不会同时污染测试预期。
 
-内容契约中的 204 张牌必须逐一登记。当前状态：
+内容契约中的 215 张牌必须逐一登记。当前状态：
 
-- 201 张牌具有可执行测试；通常同时测试基础版和升级版。
+- 213 张牌具有可执行测试；通常同时测试基础版和升级版。
 - `ClimaxBanCurse`、`HypnosisCurse` 的描述为“效果待后续设计”，记录为 `DESIGN_PENDING`。
-- `DreamMist` 的 DesignDoc 效果正文为空，用户于 2026-09-08 确认暂时跳过，记录为 `DESIGN_PENDING`。
 - `DESIGN_PENDING` 不会显示为通过；除此以外不允许跳过。
 
 测试断言读取真实结算后的生命、格挡、费用、能量、欲望、堕落值、Power 层数、牌堆位置、升级/关键字/附魔和怪物意图等状态。仅能成功打出、存在 `OnPlay` 方法、存在 DynamicVar 或存在某个接口均不能构成通过条件。
@@ -17,7 +16,7 @@
 
 ## 运行方法
 
-工具只编译进 Debug 版本。测试采用与工作区 `sts2_contrib_tests` 相同的人工边界：由玩家启动游戏、使用响木天音进入一场可以放弃的单人战斗，然后按 `F10`。测试会在当前 Godot 主线程开始执行全部204张牌的登记项；运行期间再次按 `F10` 不会启动并发测试。`Shift+F10`保留给独立的拘束意图套件，详见[`CONTROL_INTENT_TESTING.md`](CONTROL_INTENT_TESTING.md)。
+工具只编译进 Debug 版本。测试采用与工作区 `sts2_contrib_tests` 相同的人工边界：由玩家启动游戏、使用响木天音进入一场可以放弃的单人战斗，然后按 `F10`。测试会在当前 Godot 主线程开始执行全部215张牌的登记项；运行期间再次按 `F10` 不会启动并发测试。`Shift+F10`只运行59张第二轮新增/变更卡牌；`Ctrl+F10`运行独立的9项拘束意图套件，详见[`CONTROL_INTENT_TESTING.md`](CONTROL_INTENT_TESTING.md)。
 
 控制台入口仍保留用于单牌复测或无法使用热键时的调试。完整测试命令为：
 
@@ -52,7 +51,7 @@ card-effect-test-results/card-effects-YYYYMMDD-HHMMSS.json
 card-effect-test-results/latest.json
 ```
 
-每个失败断言同时保存预期值和实际值；运行时异常保存完整堆栈。三张待设计牌使用独立的 `DesignPending` 状态。
+每个失败断言同时保存预期值和实际值；运行时异常保存完整堆栈。两张待设计牌使用独立的 `DesignPending` 状态。
 
 ## 2026-09-08 首轮实测基线
 
@@ -108,9 +107,9 @@ RitsuLib capability现在负责无目标、弃牌结算、锁链覆盖层、原�
 
 `ValidateMod=true` 会执行 `scripts/ValidateCardEffectTests.ps1`，并检查：
 
-- 测试登记与五个卡池中的 204 张牌完全一致且无重复；
-- 只有三张已确认卡牌可标记为 `DESIGN_PENDING`；
-- 其余 201 张牌都有非零效果断言以及适用的基础/升级场景；
+- 测试登记与五个卡池中的 215 张牌完全一致且无重复；
+- 只有两张明确写为“效果待后续设计”的卡牌可标记为 `DESIGN_PENDING`；
+- 其余 213 张牌都有非零效果断言以及适用的基础/升级场景；
 - 测试目录不存在方法存在性、占位 Marker 或 `expectedToExist` 之类伪断言；
 - 控制台命令保留显式破坏性确认门。
 

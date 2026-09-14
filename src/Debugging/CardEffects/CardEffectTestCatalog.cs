@@ -161,7 +161,8 @@ internal static class CardEffectTestCatalog
         SelfPowers<PriceOfStrength>(("StrengthPower", 4, 4), ("ShatterPower", 4, 4));
         RecollectionRoomProbe();
         ReflectiveBarrierProbe();
-        DamageAndTopDeckExhaust<SacrificialFrenzy>(12, 16, 3, 4, 6);
+        DamageAndTopDeckExhaust<SacrificialFrenzy>(
+            12, 16, 3, 4, 6, CardRarity.Common);
         SemenAppetiteProbe();
         SemenConversionProbe();
         SharpForgeProbe();
@@ -359,12 +360,14 @@ internal static class CardEffectTestCatalog
         CustomVariants<SummonThunder>(async (ctx, card, upgraded) =>
         {
             int damage = upgraded ? 10 : 7;
-            await ctx.ApplyPower<MagicAmplificationPower>(ctx.Self, 1);
+            await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 1);
             int hp = ctx.Enemies.Sum(enemy => enemy.CurrentHp);
-            await ctx.Play(card, ctx.PrimaryEnemy);
-            ctx.AssertEqual("magic amplification triggers one random hit",
-                upgraded ? 20 : 14,
+            await ctx.Play(card, ctx.PrimaryEnemy, selectedIndices: [0]);
+            ctx.AssertEqual("magic release triggers one random hit",
+                damage * 2,
                 hp - ctx.Enemies.Sum(enemy => enemy.CurrentHp));
+            ctx.AssertPower("magic release pays one armor", ctx.Self,
+                "MagicArmorPower", 0);
 
             Creature fatalTarget = await CreatureCmd.Add<Byrdonis>(ctx.Combat);
             try
@@ -382,7 +385,7 @@ internal static class CardEffectTestCatalog
                 if (!fatalTarget.IsDead)
                     await CreatureCmd.Escape(fatalTarget);
             }
-        }, 3);
+        }, 4);
 
     private static void TakemikazuchiProbe() =>
         CustomVariants<Takemikazuchi>(async (ctx, card, upgraded) =>
@@ -1791,7 +1794,9 @@ internal static class CardEffectTestCatalog
             ctx.AssertEqual("escape amount", upgraded ? 0 : 1, control.Amount);
             ctx.AssertEqual("zero energy cost", 0,
                 card.EnergyCost.GetWithModifiers(CostModifiers.Local));
-        }, 2);
+            ctx.AssertEqual("displayed escape amount", upgraded ? 3 : 2,
+                card.DynamicVars["Escape"].IntValue);
+        }, 3);
 
     private static void RestraintEvasionProbe() =>
         CustomVariants<RestraintEvasion>(async (ctx, card, upgraded) =>
@@ -1861,15 +1866,17 @@ internal static class CardEffectTestCatalog
             await CardPileCmd.Add(secondCurse, PileType.Deck, skipVisuals: true);
             try
             {
-                await ctx.ApplyPower<MagicAmplificationPower>(ctx.Self, 1);
+                await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 1);
                 int energy = ctx.Player.PlayerCombatState!.Energy;
-                await ctx.Play(card);
+                await ctx.Play(card, selectedIndices: [0]);
                 ctx.AssertEqual("immediate energy", 2,
                     ctx.Player.PlayerCombatState.Energy - energy);
                 ctx.AssertTrue("all invasion curses permanently removed",
                     firstCurse.HasBeenRemovedFromState && secondCurse.HasBeenRemovedFromState);
-                ctx.AssertPower("amplified next-turn energy", ctx.Self,
+                ctx.AssertPower("magic-release next-turn energy", ctx.Self,
                     "EnergyNextTurnPower", upgraded ? 3 : 2);
+                ctx.AssertPower("magic release pays one armor", ctx.Self,
+                    "MagicArmorPower", 0);
             }
             finally
             {
@@ -1879,7 +1886,7 @@ internal static class CardEffectTestCatalog
                         await CardPileCmd.RemoveFromDeck(curse, showPreview: false);
                 }
             }
-        }, 3);
+        }, 4);
 
     private static void BorrowedForceStrikeProbe() =>
         CustomVariants<BorrowedForceStrike>(async (ctx, card, upgraded) =>
@@ -1986,7 +1993,9 @@ internal static class CardEffectTestCatalog
                 attacking ? (upgraded ? 2 : 1) : 0);
             ctx.AssertPower("vulnerable branch", ctx.PrimaryEnemy, "VulnerablePower",
                 attacking ? 0 : (upgraded ? 2 : 1));
-        }, 3);
+            ctx.AssertTrue("does not exhaust",
+                !card.Keywords.Contains(CardKeyword.Exhaust));
+        }, 4);
 
     private static void ObstructingShotProbe() =>
         CustomVariants<ObstructingShot>(async (ctx, card, upgraded) =>
@@ -2407,6 +2416,8 @@ internal static class CardEffectTestCatalog
     private static void MagicBurstProbe() =>
         CustomVariants<MagicBurst>(async (ctx, card, upgraded) =>
         {
+            ctx.AssertEqual("one energy cost", 1,
+                card.EnergyCost.GetWithModifiers(CostModifiers.Local));
             await ctx.ApplyPower<DexterityPower>(ctx.Self, 2);
             await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 1);
             int hp = ctx.PrimaryEnemy.CurrentHp;
@@ -2414,7 +2425,7 @@ internal static class CardEffectTestCatalog
             ctx.AssertDamage("overdraft damage scales with buff layers",
                 ctx.PrimaryEnemy, hp, upgraded ? 13 : 11);
             ctx.AssertPower("overdraft armor payment", ctx.Self, "MagicArmorPower", 0);
-        }, 2);
+        }, 3);
 
     private static void MultipleReproductionProbe() =>
         CustomVariants<MultipleReproduction>(async (ctx, card, _) =>
@@ -2753,9 +2764,11 @@ internal static class CardEffectTestCatalog
         }, 2);
 
     private static void DamageAndTopDeckExhaust<T>(int baseDamage, int upgradedDamage,
-        int baseCount, int upgradedCount, int bonusPerAttack) where T : CardModel =>
+        int baseCount, int upgradedCount, int bonusPerAttack,
+        CardRarity expectedRarity) where T : CardModel =>
         CustomVariants<T>(async (ctx, card, upgraded) =>
         {
+            ctx.AssertEqual("rarity", expectedRarity, card.Rarity);
             int count = upgraded ? upgradedCount : baseCount;
             await ctx.AddFillerCards(PileType.Draw, count);
             int hp = ctx.PrimaryEnemy.CurrentHp;

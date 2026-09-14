@@ -62,8 +62,8 @@ foreach ($forbidden in @("Task.CompletedTask", "TODO", "placeholder", "expectedT
     }
 }
 
-if (-not $hotkey.Contains("Key.F10") -or -not $hotkey.Contains("Key.Shift")) {
-    throw "Control-intent suite must retain the Shift+F10 manual-combat trigger."
+if (-not $hotkey.Contains("Key.F10") -or -not $hotkey.Contains("Key.Ctrl")) {
+    throw "Control-intent suite must retain the Ctrl+F10 manual-combat trigger."
 }
 if ((-not $console.Contains('CmdName => "ms_test_control"')) -or (-not $console.Contains('"confirm"'))) {
     throw "Control-intent console command lost its explicit destructive confirmation gate."

@@ -47,6 +47,7 @@ public abstract class MSScriptureCardTemplate : ModCardTemplate
     protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
     protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
         CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)
+            .Concat(CardHoverTipSupport.FromDescriptionReferences(this))
             .Concat(CardSpecificHoverTips);
 
     protected MSScriptureCardTemplate(CardRarity rarity)

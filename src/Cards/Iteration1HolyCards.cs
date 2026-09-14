@@ -85,6 +85,8 @@ public sealed class ResistanceGloves : MSHolyCard, IEscapeCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [PortableKeyword.Value];
+    protected override IEnumerable<DynamicVar> CanonicalVars =>
+        [new IntVar("Escape", 2)];
 
     public ResistanceGloves()
         : base(0, CardType.Skill, CardRarity.Common, TargetType.Self) { }
@@ -94,11 +96,13 @@ public sealed class ResistanceGloves : MSHolyCard, IEscapeCard
         ControlPower? control = ControlQuery.GetInstances(Owner).FirstOrDefault();
         if (control != null)
         {
-            await ControlCmd.Escape(context, control, IsUpgraded ? 3 : 2);
+            await ControlCmd.Escape(
+                context, control, DynamicVars["Escape"].IntValue);
         }
     }
 
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade() =>
+        DynamicVars["Escape"].UpgradeValueBy(1);
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]
