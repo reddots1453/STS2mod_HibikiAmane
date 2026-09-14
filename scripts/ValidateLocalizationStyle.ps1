@@ -113,6 +113,20 @@ foreach ($pair in @(
     Test-TitleDescriptionPairs $pair[0] $pair[1]
 }
 
+foreach ($pair in $tablesByName.GetEnumerator()) {
+    foreach ($entry in $pair.Value.GetEnumerator()) {
+        foreach ($match in [regex]::Matches(
+                [string]$entry.Value,
+                '\{(?<selector>[A-Za-z_][A-Za-z0-9_]*):show:')) {
+            if ($match.Groups["selector"].Value -ne "IfUpgraded") {
+                $failures.Add(
+                    "$($pair.Key)/$($entry.Key): show formatter only accepts IfUpgradedVar; " +
+                    "use the standard boolean branch syntax for $($match.Groups['selector'].Value)")
+            }
+        }
+    }
+}
+
 $specialColorTerms = @{}
 $specialColorsPath = Join-Path $PSScriptRoot "localization_special_colors.txt"
 Get-Content -LiteralPath $specialColorsPath -Encoding UTF8 |

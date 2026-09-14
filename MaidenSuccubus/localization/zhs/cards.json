@@ -1,6 +1,6 @@
 {
   "MAIDEN_SUCCUBUS_CARD_DARK_ELEMENT.title": "黑暗元素",
-  "MAIDEN_SUCCUBUS_CARD_DARK_ELEMENT.description": "造成{Damage:diff()}点伤害。\n[gold]魔力解放[/gold]：{IsCorrupt:show:造成|获得}{Block:diff()}点{IsCorrupt:show:伤害|[gold]格挡[/gold]}。\n{IsCorrupt:show:[purple]堕落值[/purple]≤3|[purple]堕落值[/purple]＞3}：[gold]变奏[/gold]。",
+  "MAIDEN_SUCCUBUS_CARD_DARK_ELEMENT.description": "造成{Damage:diff()}点伤害。\n[gold]魔力解放[/gold]：{IsCorrupt:造成|获得}{Block:diff()}点{IsCorrupt:伤害|[gold]格挡[/gold]}。\n{IsCorrupt:[purple]堕落值[/purple]≤3|[purple]堕落值[/purple]＞3}：[gold]变奏[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_AROUSAL_STATUS.title": "发情",
   "MAIDEN_SUCCUBUS_CARD_AROUSAL_STATUS.description": "每当你抽到该牌时，获得1[pink]欲望[/pink]。",
   "MAIDEN_SUCCUBUS_CARD_NAKED_DESIRE_STATUS.title": "赤裸欲",
@@ -40,7 +40,7 @@
   "MAIDEN_SUCCUBUS_CARD_MAIDEN_DEFEND.title": "防御",
   "MAIDEN_SUCCUBUS_CARD_MAIDEN_DEFEND.description": "获得{Block:diff()}点[gold]格挡[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_TRANSFORM.title": "变身",
-  "MAIDEN_SUCCUBUS_CARD_TRANSFORM.description": "进入[gold]变身[/gold]：{IsCorrupt:show:邪瘴天衣|无垢天衣}形态。\n{IsCorrupt:show:[purple]堕落值[/purple]＜3|[purple]堕落值[/purple]≥3}：[gold]变奏[/gold]。",
+  "MAIDEN_SUCCUBUS_CARD_TRANSFORM.description": "进入[gold]变身[/gold]：{IsCorrupt:邪瘴天衣|无垢天衣}形态。\n{IsCorrupt:[purple]堕落值[/purple]＜3|[purple]堕落值[/purple]≥3}：[gold]变奏[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_BALANCE_BLADE.title": "天平之刃",
   "MAIDEN_SUCCUBUS_CARD_BALANCE_BLADE.description": "造成{CalculatedDamage:diff()}点伤害。\n每有1点[purple]堕落值[/purple]偏移，这张牌造成的伤害减少3点。",
   "MAIDEN_SUCCUBUS_CARD_DOUBLE_DEFENSE.title": "双重防御",
