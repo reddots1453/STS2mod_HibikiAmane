@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Enchantments;
@@ -111,6 +112,8 @@ public sealed class MemoryImprint : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class TacticalAnalyzer : MSHolyCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        HoverTipFactory.FromEnchantment<Steady>();
     protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(1)];
     public TacticalAnalyzer() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)

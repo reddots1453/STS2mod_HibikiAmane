@@ -44,57 +44,102 @@ internal static class CardHoverTipSupport
     {
         string description = card.Description.GetRawText();
 
-        foreach ((string term, string key) in StaticTerms)
+        foreach ((string term, string color, string key, bool matchWithin) in StaticTerms)
         {
-            if (description.Contains(term, StringComparison.Ordinal))
+            if (HasColoredReference(description, term, color, matchWithin))
                 yield return Static(key);
         }
 
-        foreach ((string term, Func<IHoverTip> factory) in PowerTerms)
+        foreach ((string term, string color, Func<IHoverTip> factory, bool matchWithin) in PowerTerms)
         {
-            if (description.Contains(term, StringComparison.Ordinal))
+            if (HasColoredReference(description, term, color, matchWithin))
+                yield return factory();
+        }
+
+        foreach ((string token, Func<IHoverTip> factory) in KeywordTerms)
+        {
+            // Match the complete rich-text token.  A substring check would
+            // incorrectly treat "[gold]消耗牌堆[/gold]" as the Exhaust keyword.
+            if (description.Contains(token, StringComparison.Ordinal))
                 yield return factory();
         }
     }
 
-    private static readonly (string Term, string Key)[] StaticTerms =
+    private static readonly
+        (string Term, string Color, string Key, bool MatchWithin)[] StaticTerms =
     [
-        ("魔力解放", "MAIDENSUCCUBUS_OVERDRAFT"),
-        ("变奏", "MAIDENSUCCUBUS_VARIATION"),
-        ("欲望", "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE"),
-        ("堕落值", "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION"),
-        ("圣言", "MAIDENSUCCUBUS_SCRIPTURE"),
-        ("挣脱", "MAIDENSUCCUBUS_ESCAPE_KEYWORD"),
-        ("拘束", "MAIDENSUCCUBUS_CONTROL"),
-        ("诱惑度", "MAIDENSUCCUBUS_TEMPTATION"),
+        ("魔力解放", "gold", "MAIDENSUCCUBUS_OVERDRAFT", false),
+        ("变奏", "gold", "MAIDENSUCCUBUS_VARIATION", false),
+        ("欲望", "pink", "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE", false),
+        ("堕落值", "purple", "MAIDENSUCCUBUS_CORRUPTION_REFERENCE", false),
+        ("圣言", "gold", "MAIDENSUCCUBUS_SCRIPTURE", true),
+        ("挣脱", "gold", "MAIDENSUCCUBUS_ESCAPE_KEYWORD", false),
+        ("拘束", "gold", "MAIDENSUCCUBUS_CONTROL", false),
+        ("诱惑度", "gold", "MAIDENSUCCUBUS_TEMPTATION_REFERENCE", false),
+        ("变身", "gold", "MAIDENSUCCUBUS_TRANSFORMATION", false),
+        ("侵犯", "gold", "MAIDENSUCCUBUS_INVASION_REFERENCE", false),
+        ("色情攻击", "pink", "MAIDENSUCCUBUS_EROTIC_ATTACK_REFERENCE", false),
     ];
 
-    private static readonly (string Term, Func<IHoverTip> Factory)[] PowerTerms =
+    private static readonly
+        (string Term, string Color, Func<IHoverTip> Factory, bool MatchWithin)[] PowerTerms =
     [
-        ("断罪", () => HoverTipFactory.FromPower<CondemnationPower>()),
-        ("净化", () => HoverTipFactory.FromPower<PurificationPower>()),
-        ("魔力增幅", () => HoverTipFactory.FromPower<MagicAmplificationPower>()),
-        ("魔装耐久", () => HoverTipFactory.FromPower<MagicArmorPower>()),
-        ("燃烧", () => HoverTipFactory.FromPower<BurningPower>()),
-        ("破碎", () => HoverTipFactory.FromPower<ShatterPower>()),
-        ("圣域", () => HoverTipFactory.FromPower<SanctuaryPower>()),
-        ("虚弱", () => HoverTipFactory.FromPower<WeakPower>()),
-        ("易伤", () => HoverTipFactory.FromPower<VulnerablePower>()),
-        ("脆弱", () => HoverTipFactory.FromPower<FrailPower>()),
-        ("力量", () => HoverTipFactory.FromPower<StrengthPower>()),
-        ("敏捷", () => HoverTipFactory.FromPower<DexterityPower>()),
-        ("荆棘", () => HoverTipFactory.FromPower<ThornsPower>()),
-        ("覆甲", () => HoverTipFactory.FromPower<PlatingPower>()),
-        ("滑溜", () => HoverTipFactory.FromPower<SlipperyPower>()),
-        ("残影", () => HoverTipFactory.FromPower<BlurPower>()),
-        ("变身", () => HoverTipFactory.Static(StaticHoverTip.Transform)),
-        ("格挡", () => HoverTipFactory.Static(StaticHoverTip.Block)),
-        ("击晕", () => HoverTipFactory.Static(StaticHoverTip.Stun)),
-        ("消耗", () => HoverTipFactory.FromKeyword(CardKeyword.Exhaust)),
-        ("保留", () => HoverTipFactory.FromKeyword(CardKeyword.Retain)),
-        ("虚无", () => HoverTipFactory.FromKeyword(CardKeyword.Ethereal)),
-        ("固有", () => HoverTipFactory.FromKeyword(CardKeyword.Innate)),
+        ("断罪", "gold", () => HoverTipFactory.FromPower<CondemnationPower>(), true),
+        ("净化", "gold", () => HoverTipFactory.FromPower<PurificationPower>(), false),
+        ("魔力增幅", "gold", () => HoverTipFactory.FromPower<MagicAmplificationPower>(), false),
+        ("魔装耐久", "gold", () => HoverTipFactory.FromPower<MagicArmorPower>(), false),
+        ("燃烧", "gold", () => HoverTipFactory.FromPower<BurningPower>(), false),
+        ("破碎", "gold", () => HoverTipFactory.FromPower<ShatterPower>(), false),
+        ("圣域", "gold", () => HoverTipFactory.FromPower<SanctuaryPower>(), false),
+        ("虚弱", "gold", () => HoverTipFactory.FromPower<WeakPower>(), false),
+        ("易伤", "gold", () => HoverTipFactory.FromPower<VulnerablePower>(), false),
+        ("脆弱", "gold", () => HoverTipFactory.FromPower<FrailPower>(), false),
+        ("力量", "gold", () => HoverTipFactory.FromPower<StrengthPower>(), false),
+        ("敏捷", "gold", () => HoverTipFactory.FromPower<DexterityPower>(), false),
+        ("荆棘", "gold", () => HoverTipFactory.FromPower<ThornsPower>(), false),
+        ("覆甲", "gold", () => HoverTipFactory.FromPower<PlatingPower>(), false),
+        ("滑溜", "gold", () => HoverTipFactory.FromPower<SlipperyPower>(), false),
+        ("残影", "gold", () => HoverTipFactory.FromPower<BlurPower>(), false),
+        ("格挡", "gold", () => HoverTipFactory.Static(StaticHoverTip.Block), false),
+        ("击晕", "gold", () => HoverTipFactory.Static(StaticHoverTip.Stun), false),
     ];
+
+    private static readonly (string Token, Func<IHoverTip> Factory)[] KeywordTerms =
+    [
+        ("[gold]消耗[/gold]", () => HoverTipFactory.FromKeyword(CardKeyword.Exhaust)),
+        ("[gold]保留[/gold]", () => HoverTipFactory.FromKeyword(CardKeyword.Retain)),
+        ("[gold]虚无[/gold]", () => HoverTipFactory.FromKeyword(CardKeyword.Ethereal)),
+        ("[gold]固有[/gold]", () => HoverTipFactory.FromKeyword(CardKeyword.Innate)),
+    ];
+
+    private static bool HasColoredReference(
+        string description,
+        string term,
+        string color,
+        bool matchWithin)
+    {
+        string open = $"[{color}]";
+        string close = $"[/{color}]";
+        int searchFrom = 0;
+        while (true)
+        {
+            int start = description.IndexOf(open, searchFrom, StringComparison.Ordinal);
+            if (start < 0)
+                return false;
+            start += open.Length;
+            int end = description.IndexOf(close, start, StringComparison.Ordinal);
+            if (end < 0)
+                return false;
+
+            ReadOnlySpan<char> content = description.AsSpan(start, end - start);
+            if (matchWithin
+                ? content.Contains(term, StringComparison.Ordinal)
+                : content.Equals(term, StringComparison.Ordinal))
+                return true;
+
+            searchFrom = end + close.Length;
+        }
+    }
 
     private static Type? FindPowerType(Type type)
     {

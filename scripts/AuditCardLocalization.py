@@ -9,6 +9,9 @@ ROOT = Path(__file__).resolve().parents[1]
 CARDS_ROOT = ROOT / "src" / "Cards"
 LOC_PATH = ROOT / "MaidenSuccubus" / "localization" / "zhs" / "cards.json"
 POWER_LOC_PATH = ROOT / "MaidenSuccubus" / "localization" / "zhs" / "powers.json"
+STATIC_HOVER_LOC_PATH = (
+    ROOT / "MaidenSuccubus" / "localization" / "zhs" / "static_hover_tips.json"
+)
 DESIGN_PATH = ROOT / "DesignDoc.md"
 POWERS_ROOT = ROOT / "src" / "Powers"
 HOVER_SUPPORT_PATH = CARDS_ROOT / "CardHoverTipSupport.cs"
@@ -25,6 +28,28 @@ REQUIRED_HOVER_TERMS = {
     "挣脱", "拘束", "诱惑度", "魔装耐久", "燃烧", "破碎", "圣域",
     "虚弱", "易伤", "脆弱", "力量", "敏捷", "荆棘", "覆甲", "滑溜",
     "残影", "变身", "格挡", "击晕", "消耗", "保留", "虚无", "固有",
+    "侵犯", "色情攻击",
+}
+
+STATIC_HOVER_CONTRACTS = {
+    "魔力解放": "MAIDENSUCCUBUS_OVERDRAFT",
+    "变奏": "MAIDENSUCCUBUS_VARIATION",
+    "欲望": "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE",
+    "堕落值": "MAIDENSUCCUBUS_CORRUPTION_REFERENCE",
+    "圣言": "MAIDENSUCCUBUS_SCRIPTURE",
+    "挣脱": "MAIDENSUCCUBUS_ESCAPE_KEYWORD",
+    "拘束": "MAIDENSUCCUBUS_CONTROL",
+    "诱惑度": "MAIDENSUCCUBUS_TEMPTATION_REFERENCE",
+    "变身": "MAIDENSUCCUBUS_TRANSFORMATION",
+    "侵犯": "MAIDENSUCCUBUS_INVASION_REFERENCE",
+    "色情攻击": "MAIDENSUCCUBUS_EROTIC_ATTACK_REFERENCE",
+}
+
+KEYWORD_HOVER_TOKENS = {
+    "消耗": "[gold]消耗[/gold]",
+    "保留": "[gold]保留[/gold]",
+    "虚无": "[gold]虚无[/gold]",
+    "固有": "[gold]固有[/gold]",
 }
 
 DERIVATIVE_HOVER_CONTRACTS = {
@@ -47,6 +72,17 @@ DERIVATIVE_HOVER_CONTRACTS = {
     "ForgeCharge": "FromEnchantment<ChargeEnchantment>",
     "YarusMemory": "FromEnchantment<SoulLinkEnchantment>",
     "ForgeNimble": "FromEnchantment<Adroit>",
+}
+
+ENCHANTMENT_TEXT_CONTRACTS = {
+    "DarkStorm": ("FromEnchantment<Glam>", "[gold]附魔[/gold]：[purple]华彩[/purple]"),
+    "SharpForge": ("FromEnchantment<Sharp>", "[gold]附魔[/gold]：[purple]锋利："),
+    "TacticalAnalyzer": ("FromEnchantment<Steady>", "[gold]附魔[/gold]：[purple]稳定[/purple]"),
+    "ForgeNimble": ("FromEnchantment<Adroit>", "[gold]附魔[/gold]：[purple]伶俐[/purple]"),
+    "MagicSword": ("FromEnchantment<ChargeEnchantment>", "[gold]附魔[/gold]：[purple]充能：2[/purple]"),
+    "ForgeCharge": ("FromEnchantment<ChargeEnchantment>", "[gold]附魔[/gold]：[purple]充能："),
+    "YarusMemory": ("FromEnchantment<SoulLinkEnchantment>", "[gold]附魔[/gold]：[purple]灵魂联结[/purple]"),
+    "ForgeStrike": ("FromEnchantment<Glam>", "[gold]附魔[/gold]：[purple]华彩[/purple]"),
 }
 
 DESIGN_CARD_START = 614
@@ -107,6 +143,10 @@ REQUIRED_COLOR_TERMS = {
     "圣言": "gold",
     "挣脱": "gold",
     "拘束": "gold",
+    "变身": "gold",
+    "诱惑度": "gold",
+    "侵犯": "gold",
+    "色情攻击": "pink",
     "断罪": "gold",
     "净化": "gold",
     "魔力增幅": "gold",
@@ -123,6 +163,7 @@ REQUIRED_COLOR_TERMS = {
     "覆甲": "gold",
     "滑溜": "gold",
     "残影": "gold",
+    "击晕": "gold",
     "消耗": "gold",
     "保留": "gold",
     "虚无": "gold",
@@ -137,6 +178,13 @@ REQUIRED_COLOR_TERMS = {
     "功性魔防壁IV": "gold",
     "粘液": "gold",
     "孢子心灵": "gold",
+    "附魔": "gold",
+    "华彩": "purple",
+    "稳定": "purple",
+    "锋利": "purple",
+    "伶俐": "purple",
+    "充能": "purple",
+    "灵魂联结": "purple",
 }
 
 BUILTIN_VARS = {
@@ -279,6 +327,7 @@ def normalize_design_title(text: str) -> str:
     value = re.sub(r"^\d+[.、]\s*", "", value)
     value = re.sub(r"^(?:衍生卡|衍生牌)(?:\s*[：:]\s*|\s+)", "", value)
     value = re.sub(r"[（(]\s*(?:是)?(?:打击|防御)\s*[）)]\s*$", "", value)
+    value = re.sub(r"^[（(]\s*", "", value)
     return value.strip()
 
 
@@ -288,14 +337,23 @@ def design_index(title: str, lines: list[str]) -> int | None:
         i for i, line in enumerate(lines)
         if normalize_design_title(line) == title
     ]
-    matches = exact or normalized
+    matches = list(dict.fromkeys(exact + normalized))
     if not matches:
         return None
     # Prefer the actual card catalogue, then the event-derived-card section.
-    return next(
-        (i for i in matches if DESIGN_CARD_START <= i < DESIGN_CARD_END),
-        matches[0],
-    )
+    in_catalogue = [i for i in matches if DESIGN_CARD_START <= i < DESIGN_CARD_END]
+    if in_catalogue:
+        return in_catalogue[0]
+
+    # Generated cards can be specified inline under a relic or event.  Prefer a
+    # same-name heading that is immediately followed by card type/cost metadata
+    # over the owning route/relic heading (for example the nested 谦逊 card).
+    card_type_pattern = re.compile(r"(?:攻击|技能|能力|状态|诅咒)牌")
+    for index in matches:
+        nearby = " ".join(line.strip() for line in lines[index + 1 : index + 4])
+        if card_type_pattern.search(nearby) and re.search(r"(?:X|\d+)(?:/\d+)?费", nearby):
+            return index
+    return matches[0]
 
 
 def design_context(title: str, lines: list[str]) -> str | None:
@@ -336,13 +394,10 @@ def design_effect(title: str, lines: list[str]) -> str | None:
         candidates.append(stripped)
     if not candidates:
         return None
-    # Most entries are: title / card type+rarity / cost+effect. Statuses and
-    # generated options may only have one effect line.
-    for candidate in candidates:
-        if "费" in candidate and any(word in candidate for word in (
-            "造成", "获得", "抽", "失去", "选择", "回合", "打出", "将", "进入", "持续", "挣脱"
-        )):
-            return candidate
+    # Most entries are: title / card type+rarity / cost+effect.  Return the
+    # first effect-looking line in document order.  Searching for a later line
+    # containing "费" first incorrectly paired numbered Scripture entries
+    # with the following Scripture's effect.
     for candidate in candidates:
         if re.search(r"(?:攻击牌|技能牌|能力牌|状态牌|诅咒牌)\s+(?:基础|普通|罕见|稀有|先古)$", candidate):
             continue
@@ -488,6 +543,7 @@ def source_metadata(
 def main() -> int:
     loc = load_json_with_review_comments(LOC_PATH)
     power_loc = load_json_with_review_comments(POWER_LOC_PATH)
+    static_hover_loc = load_json_with_review_comments(STATIC_HOVER_LOC_PATH)
     design_lines = DESIGN_PATH.read_text(encoding="utf-8-sig").splitlines()
     cards, all_classes = registered_cards()
     failures: list[str] = []
@@ -495,8 +551,29 @@ def main() -> int:
 
     hover_support = HOVER_SUPPORT_PATH.read_text(encoding="utf-8-sig")
     for term in sorted(REQUIRED_HOVER_TERMS):
+        if term in KEYWORD_HOVER_TOKENS:
+            continue
         if f'"{term}"' not in hover_support:
             failures.append(f"missing hover resolver term: {term}")
+    for term, prefix in STATIC_HOVER_CONTRACTS.items():
+        if prefix not in hover_support:
+            failures.append(f"wrong static hover resolver: {term}: {prefix}")
+        for suffix in ("title", "description"):
+            key = f"{prefix}.{suffix}"
+            if not static_hover_loc.get(key):
+                failures.append(f"missing static hover localization: {term}: {key}")
+        reference_description = static_hover_loc.get(f"{prefix}.description", "")
+        unresolved = placeholders(reference_description)
+        if unresolved:
+            failures.append(
+                f"card reference hover requires runtime vars: {term}: "
+                f"{sorted(unresolved)}"
+            )
+    for term, token in KEYWORD_HOVER_TOKENS.items():
+        if token not in hover_support:
+            failures.append(
+                f"keyword hover must match complete rich-text token: {term}: {token}"
+            )
     for pipeline_path in HOVER_PIPELINE_PATHS:
         pipeline_source = pipeline_path.read_text(encoding="utf-8-sig")
         if "FromDescriptionReferences(this)" not in pipeline_source:
@@ -527,6 +604,18 @@ def main() -> int:
                 f"missing named derivative hover: {type_name}: "
                 f"{required_derivative_hover}"
             )
+
+        enchantment_contract = ENCHANTMENT_TEXT_CONTRACTS.get(type_name)
+        if enchantment_contract:
+            hover_call, text_marker = enchantment_contract
+            if hover_call not in block:
+                failures.append(
+                    f"missing named enchantment hover: {type_name}: {hover_call}"
+                )
+            if text_marker not in description:
+                failures.append(
+                    f"noncanonical enchantment text: {type_name}: {text_marker}"
+                )
 
         variables = set(BUILTIN_VARS)
         requires_selection_prompt = False
@@ -595,6 +684,13 @@ def main() -> int:
                 failures.append(
                     f"uncolored card term: {type_name}: {term} requires [{color}]"
                 )
+        hover_references = sorted(
+            term for term in REQUIRED_HOVER_TERMS
+            if (
+                KEYWORD_HOVER_TOKENS.get(term, term) in description
+                and term not in {"固有"}
+            )
+        )
         similarity = None
         if effect:
             similarity = SequenceMatcher(
@@ -622,6 +718,7 @@ def main() -> int:
             "design": design_data,
             "source": source_data,
             "similarity": similarity,
+            "hoverReferences": hover_references,
         })
 
     for key in sorted(loc):
@@ -646,6 +743,15 @@ def main() -> int:
             if not power_loc.get(key):
                 failures.append(
                     f"missing card-related power localization: {power_type}: {key}"
+                )
+
+    for key, text in sorted(power_loc.items()):
+        if not key.endswith((".description", ".smartDescription")):
+            continue
+        for term, color in REQUIRED_COLOR_TERMS.items():
+            if has_uncolored_term(text, term, color):
+                failures.append(
+                    f"uncolored power hover term: {key}: {term} requires [{color}]"
                 )
 
     all_card_source = "\n".join(
