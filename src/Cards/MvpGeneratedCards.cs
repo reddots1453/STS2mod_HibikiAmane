@@ -21,8 +21,13 @@ public abstract class MSGeneratedCard : ModCardTemplate
     protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
         CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)
             .Concat(CardSpecificHoverTips);
-    protected MSGeneratedCard(int cost, CardType type, CardRarity rarity, TargetType target)
-        : base(cost, type, rarity, target, false) { }
+    protected MSGeneratedCard(
+        int cost,
+        CardType type,
+        CardRarity rarity,
+        TargetType target,
+        bool shouldShowInCardLibrary = false)
+        : base(cost, type, rarity, target, shouldShowInCardLibrary) { }
 }
 
 [RegisterCard(typeof(MSGeneratedCardPool))]

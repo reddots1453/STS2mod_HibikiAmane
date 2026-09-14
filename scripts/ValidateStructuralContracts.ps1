@@ -146,11 +146,19 @@ if (Test-Path -LiteralPath $scripturePreviewHelper) {
 }
 
 $cardLibraryRoutePool = Read-Text "src\Patches\CardLibraryRoutePoolPatch.cs"
+$generatedCards = Read-Text "src\Cards\MvpGeneratedCards.cs"
+$basicCards = Read-Text "src\Cards\MvpBasicCards.cs"
 Assert-Contains "card-library Ritsu ordering" $cardLibraryRoutePool '\[HarmonyAfter\("com\.ritsukage\.sts2-RitsuLib\.framework-character-assets"\)\]'
 Assert-Contains "card-library final priority" $cardLibraryRoutePool '\[HarmonyPriority\(Priority\.Last\)\]'
 Assert-Contains "card-library route cards" $cardLibraryRoutePool 'card\s+is\s+IMaidenSuccubusRouteCard'
 Assert-Contains "card-library starter basics" $cardLibraryRoutePool 'card\s+is\s+MaidenStrike\s+or\s+MaidenDefend'
 Assert-NotContains "card-library generated-pool leak" $cardLibraryRoutePool 'MSGeneratedCardPool'
+Assert-Contains "generated-card library visibility defaults hidden" $generatedCards 'bool\s+shouldShowInCardLibrary\s*=\s*false'
+Assert-Contains "generated-card library visibility forwarded" $generatedCards ':\s*base\(cost,\s*type,\s*rarity,\s*target,\s*shouldShowInCardLibrary\)'
+Assert-Contains "Maiden Strike enters card-library source list" $basicCards 'MaidenStrike\(\)[\s\S]*?shouldShowInCardLibrary:\s*true'
+Assert-Contains "Maiden Defend enters card-library source list" $basicCards 'MaidenDefend\(\)[\s\S]*?shouldShowInCardLibrary:\s*true'
+Assert-Contains "Transform canonical-safe description" $basicCards 'Transform[\s\S]*?AddExtraArgsToDescription[\s\S]*?IsMutable\s*&&\s*Owner\?\.RunState'
+Assert-Contains "Dark Element canonical-safe description" $basicCards 'DarkElement[\s\S]*?AddExtraArgsToDescription[\s\S]*?IsMutable\s*&&\s*Owner\?\.RunState'
 
 $frameworkSelfTests = Read-Text "src\Debugging\FrameworkSelfTests.cs"
 Assert-Contains "route probability self-test magnitude 2" $frameworkSelfTests 'AssertProbabilities\(2,\s*0\.08m,\s*0\.20m,\s*0\.72m\)'

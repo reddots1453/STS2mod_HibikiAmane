@@ -22,7 +22,13 @@ public sealed class MaidenStrike : MSGeneratedCard
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new DamageVar(6, ValueProp.Move)];
 
-    public MaidenStrike() : base(1, CardType.Attack, CardRarity.Basic, TargetType.AnyEnemy) { }
+    public MaidenStrike()
+        : base(
+            1,
+            CardType.Attack,
+            CardRarity.Basic,
+            TargetType.AnyEnemy,
+            shouldShowInCardLibrary: true) { }
 
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
@@ -45,7 +51,13 @@ public sealed class MaidenDefend : MSGeneratedCard
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new BlockVar(5, ValueProp.Move)];
 
-    public MaidenDefend() : base(1, CardType.Skill, CardRarity.Basic, TargetType.Self) { }
+    public MaidenDefend()
+        : base(
+            1,
+            CardType.Skill,
+            CardRarity.Basic,
+            TargetType.Self,
+            shouldShowInCardLibrary: true) { }
 
     protected override Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay) =>
         CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, cardPlay);
@@ -70,7 +82,8 @@ public sealed class Transform : MSHolyCard
     protected override void AddExtraArgsToDescription(LocString description) =>
         description.Add(
             "IsCorrupt",
-            Owner?.RunState is RunState runState
+            IsMutable
+                && Owner?.RunState is RunState runState
                 && CorruptionQuery.Get(runState) >= 3);
 
     protected override Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay) =>
@@ -96,7 +109,8 @@ public sealed class DarkElement : MSCorruptCard
     protected override void AddExtraArgsToDescription(LocString description) =>
         description.Add(
             "IsCorrupt",
-            Owner?.RunState is RunState runState
+            IsMutable
+                && Owner?.RunState is RunState runState
                 && CorruptionQuery.Get(runState) > 3);
 
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
