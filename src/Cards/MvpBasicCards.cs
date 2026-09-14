@@ -109,9 +109,9 @@ public sealed class DarkElement : MSCorruptCard
     protected override void AddExtraArgsToDescription(LocString description) =>
         description.Add(
             "IsCorrupt",
-            IsMutable
-                && Owner?.RunState is RunState runState
-                && CorruptionQuery.Get(runState) > 3);
+            !IsMutable
+                || Owner?.RunState is not RunState runState
+                || CorruptionQuery.Get(runState) > 3);
 
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {

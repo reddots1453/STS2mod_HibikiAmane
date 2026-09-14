@@ -158,7 +158,7 @@ Assert-Contains "generated-card library visibility forwarded" $generatedCards ':
 Assert-Contains "Maiden Strike enters card-library source list" $basicCards 'MaidenStrike\(\)[\s\S]*?shouldShowInCardLibrary:\s*true'
 Assert-Contains "Maiden Defend enters card-library source list" $basicCards 'MaidenDefend\(\)[\s\S]*?shouldShowInCardLibrary:\s*true'
 Assert-Contains "Transform canonical-safe description" $basicCards 'Transform[\s\S]*?AddExtraArgsToDescription[\s\S]*?IsMutable\s*&&\s*Owner\?\.RunState'
-Assert-Contains "Dark Element canonical-safe description" $basicCards 'DarkElement[\s\S]*?AddExtraArgsToDescription[\s\S]*?IsMutable\s*&&\s*Owner\?\.RunState'
+Assert-Contains "Dark Element canonical-safe corrupt description" $basicCards 'DarkElement[\s\S]*?AddExtraArgsToDescription[\s\S]*?!IsMutable\s*\|\|\s*Owner\?\.RunState\s+is\s+not\s+RunState'
 
 $frameworkSelfTests = Read-Text "src\Debugging\FrameworkSelfTests.cs"
 Assert-Contains "route probability self-test magnitude 2" $frameworkSelfTests 'AssertProbabilities\(2,\s*0\.08m,\s*0\.20m,\s*0\.72m\)'
