@@ -277,7 +277,7 @@ public sealed class Procrastinate : MSNeutralCard
 public sealed class Bath : MSNeutralCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new EnergyVar(2), new DynamicVar("NextEnergy", 2)];
+        [new EnergyVar(2), new EnergyVar("NextEnergy", 2)];
 
     public Bath()
         : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }

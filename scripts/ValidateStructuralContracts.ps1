@@ -152,6 +152,16 @@ Assert-Contains "card-library route cards" $cardLibraryRoutePool 'card\s+is\s+IM
 Assert-Contains "card-library starter basics" $cardLibraryRoutePool 'card\s+is\s+MaidenStrike\s+or\s+MaidenDefend'
 Assert-NotContains "card-library generated-pool leak" $cardLibraryRoutePool 'MSGeneratedCardPool'
 
+$frameworkSelfTests = Read-Text "src\Debugging\FrameworkSelfTests.cs"
+Assert-Contains "route probability self-test magnitude 2" $frameworkSelfTests 'AssertProbabilities\(2,\s*0\.08m,\s*0\.20m,\s*0\.72m\)'
+Assert-Contains "route probability self-test magnitude 4" $frameworkSelfTests 'AssertProbabilities\(4,\s*0\.00m,\s*0\.45m,\s*0\.55m\)'
+Assert-Contains "route probability self-test magnitude 5" $frameworkSelfTests 'AssertProbabilities\(5,\s*0\.00m,\s*0\.65m,\s*0\.35m\)'
+$modInitializer = Read-Text "src\MaidenSuccubusMod.cs"
+Assert-Contains "runtime self-tests cannot block patch installation" $modInitializer 'RunFrameworkSelfTestsWithoutBlockingInitialization\(\)'
+Assert-Contains "runtime self-test failure is logged" $modInitializer 'Framework self-tests failed; continuing mod initialization'
+$iterationOneNeutralCards = Read-Text "src\Cards\Iteration1NeutralCards.cs"
+Assert-Contains "Bath next-turn energy uses EnergyVar" $iterationOneNeutralCards 'new\s+EnergyVar\("NextEnergy",\s*2\)'
+
 $desireResource = Read-Text "src\Core\Desire\DesireResource.cs"
 $desireMeter = Read-Text "src\UI\DesireMeter.cs"
 Assert-Contains "combat desire UI" $desireResource 'RegisterCombatUi\('

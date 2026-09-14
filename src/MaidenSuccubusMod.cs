@@ -45,7 +45,7 @@ public static class MaidenSuccubusMod
                 + $"{EroticAttackCatalog.All.Count} monsters.");
         }
         ModTypeDiscoveryHub.RegisterModAssembly(ModId, assembly);
-        FrameworkSelfTests.Run(Logger);
+        RunFrameworkSelfTestsWithoutBlockingInitialization();
 #if DEBUG
         CardEffectTestHotkey.Register();
         ControlIntentTestHotkey.Register();
@@ -70,6 +70,23 @@ public static class MaidenSuccubusMod
             Logger.Info(
                 "Escape projection uses a RitsuLib capability attached to each controlled card instance.");
         Logger.Info($"Maiden & Succubus ready — {patchCount} patches applied");
+    }
+
+    private static void RunFrameworkSelfTestsWithoutBlockingInitialization()
+    {
+        try
+        {
+            FrameworkSelfTests.Run(Logger);
+        }
+        catch (Exception ex)
+        {
+            // Debug builds are deployed for manual gameplay testing. A stale
+            // assertion must remain visible, but must not leave the mod in a
+            // half-initialized state with all later Harmony patches missing.
+            Logger.Error(
+                "Framework self-tests failed; continuing mod initialization so "
+                + $"runtime diagnostics remain available. {ex}");
+        }
     }
 
     private static void RegisterKeywords()
