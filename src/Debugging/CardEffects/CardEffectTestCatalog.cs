@@ -264,11 +264,9 @@ internal static class CardEffectTestCatalog
         EndTurnArmorLoss<ClothingBurnStatus>(1, CardKeyword.Ethereal, CardKeyword.Exhaust);
         ConditionalDrawEnergy<CalmMind>(2, 3, 2, 3, minimumHand: 6);
         Pending<ClimaxBanCurse>("DesignDoc: 效果待后续设计");
-        DamageGenerate<CounterBarrierII, CounterBarrierIII>(16, 16, PileType.Discard,
-            notUpgradable: true);
-        DamageGenerate<CounterBarrierIII, CounterBarrierIV>(32, 32, PileType.Discard,
-            notUpgradable: true);
-        Damage<CounterBarrierIV>(200, 200, notUpgradable: true);
+        CounterBarrierTokenProbe<CounterBarrierII, CounterBarrierIII>(3);
+        CounterBarrierTokenProbe<CounterBarrierIII, CounterBarrierIV>(5);
+        CounterBarrierFinalProbe();
         RetainedEndTurnArmorLoss<DissolvingFluidStatus>(1);
         EmptyDescription<DrowsyStatus>();
         ConfigureEnchantmentChoice();
@@ -318,6 +316,27 @@ internal static class CardEffectTestCatalog
             await ctx.Play(fourth);
             ctx.AssertPower<ThornsPower>("fourth stage cumulative thorns", ctx.Self, 60);
         }, 4);
+
+    private static void CounterBarrierTokenProbe<TCard, TNext>(int thorns)
+        where TCard : CardModel
+        where TNext : CardModel =>
+        BaseOnly<TCard>(async (ctx, card) =>
+        {
+            int before = ctx.CountCards<TNext>(PileType.Discard);
+            await ctx.Play(card);
+            ctx.AssertPower<ThornsPower>("thorns", ctx.Self, thorns);
+            ctx.AssertPileDelta<TNext>(
+                "next counter-barrier stage generated", PileType.Discard, before, 1);
+        }, 2);
+
+    private static void CounterBarrierFinalProbe() =>
+        BaseOnly<CounterBarrierIV>(async (ctx, card) =>
+        {
+            await ctx.Play(card);
+            ctx.AssertPower<ThornsPower>("final-stage thorns", ctx.Self, 50);
+            ctx.AssertEqual("final-stage energy cost", 2,
+                card.EnergyCost.GetWithModifiers(CostModifiers.All), effect: false);
+        });
 
     private static void DreamMistProbe() =>
         CustomVariants<DreamMist>(async (ctx, card, upgraded) =>
@@ -406,14 +425,16 @@ internal static class CardEffectTestCatalog
         {
             await ctx.Play(card);
             ctx.AssertPower<WindGodCloakPower>("power applied", ctx.Self, 1);
+            ctx.AssertEqual("activation card is not retrospectively copied", 0,
+                ctx.CountCards<WindGodCloak>(PileType.Hand));
             LightningRecoil zeroCost = ctx.Create<LightningRecoil>();
             int before = ctx.CountCards<LightningRecoil>(PileType.Hand);
             await ctx.Play(zeroCost, ctx.PrimaryEnemy);
             ctx.AssertPileDelta<LightningRecoil>(
                 "first zero-cost card copied to hand", PileType.Hand, before, 1);
             ctx.AssertEqual("upgrade makes power cost zero", upgraded ? 0 : 1,
-                card.EnergyCost.Canonical, effect: false);
-        }, 2);
+                card.EnergyCost.GetWithModifiers(CostModifiers.All), effect: false);
+        }, 3);
 
     private static void HolyFlameProbe() =>
         CustomVariants<HolyFlame>(async (ctx, card, upgraded) =>
@@ -426,7 +447,7 @@ internal static class CardEffectTestCatalog
             await ctx.ApplyPower<BurningPower>(ctx.PrimaryEnemy, 1);
             ctx.AssertPower<BurningPower>("subsequent burning receives bonus",
                 ctx.PrimaryEnemy, upgraded ? 9 : 7);
-        }, 4);
+        }, 3);
 
     private static void ExorcismPerfumeProbe() =>
         CustomVariants<ExorcismPerfume>(async (ctx, card, upgraded) =>
@@ -442,7 +463,7 @@ internal static class CardEffectTestCatalog
                 beforeTemptation - Temptation.Get(ctx.Player));
             ctx.AssertPileDelta<StrikeIronclad>("draw one", PileType.Hand,
                 beforeHand, 1);
-        }, 3);
+        }, 2);
 
     private static void PurificationOrbProbe() =>
         CustomVariants<PurificationOrb>(async (ctx, card, upgraded) =>
@@ -459,7 +480,7 @@ internal static class CardEffectTestCatalog
             ctx.AssertEqual("temptation modifier lost", 10,
                 temptation - Temptation.Get(ctx.Player));
             ctx.AssertEqual("upgrade makes cost zero", upgraded ? 0 : 1,
-                card.EnergyCost.Canonical, effect: false);
+                card.EnergyCost.GetWithModifiers(CostModifiers.All), effect: false);
         }, 3);
 
     // Reusable probe helpers -----------------------------------------------------
@@ -1180,10 +1201,11 @@ internal static class CardEffectTestCatalog
         {
             await Temptation.Modify(
                 new BlockingPlayerChoiceContext(), ctx.Player, 7);
+            int currentTemptation = Temptation.Get(ctx.Player);
             int block = ctx.Self.Block;
             int statuses = ctx.CountCards<NakedDesireStatus>(PileType.Hand);
             await ctx.Play(card);
-            ctx.AssertBlock("block equals current temptation", block, 7);
+            ctx.AssertBlock("block equals current temptation", block, currentTemptation);
             ctx.AssertPileDelta<NakedDesireStatus>(
                 "generates naked desire", PileType.Hand, statuses, 1);
         }, 2);
@@ -1230,7 +1252,7 @@ internal static class CardEffectTestCatalog
             await ctx.ApplyPower<MagicAmplificationPower>(ctx.Self, 1);
             int block = ctx.Self.Block;
             await ctx.Play(card);
-            ctx.AssertBlock("magic-release block", block, upgraded ? 9 : 6);
+            ctx.AssertBlock("amplified magic-release block", block, upgraded ? 13 : 9);
             ctx.AssertPower("barrier duration", ctx.Self,
                 "DarkFlameBarrierPower", 2);
             await ctx.ApplyPower<BurningPower>(ctx.PrimaryEnemy, 1);
@@ -1443,8 +1465,8 @@ internal static class CardEffectTestCatalog
             {
                 ConsecrationPower power =
                     ctx.Self.Powers.OfType<ConsecrationPower>().Single();
-                await power.BeforeHandDraw(ctx.Player,
-                    new BlockingPlayerChoiceContext(), ctx.Combat);
+                await power.AfterPlayerTurnStart(
+                    new BlockingPlayerChoiceContext(), ctx.Player);
             }
             ctx.AssertTrue("selected hand card transformed",
                 selected.HasBeenRemovedFromState);
@@ -1546,7 +1568,8 @@ internal static class CardEffectTestCatalog
             {
                 MemoryImprintPower power =
                     ctx.Self.Powers.OfType<MemoryImprintPower>().Single();
-                await power.AfterPlayerTurnStart(new BlockingPlayerChoiceContext(), ctx.Player);
+                await power.BeforeHandDraw(
+                    ctx.Player, new BlockingPlayerChoiceContext(), ctx.Combat);
             }
             ctx.AssertEqual("selected discard card moved to draw top", selected,
                 PileType.Draw.GetPile(ctx.Player).Cards.First());
@@ -2031,7 +2054,7 @@ internal static class CardEffectTestCatalog
             int hp = ctx.PrimaryEnemy.CurrentHp;
             int hand = ctx.CountCards<StrikeIronclad>(PileType.Hand);
             await ctx.Play(card, ctx.PrimaryEnemy, selectedIndices: [0]);
-            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, upgraded ? 7 : 4);
+            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, upgraded ? 8 : 5);
             ctx.AssertPileDelta<StrikeIronclad>("overdraft draw", PileType.Hand, hand, 1);
             ctx.AssertPower("overdraft armor payment", ctx.Self, "MagicArmorPower", 0);
         }, 3);
@@ -2042,7 +2065,7 @@ internal static class CardEffectTestCatalog
             bool attacking = ctx.PrimaryEnemy.Monster?.IntendsToAttack == true;
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(card, ctx.PrimaryEnemy);
-            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, 4);
+            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, 3);
             ctx.AssertPower("weak branch", ctx.PrimaryEnemy, "WeakPower",
                 attacking ? (upgraded ? 2 : 1) : 0);
             ctx.AssertPower("vulnerable branch", ctx.PrimaryEnemy, "VulnerablePower",
@@ -2193,9 +2216,9 @@ internal static class CardEffectTestCatalog
             int hp = ctx.PrimaryEnemy.CurrentHp;
             int block = ctx.Self.Block;
             await ctx.Play(card, ctx.PrimaryEnemy);
-            int expected = upgraded ? 6 : 4;
-            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, expected);
-            ctx.AssertBlock("holy magic-release block", block, expected);
+            int amplified = upgraded ? 9 : 6;
+            ctx.AssertDamage("amplified damage", ctx.PrimaryEnemy, hp, amplified);
+            ctx.AssertBlock("amplified holy magic-release block", block, amplified);
 
             CorruptionCmd.Set((MegaCrit.Sts2.Core.Runs.RunState)ctx.Player.RunState, 4);
             DarkElement corrupt = ctx.Create<DarkElement>(upgraded);
@@ -2203,8 +2226,8 @@ internal static class CardEffectTestCatalog
             hp = ctx.PrimaryEnemy.CurrentHp;
             block = ctx.Self.Block;
             await ctx.Play(corrupt, ctx.PrimaryEnemy);
-            ctx.AssertDamage("corrupt magic-release repeats damage",
-                ctx.PrimaryEnemy, hp, expected * 2);
+            ctx.AssertDamage("corrupt magic-release repeats amplified damage",
+                ctx.PrimaryEnemy, hp, amplified * 2);
             ctx.AssertBlock("corrupt route grants no release block", block, 0);
         }, 4);
 
@@ -2238,11 +2261,13 @@ internal static class CardEffectTestCatalog
         CustomVariants<ExposePlay>(async (ctx, card, upgraded) =>
         {
             await Desire.Set(ctx.Player, 1);
+            int temptation = Temptation.Get(ctx.Player);
             await CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);
             await card.SpendResources();
             await ctx.Play(card);
             ctx.AssertEqual("desire cost", 0, Desire.Get(ctx.Player));
-            ctx.AssertEqual("temptation gained", 20, Temptation.Get(ctx.Player));
+            ctx.AssertEqual("temptation gained", 20,
+                Temptation.Get(ctx.Player) - temptation);
             ctx.AssertTrue("an enemy intent becomes erotic below armor threshold",
                 ctx.Enemies.Any(enemy => enemy.Monster?.NextMove.StateId.StartsWith(
                     "MAIDENSUCCUBUS_", StringComparison.Ordinal) == true));
@@ -2277,9 +2302,10 @@ internal static class CardEffectTestCatalog
         {
             await ctx.AddFillerCards(PileType.Draw, 1);
             int hand = ctx.CountCards<StrikeIronclad>(PileType.Hand);
+            int temptation = Temptation.Get(ctx.Player);
             await ctx.Play(card);
             ctx.AssertEqual("temptation gained", upgraded ? 15 : 10,
-                Temptation.Get(ctx.Player));
+                Temptation.Get(ctx.Player) - temptation);
             ctx.AssertPileDelta<StrikeIronclad>("draw one", PileType.Hand, hand, 1);
             ctx.AssertEqual("zero energy cost", 0,
                 card.EnergyCost.GetWithModifiers(CostModifiers.Local));
@@ -2340,10 +2366,11 @@ internal static class CardEffectTestCatalog
             ReflectiveBarrier exhausted = ctx.Create<ReflectiveBarrier>(upgraded);
             await CardPileCmd.Add(exhausted, PileType.Hand, skipVisuals: true);
             block = ctx.Self.Block;
+            int amplification = ctx.PowerAmount(ctx.Self, "MagicAmplificationPower");
             await CardCmd.Exhaust(new BlockingPlayerChoiceContext(), exhausted);
             ctx.AssertBlock("block when exhausted", block, 9);
-            ctx.AssertPower("amplification when exhausted", ctx.Self,
-                "MagicAmplificationPower", 1);
+            ctx.AssertEqual("one amplification gained when exhausted", 1,
+                ctx.PowerAmount(ctx.Self, "MagicAmplificationPower") - amplification);
         }, 3);
 
     private static void ThousandCurseScytheProbe() =>
@@ -2600,11 +2627,12 @@ internal static class CardEffectTestCatalog
         CustomVariants<MentalUnity>(async (ctx, card, upgraded) =>
         {
             await ctx.ApplyPower<DexterityPower>(ctx.Self, 2);
+            await CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);
             decimal expectedBlock = upgraded ? 3m : 2m;
             card.DynamicVars.Block.UpdateCardPreview(
                 card,
                 CardPreviewMode.Normal,
-                ctx.PrimaryEnemy,
+                ctx.Self,
                 runGlobalHooks: true);
             ctx.AssertEqual(
                 "delayed unpowered block preview ignores dexterity",
@@ -2653,9 +2681,21 @@ internal static class CardEffectTestCatalog
     private static void PleasureGardenProbe() =>
         CustomVariants<PleasureGarden>(async (ctx, card, _) =>
         {
+            int temptation = Temptation.Get(ctx.Player);
+            Creature[] eligible = ctx.Enemies.Where(enemy =>
+            {
+                EroticMonsterSpec? spec = enemy.Monster == null
+                    ? null
+                    : EroticAttackCatalog.Get(enemy.Monster);
+                return spec is { Steadfast: false }
+                    && !enemy.HasPower<SteadfastPower>();
+            }).ToArray();
             await ctx.Play(card);
-            ctx.AssertEqual("temptation gained", 30, Temptation.Get(ctx.Player));
-            foreach (Creature enemy in ctx.Enemies)
+            ctx.AssertEqual("temptation gained", 30,
+                Temptation.Get(ctx.Player) - temptation);
+            ctx.AssertTrue("fixture contains an erotic-eligible enemy", eligible.Length > 0,
+                effect: false);
+            foreach (Creature enemy in eligible)
             {
                 ctx.AssertTrue($"{enemy.Name} intent replaced by erotic intent",
                     enemy.Monster?.NextMove.StateId.StartsWith(
@@ -2843,7 +2883,8 @@ internal static class CardEffectTestCatalog
             ctx.AssertEqual("attack and curse exhausted", 2,
                 PileType.Exhaust.GetPile(ctx.Player).Cards.Count(candidate =>
                     candidate is StrikeIronclad or SemenCurse));
-            ctx.AssertPower("strength per exhausted card", ctx.Self, "StrengthPower", 2);
+            ctx.AssertPower("amplification per exhausted card", ctx.Self,
+                "MagicAmplificationPower", 2);
         }, 2);
 
     private static void DamageAndTransformDraw<T>(int baseDamage, int upgradedDamage)
@@ -2964,9 +3005,12 @@ internal static class CardEffectTestCatalog
     private static void PlayedArmorLoss<T>(int amount) where T : CardModel =>
         BaseOnly<T>(async (ctx, card) =>
         {
-            await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 3);
+            await TransformationCmd.EnterImmaculateRobe(
+                new BlockingPlayerChoiceContext(), ctx.Self, null);
+            int armor = ctx.PowerAmount(ctx.Self, "MagicArmorPower");
             await ctx.Play(card);
-            ctx.AssertPower("armor loss on play", ctx.Self, "MagicArmorPower", 3 - amount);
+            ctx.AssertPower("armor loss on play", ctx.Self,
+                "MagicArmorPower", armor - amount);
             ctx.AssertTrue("played status exhausted",
                 card.Pile?.Type == PileType.Exhaust || card.HasBeenRemovedFromState);
         }, 2);
@@ -2975,10 +3019,12 @@ internal static class CardEffectTestCatalog
         where T : CardModel =>
         BaseOnly<T>(async (ctx, card) =>
         {
-            await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 3);
+            await TransformationCmd.EnterImmaculateRobe(
+                new BlockingPlayerChoiceContext(), ctx.Self, null);
+            int armor = ctx.PowerAmount(ctx.Self, "MagicArmorPower");
             await MegaCrit.Sts2.Core.Commands.CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);
             await ctx.InvokeTurnEndInHand(card);
-            ctx.AssertPower("armor loss", ctx.Self, "MagicArmorPower", 3 - amount);
+            ctx.AssertPower("armor loss", ctx.Self, "MagicArmorPower", armor - amount);
             foreach (CardKeyword keyword in keywords)
                 ctx.AssertTrue($"{keyword} keyword", card.Keywords.Contains(keyword));
         }, 1 + keywords.Length);
@@ -2986,15 +3032,19 @@ internal static class CardEffectTestCatalog
     private static void RetainedEndTurnArmorLoss<T>(int amount) where T : CardModel =>
         BaseOnly<T>(async (ctx, card) =>
         {
-            await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 3);
+            await TransformationCmd.EnterImmaculateRobe(
+                new BlockingPlayerChoiceContext(), ctx.Self, null);
+            int armor = ctx.PowerAmount(ctx.Self, "MagicArmorPower");
             await MegaCrit.Sts2.Core.Commands.CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);
             await card.BeforeSideTurnEnd(
                 new BlockingPlayerChoiceContext(), CombatSide.Player, [ctx.Self]);
-            ctx.AssertPower("first retained armor loss", ctx.Self, "MagicArmorPower", 3 - amount);
+            ctx.AssertPower("first retained armor loss", ctx.Self,
+                "MagicArmorPower", armor - amount);
             ctx.AssertTrue("retains in hand", card.ShouldRetainThisTurn && card.Pile?.Type == PileType.Hand);
             await card.BeforeSideTurnEnd(
                 new BlockingPlayerChoiceContext(), CombatSide.Player, [ctx.Self]);
-            ctx.AssertPower("repeated retained armor loss", ctx.Self, "MagicArmorPower", 3 - amount * 2);
+            ctx.AssertPower("repeated retained armor loss", ctx.Self,
+                "MagicArmorPower", armor - amount * 2);
         }, 3);
 
     private static void EndTurnGenerate<TCard, TGenerated>(int count)
@@ -3069,9 +3119,12 @@ internal static class CardEffectTestCatalog
     private static void CurseArmorLoss<T>(int amount) where T : CardModel =>
         BaseOnly<T>(async (ctx, card) =>
         {
-            await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 2);
+            await TransformationCmd.EnterImmaculateRobe(
+                new BlockingPlayerChoiceContext(), ctx.Self, null);
+            int armor = ctx.PowerAmount(ctx.Self, "MagicArmorPower");
             await ctx.Play(card);
-            ctx.AssertPower("armor after loss", ctx.Self, "MagicArmorPower", 2 - amount);
+            ctx.AssertPower("armor after loss", ctx.Self,
+                "MagicArmorPower", armor - amount);
             ctx.AssertTrue("removed after play", card.HasBeenRemovedFromState);
         }, 2);
 

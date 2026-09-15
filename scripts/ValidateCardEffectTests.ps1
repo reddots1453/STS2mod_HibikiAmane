@@ -117,9 +117,12 @@ $iteration2Types = @([regex]::Matches(
     ForEach-Object { $_.Groups['card'].Value })
 $iteration2Duplicates = @($iteration2Types | Group-Object |
     Where-Object Count -ne 1 | ForEach-Object Name)
-if ($iteration2Contract -notmatch 'ExpectedCardCount\s*=\s*59' -or
-    $iteration2Types.Count -ne 59 -or $iteration2Duplicates.Count -gt 0) {
-    throw "Iteration-two changed-card contract must contain 59 unique card types; found $($iteration2Types.Count), duplicates=[$($iteration2Duplicates -join ',')]."
+if ($iteration2Contract -notmatch 'ExpectedCardCount\s*=\s*60' -or
+    $iteration2Types.Count -ne 60 -or $iteration2Duplicates.Count -gt 0) {
+    throw "Iteration-two changed-card contract must contain 60 unique card types; found $($iteration2Types.Count), duplicates=[$($iteration2Duplicates -join ',')]."
+}
+if ($iteration2Types -notcontains 'DemonStaff') {
+    throw "The changed DemonStaff implementation must be covered by Shift+F10."
 }
 $missingIteration2Registrations = @($iteration2Types |
     Where-Object { $actual -notcontains $_ })
@@ -167,4 +170,4 @@ if ($holyPowers -notmatch '_pendingRestores' -or
     throw "BattleTechniqueReplay must restore only after the played projection leaves PileType.Play."
 }
 
-Write-Host "Validated card-effect tests: 215 exact registrations, 213 executable cards, 2 DESIGN_PENDING cards, 59-card iteration-two numeric suite, guarded manual-entry F10 trigger, no method-presence placeholders."
+Write-Host "Validated card-effect tests: 215 exact registrations, 213 executable cards, 2 DESIGN_PENDING cards, 60-card iteration-two numeric suite, guarded manual-entry F10 trigger, no method-presence placeholders."

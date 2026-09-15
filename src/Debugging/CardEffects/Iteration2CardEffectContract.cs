@@ -8,7 +8,7 @@ namespace MaidenSuccubus.Debugging.CardEffects;
 /// </summary>
 internal static class Iteration2CardEffectContract
 {
-    public const int ExpectedCardCount = 59;
+    public const int ExpectedCardCount = 60;
 
     public static IReadOnlySet<Type> CardTypes { get; } = new HashSet<Type>
     {
@@ -24,6 +24,7 @@ internal static class Iteration2CardEffectContract
         typeof(Cards.CycloneRupture),
         typeof(Cards.DarkElement),
         typeof(Cards.DarkFlameBarrier),
+        typeof(Cards.DemonStaff),
         typeof(Cards.DesireWhip),
         typeof(Cards.DoubleDefense),
         typeof(Cards.DreamMist),

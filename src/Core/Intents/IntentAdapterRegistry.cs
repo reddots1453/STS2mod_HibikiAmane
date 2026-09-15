@@ -161,6 +161,11 @@ public static class IntentAdapterRegistry
         return state;
     }
 
+#if DEBUG
+    internal static void ResetRuntimeForTests(MonsterModel monster) =>
+        Runtime.Remove(monster);
+#endif
+
     public static async Task Initialize(MonsterModel monster)
     {
         IntentRuntimeState state = GetRuntime(monster);

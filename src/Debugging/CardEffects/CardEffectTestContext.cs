@@ -11,6 +11,7 @@ using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.TestSupport;
 using MaidenSuccubus.Core.Corruption;
+using MaidenSuccubus.Core.Intents;
 using MaidenSuccubus.Data;
 
 namespace MaidenSuccubus.Debugging.CardEffects;
@@ -95,6 +96,7 @@ internal sealed class CardEffectTestContext
         Creature[] playerTargets = Combat.Players.Select(player => player.Creature).ToArray();
         foreach (Creature enemy in Combat.Creatures.Where(creature => creature.Monster != null))
         {
+            IntentAdapterRegistry.ResetRuntimeForTests(enemy.Monster!);
             enemy.Monster!.ResetStateMachine();
             enemy.Monster.SetUpForCombat();
             enemy.Monster!.RollMove(playerTargets);
