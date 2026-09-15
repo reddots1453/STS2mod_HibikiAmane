@@ -126,7 +126,7 @@ internal static class CardEffectTestCatalog
         DarkPunishmentProbe();
         DamageAllTargetPower<DarkStorm>(9, 11, "VulnerablePower", 1, 2);
         DamageDraw<DarkThrust>(8, 11, 2, 2);
-        GenerateChosenCard<DemonStaff>();
+        DemonStaffProbe();
         DesireRecycleProbe();
         DesireWhipProbe();
         DrawAndExhaustSelection<DestructionReaction>(3, 4);
@@ -1825,6 +1825,60 @@ internal static class CardEffectTestCatalog
                 generated.Single().IsUpgraded);
             ctx.AssertEqual("generated card is free this turn", 0,
                 generated.Single().EnergyCost.GetWithModifiers(CostModifiers.All));
+        }, 3);
+
+    private static void DemonStaffProbe() =>
+        CustomVariants<DemonStaff>(async (ctx, card, upgraded) =>
+        {
+            string[] expectedCandidateIds =
+            [
+                "DEMONIC_SHIELD", "DOMINATE", "FEED", "FIEND_FIRE", "IMPERVIOUS",
+                "INFERNAL_BLADE", "MOLTEN_FIST", "OFFERING", "STOKE", "CINDER",
+                "TRUE_GRIT", "HAVOC", "TREMBLE", "ASHEN_STRIKE", "HOWL_FROM_BEYOND",
+                "FORGOTTEN_RITUAL", "BURNING_PACT", "EVIL_EYE", "DRUM_OF_BATTLE",
+                "SECOND_WIND", "FEEL_NO_PAIN", "PACTS_END", "THRASH", "BRAND",
+                "DARK_EMBRACE", "ADRENALINE", "ASSASSINATE", "BACKSTAB", "BLADE_DANCE",
+                "CALCULATED_GAMBLE", "EXPOSE", "MALAISE", "MIRAGE", "NIGHTMARE",
+                "PIERCING_WAIL", "THE_HUNT", "INTIMIDATE", "KNIFE_TRAP", "BOOT_SEQUENCE",
+                "CHILL", "DOUBLE_ENERGY", "ENERGY_SURGE", "GENETIC_ALGORITHM", "HOLOGRAM",
+                "IGNITION", "RAINBOW", "REBOOT", "SIGNAL_BOOST", "SUPERCRITICAL",
+                "VOLTAIC", "WHITE_NOISE", "HOTFIX", "FUSION", "SCAVENGE", "FLAK_CANNON",
+                "AFTERLIFE", "DREDGE", "GLIMPSE_BEYOND", "GRAVEBLAST", "LEGION_OF_BONE",
+                "PUTREFY", "REANIMATE", "SHARED_FATE", "THE_SCYTHE", "TRANSFIGURE", "WISP",
+                "DIRGE", "CLEANSE", "SOUL_STORM", "EIDOLON", "BIG_BANG", "BOMBARDMENT",
+                "BUNDLE_OF_JOY", "DECISIONS_DECISIONS", "GUARDS", "KNOW_THY_PLACE",
+                "ROYAL_GAMBLE", "TYRANNY",
+            ];
+            ctx.AssertEqual("exact DesignDoc candidate ID count", 78,
+                DemonStaff.CandidateIds.Count);
+            ctx.AssertTrue("exact DesignDoc candidate ID set",
+                new HashSet<string>(expectedCandidateIds, StringComparer.Ordinal)
+                    .SetEquals(DemonStaff.CandidateIds));
+            ctx.AssertTrue("base exhaust card is eligible",
+                DemonStaff.IsEligibleCandidate(ModelDb.Card<DemonicShield>(), false));
+            ctx.AssertTrue("description exhaust card is eligible after upgrade",
+                DemonStaff.IsEligibleCandidate(ModelDb.Card<TrueGrit>(), true));
+            ctx.AssertTrue("renamed memory-cleanup card is eligible",
+                DemonStaff.IsEligibleCandidate(ModelDb.Card<Scavenge>(), true));
+            ctx.AssertTrue("removed Synchronize is excluded",
+                !DemonStaff.IsEligibleCandidate(ModelDb.Card<Synchronize>(), false));
+            ctx.AssertTrue("removed Time's Up is excluded",
+                !DemonStaff.IsEligibleCandidate(ModelDb.Card<TimesUp>(), false));
+            ctx.AssertTrue("ancient Corruption is excluded",
+                !DemonStaff.IsEligibleCandidate(
+                    ModelDb.Card<MegaCrit.Sts2.Core.Models.Cards.Corruption>(), false));
+            ctx.AssertTrue("upgrade losing Exhaust is removed",
+                !DemonStaff.IsEligibleCandidate(ModelDb.Card<KnowThyPlace>(), true));
+
+            await ctx.Play(card, selectedIndices: [0]);
+            CardModel[] generated = PileType.Hand.GetPile(ctx.Player).Cards.ToArray();
+            ctx.AssertEqual("exactly one chosen card generated", 1, generated.Length);
+            ctx.AssertEqual("generated card upgrade state", upgraded,
+                generated.Single().IsUpgraded);
+            ctx.AssertEqual("generated card is free this turn", 0,
+                generated.Single().EnergyCost.GetWithModifiers(CostModifiers.All));
+            ctx.AssertTrue("generated card remains in current candidate pool",
+                DemonStaff.CandidateIds.Contains(generated.Single().Id.Entry));
         }, 3);
 
     private static void BalanceBladeProbe() =>

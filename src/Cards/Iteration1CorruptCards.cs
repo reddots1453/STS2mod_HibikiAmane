@@ -222,6 +222,39 @@ public sealed class MiasmaAffinity : MSCorruptCard
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class DemonStaff : MSCorruptCard
 {
+    // DesignDoc's current-game candidate catalogue.  IDs are used instead of
+    // localized titles so the pool remains stable in every language.
+    internal static IReadOnlySet<string> CandidateIds { get; } = new HashSet<string>(StringComparer.Ordinal)
+    {
+        // Ironclad
+        "DEMONIC_SHIELD", "DOMINATE", "FEED", "FIEND_FIRE", "IMPERVIOUS",
+        "INFERNAL_BLADE", "MOLTEN_FIST", "OFFERING", "STOKE", "CINDER",
+        "TRUE_GRIT", "HAVOC", "TREMBLE", "ASHEN_STRIKE", "HOWL_FROM_BEYOND",
+        "FORGOTTEN_RITUAL", "BURNING_PACT", "EVIL_EYE", "DRUM_OF_BATTLE",
+        "SECOND_WIND", "FEEL_NO_PAIN", "PACTS_END", "THRASH", "BRAND",
+        "DARK_EMBRACE",
+
+        // Silent
+        "ADRENALINE", "ASSASSINATE", "BACKSTAB", "BLADE_DANCE",
+        "CALCULATED_GAMBLE", "EXPOSE", "MALAISE", "MIRAGE", "NIGHTMARE",
+        "PIERCING_WAIL", "THE_HUNT", "INTIMIDATE", "KNIFE_TRAP",
+
+        // Defect (the current Chinese localization calls SCAVENGE “内存清理”)
+        "BOOT_SEQUENCE", "CHILL", "DOUBLE_ENERGY", "ENERGY_SURGE",
+        "GENETIC_ALGORITHM", "HOLOGRAM", "IGNITION", "RAINBOW", "REBOOT",
+        "SIGNAL_BOOST", "SUPERCRITICAL", "VOLTAIC", "WHITE_NOISE", "HOTFIX",
+        "FUSION", "SCAVENGE", "FLAK_CANNON",
+
+        // Necrobinder
+        "AFTERLIFE", "DREDGE", "GLIMPSE_BEYOND", "GRAVEBLAST",
+        "LEGION_OF_BONE", "PUTREFY", "REANIMATE", "SHARED_FATE", "THE_SCYTHE",
+        "TRANSFIGURE", "WISP", "DIRGE", "CLEANSE", "SOUL_STORM", "EIDOLON",
+
+        // Regent
+        "BIG_BANG", "BOMBARDMENT", "BUNDLE_OF_JOY", "DECISIONS_DECISIONS",
+        "GUARDS", "KNOW_THY_PLACE", "ROYAL_GAMBLE", "TYRANNY",
+    };
+
     public DemonStaff()
         : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) =>
         this.SecondaryCosts().Set(DesireResource.Id, 1);
@@ -232,8 +265,7 @@ public sealed class DemonStaff : MSCorruptCard
             .SelectMany(pool => pool.GetUnlockedCards(
                 Owner.UnlockState,
                 Owner.RunState.CardMultiplayerConstraint))
-            .Where(card => card is not IMaidenSuccubusRouteCard
-                && card.Keywords.Contains(CardKeyword.Exhaust));
+            .Where(card => IsEligibleCandidate(card, IsUpgraded));
         List<CardModel> choices = CardFactory.GetDistinctForCombat(
             Owner,
             source,
@@ -262,6 +294,27 @@ public sealed class DemonStaff : MSCorruptCard
     }
 
     protected override void OnUpgrade() { }
+
+    internal static bool IsEligibleCandidate(CardModel card, bool upgradedPool)
+    {
+        if (!CandidateIds.Contains(card.Id.Entry))
+            return false;
+        if (!upgradedPool || !card.IsUpgradable)
+            return true;
+
+        CardModel upgraded = card.ToMutable();
+        CardCmd.Upgrade(upgraded);
+        return HasExhaustRule(upgraded);
+    }
+
+    private static bool HasExhaustRule(CardModel card)
+    {
+        if (card.Keywords.Contains(CardKeyword.Exhaust))
+            return true;
+
+        string exhaustTipId = HoverTipFactory.FromKeyword(CardKeyword.Exhaust).Id;
+        return card.HoverTips.Any(tip => tip.Id == exhaustTipId);
+    }
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]
