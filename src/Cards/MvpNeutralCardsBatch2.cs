@@ -141,21 +141,27 @@ public sealed class ExplosiveImpact : MSNeutralCard
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class UltimateFlare : MSNeutralCard
 {
-    protected override bool HasEnergyCostX => true;
+    public override bool HasTurnEndInHandEffect => true;
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(6, ValueProp.Move)];
-    public UltimateFlare() : base(0, CardType.Attack, CardRarity.Uncommon, TargetType.AllEnemies) { }
+        [new DamageVar(40, ValueProp.Move)];
+    public UltimateFlare() : base(4, CardType.Attack, CardRarity.Uncommon, TargetType.AllEnemies) { }
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(CombatState);
-        return DamageCmd.Attack(
-                DynamicVars.Damage.BaseValue * ResolveEnergyXValue())
+        return DamageCmd.Attack(DynamicVars.Damage.BaseValue)
             .FromCard(this, play)
             .TargetingAllOpponents(CombatState)
             .WithHitFx("vfx/vfx_attack_slash")
             .Execute(context);
     }
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
+
+    protected override Task OnTurnEndInHand(PlayerChoiceContext context)
+    {
+        EnergyCost.AddThisCombat(-1);
+        return Task.CompletedTask;
+    }
+
+    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(12);
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]

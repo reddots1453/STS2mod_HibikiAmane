@@ -3,6 +3,8 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Powers;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Entities.Players;
 using STS2RitsuLib.Interop.AutoRegistration;
 
 namespace MaidenSuccubus.Powers;
@@ -22,4 +24,23 @@ public sealed class HolyFlamePower : MaidenSuccubusPowerTemplate
         ReferenceEquals(giver, Owner) && power is BurningPower
             ? Amount
             : 0m;
+}
+
+[RegisterPower]
+public sealed class OpeningPrayerPower : MaidenSuccubusPowerTemplate
+{
+    public override PowerType Type => PowerType.Buff;
+    public override PowerStackType StackType => PowerStackType.Counter;
+
+    public override async Task AfterPlayerTurnStart(
+        MegaCrit.Sts2.Core.GameActions.Multiplayer.PlayerChoiceContext context,
+        Player player)
+    {
+        if (player.Creature != Owner)
+            return;
+
+        await PowerCmd.Apply<MagicAmplificationPower>(
+            context, Owner, 1, Owner, null);
+        await PowerCmd.ModifyAmount(context, this, -1, Owner, null);
+    }
 }

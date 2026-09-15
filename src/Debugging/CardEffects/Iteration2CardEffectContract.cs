@@ -2,13 +2,13 @@
 namespace MaidenSuccubus.Debugging.CardEffects;
 
 /// <summary>
-/// Cards added or behaviorally changed by the 2026-09-14 DesignDoc baseline.
+/// Cards added or behaviorally changed by the 2026-09-16 DesignDoc baseline.
 /// This explicit list makes the focused runtime suite and its numeric assertion
 /// gate independent from source-file layout or Git history.
 /// </summary>
 internal static class Iteration2CardEffectContract
 {
-    public const int ExpectedCardCount = 60;
+    public const int ExpectedCardCount = 68;
 
     public static IReadOnlySet<Type> CardTypes { get; } = new HashSet<Type>
     {
@@ -72,6 +72,14 @@ internal static class Iteration2CardEffectContract
         typeof(Cards.MagicStarBomb),
         typeof(Cards.Takemikazuchi),
         typeof(Cards.WindGodCloak),
+        typeof(Cards.FamiliarContract),
+        typeof(Cards.FlameSword),
+        typeof(Cards.FullOfOpenings),
+        typeof(Cards.GaleSword),
+        typeof(Cards.LightWings),
+        typeof(Cards.OpeningPrayer),
+        typeof(Cards.ShiningSword),
+        typeof(Cards.SoulFuenika),
     };
 
     public static bool Contains(Type cardType) => CardTypes.Contains(cardType);

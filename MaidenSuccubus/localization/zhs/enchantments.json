@@ -22,5 +22,8 @@
   "MAIDEN_SUCCUBUS_ENCHANTMENT_PROLIFERATION_ENCHANTMENT.extraCardText": "打出后，将1张这张牌的复制洗入[gold]抽牌堆[/gold]。",
   "MAIDEN_SUCCUBUS_ENCHANTMENT_WRATH_ENCHANTMENT.title": "愤怒",
   "MAIDEN_SUCCUBUS_ENCHANTMENT_WRATH_ENCHANTMENT.description": "第一次打出时额外造成6点伤害，并在[gold]弃牌堆[/gold]中加入1张复制。",
-  "MAIDEN_SUCCUBUS_ENCHANTMENT_WRATH_ENCHANTMENT.extraCardText": "第一次打出时额外造成6点伤害，并在[gold]弃牌堆[/gold]中加入1张复制。"
+  "MAIDEN_SUCCUBUS_ENCHANTMENT_WRATH_ENCHANTMENT.extraCardText": "第一次打出时额外造成6点伤害，并在[gold]弃牌堆[/gold]中加入1张复制。",
+  "MAIDEN_SUCCUBUS_ENCHANTMENT_FAMILIAR_ENCHANTMENT.title": "使魔",
+  "MAIDEN_SUCCUBUS_ENCHANTMENT_FAMILIAR_ENCHANTMENT.description": "回合结束时，如果这张牌在你的[gold]手牌[/gold]中，自动打出。",
+  "MAIDEN_SUCCUBUS_ENCHANTMENT_FAMILIAR_ENCHANTMENT.extraCardText": "回合结束时，如果这张牌在你的[gold]手牌[/gold]中，自动打出。"
 }

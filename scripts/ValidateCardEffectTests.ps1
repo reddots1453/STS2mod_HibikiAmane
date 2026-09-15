@@ -28,8 +28,8 @@ $expected = @(
         ForEach-Object { $_ } |
         Sort-Object -Unique
 )
-if ($expected.Count -ne 215) {
-    throw "Content contract must contain exactly 215 unique cards; found $($expected.Count)."
+if ($expected.Count -ne 222) {
+    throw "Content contract must contain exactly 222 unique cards; found $($expected.Count)."
 }
 
 $registrationStart = $catalog.IndexOf("private static void RegisterNeutral", [StringComparison]::Ordinal)
@@ -117,9 +117,9 @@ $iteration2Types = @([regex]::Matches(
     ForEach-Object { $_.Groups['card'].Value })
 $iteration2Duplicates = @($iteration2Types | Group-Object |
     Where-Object Count -ne 1 | ForEach-Object Name)
-if ($iteration2Contract -notmatch 'ExpectedCardCount\s*=\s*60' -or
-    $iteration2Types.Count -ne 60 -or $iteration2Duplicates.Count -gt 0) {
-    throw "Iteration-two changed-card contract must contain 60 unique card types; found $($iteration2Types.Count), duplicates=[$($iteration2Duplicates -join ',')]."
+if ($iteration2Contract -notmatch 'ExpectedCardCount\s*=\s*68' -or
+    $iteration2Types.Count -ne 68 -or $iteration2Duplicates.Count -gt 0) {
+    throw "Iteration-two changed-card contract must contain 68 unique card types; found $($iteration2Types.Count), duplicates=[$($iteration2Duplicates -join ',')]."
 }
 if ($iteration2Types -notcontains 'DemonStaff') {
     throw "The changed DemonStaff implementation must be covered by Shift+F10."
@@ -129,9 +129,9 @@ $missingIteration2Registrations = @($iteration2Types |
 if ($missingIteration2Registrations.Count -gt 0) {
     throw "Iteration-two changed cards are missing runtime tests: [$($missingIteration2Registrations -join ',')]."
 }
-if ($runner -notmatch 'ExpectedCardCount\s*=\s*215' -or
+if ($runner -notmatch 'ExpectedCardCount\s*=\s*222' -or
     $runner -notmatch 'expected\.Length\s*!=\s*ExpectedCardCount') {
-    throw "Runtime 215-card identity gate is missing."
+    throw "Runtime 222-card identity gate is missing."
 }
 if ($console -notmatch 'ms_test_cards' -or $console -notmatch 'confirm') {
     throw "Destructive console command confirmation gate is missing."
@@ -159,10 +159,11 @@ if ($catalog -notmatch 'projected card original effect is suppressed' -or
     $catalog -notmatch 'projected card resolves to discard') {
     throw "Control projection must verify effect suppression, exact escape payment, and result pile."
 }
-if ($catalog -notmatch 'fatal hit triggers one chained random hit' -or
-    $catalog -notmatch 'magic release triggers one random hit' -or
+if ($catalog -notmatch 'fatal hit triggers one chained lowest-health hit' -or
+    $catalog -notmatch 'initial hit damages the selected target' -or
+    $catalog -notmatch 'magic release hits the lowest-health enemy' -or
     $catalog -notmatch 'magic release pays one armor') {
-    throw "SummonThunder must verify magic-release payment and fatal-chain damage."
+    throw "SummonThunder must verify selected-target damage, lowest-health magic release, payment, and fatal-chain damage."
 }
 if ($holyPowers -notmatch '_pendingRestores' -or
     $holyPowers -notmatch 'AfterCardChangedPiles' -or
@@ -170,4 +171,4 @@ if ($holyPowers -notmatch '_pendingRestores' -or
     throw "BattleTechniqueReplay must restore only after the played projection leaves PileType.Play."
 }
 
-Write-Host "Validated card-effect tests: 215 exact registrations, 213 executable cards, 2 DESIGN_PENDING cards, 60-card iteration-two numeric suite, guarded manual-entry F10 trigger, no method-presence placeholders."
+Write-Host "Validated card-effect tests: 222 exact registrations, 220 executable cards, 2 DESIGN_PENDING cards, 68-card iteration-two numeric suite, guarded manual-entry F10 trigger, no method-presence placeholders."

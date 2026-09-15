@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Enchantments;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
@@ -126,5 +127,24 @@ public sealed class WrathEnchantment : ModEnchantmentTemplate
         _used = true;
         CardModel copy = Card.CreateClone();
         await CardPileCmd.AddGeneratedCardToCombat(copy, PileType.Discard, Card.Owner);
+    }
+}
+
+[RegisterEnchantment]
+public sealed class FamiliarEnchantment : CombatOnlyEnchantmentTemplate
+{
+    public override bool HasExtraCardText => true;
+
+    public override async Task BeforeSideTurnEnd(
+        PlayerChoiceContext choiceContext,
+        CombatSide side,
+        IEnumerable<Creature> participants)
+    {
+        if (side == CombatSide.Player
+            && Card.Owner.Creature.Side == side
+            && Card.Pile?.Type == PileType.Hand)
+        {
+            await CardCmd.AutoPlay(choiceContext, Card, null);
+        }
     }
 }

@@ -28,7 +28,7 @@ public sealed class DarkStorm : MSCorruptCard
         HoverTipFactory.FromEnchantment<Glam>();
 
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(9, ValueProp.Move), new PowerVar<VulnerablePower>(1)];
+        [new DamageVar(8, ValueProp.Move), new PowerVar<VulnerablePower>(1)];
 
     public DarkStorm() : base(2, CardType.Attack, CardRarity.Uncommon, TargetType.AllEnemies) { }
 

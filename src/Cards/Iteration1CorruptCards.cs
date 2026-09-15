@@ -324,7 +324,7 @@ public sealed class LureDeep : MSCorruptCard
         [new DynamicVar("Temptation", 10), new CardsVar(1)];
 
     public LureDeep()
-        : base(0, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
+        : base(0, CardType.Skill, CardRarity.Common, TargetType.Self) { }
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
@@ -375,7 +375,7 @@ public sealed class FullOfOpenings : MSCorruptCard
         [PortableKeyword.Value];
 
     public FullOfOpenings()
-        : base(0, CardType.Skill, CardRarity.Uncommon, TargetType.AnyEnemy) { }
+        : base(0, CardType.Skill, CardRarity.Common, TargetType.AnyEnemy) { }
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {

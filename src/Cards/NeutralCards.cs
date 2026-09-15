@@ -52,5 +52,5 @@ public sealed class DoubleDefense : MSNeutralCard
         await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, cardPlay);
     }
 
-    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(1);
+    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(2);
 }

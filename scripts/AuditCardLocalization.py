@@ -83,6 +83,10 @@ ENCHANTMENT_TEXT_CONTRACTS = {
     "ForgeCharge": ("FromEnchantment<ChargeEnchantment>", "[gold]附魔[/gold]：[purple]充能："),
     "YarusMemory": ("FromEnchantment<SoulLinkEnchantment>", "[gold]附魔[/gold]：[purple]灵魂联结[/purple]"),
     "ForgeStrike": ("FromEnchantment<Glam>", "[gold]附魔[/gold]：[purple]华彩[/purple]"),
+    "FamiliarContract": ("FromEnchantment<FamiliarEnchantment>", "[gold]附魔[/gold]：[purple]使魔[/purple]"),
+    "GaleSword": ("FromEnchantment<Swift>", "[gold]附魔[/gold]：[purple]迅捷：2[/purple]"),
+    "ShiningSword": ("FromEnchantment<Vigorous>", "[gold]附魔[/gold]：[purple]活力：3[/purple]"),
+    "FlameSword": ("FromEnchantment<TezcatarasEmber>", "[gold]附魔[/gold]：[purple]特兹卡塔拉的余烬[/purple]"),
 }
 
 DESIGN_CARD_START = 614
@@ -201,6 +205,7 @@ VAR_CLASS_NAMES = {
     "ExtraDamageVar": "ExtraDamage",
     "CalculatedDamageVar": "CalculatedDamage",
     "CalculatedBlockVar": "CalculatedBlock",
+    "CalculatedVar": None,
     "CalculationBaseVar": "CalculationBase",
     "CalculationExtraVar": "CalculationExtra",
     "RepeatVar": "Repeat",

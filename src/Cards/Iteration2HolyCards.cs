@@ -90,7 +90,7 @@ public sealed class PurificationOrb : MSHolyCard
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [CardKeyword.Exhaust, PortableKeyword.Value];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DynamicVar("Desire", 1), new DynamicVar("Armor", 1),
+        [new DynamicVar("Desire", 2), new DynamicVar("Armor", 1),
             new DynamicVar("Temptation", 10)];
 
     public PurificationOrb()

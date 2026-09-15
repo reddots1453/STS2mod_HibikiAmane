@@ -31,7 +31,7 @@ internal static class CardEffectTestHotkey
             _registered = true;
             MaidenSuccubusMod.Logger.Info(
                 "[CardEffectTest] Ready. In a disposable MaidenSuccubus combat, "
-                + "press F10 for all cards or Shift+F10 for the 60 iteration-two cards.");
+                + "press F10 for all cards or Shift+F10 for the 68 iteration-two cards.");
         }
         catch (Exception ex)
         {
@@ -92,8 +92,8 @@ internal static class CardEffectTestHotkey
         _running = true;
         MaidenSuccubusMod.Logger.Info(
             requested == "iteration2"
-                ? "[CardEffectTest] Shift+F10 accepted; starting 60 iteration-two card checks."
-                : "[CardEffectTest] F10 accepted; starting all 215 registered card checks.");
+                ? "[CardEffectTest] Shift+F10 accepted; starting 68 iteration-two card checks."
+                : "[CardEffectTest] F10 accepted; starting all 222 registered card checks.");
         try
         {
             string summary = await CardEffectTestRunner.Run(player, requested);

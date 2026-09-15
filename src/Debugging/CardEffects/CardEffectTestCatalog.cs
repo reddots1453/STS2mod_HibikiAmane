@@ -25,6 +25,7 @@ using MaidenSuccubus.Core.Replay;
 using MaidenSuccubus.Core.Temptation;
 using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Data;
+using MaidenSuccubus.Enchantments;
 using MaidenSuccubus.Powers;
 using MaidenSuccubus.Powers.Scriptures;
 using STS2RitsuLib.Combat.SecondaryResources;
@@ -33,7 +34,7 @@ using STS2RitsuLib.Models.Capabilities;
 namespace MaidenSuccubus.Debugging.CardEffects;
 
 /// <summary>
-/// Executable 2026-09-14 iteration-two card oracle. Numeric literals come from DesignDoc,
+/// Executable 2026-09-16 iteration-two card oracle. Numeric literals come from DesignDoc,
 /// not from the card's DynamicVars, so implementation and expectation cannot
 /// silently change together.
 /// </summary>
@@ -66,14 +67,16 @@ internal static class CardEffectTestCatalog
         HandDiscountProbe<BurningBracelet>(14, 20);
         CounterBarrierProbe();
         DamageTargetPower<CycloneRupture>(5, 5, "ShatterPower", 1, 2);
-        Block<DoubleDefense>(8, 10);
+        Block<DoubleDefense>(8, 12);
         DreamMistProbe();
         DamageTargetPower<ExplosiveImpact>(6, 10, "ShatterPower", 2, 2);
         DamageTargetPower<FlameBloom>(7, 10, "BurningPower", 2, 2);
-        DamageGenerate<FlashStab, FlashStab>(6, 8, PileType.Draw);
+        FlameSwordProbe();
+        DamageGenerate<FlashStab, FlashStab>(5, 7, PileType.Draw);
         ForgeStrikeProbe();
         HandDiscountProbe<FrozenBracelet>(12, 16);
         GenerateChosenCard<MaidenSuccubus.Cards.Fusion>();
+        GaleSwordProbe();
         GoddessOfIceProbe();
         HealingArtProbe();
         DamageGenerate<IceBreakingSlash, IceShard>(7, 9, PileType.Hand,
@@ -94,11 +97,11 @@ internal static class CardEffectTestCatalog
         ObstructingShotProbe();
         ProcrastinateProbe();
         BlockSelfPower<RepairAlyssa>(4, 7, "MagicArmorPower", 1, 1);
+        ShiningSwordProbe();
         StudyPlanProbe();
         SummonThunderProbe();
         SurfProbe();
         SwordVerdictProbe();
-        TakemikazuchiProbe();
         UltimateFlareProbe();
         WindGodCloakProbe();
     }
@@ -124,7 +127,7 @@ internal static class CardEffectTestCatalog
         DarkElementProbe();
         DarkFlameBarrierProbe();
         DarkPunishmentProbe();
-        DamageAllTargetPower<DarkStorm>(9, 11, "VulnerablePower", 1, 2);
+        DamageAllTargetPower<DarkStorm>(8, 10, "VulnerablePower", 1, 2);
         DamageDraw<DarkThrust>(8, 11, 2, 2);
         DemonStaffProbe();
         DesireRecycleProbe();
@@ -190,6 +193,7 @@ internal static class CardEffectTestCatalog
         DragonflyTouchProbe();
         EternalDamnationProbe();
         ExorcismPerfumeProbe();
+        FamiliarContractProbe();
         FinalJudgmentProbe();
         FocusedSlashProbe();
         SelectedEnchant<ForgeCharge>("Charge", 2, 3, fromPile: PileType.Discard);
@@ -203,12 +207,14 @@ internal static class CardEffectTestCatalog
         InwardDisciplineProbe();
         DamageTargetPower<Judgment>(7, 7, "CondemnationPower", 2, 3);
         LightPowerReleaseProbe();
+        LightWingsProbe();
         MagicBurstProbe();
         MemoryImprintProbe();
         BlockGenerate<MomentaryGrace, IceMist>(6, 8, PileType.Hand,
             generatedUpgradedWithSource: true);
         MultipleReproductionProbe();
         NoLewdnessProbe();
+        OpeningPrayerProbe();
         OriginalSinBrandProbe();
         DamageSelfPower<PenanceSlash>(14, 17, "FrailPower", 2, 2);
         PhotonVoltProbe();
@@ -219,12 +225,14 @@ internal static class CardEffectTestCatalog
         RestraintEvasionProbe();
         Block<RetainedGuard>(8, 11);
         EnergySelfPower<SneakSnack>(2, 3, "CondemnationPower", 2, 2);
+        SoulFuenikaProbe();
         SoulImpactProbe();
         SoulPurificationProbe();
         StigmaProbe();
         SunDanceProbe();
         TacticalAnalyzerProbe();
         TacticalCoreProbe();
+        TakemikazuchiProbe();
         TerminalSanctuaryProbe();
         DesireDraw<Tranquilizer>(-2, -3, 1, 1, initialDesire: 5);
         TransformProbe();
@@ -380,13 +388,25 @@ internal static class CardEffectTestCatalog
         {
             int damage = upgraded ? 10 : 7;
             await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 1);
-            int hp = ctx.Enemies.Sum(enemy => enemy.CurrentHp);
-            await ctx.Play(card, ctx.PrimaryEnemy, selectedIndices: [0]);
-            ctx.AssertEqual("magic release triggers one random hit",
-                damage * 2,
-                hp - ctx.Enemies.Sum(enemy => enemy.CurrentHp));
-            ctx.AssertPower("magic release pays one armor", ctx.Self,
-                "MagicArmorPower", 0);
+            Creature releaseTarget = await CreatureCmd.Add<Byrdonis>(ctx.Combat);
+            try
+            {
+                await CreatureCmd.SetMaxAndCurrentHp(releaseTarget, damage + 50);
+                int primaryHp = ctx.PrimaryEnemy.CurrentHp;
+                int releaseHp = releaseTarget.CurrentHp;
+                await ctx.Play(card, ctx.PrimaryEnemy, selectedIndices: [0]);
+                ctx.AssertDamage("initial hit damages the selected target",
+                    ctx.PrimaryEnemy, primaryHp, damage);
+                ctx.AssertDamage("magic release hits the lowest-health enemy",
+                    releaseTarget, releaseHp, damage);
+                ctx.AssertPower("magic release pays one armor", ctx.Self,
+                    "MagicArmorPower", 0);
+            }
+            finally
+            {
+                if (!releaseTarget.IsDead)
+                    await CreatureCmd.Escape(releaseTarget);
+            }
 
             Creature fatalTarget = await CreatureCmd.Add<Byrdonis>(ctx.Combat);
             try
@@ -394,7 +414,7 @@ internal static class CardEffectTestCatalog
                 await CreatureCmd.SetMaxAndCurrentHp(fatalTarget, damage);
                 int allHp = ctx.Enemies.Sum(enemy => enemy.CurrentHp);
                 await ctx.Play(ctx.Create<SummonThunder>(upgraded), fatalTarget);
-                ctx.AssertEqual("fatal hit triggers one chained random hit",
+                ctx.AssertEqual("fatal hit triggers one chained lowest-health hit",
                     damage * 2,
                     allHp - ctx.Enemies.Sum(enemy => enemy.CurrentHp));
                 ctx.AssertEqual("fatal target defeated", 0, fatalTarget.CurrentHp);
@@ -412,13 +432,93 @@ internal static class CardEffectTestCatalog
             await ctx.ApplyPower<TakemikazuchiTrackerPower>(ctx.Self, 1);
             TakemikazuchiTrackerPower tracker = ctx.Self
                 .Powers.OfType<TakemikazuchiTrackerPower>().Single();
-            tracker.GeneratedEnchantedCards = 2;
             tracker.PlayedEnchantedCards = 3;
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(card, ctx.PrimaryEnemy);
-            ctx.AssertDamage("generated bonus times played hit count",
-                ctx.PrimaryEnemy, hp, upgraded ? 64 : 48);
+            ctx.AssertDamage("two base hits plus played enchanted cards",
+                ctx.PrimaryEnemy, hp, upgraded ? 40 : 30);
         }, 1);
+
+    private static void GaleSwordProbe() =>
+        CustomVariants<GaleSword>(async (ctx, card, upgraded) =>
+        {
+            CardCmd.Enchant<Swift>(card, 2);
+            await ctx.AddFillerCards(PileType.Draw, 2);
+            int hp = ctx.PrimaryEnemy.CurrentHp;
+            int hand = ctx.CountCards<StrikeIronclad>(PileType.Hand);
+            await ctx.Play(card, ctx.PrimaryEnemy);
+            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, upgraded ? 14 : 11);
+            ctx.AssertPileDelta<StrikeIronclad>(
+                "Swift draws two cards", PileType.Hand, hand, 2);
+            ctx.AssertEqual("pickup enchantment amount", 2,
+                card.Enchantment?.Amount ?? 0);
+
+            GaleSword deckCard = ctx.Player.RunState.CreateCard<GaleSword>(ctx.Player);
+            try
+            {
+                await CardPileCmd.Add(deckCard, PileType.Deck);
+                ctx.AssertEqual("pickup applies Swift", nameof(Swift),
+                    deckCard.Enchantment?.GetType().Name ?? "none");
+            }
+            finally
+            {
+                if (!deckCard.HasBeenRemovedFromState
+                    && deckCard.Pile?.Type == PileType.Deck)
+                {
+                    await CardPileCmd.RemoveFromDeck(deckCard, showPreview: false);
+                }
+            }
+        }, 4);
+
+    private static void ShiningSwordProbe() =>
+        CustomVariants<ShiningSword>(async (ctx, card, upgraded) =>
+        {
+            CardCmd.Enchant<Vigorous>(card, 3);
+            int hp = ctx.PrimaryEnemy.CurrentHp;
+            await ctx.Play(card, ctx.PrimaryEnemy);
+            ctx.AssertDamage("two Vigorous-boosted hits", ctx.PrimaryEnemy, hp,
+                upgraded ? 18 : 14);
+            ctx.AssertEqual("pickup enchantment amount", 3,
+                card.Enchantment?.Amount ?? 0);
+
+            ShiningSword deckCard =
+                ctx.Player.RunState.CreateCard<ShiningSword>(ctx.Player);
+            try
+            {
+                await CardPileCmd.Add(deckCard, PileType.Deck);
+                ctx.AssertEqual("pickup applies Vigorous", nameof(Vigorous),
+                    deckCard.Enchantment?.GetType().Name ?? "none");
+            }
+            finally
+            {
+                if (!deckCard.HasBeenRemovedFromState
+                    && deckCard.Pile?.Type == PileType.Deck)
+                {
+                    await CardPileCmd.RemoveFromDeck(deckCard, showPreview: false);
+                }
+            }
+        }, 3);
+
+    private static void FlameSwordProbe() =>
+        CustomVariants<FlameSword>(async (ctx, card, upgraded) =>
+        {
+            int hp = ctx.PrimaryEnemy.CurrentHp;
+            for (int i = 0; i < 6; i++)
+                await ctx.Play(card, ctx.PrimaryEnemy);
+
+            ctx.AssertDamage("six cross-combat-counted plays", ctx.PrimaryEnemy, hp,
+                (upgraded ? 12 : 9) * 6);
+            ctx.AssertEqual("play counter reaches six", 6, card.TimesPlayed);
+            ctx.AssertEqual("remaining counter reaches zero", 0,
+                card.DynamicVars["Remaining"].IntValue);
+            ctx.AssertEqual("sixth play applies Tezcatara's Ember",
+                nameof(TezcatarasEmber),
+                card.Enchantment?.GetType().Name ?? "none");
+            ctx.AssertEqual("Ember makes the card cost zero", 0,
+                card.EnergyCost.GetWithModifiers(CostModifiers.All));
+            ctx.AssertTrue("Ember makes the card eternal",
+                card.Keywords.Contains(CardKeyword.Eternal));
+        }, 6);
 
     private static void WindGodCloakProbe() =>
         CustomVariants<WindGodCloak>(async (ctx, card, upgraded) =>
@@ -475,12 +575,113 @@ internal static class CardEffectTestCatalog
                 new BlockingPlayerChoiceContext(), ctx.Player, 20);
             int temptation = Temptation.Get(ctx.Player);
             await ctx.Play(card);
-            ctx.AssertEqual("desire lost", 1, Desire.Get(ctx.Player));
+            ctx.AssertEqual("desire reduced to zero", 0, Desire.Get(ctx.Player));
             ctx.AssertPower<MagicArmorPower>("armor gained", ctx.Self, 4);
             ctx.AssertEqual("temptation modifier lost", 10,
                 temptation - Temptation.Get(ctx.Player));
             ctx.AssertEqual("upgrade makes cost zero", upgraded ? 0 : 1,
                 card.EnergyCost.GetWithModifiers(CostModifiers.All), effect: false);
+        }, 3);
+
+    private static void SoulFuenikaProbe() =>
+        CustomVariants<SoulFuenika>(async (ctx, card, upgraded) =>
+        {
+            HashSet<SoulFuenika> deckCopiesBefore = ctx.Player.Deck.Cards
+                .OfType<SoulFuenika>()
+                .ToHashSet();
+            int holyInHand = PileType.Hand.GetPile(ctx.Player).Cards
+                .Count(candidate => candidate is MSHolyCard);
+            await ctx.Play(card, selectedIndices: [0]);
+            ctx.AssertEqual("chosen holy card added to hand", holyInHand + 1,
+                PileType.Hand.GetPile(ctx.Player).Cards
+                    .Count(candidate => candidate is MSHolyCard));
+            ctx.AssertEqual("post-combat copy scheduled", 1,
+                card.PendingPostCombatCopies);
+
+            int deckBefore = ctx.Player.Deck.Cards.Count;
+            await card.AfterCombatEnd(null!);
+            SoulFuenika[] added = ctx.Player.Deck.Cards
+                .OfType<SoulFuenika>()
+                .Where(candidate => !deckCopiesBefore.Contains(candidate))
+                .ToArray();
+            try
+            {
+                ctx.AssertEqual("unavoidable post-combat deck copy", deckBefore + 1,
+                    ctx.Player.Deck.Cards.Count);
+                ctx.AssertEqual("copy preserves upgrade", upgraded,
+                    added.Single().IsUpgraded);
+                ctx.AssertEqual("copy schedule consumed", 0,
+                    card.PendingPostCombatCopies);
+            }
+            finally
+            {
+                foreach (SoulFuenika copy in added)
+                {
+                    if (!copy.HasBeenRemovedFromState
+                        && copy.Pile?.Type == PileType.Deck)
+                    {
+                        await CardPileCmd.RemoveFromDeck(copy, showPreview: false);
+                    }
+                }
+            }
+        }, 5);
+
+    private static void FamiliarContractProbe() =>
+        CustomVariants<FamiliarContract>(async (ctx, card, _) =>
+        {
+            await PlayerCmd.SetEnergy(2, ctx.Player);
+            int hand = PileType.Hand.GetPile(ctx.Player).Cards.Count;
+            await ctx.Play(card);
+            CardModel[] familiars = PileType.Hand.GetPile(ctx.Player).Cards
+                .Where(candidate => candidate.Enchantment is FamiliarEnchantment)
+                .ToArray();
+            ctx.AssertEqual("X=2 creates two cards", hand + 2,
+                PileType.Hand.GetPile(ctx.Player).Cards.Count);
+            ctx.AssertEqual("all generated cards receive Familiar", 2,
+                familiars.Length);
+
+            MaidenStrike trigger = await ctx.Add<MaidenStrike>(PileType.Hand);
+            FamiliarEnchantment familiar =
+                CombatEnchantmentCmd.Apply<FamiliarEnchantment>(trigger, 1);
+            int hp = ctx.PrimaryEnemy.CurrentHp;
+            await familiar.BeforeSideTurnEnd(
+                new BlockingPlayerChoiceContext(),
+                CombatSide.Player,
+                [ctx.Self]);
+            ctx.AssertDamage("Familiar auto-plays at turn end",
+                ctx.PrimaryEnemy, hp, 6);
+            ctx.AssertTrue("auto-play removes Familiar card from hand",
+                trigger.Pile?.Type != PileType.Hand);
+        }, 4);
+
+    private static void LightWingsProbe() =>
+        CustomVariants<LightWings>(async (ctx, card, upgraded) =>
+        {
+            await ctx.Add<StrikeIronclad>(PileType.Draw);
+            MaidenStrike enchanted = await ctx.Add<MaidenStrike>(PileType.Draw);
+            CombatEnchantmentCmd.ApplyVanilla<Sharp>(enchanted, 1);
+            int hp = ctx.PrimaryEnemy.CurrentHp;
+            await ctx.Play(card, ctx.PrimaryEnemy);
+            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp,
+                upgraded ? 16 : 12);
+            ctx.AssertEqual("draws the enchanted card instead of draw-pile top",
+                PileType.Hand, enchanted.Pile?.Type);
+        }, 2);
+
+    private static void OpeningPrayerProbe() =>
+        CustomVariants<OpeningPrayer>(async (ctx, card, upgraded) =>
+        {
+            await ctx.Play(card);
+            OpeningPrayerPower power = ctx.Self.Powers
+                .OfType<OpeningPrayerPower>().Single();
+            ctx.AssertEqual("scheduled turn count", upgraded ? 3 : 2, power.Amount);
+            await power.AfterPlayerTurnStart(
+                new BlockingPlayerChoiceContext(), ctx.Player);
+            ctx.AssertPower("one amplification next turn", ctx.Self,
+                "MagicAmplificationPower", 1);
+            ctx.AssertEqual("one scheduled turn consumed",
+                upgraded ? 2 : 1,
+                ctx.Self.Powers.OfType<OpeningPrayerPower>().Single().Amount);
         }, 3);
 
     // Reusable probe helpers -----------------------------------------------------
@@ -2062,7 +2263,7 @@ internal static class CardEffectTestCatalog
             int hp = ctx.PrimaryEnemy.CurrentHp;
             int hand = ctx.CountCards<StrikeIronclad>(PileType.Hand);
             await ctx.Play(card, ctx.PrimaryEnemy, selectedIndices: [0]);
-            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, upgraded ? 8 : 5);
+            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, upgraded ? 9 : 6);
             ctx.AssertPileDelta<StrikeIronclad>("overdraft draw", PileType.Hand, hand, 1);
             ctx.AssertPower("overdraft armor payment", ctx.Self, "MagicArmorPower", 0);
         }, 3);
@@ -2123,14 +2324,19 @@ internal static class CardEffectTestCatalog
     private static void UltimateFlareProbe() =>
         CustomVariants<UltimateFlare>(async (ctx, card, upgraded) =>
         {
-            await PlayerCmd.SetEnergy(3, ctx.Player);
             Dictionary<Creature, int> hp = ctx.Enemies.ToDictionary(enemy => enemy,
                 enemy => enemy.CurrentHp);
             await ctx.Play(card);
             foreach ((Creature enemy, int before) in hp)
-                ctx.AssertDamage($"three-energy area damage {enemy.Name}", enemy, before,
-                    upgraded ? 27 : 18);
-        }, 1);
+                ctx.AssertDamage($"fixed area damage {enemy.Name}", enemy, before,
+                    upgraded ? 52 : 40);
+
+            UltimateFlare retained = await ctx.Add<UltimateFlare>(PileType.Hand, upgraded);
+            await ctx.InvokeTurnEndInHand(retained);
+            ctx.AssertEqual("end-turn combat cost reduction", 3,
+                retained.EnergyCost.GetWithModifiers(CostModifiers.All));
+            ctx.AssertEqual("canonical cost", 4, card.EnergyCost.Canonical, effect: false);
+        }, 2);
 
     private static void AllCurseBiteProbe() =>
         CustomVariants<AllCurseBite>(async (ctx, card, _) =>
@@ -2329,8 +2535,10 @@ internal static class CardEffectTestCatalog
                 selected.Count(candidate => candidate.Pile?.Type == PileType.Exhaust));
             ctx.AssertEqual("draws to ten-card hand after four exhausts", 10,
                 PileType.Hand.GetPile(ctx.Player).Cards.Count);
-            ctx.AssertEqual("upgrade grants retain", upgraded,
-                card.Keywords.Contains(CardKeyword.Retain));
+            ctx.AssertEqual("upgrade changes cost from one to zero", upgraded ? 0 : 1,
+                card.EnergyCost.GetWithModifiers(CostModifiers.All));
+            ctx.AssertTrue("does not gain retain",
+                !card.Keywords.Contains(CardKeyword.Retain), effect: false);
         }, 3);
 
     private static void MasochisticTranceProbe() =>

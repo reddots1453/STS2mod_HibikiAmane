@@ -72,7 +72,7 @@ public sealed class LightningKick : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new DamageVar(10, ValueProp.Move), new PowerVar<ShatterPower>(4)];
-    public LightningKick() : base(2, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
+    public LightningKick() : base(2, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);

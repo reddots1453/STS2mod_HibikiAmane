@@ -175,7 +175,7 @@
   "MAIDEN_SUCCUBUS_POWER_BINDING_INSIGHT_POWER.title": "绳缚的心得",
   "MAIDEN_SUCCUBUS_POWER_BINDING_INSIGHT_POWER.description": "每当你打出[gold]挣脱[/gold]牌时，获得能量。",
   "MAIDEN_SUCCUBUS_POWER_BINDING_INSIGHT_POWER.smartDescription": "每当你打出[gold]挣脱[/gold]牌时，获得{Amount:energyIcons()}。",
-  "MAIDEN_SUCCUBUS_POWER_LORD_OF_BLAZE_POWER.title": "豪焰的支配者",
+  "MAIDEN_SUCCUBUS_POWER_LORD_OF_BLAZE_POWER.title": "豪炎的支配者",
   "MAIDEN_SUCCUBUS_POWER_LORD_OF_BLAZE_POWER.description": "[gold]燃烧[/gold]伤害转移给随机敌人。回合结束时，给予所有人[gold]燃烧[/gold]。",
   "MAIDEN_SUCCUBUS_POWER_LORD_OF_BLAZE_POWER.smartDescription": "[gold]燃烧[/gold]伤害转移给随机敌人。回合结束时，给予所有人{Amount}层[gold]燃烧[/gold]。",
   "MAIDEN_SUCCUBUS_POWER_DARK_FLAME_BARRIER_POWER.title": "暗焰壁障",
@@ -221,6 +221,9 @@
   "MAIDEN_SUCCUBUS_POWER_WIND_GOD_CLOAK_POWER.description": "将每回合打出的第一张0费牌的复制加入[gold]手牌[/gold]。",
   "MAIDEN_SUCCUBUS_POWER_WIND_GOD_CLOAK_POWER.smartDescription": "将每回合打出的第一张0费牌的复制加入[gold]手牌[/gold]。",
   "MAIDEN_SUCCUBUS_POWER_TAKEMIKAZUCHI_TRACKER_POWER.title": "建御雷神追踪",
-  "MAIDEN_SUCCUBUS_POWER_TAKEMIKAZUCHI_TRACKER_POWER.description": "记录本场战斗中生成和打出的[gold]附魔牌[/gold]。",
-  "MAIDEN_SUCCUBUS_POWER_TAKEMIKAZUCHI_TRACKER_POWER.smartDescription": "记录本场战斗中生成和打出的[gold]附魔牌[/gold]。"
+  "MAIDEN_SUCCUBUS_POWER_TAKEMIKAZUCHI_TRACKER_POWER.description": "记录本场战斗中打出的[gold]附魔牌[/gold]。",
+  "MAIDEN_SUCCUBUS_POWER_TAKEMIKAZUCHI_TRACKER_POWER.smartDescription": "记录本场战斗中打出的[gold]附魔牌[/gold]。",
+  "MAIDEN_SUCCUBUS_POWER_OPENING_PRAYER_POWER.title": "开祷",
+  "MAIDEN_SUCCUBUS_POWER_OPENING_PRAYER_POWER.description": "回合开始时，获得1层[gold]魔力增幅[/gold]。",
+  "MAIDEN_SUCCUBUS_POWER_OPENING_PRAYER_POWER.smartDescription": "接下来{Amount}个回合开始时，获得1层[gold]魔力增幅[/gold]。"
 }

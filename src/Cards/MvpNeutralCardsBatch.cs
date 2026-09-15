@@ -39,7 +39,7 @@ public sealed class SwordVerdict : MSNeutralCard
 public sealed class LightningRecoil : MSNeutralCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(5, ValueProp.Move)];
+        [new DamageVar(6, ValueProp.Move)];
     public LightningRecoil() : base(0, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
@@ -123,7 +123,7 @@ public sealed class IceShield : MSNeutralCard
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class FlashStab : MSNeutralCard
 {
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(6, ValueProp.Move)];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(5, ValueProp.Move)];
     public FlashStab() : base(0, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {

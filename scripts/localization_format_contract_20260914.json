@@ -1,7 +1,7 @@
 {
   "cards": {
     "MAIDEN_SUCCUBUS_CARD_FORGE_NIMBLE.description": "获得{Block:diff()}点[gold]格挡[/gold]。\n为1张牌[gold]附魔[/gold]：[purple]伶俐[/purple]。",
-    "MAIDEN_SUCCUBUS_CARD_SUMMON_THUNDER.description": "造成{Damage:diff()}点伤害。\n[gold]斩杀时[/gold]和[gold]魔力解放[/gold]：随机造成{Damage:diff()}点伤害。",
+    "MAIDEN_SUCCUBUS_CARD_SUMMON_THUNDER.description": "造成{Damage:diff()}点伤害。\n[gold]斩杀时[/gold]和[gold]魔力解放[/gold]：对生命值最低的敌人造成{Damage:diff()}点伤害。",
     "MAIDEN_SUCCUBUS_CARD_BATH.description": "获得{Energy:energyIcons()}。\n移除牌组中的所有精液[gold]诅咒牌[/gold]。\n[gold]魔力解放[/gold]：下回合获得{NextEnergy:energyIcons()}。",
     "MAIDEN_SUCCUBUS_CARD_MAGIC_SWORD.description": "造成{Damage:diff()}点伤害。\n拾起时，为这张牌[gold]附魔[/gold]：[purple]充能：2[/purple]。",
     "MAIDEN_SUCCUBUS_CARD_RESISTANCE_GLOVES.description": "[gold]挣脱[/gold]{Escape:diff()}。",

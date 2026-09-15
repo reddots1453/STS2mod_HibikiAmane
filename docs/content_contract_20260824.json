@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "baseline": "DesignDoc iteration 2 programming baseline 2026-09-14",
+  "baseline": "DesignDoc iteration 2 programming baseline 2026-09-16",
   "cards": {
     "MSNeutralCardPool": [
       "AcceleratedMotion", "BalanceBlade", "BalanceShield", "BasicTraining",
       "Bath", "BeyondReasonForge", "BindingInsight", "BorrowedForceStrike",
       "BurningBracelet", "CounterBarrier", "CycloneRupture", "DoubleDefense",
-      "DreamMist", "ExplosiveImpact", "FlameBloom", "FlashStab", "ForgeStrike",
-      "FrozenBracelet", "Fusion", "GoddessOfIce", "HealingArt",
+      "DreamMist", "ExplosiveImpact", "FlameBloom", "FlameSword", "FlashStab", "ForgeStrike",
+      "FrozenBracelet", "Fusion", "GaleSword", "GoddessOfIce", "HealingArt",
       "IceBreakingSlash", "IceShield", "JudgmentBlade", "LightArrow",
       "LightningRecoil", "Lullaby", "MagiciansSecret", "MagicIndex",
       "MagicResonance", "MagicSword", "MentalUnity", "MindsEye",
       "MagicStarBomb", "ObstructingShot", "Procrastinate", "RepairAlyssa",
-      "StudyPlan", "SummonThunder", "Surf", "SwordVerdict", "Takemikazuchi",
+      "ShiningSword", "StudyPlan", "SummonThunder", "Surf", "SwordVerdict",
       "UltimateFlare", "WindGodCloak"
     ],
     "MSCorruptCardPool": [
@@ -39,15 +39,15 @@
       "AutoReactionArmor", "BattleTechniqueReplay", "Blizzard", "BurningRack", "CalmingMist",
       "Chant", "ChastityDefense", "Consecration", "DesireWard",
       "DevoutBulwark", "DivineEcho", "DragonflyTouch", "EternalDamnation",
-      "ExorcismPerfume", "ExternalPowerSkeleton", "FinalJudgment", "FocusedSlash", "ForgeCharge",
+      "ExorcismPerfume", "ExternalPowerSkeleton", "FamiliarContract", "FinalJudgment", "FocusedSlash", "ForgeCharge",
       "ForgeNimble", "Gospel", "HolyCurse", "HolyFlame", "HolyPunishment",
       "HolyRadiance", "HolyResonance", "InwardDiscipline", "Judgment",
-      "LightPowerRelease", "MagicBurst", "MemoryImprint", "MomentaryGrace",
+      "LightPowerRelease", "LightWings", "MagicBurst", "MemoryImprint", "MomentaryGrace",
       "MultipleReproduction", "NoLewdness", "OriginalSinBrand",
-      "PenanceSlash", "PhotonVolt", "PurificationOrb", "RegenerativeMagicFiber",
+      "OpeningPrayer", "PenanceSlash", "PhotonVolt", "PurificationOrb", "RegenerativeMagicFiber",
       "ResistanceGloves", "Rest", "RestraintEvasion", "RetainedGuard",
-      "SneakSnack", "SoulImpact", "SoulPurification", "Stigma", "SunDance",
-      "TacticalAnalyzer", "TacticalCore", "TerminalSanctuary", "Tranquilizer",
+      "SneakSnack", "SoulFuenika", "SoulImpact", "SoulPurification", "Stigma", "SunDance",
+      "TacticalAnalyzer", "TacticalCore", "Takemikazuchi", "TerminalSanctuary", "Tranquilizer",
       "Transform", "WindRumor", "Worship", "YarusMemory"
     ],
     "MSInvasionCursePool": [
@@ -87,7 +87,7 @@
   ],
   "enchantments": [
     "ChargeEnchantment", "EnergyOverloadEnchantment", "InfectionEnchantment",
-    "IronWallEnchantment", "NecromancyEnchantment",
+    "FamiliarEnchantment", "IronWallEnchantment", "NecromancyEnchantment",
     "ProliferationEnchantment", "SoulLinkEnchantment", "WrathEnchantment"
   ]
 }

@@ -78,9 +78,9 @@ public sealed class SummonThunder : MSNeutralCard
             + (released ? 1 : 0);
         while (pending-- > 0 && CombatState?.HittableEnemies.Count > 0)
         {
-            var enemies = CombatState.HittableEnemies;
-            var target = enemies[
-                Owner.RunState.Rng.CombatTargets.NextInt(enemies.Count)];
+            var target = CombatState.HittableEnemies
+                .OrderBy(enemy => enemy.CurrentHp)
+                .First();
             bool fatalEligible = target.Powers.All(
                 power => power.ShouldOwnerDeathTriggerFatal());
             var followUp = await DamageCmd.Attack(DynamicVars.Damage.BaseValue)
@@ -133,31 +133,33 @@ public sealed class MagicStarBomb : MSNeutralCard
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(8);
 }
 
-[RegisterCard(typeof(MSNeutralCardPool))]
-public sealed class Takemikazuchi : MSNeutralCard
+[RegisterCard(typeof(MSHolyCardPool))]
+public sealed class Takemikazuchi : MSHolyCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(6, ValueProp.Move), new ExtraDamageVar(3)];
+    [
+        new DamageVar(6, ValueProp.Move),
+        new CalculationBaseVar(2),
+        new CalculationExtraVar(1),
+        new CalculatedVar("Hits").WithMultiplier(static (card, _) =>
+            card.Owner.Creature.GetPower<TakemikazuchiTrackerPower>()
+                ?.PlayedEnchantedCards ?? 0),
+    ];
 
     public Takemikazuchi()
         : base(2, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy) { }
 
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
-        TakemikazuchiTrackerPower? tracker =
-            Owner.Creature.GetPower<TakemikazuchiTrackerPower>();
-        decimal damage = DynamicVars.Damage.BaseValue
-            + (tracker?.GeneratedEnchantedCards ?? 0)
-                * DynamicVars.ExtraDamage.BaseValue;
-        int hits = 1 + (tracker?.PlayedEnchantedCards ?? 0);
-        return IterationCardEffects.Attack(this, context, play, damage, hits);
+        return IterationCardEffects.Attack(
+            this,
+            context,
+            play,
+            DynamicVars.Damage.BaseValue,
+            DynamicVars["Hits"].IntValue);
     }
 
-    protected override void OnUpgrade()
-    {
-        DynamicVars.Damage.UpgradeValueBy(2);
-        DynamicVars.ExtraDamage.UpgradeValueBy(1);
-    }
+    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(2);
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]

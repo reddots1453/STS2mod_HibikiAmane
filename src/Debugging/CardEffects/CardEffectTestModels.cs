@@ -66,7 +66,7 @@ internal sealed class CardEffectCardResult
 internal sealed class CardEffectTestReport
 {
     public string SchemaVersion { get; init; } = "1";
-    public string Baseline { get; init; } = "DesignDoc state 2026-09-14";
+    public string Baseline { get; init; } = "DesignDoc state 2026-09-16";
     public required DateTimeOffset StartedAt { get; init; }
     public DateTimeOffset FinishedAt { get; set; }
     public required string RequestedCard { get; init; }

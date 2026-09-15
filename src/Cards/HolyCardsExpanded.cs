@@ -442,7 +442,7 @@ public sealed class FinalJudgment : MSHolyCard
         [new DynamicVar("Condemnation", 1)];
 
     public FinalJudgment()
-        : base(0, CardType.Skill, CardRarity.Uncommon, TargetType.AnyEnemy)
+        : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.AnyEnemy)
     {
     }
 
@@ -495,10 +495,7 @@ public sealed class FinalJudgment : MSHolyCard
         }
     }
 
-    protected override void OnUpgrade()
-    {
-        AddKeyword(CardKeyword.Retain);
-    }
+    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]

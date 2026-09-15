@@ -12,37 +12,14 @@ using STS2RitsuLib.Interop.AutoRegistration;
 namespace MaidenSuccubus.Powers;
 
 [RegisterPower]
-public sealed class TakemikazuchiTrackerPower : MaidenSuccubusPowerTemplate,
-    ICombatEnchantmentAppliedListener
+public sealed class TakemikazuchiTrackerPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.None;
     public override PowerStackType StackType => PowerStackType.Single;
     protected override bool IsVisibleInternal => false;
 
     [SavedProperty]
-    public int GeneratedEnchantedCards { get; set; }
-
-    [SavedProperty]
     public int PlayedEnchantedCards { get; set; }
-
-    public void AfterCombatEnchantmentApplied(CardModel card)
-    {
-        if (card.Owner.Creature == Owner)
-        {
-            GeneratedEnchantedCards++;
-        }
-    }
-
-    public override Task AfterCardGeneratedForCombat(
-        CardModel card,
-        Player? creator)
-    {
-        if (card.Owner.Creature == Owner && card.Enchantment != null)
-        {
-            GeneratedEnchantedCards++;
-        }
-        return Task.CompletedTask;
-    }
 
     public override Task AfterCardPlayed(
         PlayerChoiceContext context,
