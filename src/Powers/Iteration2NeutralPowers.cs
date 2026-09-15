@@ -61,11 +61,16 @@ public sealed class TakemikazuchiTrackerPower : MaidenSuccubusPowerTemplate,
 [RegisterPower]
 public sealed class WindGodCloakPower : MaidenSuccubusPowerTemplate
 {
+    private CardModel? _activationCardToIgnore;
+
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
 
     [SavedProperty]
     public bool CopiedThisTurn { get; set; }
+
+    public void IgnoreActivationCard(CardModel card) =>
+        _activationCardToIgnore = card;
 
     public override Task BeforeSideTurnStart(
         PlayerChoiceContext choiceContext,
@@ -84,6 +89,12 @@ public sealed class WindGodCloakPower : MaidenSuccubusPowerTemplate
         PlayerChoiceContext context,
         CardPlay cardPlay)
     {
+        if (ReferenceEquals(cardPlay.Card, _activationCardToIgnore))
+        {
+            _activationCardToIgnore = null;
+            return;
+        }
+
         if (CopiedThisTurn
             || !cardPlay.IsLastInSeries
             || cardPlay.Card.Owner.Creature != Owner

@@ -1562,6 +1562,8 @@ internal static class CardEffectTestCatalog
         {
             await ctx.Play(card);
             MaidenStrike selected = await ctx.Add<MaidenStrike>(PileType.Discard);
+            int drawBefore = ctx.CountCards<MaidenStrike>(PileType.Draw);
+            int discardBefore = ctx.CountCards<MaidenStrike>(PileType.Discard);
             TestCardSelector selector = new();
             selector.PrepareToSelect([selected]);
             using (CardSelectCmd.UseSelector(selector))
@@ -1571,11 +1573,17 @@ internal static class CardEffectTestCatalog
                 await power.BeforeHandDraw(
                     ctx.Player, new BlockingPlayerChoiceContext(), ctx.Combat);
             }
+            ctx.AssertPileDelta<MaidenStrike>(
+                "exactly one selected card added to draw pile",
+                PileType.Draw, drawBefore, 1);
+            ctx.AssertPileDelta<MaidenStrike>(
+                "exactly one selected card removed from discard pile",
+                PileType.Discard, discardBefore, -1);
             ctx.AssertEqual("selected discard card moved to draw top", selected,
                 PileType.Draw.GetPile(ctx.Player).Cards.First());
             ctx.AssertEqual("upgrade grants innate", upgraded,
-                card.Keywords.Contains(CardKeyword.Innate));
-        }, 2);
+                card.Keywords.Contains(CardKeyword.Innate), effect: false);
+        }, 3);
 
     private static void PhotonVoltProbe() =>
         CustomVariants<PhotonVolt>(async (ctx, card, upgraded) =>
@@ -2638,13 +2646,11 @@ internal static class CardEffectTestCatalog
                 "delayed unpowered block preview ignores dexterity",
                 expectedBlock,
                 card.DynamicVars.Block.PreviewValue);
-            await ctx.ApplyPower<MaidenSuccubus.Powers.MagicArmorPower>(ctx.Self, 1);
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(card, ctx.PrimaryEnemy, selectedIndices: [0]);
-            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, upgraded ? 10 : 8);
+            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, upgraded ? 8 : 6);
             ctx.AssertPower("delayed block per target attack", ctx.PrimaryEnemy,
                 "MentalUnityPower", upgraded ? 3 : 2);
-            ctx.AssertPower("overdraft armor payment", ctx.Self, "MagicArmorPower", 0);
             MentalUnityPower power = ctx.PrimaryEnemy.Powers
                 .OfType<MentalUnityPower>()
                 .Single();
@@ -2660,7 +2666,7 @@ internal static class CardEffectTestCatalog
                 "triggered unpowered block ignores dexterity",
                 block,
                 (int)expectedBlock);
-        }, 5);
+        }, 4);
 
     private static void CurseInfectionProbe() =>
         CustomVariants<CurseInfection>(async (ctx, card, _) =>

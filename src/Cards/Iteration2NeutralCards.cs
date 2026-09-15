@@ -166,9 +166,21 @@ public sealed class WindGodCloak : MSNeutralCard
     public WindGodCloak()
         : base(1, CardType.Power, CardRarity.Uncommon, TargetType.Self) { }
 
-    protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
-        PowerCmd.Apply<WindGodCloakPower>(
+    protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
+    {
+        WindGodCloakPower? existingPower = Owner.Creature.Powers
+            .OfType<WindGodCloakPower>()
+            .FirstOrDefault();
+        WindGodCloakPower? appliedPower = await PowerCmd.Apply<WindGodCloakPower>(
             context, Owner.Creature, 1, Owner.Creature, this);
+
+        // A newly-created power joins the AfterCardPlayed hook list before the
+        // card which created it has finished resolving.  The upgraded card costs
+        // zero, but it was played before this power existed and must not consume
+        // the first-zero-cost trigger it just granted.
+        if (existingPower == null)
+            appliedPower?.IgnoreActivationCard(this);
+    }
 
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
