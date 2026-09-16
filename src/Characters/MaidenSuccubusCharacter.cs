@@ -90,16 +90,21 @@ public class MaidenSuccubusCharacter
         PlayerChoiceContext choiceContext,
         Player player)
     {
-        if (player.Character is not MaidenSuccubusCharacter)
+        if (!ReferenceEquals(player.Character, this))
         {
             return;
         }
 
         await Desire.ResolvePendingFirstTurnStun(choiceContext, player);
+        // Also repairs a combat loaded from a save created before hook wiring
+        // was fixed. Initialize is idempotent and preserves saved use counts.
+        await Temptation.Initialize(choiceContext, player);
         foreach (var enemy in player.Creature.CombatState?.Enemies ?? [])
         {
-            if (enemy.Monster != null)
+            if (enemy.Monster != null
+                && EroticAttackCatalog.Get(enemy.Monster) != null)
             {
+                await IntentAdapterRegistry.Initialize(enemy.Monster);
                 IntentMoveFactory.TryApplyNaturalErotic(enemy.Monster, player);
             }
         }

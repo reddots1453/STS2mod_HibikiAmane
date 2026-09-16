@@ -40,6 +40,7 @@ internal static class ControlIntentTestRunner
 
     private static readonly IReadOnlyList<Scenario> Scenarios =
     [
+        new("lifecycle_threshold_dispatch", "SYS-DES-INTENT-001", LifecycleThresholdDispatch),
         new("intent_metadata_and_exact_block", "SYS-CTL-001", IntentMetadataAndExactBlock),
         new("insufficient_block_stress_projection", "SYS-CTL-001", InsufficientBlockStressProjection),
         new("high_desire_bypasses_block", "SYS-DES-002B", HighDesireBypassesBlock),
@@ -50,6 +51,51 @@ internal static class ControlIntentTestRunner
         new("source_death_releases_and_rebinds", "SYS-CTL-001", SourceDeathReleasesAndRebinds),
         new("catalog_intent_to_recovery", "SYS-CTL-001/002", CatalogIntentToRecovery),
     ];
+
+    private static async Task LifecycleThresholdDispatch(ControlIntentTestContext ctx)
+    {
+        // Use the actual game dispatchers, not direct calls to the character
+        // override or TryApplyNaturalErotic: those hid the missing subscription.
+        ctx.AssertEqual("character subscribed exactly once", 1,
+            ctx.Combat.IterateHookListeners().Count(model =>
+                ReferenceEquals(model, ctx.Player.Character)));
+        ctx.AssertEqual("run/combat dispatch does not duplicate character", 1,
+            ctx.Player.RunState.IterateHookListeners(ctx.Combat).Count(model =>
+                ReferenceEquals(model, ctx.Player.Character)));
+        await MegaCrit.Sts2.Core.Hooks.Hook.BeforeCombatStart(
+            ctx.Player.RunState, ctx.Combat);
+        ctx.AssertTrue("combat-start creates temptation carrier",
+            ctx.Self.HasPower<TemptationRuntimePower>());
+
+        Creature enemy = await ctx.AddByrdonis();
+        ctx.AssertEqual("summoned monster desire threshold", 25m,
+            enemy.GetPower<DesireIntentThresholdPower>()?.Amount ?? -1m);
+        ctx.AssertEqual("summoned monster control threshold", 40m,
+            enemy.GetPower<ControlIntentThresholdPower>()?.Amount ?? -1m);
+        var monster = enemy.Monster!;
+        var originalMove = monster.NextMove;
+        var choice = new BlockingPlayerChoiceContext();
+        await Core.Temptation.Temptation.Modify(choice, ctx.Player,
+            24 - Core.Temptation.Temptation.Get(ctx.Player));
+        await MegaCrit.Sts2.Core.Hooks.Hook.AfterPlayerTurnStart(
+            ctx.Combat, choice, ctx.Player);
+        ctx.AssertReference("below threshold preserves original intent",
+            originalMove, monster.NextMove);
+        await Core.Temptation.Temptation.Modify(choice, ctx.Player, 1);
+        ctx.AssertReference("mid-turn threshold crossing does not replace intent",
+            originalMove, monster.NextMove);
+        await MegaCrit.Sts2.Core.Hooks.Hook.AfterPlayerTurnStart(
+            ctx.Combat, choice, ctx.Player);
+        ctx.AssertTrue("exact threshold selects desire at turn start",
+            monster.NextMove.StateId.StartsWith("MAIDENSUCCUBUS_DESIRE",
+                StringComparison.Ordinal));
+        ctx.AssertEqual("selection consumes exactly one use", 1,
+            IntentAdapterRegistry.GetRuntime(monster).DesireIntentUses);
+        await MegaCrit.Sts2.Core.Hooks.Hook.AfterPlayerTurnStart(
+            ctx.Combat, choice, ctx.Player);
+        ctx.AssertEqual("existing erotic intent is not selected twice", 1,
+            IntentAdapterRegistry.GetRuntime(monster).DesireIntentUses);
+    }
 
     public static async Task<string> Run(Player player)
     {

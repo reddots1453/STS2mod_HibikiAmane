@@ -22,6 +22,7 @@ $hotkey = Get-Content -Raw -LiteralPath $hotkeyPath
 $console = Get-Content -Raw -LiteralPath $consolePath
 
 $scenarioNames = @(
+    "lifecycle_threshold_dispatch",
     "intent_metadata_and_exact_block",
     "insufficient_block_stress_projection",
     "high_desire_bypasses_block",
@@ -69,4 +70,4 @@ if ((-not $console.Contains('CmdName => "ms_test_control"')) -or (-not $console.
     throw "Control-intent console command lost its explicit destructive confirmation gate."
 }
 
-Write-Host "Control-intent test contract: 9 exact runtime scenarios passed structural validation."
+Write-Host "Control-intent test contract: 10 exact runtime scenarios passed structural validation."

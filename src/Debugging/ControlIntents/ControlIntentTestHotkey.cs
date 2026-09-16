@@ -93,7 +93,7 @@ internal static class ControlIntentTestHotkey
 
         _running = true;
         MaidenSuccubusMod.Logger.Info(
-            "[ControlIntentTest] Ctrl+F10 accepted; starting 9 scenarios.");
+            "[ControlIntentTest] Ctrl+F10 accepted; starting 10 scenarios.");
         try
         {
             string summary = await ControlIntentTestRunner.Run(player);

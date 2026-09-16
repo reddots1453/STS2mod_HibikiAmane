@@ -47,6 +47,16 @@ public static class MaidenSuccubusMod
                 + $"{EroticAttackCatalog.All.Count} monsters.");
         }
         ModTypeDiscoveryHub.RegisterModAssembly(ModId, assembly);
+        // CharacterModel overrides are not vanilla hook listeners by default.
+        // RunState already includes the combat listener stream when in combat;
+        // subscribing only here avoids executing every combat hook twice.
+        ModHelper.SubscribeForCombatStateHooks(ModId, combat =>
+            combat.Players
+                .Where(player => player.IsActiveForHooks)
+                .Select(player => player.Character)
+                .OfType<Characters.MaidenSuccubusCharacter>()
+                .Distinct());
+        Logger.Info("Character combat hooks subscribed through ModHelper.");
         RunFrameworkSelfTestsWithoutBlockingInitialization();
 #if DEBUG
         CardEffectTestHotkey.Register();
