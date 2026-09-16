@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using STS2RitsuLib.Combat.Ui.ExtraCornerAmountLabels;
 using MaidenSuccubus.Core.Control;
+using MaidenSuccubus.UI;
 
 namespace MaidenSuccubus.Core.Intents;
 
@@ -67,6 +68,11 @@ public sealed class ControlIntent :
     public override string GetAnimation(
         IEnumerable<Creature> targets,
         Creature owner) => IntentAnimData.cardDebuff;
+
+    public override Texture2D? GetTexture(
+        IEnumerable<Creature> targets,
+        Creature owner) => MaidenIntentIconAssets.Get(this)
+            ?? base.GetTexture(targets, owner);
     public IReadOnlyList<ExtraIconAmountLabelSpec>
         GetIntentExtraCornerAmountLabelSpecs() =>
         [
@@ -121,6 +127,11 @@ public sealed class InvasionIntent : SingleAttackIntent
             _ => IntentAnimData.attack5,
         };
 
+    public override Texture2D GetTexture(
+        IEnumerable<Creature> targets,
+        Creature owner) => MaidenIntentIconAssets.Get(this)
+            ?? base.GetTexture(targets, owner);
+
     protected override LocString GetIntentDescription(
         IEnumerable<Creature> targets,
         Creature owner)
@@ -154,6 +165,11 @@ public sealed class DesireGainIntent :
     public override string GetAnimation(
         IEnumerable<Creature> targets,
         Creature owner) => IntentAnimData.debuff;
+
+    public override Texture2D? GetTexture(
+        IEnumerable<Creature> targets,
+        Creature owner) => MaidenIntentIconAssets.Get(this)
+            ?? base.GetTexture(targets, owner);
 
     public IReadOnlyList<ExtraIconAmountLabelSpec>
         GetIntentExtraCornerAmountLabelSpecs() =>

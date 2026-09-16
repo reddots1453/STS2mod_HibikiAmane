@@ -5,17 +5,18 @@ using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Runs;
+using STS2RitsuLib.Combat.SecondaryResources;
 using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Godot.NodeAttachments;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Data;
-using STS2RitsuLib.Combat.SecondaryResources;
 using MaidenSuccubus.Core.Desire;
 
 namespace MaidenSuccubus.UI;
 
 /// <summary>
-/// Character-only vertical desire meter displayed along the left side in and out of combat.
+/// Persistent desire meter displayed along the left side in and out of combat,
+/// using the eleven reviewed visual states.
 /// </summary>
 [RegisterNodeAttachment(
     typeof(NTopBar),
@@ -24,17 +25,9 @@ namespace MaidenSuccubus.UI;
     DuplicatePolicy = NodeAttachmentDuplicatePolicy.ReuseExistingByName)]
 public sealed partial class DesireMeter : Control, INodeAttachmentSetup
 {
-    private const int SegmentCount = 10;
-    private const float SegmentWidth = 24f;
-    private const float SegmentHeight = 13f;
-    private const float SegmentGap = 3f;
-    private const float TitleHeight = 25f;
-    private const float ValueHeight = 24f;
-    private const float MeterHeight =
-        SegmentCount * SegmentHeight + (SegmentCount - 1) * SegmentGap;
-    private const float TotalHeight = TitleHeight + MeterHeight + ValueHeight;
+    private static readonly Vector2 MeterSize = new(64f, 208f);
 
-    private readonly List<ColorRect> _segments = [];
+    private TextureRect? _meterTexture;
     private CpuParticles2D? _bubbles;
     private Label? _valueLabel;
     private NTopBar? _topBar;
@@ -51,7 +44,7 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
     {
         DesireEvents.Changed -= OnDesireChanged;
         RunUiRefreshEvents.CombatVisibilityChanged -= OnCombatVisibilityChanged;
-        NHoverTipSet.Remove(this);
+        ClearHoverTip();
     }
 
     public void Setup(Node parent, Node node)
@@ -63,8 +56,8 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
         }
 
         SetAnchorsPreset(LayoutPreset.TopLeft);
-        CustomMinimumSize = new Vector2(54f, TotalHeight);
-        Size = CustomMinimumSize;
+        CustomMinimumSize = MeterSize;
+        Size = MeterSize;
         MouseFilter = MouseFilterEnum.Stop;
         ZIndex = 100;
         Visible = false;
@@ -78,83 +71,44 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
 
     private void BuildMeter()
     {
-        if (GetNodeOrNull<Control>("MeterVisuals") != null)
+        if (GetNodeOrNull<TextureRect>("MeterTexture") != null)
         {
             return;
         }
 
-        var visuals = new Control
+        _meterTexture = new TextureRect
         {
-            Name = "MeterVisuals",
-            MouseFilter = MouseFilterEnum.Ignore,
-            Size = CustomMinimumSize,
-        };
-        AddChild(visuals);
-
-        var title = new Label
-        {
-            Name = "Title",
-            Text = "欲望",
-            Position = Vector2.Zero,
-            Size = new Vector2(54f, TitleHeight),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
+            Name = "MeterTexture",
+            Size = MeterSize,
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
             MouseFilter = MouseFilterEnum.Ignore,
         };
-        title.AddThemeColorOverride("font_color", new Color(1f, 0.72f, 0.91f));
-        title.AddThemeColorOverride("font_outline_color", new Color(0.12f, 0.02f, 0.13f));
-        title.AddThemeConstantOverride("outline_size", 4);
-        visuals.AddChild(title);
-
-        var backing = new ColorRect
-        {
-            Name = "Backing",
-            Position = new Vector2(12f, TitleHeight - 3f),
-            Size = new Vector2(SegmentWidth + 6f, MeterHeight + 6f),
-            Color = new Color(0.08f, 0.025f, 0.09f, 0.88f),
-            MouseFilter = MouseFilterEnum.Ignore,
-        };
-        visuals.AddChild(backing);
-
-        _segments.Clear();
-        for (int i = 0; i < SegmentCount; i++)
-        {
-            int requiredValue = SegmentCount - i;
-            var segment = new ColorRect
-            {
-                Name = $"Desire{requiredValue}",
-                Position = new Vector2(
-                    15f,
-                    TitleHeight + i * (SegmentHeight + SegmentGap)),
-                Size = new Vector2(SegmentWidth, SegmentHeight),
-                Color = GetSegmentColor(requiredValue, filled: false),
-                MouseFilter = MouseFilterEnum.Stop,
-            };
-            segment.MouseEntered += () => ShowHoverTipForValue(requiredValue);
-            segment.MouseExited += ClearHoverTip;
-            visuals.AddChild(segment);
-            _segments.Add(segment);
-        }
+        AddChild(_meterTexture);
 
         _valueLabel = new Label
         {
             Name = "Value",
             Text = "0/10",
-            Position = new Vector2(0f, TitleHeight + MeterHeight + 2f),
-            Size = new Vector2(54f, ValueHeight),
+            Position = new Vector2(11.5f, 175f),
+            Size = new Vector2(41f, 28f),
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore,
         };
+        _valueLabel.AddThemeFontSizeOverride("font_size", 15);
         _valueLabel.AddThemeColorOverride("font_color", Colors.White);
         _valueLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
         _valueLabel.AddThemeConstantOverride("outline_size", 4);
-        visuals.AddChild(_valueLabel);
+        AddChild(_valueLabel);
+
+        AddThresholdHover("Threshold10", new Rect2(6f, 0f, 52f, 34f), 10);
+        AddThresholdHover("Threshold8", new Rect2(8f, 52f, 48f, 22f), 8);
 
         _bubbles = new CpuParticles2D
         {
             Name = "HighDesireBubbles",
-            Position = new Vector2(27f, TitleHeight + MeterHeight - 6f),
+            Position = new Vector2(32f, 166f),
             Amount = 14,
             Lifetime = 2.2,
             Emitting = false,
@@ -170,14 +124,29 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
             Texture = CreateBubbleTexture(),
             ZIndex = 3,
         };
-        visuals.AddChild(_bubbles);
+        AddChild(_bubbles);
+        UpdateTexture(0);
+    }
+
+    private void AddThresholdHover(string name, Rect2 rect, int value)
+    {
+        Control zone = new()
+        {
+            Name = name,
+            Position = rect.Position,
+            Size = rect.Size,
+            MouseFilter = MouseFilterEnum.Stop,
+        };
+        zone.MouseEntered += () => ShowHoverTipForValue(value);
+        zone.MouseExited += ClearHoverTip;
+        AddChild(zone);
     }
 
     private void Refresh()
     {
         UpdatePosition();
 
-        var runState = RunManager.Instance?.DebugOnlyGetState();
+        RunState? runState = RunManager.Instance?.DebugOnlyGetState();
         if (runState == null)
         {
             _player = null;
@@ -185,32 +154,29 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
             return;
         }
 
-        var player = LocalContext.GetMe(runState);
-        _player = player;
-        if (player?.Character is not MaidenSuccubusCharacter)
+        _player = LocalContext.GetMe(runState);
+        if (_player?.Character is not MaidenSuccubusCharacter)
         {
             Visible = false;
             return;
         }
 
         Visible = true;
-        UpdateValue(Desire.Get(player));
+        UpdateValue(Desire.Get(_player));
     }
 
     private void OnDesireChanged(DesireChanged change)
     {
-        if (_player == null || !ReferenceEquals(change.Player, _player))
+        if (_player != null && ReferenceEquals(change.Player, _player))
         {
-            return;
+            UpdateValue(change.NewValue);
         }
-        UpdateValue(change.NewValue);
     }
 
     private void OnCombatVisibilityChanged(bool _)
     {
-        // Combat changes the player creature instance and top-bar layout, but it
-        // must not hide the persistent left-side meter. Refresh after the room
-        // transition while the RitsuLib combat counter remains visible as well.
+        // This persistent meter remains visible in combat; the RitsuLib counter
+        // beside energy is a complementary combat-only presentation.
         CallDeferred(nameof(Refresh));
     }
 
@@ -222,6 +188,7 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
         }
 
         _displayedValue = value;
+        UpdateTexture(value);
         if (_valueLabel != null && _player != null)
         {
             int? max = SecondaryResourceCmd.GetMax(_player, DesireResource.Id);
@@ -229,24 +196,24 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
                 ? value.ToString()
                 : $"{value}/{max}";
         }
-
-        for (int i = 0; i < _segments.Count; i++)
-        {
-            int requiredValue = SegmentCount - i;
-            _segments[i].Color = GetSegmentColor(
-                requiredValue,
-                value >= requiredValue);
-        }
         if (_bubbles != null)
         {
             _bubbles.Emitting = value >= 5;
         }
     }
 
-    private void ShowHoverTip()
+    private void UpdateTexture(int value)
     {
-        ShowHoverTipForValue(null);
+        if (_meterTexture == null)
+        {
+            return;
+        }
+        int state = Math.Clamp(value, 0, 10);
+        _meterTexture.Texture = RuntimeTextureAssets.Load(
+            $"ui/desire_meter/desire_meter_{state:00}.png");
     }
+
+    private void ShowHoverTip() => ShowHoverTipForValue(null);
 
     private void ShowHoverTipForValue(int? value)
     {
@@ -266,9 +233,7 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
                 new LocString(
                     "static_hover_tips",
                     "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.title"),
-                new LocString(
-                    "static_hover_tips",
-                    descriptionKey)),
+                new LocString("static_hover_tips", descriptionKey)),
             HoverTip.GetHoverTipAlignment(this));
     }
 
@@ -276,34 +241,16 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
 
     private void UpdatePosition()
     {
-        if (_topBar == null || !GodotObject.IsInstanceValid(_topBar))
+        if (_topBar != null && GodotObject.IsInstanceValid(_topBar))
         {
-            return;
+            Position = new Vector2(18f, 122f) - _topBar.GlobalPosition;
         }
-
-        // Fixed to the safe left edge, below the horizontal top bar.
-        Position = new Vector2(18f, 122f) - _topBar.GlobalPosition;
-    }
-
-    private static Color GetSegmentColor(int requiredValue, bool filled)
-    {
-        Color baseColor = requiredValue switch
-        {
-            >= 8 => new Color(0.95f, 0.18f, 0.32f),
-            >= 5 => new Color(0.95f, 0.46f, 0.62f),
-            _ => new Color(0.68f, 0.24f, 0.68f),
-        };
-
-        return filled
-            ? baseColor
-            : new Color(baseColor.R * 0.24f, baseColor.G * 0.24f, baseColor.B * 0.24f, 0.82f);
     }
 
     private static Texture2D CreateBubbleTexture()
     {
         const int size = 20;
-        using var image = Image.CreateEmpty(
-            size, size, false, Image.Format.Rgba8);
+        using var image = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
         Vector2 center = Vector2.One * ((size - 1) / 2f);
         for (int y = 0; y < size; y++)
         {

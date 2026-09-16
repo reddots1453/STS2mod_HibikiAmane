@@ -13,7 +13,7 @@ using MaidenSuccubus.Core.Corruption;
 
 namespace MaidenSuccubus.UI;
 
-// 顶栏天平刻度条：显示堕落值 (-5 到 +5)
+/// <summary>Top-bar corruption balance rendered from eleven reviewed states.</summary>
 [RegisterNodeAttachment(
     typeof(NTopBar),
     "corruption_meter",
@@ -22,14 +22,12 @@ namespace MaidenSuccubus.UI;
 public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
 {
     private const int SegmentCount = 11;
-    private const float SegmentSize = 14f;
-    private const float SegmentGap = 2f;
-    private const float MeterWidth = SegmentCount * SegmentSize + (SegmentCount - 1) * SegmentGap;
-    private const float MeterHeight = SegmentSize;
-    private const float MeterYOffset = 8f;
+    private const float MeterWidth = 256f;
+    private const float MeterHeight = 72f;
 
+    private TextureRect? _meterTexture;
     private int _displayedValue = int.MaxValue;
-    private bool _isShown = false;
+    private bool _isShown;
     private NTopBar? _topBar;
     private int _initialRefreshAttempts;
 
@@ -48,8 +46,6 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
 
     public void Setup(Node parent, Node node)
     {
-        // Boss 图标与计时器之间是弹性空白区，不应把计量条交给左侧 HBox
-        // 自动排版。直接挂到 NTopBar，并按两者的全局边界计算空白区中心。
         if (parent is NTopBar topBar
             && topBar.BossIcon != null
             && GodotObject.IsInstanceValid(topBar.BossIcon)
@@ -57,71 +53,65 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
             && GodotObject.IsInstanceValid(topBar.Timer))
         {
             _topBar = topBar;
-            // RitsuLib 的默认 SetupTiming 是 BeforeAdd：此刻本节点还没有 parent，
-            // 直接 Reparent 会报 "Node needs a parent" 并中断剩余初始化。
-            // 延迟到下一帧，等待 attachment runtime 完成 AddChild。
             CallDeferred(Node.MethodName.Reparent, topBar);
         }
 
         SetAnchorsPreset(LayoutPreset.TopLeft);
         Position = Vector2.Zero;
-        CustomMinimumSize = new Vector2(MeterWidth, MeterHeight + MeterYOffset);
+        CustomMinimumSize = new Vector2(MeterWidth, MeterHeight);
         Size = CustomMinimumSize;
         MouseFilter = MouseFilterEnum.Stop;
         ZIndex = 100;
         MouseEntered += ShowHoverTip;
         MouseExited += ClearHoverTip;
 
-        // 使用原生 CanvasItem 子节点作为可靠的首帧渲染路径，不依赖动态
-        // C# 节点的 _Draw 是否已被 Godot script bridge 正确接管。
-        if (GetChildCount() == 0)
-        {
-            for (int i = 0; i < SegmentCount; i++)
-            {
-                int value = i - 5;
-                Color baseColor = GetSegmentColor(value);
-                var segment = new ColorRect
-                {
-                    Name = $"Segment{value:+0;-0;0}",
-                    Position = new Vector2(i * (SegmentSize + SegmentGap), 0),
-                    Size = new Vector2(SegmentSize, SegmentSize),
-                    Color = value == Corruption.Neutral ? baseColor : baseColor.Darkened(0.55f),
-                    MouseFilter = MouseFilterEnum.Stop,
-                };
-                segment.MouseEntered += () => ShowHoverTipForValue(value);
-                segment.MouseExited += ClearHoverTip;
-                AddChild(segment);
-            }
-
-            float markerX = 5 * (SegmentSize + SegmentGap) + SegmentSize / 2;
-            var marker = new Polygon2D
-            {
-                Name = "CurrentValueMarker",
-                Position = new Vector2(markerX, MeterHeight + 3),
-                Polygon = new Vector2[]
-                {
-                    new(-4f, 0),
-                    new(4f, 0),
-                    new(0, 5.6f),
-                },
-                Color = new Color(1, 1, 1, 0.9f),
-            };
-            AddChild(marker);
-        }
-
+        BuildVisuals();
         SetProcess(false);
         _displayedValue = Corruption.Neutral;
         Visible = false;
-        _isShown = false;
         CallDeferred(nameof(RefreshVisibility));
-        QueueRedraw();
+    }
+
+    private void BuildVisuals()
+    {
+        if (GetNodeOrNull<TextureRect>("Balance") != null)
+        {
+            return;
+        }
+
+        _meterTexture = new TextureRect
+        {
+            Name = "Balance",
+            Size = new Vector2(MeterWidth, MeterHeight),
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        AddChild(_meterTexture);
+
+        float zoneWidth = MeterWidth / SegmentCount;
+        for (int index = 0; index < SegmentCount; index++)
+        {
+            int value = index - 5;
+            Control zone = new()
+            {
+                Name = $"Hover{value:+0;-0;0}",
+                Position = new Vector2(index * zoneWidth, 0f),
+                Size = new Vector2(zoneWidth, MeterHeight),
+                MouseFilter = MouseFilterEnum.Stop,
+            };
+            zone.MouseEntered += () => ShowHoverTipForValue(value);
+            zone.MouseExited += ClearHoverTip;
+            AddChild(zone);
+        }
+        UpdateTexture();
     }
 
     private void RefreshVisibility()
     {
         UpdatePosition();
 
-        var runState = RunManager.Instance?.DebugOnlyGetState();
+        RunState? runState = RunManager.Instance?.DebugOnlyGetState();
         if (runState == null)
         {
             HideIfNeeded();
@@ -141,27 +131,46 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
         }
 
         ShowIfNeeded();
-
-        int currentValue = CorruptionQuery.Get(runState);
-        if (currentValue != _displayedValue)
-        {
-            _displayedValue = currentValue;
-            QueueRedraw();
-        }
+        SetValue(CorruptionQuery.Get(runState));
     }
 
     private void OnCorruptionChanged(CorruptionChanged change)
     {
-        if (RunManager.Instance?.DebugOnlyGetState() != change.RunState)
+        if (RunManager.Instance?.DebugOnlyGetState() == change.RunState)
         {
-            return;
+            SetValue(change.NewValue);
         }
-
-        _displayedValue = change.NewValue;
-        QueueRedraw();
     }
 
     private void OnCombatVisibilityChanged(bool _) => RefreshVisibility();
+
+    private void SetValue(int value)
+    {
+        int clamped = Math.Clamp(value, Corruption.Min, Corruption.Max);
+        if (_displayedValue == clamped)
+        {
+            return;
+        }
+        _displayedValue = clamped;
+        UpdateTexture();
+    }
+
+    private void UpdateTexture()
+    {
+        if (_meterTexture == null)
+        {
+            return;
+        }
+        int value = Math.Clamp(_displayedValue, Corruption.Min, Corruption.Max);
+        string state = value switch
+        {
+            < 0 => $"neg{-value}",
+            > 0 => $"pos{value}",
+            _ => "zero",
+        };
+        _meterTexture.Texture = RuntimeTextureAssets.Load(
+            $"ui/corruption/corruption_balance_{state}.png");
+    }
 
     private void UpdatePosition()
     {
@@ -173,77 +182,42 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
             return;
         }
 
-        const float bossRightGap = 12f;
-        float targetGlobalX = _topBar.BossIcon.GlobalPosition.X
-            + _topBar.BossIcon.Size.X + bossRightGap;
+        const float gap = 12f;
+        float left = _topBar.BossIcon.GlobalPosition.X
+            + _topBar.BossIcon.Size.X + gap;
+        float right = _topBar.Timer != null && GodotObject.IsInstanceValid(_topBar.Timer)
+            ? _topBar.Timer.GlobalPosition.X - gap
+            : left + MeterWidth;
+        float targetGlobalX = right - left >= MeterWidth
+            ? left + (right - left - MeterWidth) / 2f
+            : left;
         float targetGlobalY = _topBar.BossIcon.GlobalPosition.Y
-            + (_topBar.BossIcon.Size.Y - (MeterHeight + MeterYOffset)) / 2f;
+            + (_topBar.BossIcon.Size.Y - MeterHeight) / 2f;
         Position = new Vector2(targetGlobalX, targetGlobalY) - _topBar.GlobalPosition;
     }
 
     private void HideIfNeeded()
     {
-        if (_isShown)
+        if (!_isShown)
         {
-            ClearHoverTip();
-            _isShown = false;
-            Visible = false;
+            return;
         }
+        ClearHoverTip();
+        _isShown = false;
+        Visible = false;
     }
 
     private void ShowIfNeeded()
     {
-        if (!_isShown)
+        if (_isShown)
         {
-            _isShown = true;
-            Visible = true;
+            return;
         }
+        _isShown = true;
+        Visible = true;
     }
 
-    public override void _Draw()
-    {
-        if (_displayedValue == int.MaxValue) return;
-
-        for (int i = 0; i < SegmentCount; i++)
-        {
-            int value = i - 5;
-            float x = i * (SegmentSize + SegmentGap);
-
-            Color baseColor = GetSegmentColor(value);
-            Color drawColor = value == _displayedValue
-                ? baseColor
-                : baseColor.Darkened(0.55f);
-
-            DrawRect(new Rect2(x, 0, SegmentSize, SegmentSize), drawColor, filled: true);
-            DrawRect(new Rect2(x, 0, SegmentSize, SegmentSize), new Color(0, 0, 0, 0.85f), filled: false, width: 1f);
-        }
-
-        float markerX = (_displayedValue + 5) * (SegmentSize + SegmentGap) + SegmentSize / 2;
-        DrawDownTriangle(new Vector2(markerX, MeterHeight + 3), 4f, new Color(1, 1, 1, 0.85f));
-    }
-
-    private static Color GetSegmentColor(int value)
-    {
-        if (value < 0) return new Color(0.5f, 0.7f, 1.0f);
-        if (value > 0) return new Color(0.85f, 0.5f, 0.85f);
-        return new Color(0.7f, 0.7f, 0.7f);
-    }
-
-    private void DrawDownTriangle(Vector2 topCenter, float halfWidth, Color color)
-    {
-        var points = new Vector2[]
-        {
-            topCenter + new Vector2(-halfWidth, 0),
-            topCenter + new Vector2(halfWidth, 0),
-            topCenter + new Vector2(0, halfWidth * 1.4f),
-        };
-        DrawPolygon(points, new Color[] { color });
-    }
-
-    private void ShowHoverTip()
-    {
-        ShowHoverTipForValue(null);
-    }
+    private void ShowHoverTip() => ShowHoverTipForValue(null);
 
     private void ShowHoverTipForValue(int? value)
     {
@@ -260,21 +234,17 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
             -5 => "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.minus5",
             _ => "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.description",
         };
-        var description = new LocString("static_hover_tips", descriptionKey);
+        LocString description = new("static_hover_tips", descriptionKey);
         description.Add("Current", _displayedValue);
-        var hoverTip = new HoverTip(
-            new LocString(
-                "static_hover_tips",
-                "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.title"),
-            description);
         NHoverTipSet.CreateAndShow(
             this,
-            hoverTip,
+            new HoverTip(
+                new LocString(
+                    "static_hover_tips",
+                    "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.title"),
+                description),
             HoverTip.GetHoverTipAlignment(this));
     }
 
-    private void ClearHoverTip()
-    {
-        NHoverTipSet.Remove(this);
-    }
+    private void ClearHoverTip() => NHoverTipSet.Remove(this);
 }

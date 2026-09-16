@@ -45,8 +45,8 @@ public sealed partial class TemptationMeter : Control, INodeAttachmentSetup
             CallDeferred(Node.MethodName.Reparent, topBar);
         }
         SetAnchorsPreset(LayoutPreset.TopLeft);
-        Position = new Vector2(76f, 122f);
-        CustomMinimumSize = new Vector2(70f, 58f);
+        Position = new Vector2(88f, 128f);
+        CustomMinimumSize = new Vector2(64f, 64f);
         Size = CustomMinimumSize;
         MouseFilter = MouseFilterEnum.Stop;
         ZIndex = 100;
@@ -54,30 +54,22 @@ public sealed partial class TemptationMeter : Control, INodeAttachmentSetup
         MouseEntered += ShowHoverTip;
         MouseExited += () => NHoverTipSet.Remove(this);
 
-        var backing = new ColorRect
+        var icon = new TextureRect
         {
-            Color = new Color(0.18f, 0.035f, 0.14f, 0.90f),
+            Name = "TemptationIcon",
+            Texture = RuntimeTextureAssets.Load(
+                "powers/64x64/temptation_power.png"),
             Size = CustomMinimumSize,
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
             MouseFilter = MouseFilterEnum.Ignore,
         };
-        AddChild(backing);
-        var title = new Label
-        {
-            Text = "诱惑度",
-            Size = new Vector2(70f, 27f),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore,
-        };
-        title.AddThemeColorOverride("font_color", new Color(1f, 0.68f, 0.88f));
-        title.AddThemeColorOverride("font_outline_color", Colors.Black);
-        title.AddThemeConstantOverride("outline_size", 4);
-        AddChild(title);
+        AddChild(icon);
         _value = new Label
         {
             Text = "10",
-            Position = new Vector2(0f, 25f),
-            Size = new Vector2(70f, 31f),
+            Position = new Vector2(0f, 37f),
+            Size = new Vector2(64f, 25f),
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore,
@@ -93,7 +85,7 @@ public sealed partial class TemptationMeter : Control, INodeAttachmentSetup
     {
         if (_topBar != null && GodotObject.IsInstanceValid(_topBar))
         {
-            Position = new Vector2(76f, 122f) - _topBar.GlobalPosition;
+            Position = new Vector2(88f, 128f) - _topBar.GlobalPosition;
         }
         RunState? runState = RunManager.Instance?.DebugOnlyGetState();
         _player = runState == null ? null : LocalContext.GetMe(runState);

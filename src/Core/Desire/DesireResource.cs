@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.Nodes.Combat;
 using STS2RitsuLib;
 using STS2RitsuLib.Combat.SecondaryResources;
 using MaidenSuccubus.Characters;
+using MaidenSuccubus.UI;
 
 namespace MaidenSuccubus.Core.Desire;
 
@@ -19,6 +20,15 @@ public static class DesireResource
 
     public static void Register()
     {
+        string smallIconPath = RuntimeTextureAssets.PrepareResource(
+            "ui/core/desire_resource_icon_32.png",
+            "user://maiden_succubus_desire_resource_32.res",
+            "res://images/packed/sprite_fonts/star_icon.png");
+        string largeIconPath = RuntimeTextureAssets.PrepareResource(
+            "ui/core/desire_resource_icon_128.png",
+            "user://maiden_succubus_desire_resource_128.res",
+            "res://images/ui/combat/energy_star.png");
+
         var registry =
             RitsuLibFramework.GetSecondaryResourceRegistry(
                 MaidenSuccubusMod.ModId);
@@ -31,10 +41,8 @@ public static class DesireResource
                 hardMaxAmount: int.MaxValue,
                 turnStartPolicy: SecondaryResourceTurnStartPolicy.None,
                 persistencePolicy: SecondaryResourcePersistencePolicy.Run,
-                smallIconPath:
-                    "res://images/packed/sprite_fonts/star_icon.png",
-                largeIconPath:
-                    "res://images/ui/combat/energy_star.png",
+                smallIconPath: smallIconPath,
+                largeIconPath: largeIconPath,
                 locTable: "static_hover_tips",
                 titleKey:
                     "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.title",

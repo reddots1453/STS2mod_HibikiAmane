@@ -2,8 +2,10 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using STS2RitsuLib.Scaffolding.Content;
+using STS2RitsuLib.Models.Capabilities;
 using MaidenSuccubus.Core.Routes;
 using MaidenSuccubus.Pools;
+using MaidenSuccubus.UI;
 
 namespace MaidenSuccubus.Cards;
 
@@ -35,7 +37,10 @@ public abstract class MSNeutralCard : MSNeutralCardTemplate
         : base(cost, type, rarity, target) { }
 }
 
-public abstract class MSCorruptCardTemplate : ModCardTemplate, IMaidenSuccubusRouteCard
+public abstract class MSCorruptCardTemplate :
+    ModCardTemplate,
+    IMaidenSuccubusRouteCard,
+    ICardOverlayContributor
 {
     public RouteCardKind RouteKind => RouteCardKind.Corrupt;
     public override CardPoolModel Pool => ModelDb.CardPool<MSCorruptCardPool>();
@@ -48,6 +53,10 @@ public abstract class MSCorruptCardTemplate : ModCardTemplate, IMaidenSuccubusRo
         CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)
             .Concat(CardHoverTipSupport.FromDescriptionReferences(this))
             .Concat(CardSpecificHoverTips);
+
+    IEnumerable<CardOverlayContribution>
+        ICardOverlayContributor.GetCardOverlays(CardOverlayContext context) =>
+        RouteCardVisuals.GetOverlays(RouteKind);
 
     protected MSCorruptCardTemplate(
         int cost,
@@ -63,7 +72,10 @@ public abstract class MSCorruptCard : MSCorruptCardTemplate
         : base(cost, type, rarity, target) { }
 }
 
-public abstract class MSHolyCardTemplate : ModCardTemplate, IMaidenSuccubusRouteCard
+public abstract class MSHolyCardTemplate :
+    ModCardTemplate,
+    IMaidenSuccubusRouteCard,
+    ICardOverlayContributor
 {
     public RouteCardKind RouteKind => RouteCardKind.Holy;
     public override CardPoolModel Pool => ModelDb.CardPool<MSHolyCardPool>();
@@ -76,6 +88,10 @@ public abstract class MSHolyCardTemplate : ModCardTemplate, IMaidenSuccubusRoute
         CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)
             .Concat(CardHoverTipSupport.FromDescriptionReferences(this))
             .Concat(CardSpecificHoverTips);
+
+    IEnumerable<CardOverlayContribution>
+        ICardOverlayContributor.GetCardOverlays(CardOverlayContext context) =>
+        RouteCardVisuals.GetOverlays(RouteKind);
 
     protected MSHolyCardTemplate(
         int cost,
