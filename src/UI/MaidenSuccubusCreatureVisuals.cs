@@ -338,6 +338,7 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
             if (expression != null)
             {
                 _expressionSprite.Texture = expression;
+                AlignExpressionToAppearance();
                 _shownExpression = file;
             }
         }
@@ -554,7 +555,24 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         }
 
         _characterSprite.Texture = nextTexture;
+        AlignExpressionToAppearance();
         _shownAppearance = file;
+    }
+
+    private void AlignExpressionToAppearance()
+    {
+        if (_characterSprite?.Texture == null
+            || _expressionSprite?.Texture == null)
+        {
+            return;
+        }
+
+        // Both bitmaps use the same original top-left artwork coordinates,
+        // but expressions are 922x922 while bodies are 922x1250. Sprite2D is
+        // centered by default, so compensate for the unequal canvas heights.
+        _expressionSprite.Position =
+            (_expressionSprite.Texture.GetSize()
+                - _characterSprite.Texture.GetSize()) / 2f;
     }
 
     private static Texture2D? LoadTexture(string file)

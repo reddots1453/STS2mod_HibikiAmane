@@ -65,9 +65,12 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
         MouseEntered += ShowHoverTip;
         MouseExited += ClearHoverTip;
 
+        // BuildVisuals immediately selects a texture. Seed it with the real
+        // neutral value instead of the field's invalidation sentinel; leaving
+        // the +5 clamped texture here made a zero-value scale look tilted.
+        _displayedValue = Corruption.Neutral;
         BuildVisuals();
         SetProcess(false);
-        _displayedValue = Corruption.Neutral;
         Visible = false;
         CallDeferred(nameof(RefreshVisibility));
     }

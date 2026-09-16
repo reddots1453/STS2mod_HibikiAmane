@@ -92,7 +92,8 @@ public static class DesireResource
                 // Match the vanilla NStarCounter scene's bottom-left anchor,
                 // offsets and scale so Desire sits beside the energy counter.
                 counter.SetAnchorsPreset(Godot.Control.LayoutPreset.BottomLeft);
-                counter.Position = new Vector2(64f, -212f);
+                // Clear the vanilla energy counter instead of overlapping it.
+                counter.Position = new Vector2(176f, -212f);
                 counter.Scale = Vector2.One * 0.8f;
                 counter.PivotOffset = new Vector2(64f, 64f);
                 return counter;

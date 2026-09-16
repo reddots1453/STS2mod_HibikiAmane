@@ -44,17 +44,26 @@ public static class RouteCardVisuals
         };
         root.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
 
+        Vector2 targetSize = holy
+            ? new Vector2(92f, 92f)
+            : new Vector2(84f, 90f);
         TextureRect image = new()
         {
             Name = "RouteWing",
-            Texture = texture,
-            Position = holy ? new Vector2(-222f, -255f) : new Vector2(124f, -248f),
-            Size = holy ? new Vector2(92f, 92f) : new Vector2(84f, 90f),
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
             StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+            CustomMinimumSize = Vector2.Zero,
             MouseFilter = Control.MouseFilterEnum.Ignore,
         };
         root.AddChild(image);
+        // Configure IgnoreSize before assigning the 512px source texture.
+        // Otherwise TextureRect can retain the texture's raw minimum size and
+        // the route mark spills across the whole card grid.
+        image.Texture = texture;
+        image.Position = holy
+            ? new Vector2(-222f, -255f)
+            : new Vector2(124f, -248f);
+        image.Size = targetSize;
         return root;
     }
 }

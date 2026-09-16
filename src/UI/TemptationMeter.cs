@@ -45,7 +45,7 @@ public sealed partial class TemptationMeter : Control, INodeAttachmentSetup
             CallDeferred(Node.MethodName.Reparent, topBar);
         }
         SetAnchorsPreset(LayoutPreset.TopLeft);
-        Position = new Vector2(88f, 128f);
+        Position = new Vector2(88f, 220f);
         CustomMinimumSize = new Vector2(64f, 64f);
         Size = CustomMinimumSize;
         MouseFilter = MouseFilterEnum.Stop;
@@ -85,7 +85,8 @@ public sealed partial class TemptationMeter : Control, INodeAttachmentSetup
     {
         if (_topBar != null && GodotObject.IsInstanceValid(_topBar))
         {
-            Position = new Vector2(88f, 128f) - _topBar.GlobalPosition;
+            // Follow the desire rail below the top-left relic rows.
+            Position = new Vector2(88f, 220f) - _topBar.GlobalPosition;
         }
         RunState? runState = RunManager.Instance?.DebugOnlyGetState();
         _player = runState == null ? null : LocalContext.GetMe(runState);

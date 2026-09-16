@@ -243,7 +243,8 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
     {
         if (_topBar != null && GodotObject.IsInstanceValid(_topBar))
         {
-            Position = new Vector2(18f, 122f) - _topBar.GlobalPosition;
+            // Keep the persistent rail below the top-left relic rows.
+            Position = new Vector2(18f, 214f) - _topBar.GlobalPosition;
         }
     }
 
