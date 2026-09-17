@@ -157,6 +157,11 @@ if ($desireCode -notmatch 'Text\s*=\s*"0"' -or
     $desireCode -match '\$"\{value\}/\{max\}"') {
     throw "Desire meter must display only the current integer value, without /10."
 }
+$escapeVisualCode = Get-Content -LiteralPath (Join-Path $ProjectDir "src\UI\EscapeCardVisuals.cs") -Raw
+if ($escapeVisualCode -notmatch 'ModelDb\.Affliction<Bound>\(\)\.CreateOverlay\(\)' -or
+    $escapeVisualCode -match 'Label\s+chains\s*=\s*new') {
+    throw "Escape cards must reuse the vanilla Bound overlay instead of a font-positioned chain label."
+}
 if ($routeCode -notmatch 'route_holy_wing_v3\.png' -or
     $routeCode -notmatch 'route_corrupt_wing_v3\.png') {
     throw "Route overlays are not wired to both reviewed V3 wings."

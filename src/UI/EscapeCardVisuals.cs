@@ -1,6 +1,8 @@
 using Godot;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Afflictions;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 
 namespace MaidenSuccubus.UI;
@@ -40,32 +42,13 @@ public static class EscapeCardVisuals
 
     public static Control CreateOverlay()
     {
-        Control root = new()
-        {
-            Name = OverlayName,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-        };
-        root.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-
-        ColorRect shade = new()
-        {
-            Color = new Color(0.06f, 0.08f, 0.12f, 0.48f),
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-        };
-        shade.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-        root.AddChild(shade);
-
-        Label chains = new()
-        {
-            Text = "⛓     ⛓\n\n⛓     ⛓",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-        };
-        chains.AddThemeFontSizeOverride("font_size", 52);
-        chains.AddThemeColorOverride("font_color", new Color(0.72f, 0.76f, 0.82f, 0.9f));
-        chains.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-        root.AddChild(chains);
-        return root;
+        // Reuse the vanilla Queen/Bound card overlay. Its packed scene is
+        // authored against NCard's overlay container, so it keeps the chains
+        // aligned at every card scale and preview size. A text-label imitation
+        // drifts when the fallback font or the hover-preview layout changes.
+        Control overlay = ModelDb.Affliction<Bound>().CreateOverlay();
+        overlay.Name = OverlayName;
+        overlay.MouseFilter = Control.MouseFilterEnum.Ignore;
+        return overlay;
     }
 }
