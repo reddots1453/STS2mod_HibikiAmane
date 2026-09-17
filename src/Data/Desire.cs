@@ -19,14 +19,30 @@ public static class Desire
     public const int Max = 10;
     public const int ValueAfterOverflow = 3;
 
-    // Only non-resource rule flags remain in mod-owned run data.
+    // Special rule flags remain run-wide; the amount bridge is per player so
+    // multiplayer runs do not merge two Maiden players' desire values.
     public static RunSavedData<DesireState> Handle = null!;
+    public static PlayerRunSavedData<DesireAmountState> AmountHandle = null!;
 
-    public static int Get(Player player) =>
-        SecondaryResourceCmd.Get(player, DesireResource.Id);
+    public static int Get(Player player)
+    {
+        if (HasCombatState(player))
+        {
+            return SecondaryResourceCmd.Get(player, DesireResource.Id);
+        }
+
+        DesireAmountState state = AmountHandle.Get(player);
+        return state.HasValue ? state.Amount : Min;
+    }
 
     public static Task Modify(Player player, int delta)
     {
+        if (!HasCombatState(player))
+        {
+            SetNonCombatValue(player, Get(player) + delta);
+            return Task.CompletedTask;
+        }
+
         if (delta > 0)
         {
             return SecondaryResourceCmd.Gain(
@@ -52,11 +68,19 @@ public static class Desire
         int delta) =>
         Modify(player, delta);
 
-    public static Task Set(Player player, int value) =>
-        SecondaryResourceCmd.Set(
+    public static Task Set(Player player, int value)
+    {
+        if (!HasCombatState(player))
+        {
+            SetNonCombatValue(player, value);
+            return Task.CompletedTask;
+        }
+
+        return SecondaryResourceCmd.Set(
             player,
             DesireResource.Id,
             Math.Max(Min, value));
+    }
 
     public static Task Set(
         PlayerChoiceContext _,
@@ -102,4 +126,34 @@ public static class Desire
             null);
         DesireResourceRules.GrantFirstMaximumCorruption(runState);
     }
+
+    internal static void RememberCombatValue(Player player, int value)
+    {
+        int normalized = Math.Max(Min, value);
+        AmountHandle.Modify(
+            player,
+            state =>
+            {
+                state.Amount = normalized;
+                state.HasValue = true;
+            });
+    }
+
+    private static void SetNonCombatValue(Player player, int value)
+    {
+        int oldValue = Get(player);
+        int newValue = Math.Max(Min, value);
+        RememberCombatValue(player, newValue);
+        if (oldValue != newValue)
+        {
+            DesireEvents.Publish(new DesireChanged(
+                player,
+                oldValue,
+                newValue));
+        }
+    }
+
+    private static bool HasCombatState(Player player) =>
+        player.Creature?.CombatState != null
+        && player.PlayerCombatState != null;
 }

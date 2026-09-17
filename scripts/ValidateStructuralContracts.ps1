@@ -206,6 +206,9 @@ Assert-Contains "Bath next-turn energy uses EnergyVar" $iterationOneNeutralCards
 
 $desireResource = Read-Text "src\Core\Desire\DesireResource.cs"
 $desireMeter = Read-Text "src\UI\DesireMeter.cs"
+$desireFacade = Read-Text "src\Data\Desire.cs"
+$desireResourceRules = Read-Text "src\Core\Desire\DesireResourceRules.cs"
+$desirePersistence = Read-Text "src\Core\Desire\DesirePersistenceCoordinator.cs"
 $temptationMeter = Read-Text "src\UI\TemptationMeter.cs"
 Assert-Contains "combat desire UI" $desireResource 'RegisterCombatUi\('
 Assert-Contains "combat desire UI" $desireResource 'AlwaysShowInCombatUiForCharacter<MaidenSuccubusCharacter>'
@@ -215,6 +218,11 @@ Assert-Contains "temptation meter retains combat transition state" $temptationMe
 Assert-Contains "temptation meter retries until local player is published" $temptationMeter 'inCombat\s*&&\s*_player\s*==\s*null\s*&&\s*_initialRefreshAttempts\+\+\s*<\s*4'
 Assert-NotContains "combat must not hide left-side desire UI" $desireMeter 'Visible\s*=\s*!inCombat'
 Assert-NotContains "combat must not suppress left-side desire UI refresh" $desireMeter 'CombatManager\.Instance\.IsInProgress'
+Assert-Contains "desire has per-player cross-combat storage" $desireFacade 'PlayerRunSavedData<DesireAmountState>\s+AmountHandle'
+Assert-Contains "non-combat desire reads persistent value" $desireFacade 'if\s*\(HasCombatState\(player\)\)[\s\S]*?AmountHandle\.Get\(player\)'
+Assert-Contains "combat desire updates persistent value" $desireResourceRules 'RememberCombatValue\([\s\S]*?context\.NewAmount'
+Assert-Contains "combat start restores persistent desire" $desirePersistence 'SubscribeLifecycle<CombatStartingEvent>[\s\S]*?SecondaryResourcePersistence\.RestoreSnapshot'
+Assert-Contains "combat end captures desire" $desirePersistence 'SubscribeLifecycle<CombatEndedEvent>[\s\S]*?RememberCombatValue'
 
 $fourthRouteScreen = Read-Text "src\UI\FourthRouteSelectionScreen.cs"
 Assert-Contains "fourth-route map modal" $fourthRouteScreen 'IScreenContext'

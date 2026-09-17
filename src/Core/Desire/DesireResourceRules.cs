@@ -61,6 +61,9 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
             return;
         }
 
+        Data.Desire.RememberCombatValue(
+            context.Player,
+            context.NewAmount);
         DesireEvents.Publish(new DesireChanged(
             context.Player,
             context.OldAmount,

@@ -30,6 +30,7 @@ public static class FrameworkSelfTests
         AssertRouteRolls();
         AssertSealRules();
         AssertDesireDefinition();
+        AssertDesireAmountState();
         AssertControlTypes();
         AssertFourthActRoutes();
         AssertFourthRouteQuests();
@@ -135,6 +136,20 @@ public static class FrameworkSelfTests
                 && definition.TurnStartPolicy
                     == SecondaryResourceTurnStartPolicy.None,
             "desire resource definition");
+    }
+
+    private static void AssertDesireAmountState()
+    {
+        var state = new MaidenSuccubus.Data.DesireAmountState();
+        AssertBoolean(false, state.HasValue, "desire amount starts unmigrated");
+        AssertBoolean(true, state.Amount == 0, "desire amount defaults to zero");
+
+        state.Amount = 7;
+        state.HasValue = true;
+        AssertBoolean(
+            true,
+            state.HasValue && state.Amount == 7,
+            "desire amount retains a cross-combat value");
     }
 
     private static void AssertSealRules()

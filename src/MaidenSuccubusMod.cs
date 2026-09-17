@@ -39,6 +39,7 @@ public static class MaidenSuccubusMod
         RegisterRunSavedData();
         RegisterKeywords();
         DesireResource.Register();
+        DesirePersistenceCoordinator.Initialize();
         if (MvpFeatureFlags.EnemyIntentExtensions)
         {
             EroticAttackCatalog.Validate();
@@ -155,6 +156,16 @@ public static class MaidenSuccubusMod
                 }
             );
 
+            Desire.AmountHandle = store.RegisterPerPlayer(
+                key: "desire_amount",
+                defaultFactory: () => new DesireAmountState(),
+                options: new RunSavedDataOptions
+                {
+                    WritePolicy = RunSavedDataWritePolicy.WhenNonDefault,
+                    SyncLobbyOnChange = true,
+                }
+            );
+
             M5Progress.Handle = store.Register(
                 key: "m5_progress",
                 defaultFactory: () => new M5ProgressState(),
@@ -165,6 +176,8 @@ public static class MaidenSuccubusMod
                 }
             );
         }
-        Logger.Info("RunSavedData registered: corruption, desire, m5_progress");
+        Logger.Info(
+            "RunSavedData registered: corruption, desire, desire_amount, "
+            + "m5_progress");
     }
 }
