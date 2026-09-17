@@ -151,6 +151,12 @@ if ($characterCode -notmatch 'new CharacterUiAssetSet\(' -or
 if ($desireCode -notmatch 'desire_meter_\{state:00\}\.png') {
     throw "Desire meter is not wired to reviewed state textures."
 }
+if ($desireCode -notmatch 'Text\s*=\s*"0"' -or
+    $desireCode -notmatch '_valueLabel\.Text\s*=\s*value\.ToString\(\)' -or
+    $desireCode -match 'Text\s*=\s*"0/10"' -or
+    $desireCode -match '\$"\{value\}/\{max\}"') {
+    throw "Desire meter must display only the current integer value, without /10."
+}
 if ($routeCode -notmatch 'route_holy_wing_v3\.png' -or
     $routeCode -notmatch 'route_corrupt_wing_v3\.png') {
     throw "Route overlays are not wired to both reviewed V3 wings."

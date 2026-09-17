@@ -5,7 +5,6 @@ using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Runs;
-using STS2RitsuLib.Combat.SecondaryResources;
 using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Godot.NodeAttachments;
 using MaidenSuccubus.Characters;
@@ -89,7 +88,7 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
         _valueLabel = new Label
         {
             Name = "Value",
-            Text = "0/10",
+            Text = "0",
             Position = new Vector2(11.5f, 175f),
             Size = new Vector2(41f, 28f),
             HorizontalAlignment = HorizontalAlignment.Center,
@@ -191,10 +190,7 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
         UpdateTexture(value);
         if (_valueLabel != null && _player != null)
         {
-            int? max = SecondaryResourceCmd.GetMax(_player, DesireResource.Id);
-            _valueLabel.Text = max is null or >= int.MaxValue
-                ? value.ToString()
-                : $"{value}/{max}";
+            _valueLabel.Text = value.ToString();
         }
         if (_bubbles != null)
         {
