@@ -83,7 +83,7 @@ public sealed class UltimateFlarePower : MaidenSuccubusPowerTemplate
         get
         {
             LocString description = base.Description;
-            description.Add("Damage", Damage);
+            description.Add("Damage", (int)Damage);
             return description;
         }
     }

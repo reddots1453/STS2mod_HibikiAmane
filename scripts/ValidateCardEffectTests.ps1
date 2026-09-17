@@ -22,6 +22,8 @@ $hotkey = Get-Content -Raw -Encoding UTF8 -LiteralPath $hotkeyPath
 $intentFactory = Get-Content -Raw -Encoding UTF8 -LiteralPath $intentFactoryPath
 $holyPowers = Get-Content -Raw -Encoding UTF8 -LiteralPath $holyPowersPath
 $neutralBatch = Get-Content -Raw -Encoding UTF8 -LiteralPath $neutralBatchPath
+$neutralPowers = Get-Content -Raw -Encoding UTF8 -LiteralPath (
+    Join-Path $ProjectDir "src\Powers\MvpNeutralUtilityPowers.cs")
 $cardSources = (Get-ChildItem -LiteralPath $cardsPath -Filter "*.cs" -File |
     ForEach-Object { Get-Content -Raw -Encoding UTF8 -LiteralPath $_.FullName }) -join "`n"
 
@@ -158,6 +160,10 @@ if ($catalog -notmatch 'DesireWhipProbe' -or
 }
 if ($neutralBatch -notmatch '(?s)class FlashStab.*?CardCmd\.PreviewCardPileAdd\(\s*await CardPileCmd\.AddGeneratedCardToCombat\(\s*copy,\s*PileType\.Draw,\s*Owner,\s*CardPilePosition\.Random\),\s*2\.2f\)') {
     throw "FlashStab must preview its generated copy entering a random draw-pile position, matching Anger-style feedback."
+}
+if ($neutralPowers -notmatch 'description\.Add\("Damage",\s*\(int\)Damage\)' -or
+    $neutralPowers -match 'description\.Add\("Damage",\s*Damage\)') {
+    throw "Magic Star Bomb power must format delayed damage as an integer."
 }
 if ($catalog -notmatch 'projected card original effect is suppressed' -or
     $catalog -notmatch 'projected card pays one escape point' -or
