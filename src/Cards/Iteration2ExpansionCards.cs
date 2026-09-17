@@ -182,7 +182,7 @@ public sealed class GaleSword : MSNeutralCard
             && card.Pile?.Type == PileType.Deck)
         {
             if (Enchantment == null)
-                CardCmd.Enchant<Swift>(this, 2);
+                PickupEnchantmentCmd.EnchantAndPreview<Swift>(this, 2);
             EnchantedOnPickup = Enchantment is Swift;
         }
         return Task.CompletedTask;
@@ -226,7 +226,7 @@ public sealed class ShiningSword : MSNeutralCard
             && card.Pile?.Type == PileType.Deck)
         {
             if (Enchantment == null)
-                CardCmd.Enchant<Vigorous>(this, 3);
+                PickupEnchantmentCmd.EnchantAndPreview<Vigorous>(this, 3);
             EnchantedOnPickup = Enchantment is Vigorous;
         }
         return Task.CompletedTask;

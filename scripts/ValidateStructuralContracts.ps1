@@ -74,6 +74,20 @@ $escapeVisuals = Read-Text "src\UI\EscapeCardVisuals.cs"
 Assert-Contains "escape visual reentrancy" $escapeVisuals '\[ThreadStatic\]\s+private static bool _refreshing'
 Assert-Contains "escape visual reentrancy" $escapeVisuals 'if \(_refreshing\)'
 
+$pickupEnchantment = Read-Text "src\Commands\PickupEnchantmentCmd.cs"
+$strengthCards = Read-Text "src\Cards\MvpStrengthCards.cs"
+$neutralCardsBatch3 = Read-Text "src\Cards\MvpNeutralCardsBatch3.cs"
+$iteration2ExpansionCards = Read-Text "src\Cards\Iteration2ExpansionCards.cs"
+$advancedCards = Read-Text "src\Cards\MvpAdvancedCards.cs"
+Assert-Contains "pickup enchantment model update" $pickupEnchantment 'CardCmd\.Enchant'
+Assert-Contains "pickup enchantment vanilla vfx" $pickupEnchantment 'NCardEnchantVfx\.Create\(card\)'
+Assert-Contains "pickup enchantment preview container" $pickupEnchantment 'CardPreviewContainer\.AddChildSafely\(vfx\)'
+Assert-Contains "dark storm pickup enchantment preview" $strengthCards 'PickupEnchantmentCmd\.EnchantAndPreview<Glam>'
+Assert-Contains "magic sword pickup enchantment preview" $neutralCardsBatch3 'PickupEnchantmentCmd\.EnchantAndPreview<ChargeEnchantment>'
+Assert-Contains "gale sword pickup enchantment preview" $iteration2ExpansionCards 'PickupEnchantmentCmd\.EnchantAndPreview<Swift>'
+Assert-Contains "shining sword pickup enchantment preview" $iteration2ExpansionCards 'PickupEnchantmentCmd\.EnchantAndPreview<Vigorous>'
+Assert-Contains "Yarus memory pickup enchantment preview" $advancedCards 'PickupEnchantmentCmd\.EnchantAndPreview\('
+
 $battleReplayPower = Read-Text "src\Powers\Iteration1HolyPowers.cs"
 $battleReplayCapability = Read-Text "src\Core\Replay\BattleReplayOriginCapability.cs"
 $battleReplayVisuals = Read-Text "src\UI\BattleReplayCardVisuals.cs"

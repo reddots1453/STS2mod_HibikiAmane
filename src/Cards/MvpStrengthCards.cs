@@ -44,7 +44,7 @@ public sealed class DarkStorm : MSCorruptCard
         {
             EnchantedOnPickup = true;
             if (Enchantment == null)
-                CardCmd.Enchant<Glam>(this, 1);
+                PickupEnchantmentCmd.EnchantAndPreview<Glam>(this, 1);
         }
         return Task.CompletedTask;
     }

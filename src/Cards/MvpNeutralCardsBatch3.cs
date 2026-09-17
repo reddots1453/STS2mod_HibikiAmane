@@ -111,7 +111,7 @@ public sealed class MagicSword : MSNeutralCard
             && card.Pile?.Type == PileType.Deck)
         {
             if (Enchantment == null)
-                CardCmd.Enchant<ChargeEnchantment>(this, 2);
+                PickupEnchantmentCmd.EnchantAndPreview<ChargeEnchantment>(this, 2);
             EnchantedOnPickup = Enchantment is ChargeEnchantment;
         }
         return Task.CompletedTask;

@@ -148,7 +148,9 @@ public sealed class YarusMemory : MSHolyCard
             return;
         LinkedOnPickup = true;
         SoulLinkEnchantment canonical = ModelDb.Enchantment<SoulLinkEnchantment>();
-        if (Enchantment == null) CardCmd.Enchant(canonical.ToMutable(), this, 1);
+        if (Enchantment == null)
+            PickupEnchantmentCmd.EnchantAndPreview(
+                canonical.ToMutable(), this, 1);
         CardSelectorPrefs prefs = new(CardSelectorPrefs.EnchantSelectionPrompt, 0, 2)
         {
             Cancelable = false,
@@ -157,7 +159,8 @@ public sealed class YarusMemory : MSHolyCard
         IEnumerable<CardModel> selected = await CardSelectCmd.FromDeckGeneric(
             Owner, prefs, candidate => candidate != this && candidate.Enchantment == null);
         foreach (CardModel target in selected)
-            CardCmd.Enchant(canonical.ToMutable(), target, 1);
+            PickupEnchantmentCmd.EnchantAndPreview(
+                canonical.ToMutable(), target, 1);
     }
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
