@@ -23,6 +23,8 @@ public sealed partial class TemptationMeter : Control, INodeAttachmentSetup
     private Label? _value;
     private NTopBar? _topBar;
     private MegaCrit.Sts2.Core.Entities.Players.Player? _player;
+    private bool? _combatVisibility;
+    private int _initialRefreshAttempts;
 
     public override void _EnterTree()
     {
@@ -90,8 +92,20 @@ public sealed partial class TemptationMeter : Control, INodeAttachmentSetup
         }
         RunState? runState = RunManager.Instance?.DebugOnlyGetState();
         _player = runState == null ? null : LocalContext.GetMe(runState);
-        Visible = CombatManager.Instance.IsInProgress
+        bool inCombat = _combatVisibility
+            ?? CombatManager.Instance.IsInProgress;
+        Visible = inCombat
             && _player?.Character is MaidenSuccubusCharacter;
+        if (inCombat && _player == null && _initialRefreshAttempts++ < 4)
+        {
+            // During combat setup, the top-bar attachment and transition event
+            // may precede publication of the local RunState player.
+            CallDeferred(nameof(Refresh));
+        }
+        else if (_player != null)
+        {
+            _initialRefreshAttempts = 0;
+        }
         if (Visible && _value != null && _player != null)
         {
             _value.Text = Temptation.Get(_player).ToString();
@@ -108,7 +122,15 @@ public sealed partial class TemptationMeter : Control, INodeAttachmentSetup
         }
     }
 
-    private void OnCombatVisibilityChanged(bool _) => CallDeferred(nameof(Refresh));
+    private void OnCombatVisibilityChanged(bool inCombat)
+    {
+        // Keep the transition event as the source of truth. Re-reading
+        // CombatManager during the same setup frame can still report false and
+        // leave the combat-only meter hidden for the entire encounter.
+        _combatVisibility = inCombat;
+        _initialRefreshAttempts = 0;
+        CallDeferred(nameof(Refresh));
+    }
 
     private void ShowHoverTip()
     {

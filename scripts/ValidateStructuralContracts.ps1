@@ -189,10 +189,13 @@ Assert-Contains "Bath next-turn energy uses EnergyVar" $iterationOneNeutralCards
 
 $desireResource = Read-Text "src\Core\Desire\DesireResource.cs"
 $desireMeter = Read-Text "src\UI\DesireMeter.cs"
+$temptationMeter = Read-Text "src\UI\TemptationMeter.cs"
 Assert-Contains "combat desire UI" $desireResource 'RegisterCombatUi\('
 Assert-Contains "combat desire UI" $desireResource 'AlwaysShowInCombatUiForCharacter<MaidenSuccubusCharacter>'
 Assert-Contains "persistent left-side desire UI" $desireMeter 'displayed along the left side in and out of combat'
 Assert-Contains "combat transition refreshes left-side desire UI" $desireMeter 'private\s+void\s+OnCombatVisibilityChanged\(bool\s+_\)'
+Assert-Contains "temptation meter retains combat transition state" $temptationMeter '_combatVisibility\s*=\s*inCombat'
+Assert-Contains "temptation meter retries until local player is published" $temptationMeter 'inCombat\s*&&\s*_player\s*==\s*null\s*&&\s*_initialRefreshAttempts\+\+\s*<\s*4'
 Assert-NotContains "combat must not hide left-side desire UI" $desireMeter 'Visible\s*=\s*!inCombat'
 Assert-NotContains "combat must not suppress left-side desire UI refresh" $desireMeter 'CombatManager\.Instance\.IsInProgress'
 
