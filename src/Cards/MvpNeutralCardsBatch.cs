@@ -131,7 +131,10 @@ public sealed class FlashStab : MSNeutralCard
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         CardModel copy = CreateClone();
-        await CardPileCmd.AddGeneratedCardToCombat(copy, PileType.Draw, Owner, CardPilePosition.Random);
+        CardCmd.PreviewCardPileAdd(
+            await CardPileCmd.AddGeneratedCardToCombat(
+                copy, PileType.Draw, Owner, CardPilePosition.Random),
+            2.2f);
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(2);
 }
