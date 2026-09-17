@@ -75,14 +75,19 @@ Assert-Contains "escape visual reentrancy" $escapeVisuals '\[ThreadStatic\]\s+pr
 Assert-Contains "escape visual reentrancy" $escapeVisuals 'if \(_refreshing\)'
 
 $pickupEnchantment = Read-Text "src\Commands\PickupEnchantmentCmd.cs"
+$combatEnchantment = Read-Text "src\Commands\CombatEnchantmentCmd.cs"
+$enchantmentVfx = Read-Text "src\Commands\EnchantmentVfxCmd.cs"
 $strengthCards = Read-Text "src\Cards\MvpStrengthCards.cs"
 $neutralCardsBatch3 = Read-Text "src\Cards\MvpNeutralCardsBatch3.cs"
 $cardEffectCatalog = Read-Text "src\Debugging\CardEffects\CardEffectTestCatalog.cs"
 $iteration2ExpansionCards = Read-Text "src\Cards\Iteration2ExpansionCards.cs"
 $advancedCards = Read-Text "src\Cards\MvpAdvancedCards.cs"
 Assert-Contains "pickup enchantment model update" $pickupEnchantment 'CardCmd\.Enchant'
-Assert-Contains "pickup enchantment vanilla vfx" $pickupEnchantment 'NCardEnchantVfx\.Create\(card\)'
-Assert-Contains "pickup enchantment preview container" $pickupEnchantment 'CardPreviewContainer\.AddChildSafely\(vfx\)'
+Assert-Contains "shared enchantment vanilla vfx" $enchantmentVfx 'NCardEnchantVfx\.Create\(card\)'
+Assert-Contains "shared enchantment preview container" $enchantmentVfx 'CardPreviewContainer\.AddChildSafely\(vfx\)'
+Assert-Contains "pickup enchantment shared preview" $pickupEnchantment 'EnchantmentVfxCmd\.Preview\(card\)'
+Assert-Contains "combat enchantment new-instance preview" $combatEnchantment 'AfterCombatEnchantmentApplied\(card\);[\s\S]*?EnchantmentVfxCmd\.Preview\(card\)'
+Assert-Contains "combat enchantment stack preview" $combatEnchantment 'existing\.Amount\s*\+=[\s\S]*?EnchantmentVfxCmd\.Preview\(card\)[\s\S]*?return existing'
 Assert-Contains "dark storm pickup enchantment preview" $strengthCards 'PickupEnchantmentCmd\.EnchantAndPreview<Glam>'
 Assert-Contains "magic sword pickup enchantment preview" $neutralCardsBatch3 'PickupEnchantmentCmd\.EnchantAndPreview<ChargeEnchantment>'
 Assert-Contains "surf uses final displayed energy cost" $neutralCardsBatch3 'Surf[\s\S]*?GetWithModifiers\(CostModifiers\.All\)'

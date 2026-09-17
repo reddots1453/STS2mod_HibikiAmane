@@ -90,6 +90,7 @@ public static class CombatEnchantmentCmd
             {
                 existing.Amount += (int)amount;
                 card.FinalizeUpgradeInternal();
+                EnchantmentVfxCmd.Preview(card);
                 return existing;
             }
 
@@ -116,6 +117,7 @@ public static class CombatEnchantmentCmd
         {
             listener.AfterCombatEnchantmentApplied(card);
         }
+        EnchantmentVfxCmd.Preview(card);
         return enchantment;
     }
 

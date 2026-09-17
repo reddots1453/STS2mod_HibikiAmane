@@ -1,9 +1,5 @@
 using MegaCrit.Sts2.Core.Commands;
-using MegaCrit.Sts2.Core.Entities.Cards;
-using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Nodes;
-using MegaCrit.Sts2.Core.Nodes.Vfx;
 
 namespace MaidenSuccubus.Commands;
 
@@ -18,7 +14,7 @@ public static class PickupEnchantmentCmd
     {
         T? applied = CardCmd.Enchant<T>(card, amount);
         if (applied != null)
-            Preview(card);
+            EnchantmentVfxCmd.Preview(card);
         return applied;
     }
 
@@ -30,16 +26,7 @@ public static class PickupEnchantmentCmd
         EnchantmentModel? applied = CardCmd.Enchant(
             enchantment, card, amount);
         if (applied != null)
-            Preview(card);
+            EnchantmentVfxCmd.Preview(card);
         return applied;
-    }
-
-    private static void Preview(CardModel card)
-    {
-        NCardEnchantVfx? vfx = NCardEnchantVfx.Create(card);
-        if (vfx != null)
-        {
-            NRun.Instance?.GlobalUi.CardPreviewContainer.AddChildSafely(vfx);
-        }
     }
 }
