@@ -34,13 +34,21 @@ public sealed class Surf : MSNeutralCard
             IEnumerable<CardModel> drawn = await CardPileCmd.Draw(context, 1, Owner);
             CardModel? card = drawn.FirstOrDefault();
             if (card == null) break;
-            totalCost += card.EnergyCost.CostsX
-                ? 0
-                : Math.Max(0, card.EnergyCost.GetAmountToSpend());
+            totalCost += GetCurrentEnergyCostForAccumulation(card);
             await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
                 .TargetingAllOpponents(CombatState).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         }
     }
+
+    internal static int GetCurrentEnergyCostForAccumulation(CardModel card)
+    {
+        ArgumentNullException.ThrowIfNull(card);
+        if (card.EnergyCost.CostsX || card.Keywords.Contains(CardKeyword.Unplayable))
+            return 0;
+
+        return Math.Max(0, card.EnergyCost.GetWithModifiers(CostModifiers.All));
+    }
+
     protected override void OnUpgrade() => DynamicVars.Energy.UpgradeValueBy(1);
 }
 

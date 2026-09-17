@@ -2322,7 +2322,36 @@ internal static class CardEffectTestCatalog
                 (upgraded ? 3 : 2) - 1);
         }, 2);
 
-    private static void SurfProbe() => DamageDraw<Surf>(12, 16, 3, 4);
+    private static void SurfProbe() =>
+        CustomVariants<Surf>(async (ctx, card, upgraded) =>
+        {
+            StrikeIronclad ember = await ctx.Add<StrikeIronclad>(PileType.Draw);
+            CombatEnchantmentCmd.ApplyVanilla<TezcatarasEmber>(ember, 1);
+            Whirlwind xCost = await ctx.Add<Whirlwind>(PileType.Draw);
+            Burn unplayable = await ctx.Add<Burn>(PileType.Draw);
+            Bash discounted = await ctx.Add<Bash>(PileType.Draw);
+            discounted.EnergyCost.SetThisCombat(1);
+            await ctx.Add<Bash>(PileType.Draw);
+            await ctx.Add<StrikeIronclad>(PileType.Draw);
+
+            ctx.AssertEqual("Tezcataras Ember current cost", 0,
+                Surf.GetCurrentEnergyCostForAccumulation(ember), effect: false);
+            ctx.AssertEqual("temporary reduced current cost", 1,
+                Surf.GetCurrentEnergyCostForAccumulation(discounted), effect: false);
+            ctx.AssertEqual("X cost accumulates as zero", 0,
+                Surf.GetCurrentEnergyCostForAccumulation(xCost), effect: false);
+            ctx.AssertEqual("unplayable cost accumulates as zero", 0,
+                Surf.GetCurrentEnergyCostForAccumulation(unplayable), effect: false);
+
+            int hp = ctx.PrimaryEnemy.CurrentHp;
+            int hand = PileType.Hand.GetPile(ctx.Player).Cards.Count;
+            await ctx.Play(card, ctx.PrimaryEnemy);
+            int expectedDraws = upgraded ? 6 : 5;
+            ctx.AssertEqual("draws until modified costs reach threshold", expectedDraws,
+                PileType.Hand.GetPile(ctx.Player).Cards.Count - hand);
+            ctx.AssertDamage("one area hit per drawn card", ctx.PrimaryEnemy, hp,
+                expectedDraws * 4);
+        }, 6);
 
     private static void SwordVerdictProbe() =>
         CustomVariants<SwordVerdict>(async (ctx, card, upgraded) =>

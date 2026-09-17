@@ -77,6 +77,7 @@ Assert-Contains "escape visual reentrancy" $escapeVisuals 'if \(_refreshing\)'
 $pickupEnchantment = Read-Text "src\Commands\PickupEnchantmentCmd.cs"
 $strengthCards = Read-Text "src\Cards\MvpStrengthCards.cs"
 $neutralCardsBatch3 = Read-Text "src\Cards\MvpNeutralCardsBatch3.cs"
+$cardEffectCatalog = Read-Text "src\Debugging\CardEffects\CardEffectTestCatalog.cs"
 $iteration2ExpansionCards = Read-Text "src\Cards\Iteration2ExpansionCards.cs"
 $advancedCards = Read-Text "src\Cards\MvpAdvancedCards.cs"
 Assert-Contains "pickup enchantment model update" $pickupEnchantment 'CardCmd\.Enchant'
@@ -84,6 +85,9 @@ Assert-Contains "pickup enchantment vanilla vfx" $pickupEnchantment 'NCardEnchan
 Assert-Contains "pickup enchantment preview container" $pickupEnchantment 'CardPreviewContainer\.AddChildSafely\(vfx\)'
 Assert-Contains "dark storm pickup enchantment preview" $strengthCards 'PickupEnchantmentCmd\.EnchantAndPreview<Glam>'
 Assert-Contains "magic sword pickup enchantment preview" $neutralCardsBatch3 'PickupEnchantmentCmd\.EnchantAndPreview<ChargeEnchantment>'
+Assert-Contains "surf uses final displayed energy cost" $neutralCardsBatch3 'Surf[\s\S]*?GetWithModifiers\(CostModifiers\.All\)'
+Assert-NotContains "surf avoids patched resource-payment cost" $neutralCardsBatch3 'Surf[\s\S]*?GetAmountToSpend\(\)[\s\S]*?public sealed class PressBack'
+Assert-Contains "surf modified-cost effect coverage" $cardEffectCatalog 'SurfProbe[\s\S]*?TezcatarasEmber[\s\S]*?SetThisCombat\(1\)[\s\S]*?X cost accumulates as zero[\s\S]*?unplayable cost accumulates as zero'
 Assert-Contains "gale sword pickup enchantment preview" $iteration2ExpansionCards 'PickupEnchantmentCmd\.EnchantAndPreview<Swift>'
 Assert-Contains "shining sword pickup enchantment preview" $iteration2ExpansionCards 'PickupEnchantmentCmd\.EnchantAndPreview<Vigorous>'
 Assert-Contains "Yarus memory pickup enchantment preview" $advancedCards 'PickupEnchantmentCmd\.EnchantAndPreview\('
