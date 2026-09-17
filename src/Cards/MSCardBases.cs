@@ -11,7 +11,7 @@ namespace MaidenSuccubus.Cards;
 
 public abstract class MSNeutralCardTemplate : ModCardTemplate, IMaidenSuccubusRouteCard
 {
-    public RouteCardKind RouteKind => RouteCardKind.Neutral;
+    public virtual RouteCardKind RouteKind => RouteCardKind.Neutral;
     public override CardPoolModel Pool => ModelDb.CardPool<MSNeutralCardPool>();
 
     public override CardAssetProfile AssetProfile => new(
@@ -42,7 +42,7 @@ public abstract class MSCorruptCardTemplate :
     IMaidenSuccubusRouteCard,
     ICardOverlayContributor
 {
-    public RouteCardKind RouteKind => RouteCardKind.Corrupt;
+    public virtual RouteCardKind RouteKind => RouteCardKind.Corrupt;
     public override CardPoolModel Pool => ModelDb.CardPool<MSCorruptCardPool>();
 
     public override CardAssetProfile AssetProfile => new(
@@ -77,7 +77,7 @@ public abstract class MSHolyCardTemplate :
     IMaidenSuccubusRouteCard,
     ICardOverlayContributor
 {
-    public RouteCardKind RouteKind => RouteCardKind.Holy;
+    public virtual RouteCardKind RouteKind => RouteCardKind.Holy;
     public override CardPoolModel Pool => ModelDb.CardPool<MSHolyCardPool>();
 
     public override CardAssetProfile AssetProfile => new(

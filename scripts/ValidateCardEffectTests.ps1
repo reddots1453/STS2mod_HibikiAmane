@@ -170,6 +170,12 @@ if ($catalog -notmatch 'projected card original effect is suppressed' -or
     $catalog -notmatch 'projected card resolves to discard') {
     throw "Control projection must verify effect suppression, exact escape payment, and result pile."
 }
+if ($catalog -notmatch 'holy variation route identity' -or
+    $catalog -notmatch 'corrupt variation route identity' -or
+    $catalog -notmatch 'holy variation remains unsealed' -or
+    $catalog -notmatch 'corrupt variation remains unsealed') {
+    throw "Transform and DarkElement variations must verify route identity and current-route seal compatibility."
+}
 if ($catalog -notmatch 'fatal hit triggers one chained lowest-health hit' -or
     $catalog -notmatch 'initial hit damages the selected target' -or
     $catalog -notmatch 'magic release hits the lowest-health enemy' -or

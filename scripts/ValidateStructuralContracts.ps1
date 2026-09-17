@@ -193,6 +193,8 @@ Assert-Contains "Maiden Strike enters card-library source list" $basicCards 'Mai
 Assert-Contains "Maiden Defend enters card-library source list" $basicCards 'MaidenDefend\(\)[\s\S]*?shouldShowInCardLibrary:\s*true'
 Assert-Contains "Transform canonical-safe description" $basicCards 'Transform[\s\S]*?AddExtraArgsToDescription[\s\S]*?IsMutable\s*&&\s*Owner\?\.RunState'
 Assert-Contains "Dark Element canonical-safe corrupt description" $basicCards 'DarkElement[\s\S]*?AddExtraArgsToDescription[\s\S]*?!IsMutable\s*\|\|\s*Owner\?\.RunState\s+is\s+not\s+RunState'
+Assert-Contains "Transform variation changes route identity" $basicCards 'Transform[\s\S]*?override\s+RouteCardKind\s+RouteKind[\s\S]*?CorruptionQuery\.Get\(runState\)\s*>=\s*3[\s\S]*?RouteCardKind\.Corrupt[\s\S]*?RouteCardKind\.Holy'
+Assert-Contains "Dark Element variation changes route identity" $basicCards 'DarkElement[\s\S]*?override\s+RouteCardKind\s+RouteKind[\s\S]*?CorruptionQuery\.Get\(runState\)\s*<=\s*3[\s\S]*?RouteCardKind\.Holy[\s\S]*?RouteCardKind\.Corrupt'
 
 $frameworkSelfTests = Read-Text "src\Debugging\FrameworkSelfTests.cs"
 Assert-Contains "route probability self-test magnitude 2" $frameworkSelfTests 'AssertProbabilities\(2,\s*0\.08m,\s*0\.20m,\s*0\.72m\)'

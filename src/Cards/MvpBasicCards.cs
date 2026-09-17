@@ -11,6 +11,7 @@ using MaidenSuccubus.Powers;
 using MaidenSuccubus.Core.Transformation;
 using STS2RitsuLib.Interop.AutoRegistration;
 using MaidenSuccubus.Core.Corruption;
+using MaidenSuccubus.Core.Routes;
 using MegaCrit.Sts2.Core.Runs;
 
 namespace MaidenSuccubus.Cards;
@@ -68,6 +69,13 @@ public sealed class MaidenDefend : MSGeneratedCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class Transform : MSHolyCard
 {
+    public override RouteCardKind RouteKind =>
+        IsMutable
+        && Owner?.RunState is RunState runState
+        && CorruptionQuery.Get(runState) >= 3
+            ? RouteCardKind.Corrupt
+            : RouteCardKind.Holy;
+
     protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
         [CardHoverTipSupport.Static("MAIDENSUCCUBUS_VARIATION")];
 
@@ -97,6 +105,13 @@ public sealed class Transform : MSHolyCard
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class DarkElement : MSCorruptCard
 {
+    public override RouteCardKind RouteKind =>
+        IsMutable
+        && Owner?.RunState is RunState runState
+        && CorruptionQuery.Get(runState) <= 3
+            ? RouteCardKind.Holy
+            : RouteCardKind.Corrupt;
+
     protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
         [CardHoverTipSupport.Static("MAIDENSUCCUBUS_VARIATION")];
 

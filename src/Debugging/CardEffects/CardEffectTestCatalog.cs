@@ -22,6 +22,8 @@ using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Core.Intents;
 using MaidenSuccubus.Core.Replay;
+using MaidenSuccubus.Core.Routes;
+using MaidenSuccubus.Core.Seals;
 using MaidenSuccubus.Core.Temptation;
 using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Data;
@@ -1915,6 +1917,19 @@ internal static class CardEffectTestCatalog
     private static void TransformProbe() =>
         CustomVariants<Transform>(async (ctx, card, upgraded) =>
         {
+            var runState = (MegaCrit.Sts2.Core.Runs.RunState)ctx.Player.RunState;
+            CorruptionCmd.Set(runState, -3);
+            ctx.AssertEqual("holy variation route identity",
+                RouteCardKind.Holy, RouteCardQuery.Get(card));
+            ctx.AssertTrue("holy variation remains unsealed",
+                !CombatSealQuery.IsSealed(runState, card));
+            CorruptionCmd.Set(runState, 3);
+            ctx.AssertEqual("corrupt variation route identity",
+                RouteCardKind.Corrupt, RouteCardQuery.Get(card));
+            ctx.AssertTrue("corrupt variation remains unsealed",
+                !CombatSealQuery.IsSealed(runState, card));
+            CorruptionCmd.Set(runState, 0);
+
             await ctx.Play(card);
             ctx.AssertPower("enters immaculate robe", ctx.Self,
                 "ImmaculateRobePower", 1);
@@ -2426,6 +2441,19 @@ internal static class CardEffectTestCatalog
     private static void DarkElementProbe() =>
         CustomVariants<DarkElement>(async (ctx, card, upgraded) =>
         {
+            var runState = (MegaCrit.Sts2.Core.Runs.RunState)ctx.Player.RunState;
+            CorruptionCmd.Set(runState, -3);
+            ctx.AssertEqual("holy variation route identity",
+                RouteCardKind.Holy, RouteCardQuery.Get(card));
+            ctx.AssertTrue("holy variation remains unsealed",
+                !CombatSealQuery.IsSealed(runState, card));
+            CorruptionCmd.Set(runState, 4);
+            ctx.AssertEqual("corrupt variation route identity",
+                RouteCardKind.Corrupt, RouteCardQuery.Get(card));
+            ctx.AssertTrue("corrupt variation remains unsealed",
+                !CombatSealQuery.IsSealed(runState, card));
+            CorruptionCmd.Set(runState, 0);
+
             await ctx.ApplyPower<MagicAmplificationPower>(ctx.Self, 1);
             int hp = ctx.PrimaryEnemy.CurrentHp;
             int block = ctx.Self.Block;
@@ -2434,7 +2462,7 @@ internal static class CardEffectTestCatalog
             ctx.AssertDamage("amplified damage", ctx.PrimaryEnemy, hp, amplified);
             ctx.AssertBlock("amplified holy magic-release block", block, amplified);
 
-            CorruptionCmd.Set((MegaCrit.Sts2.Core.Runs.RunState)ctx.Player.RunState, 4);
+            CorruptionCmd.Set(runState, 4);
             DarkElement corrupt = ctx.Create<DarkElement>(upgraded);
             await ctx.ApplyPower<MagicAmplificationPower>(ctx.Self, 1);
             hp = ctx.PrimaryEnemy.CurrentHp;
