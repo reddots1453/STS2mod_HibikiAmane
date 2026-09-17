@@ -135,9 +135,14 @@ public static class IntentMoveFactory
                 spec.DisplayName,
                 spec.EffectText));
         }
-        intents.AddRange(EroticEffectCmd.BuildSupplementalIntents(
-            spec.EffectText,
-            EroticIntentKind.Desire));
+        // A desire attack already exposes its complete effect text through the
+        // DesireGainIntent hover. Do not repeat debuff, status-card, buff or
+        // healing icons beside it; only the two dedicated desire components
+        // have their own supplemental visuals.
+        if (spec.EffectText.Contains("撕裂衣服", StringComparison.Ordinal))
+        {
+            intents.Add(new TearClothingIntent());
+        }
         return intents.ToArray();
     }
 

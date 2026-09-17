@@ -143,6 +143,9 @@ $intentLocalization = Read-Text "MaidenSuccubus\localization\zhs\intents.json"
 Assert-Contains "desire intent canonical title" $intentLocalization '"MAIDENSUCCUBUS_DESIRE\.title"\s*:\s*"\u6B32\u671B\u653B\u51FB"'
 Assert-Contains "desire intent centered amount label" $intentModels 'DesireGainIntent[\s\S]*?ExtraIconAmountLabelSpec\.PlainCustom\('
 Assert-NotContains "desire intent reserved vanilla corner" $intentModels 'DesireGainIntent[\s\S]*?ExtraIconAmountLabelCorner\.BottomRight'
+$intentFactory = Read-Text "src\Core\Intents\IntentMoveFactory.cs"
+Assert-Contains "desire attack must not repeat generic supplemental intents" $intentFactory 'BuildDesireIntents(?:(?!BuildSupplementalIntents)[\s\S])*?return\s+intents\.ToArray\(\);'
+Assert-Contains "desire attack retains direct tear icon" $intentFactory 'BuildDesireIntents[\s\S]*?new\s+TearClothingIntent\(\)'
 
 $runtimePower = Read-Text "src\Powers\EroticIntentRuntimePower.cs"
 foreach ($field in @(

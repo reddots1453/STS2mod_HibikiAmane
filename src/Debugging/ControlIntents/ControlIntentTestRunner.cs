@@ -13,6 +13,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Afflictions;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Enchantments;
+using MegaCrit.Sts2.Core.MonsterMoves.MonsterMoveStateMachine;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Cards;
 using MaidenSuccubus.Commands;
@@ -41,6 +42,7 @@ internal static class ControlIntentTestRunner
     private static readonly IReadOnlyList<Scenario> Scenarios =
     [
         new("lifecycle_threshold_dispatch", "SYS-DES-INTENT-001", LifecycleThresholdDispatch),
+        new("desire_intent_visual_deduplication", "SYS-DES-INTENT-001", DesireIntentVisualDeduplication),
         new("intent_metadata_and_exact_block", "SYS-CTL-001", IntentMetadataAndExactBlock),
         new("insufficient_block_stress_projection", "SYS-CTL-001", InsufficientBlockStressProjection),
         new("high_desire_bypasses_block", "SYS-DES-002B", HighDesireBypassesBlock),
@@ -95,6 +97,36 @@ internal static class ControlIntentTestRunner
             ctx.Combat, choice, ctx.Player);
         ctx.AssertEqual("existing erotic intent is not selected twice", 1,
             IntentAdapterRegistry.GetRuntime(monster).DesireIntentUses);
+    }
+
+    private static async Task DesireIntentVisualDeduplication(
+        ControlIntentTestContext ctx)
+    {
+        MonsterModel monster = ctx.PrimaryEnemy.Monster!;
+        MoveState delayedHazard = IntentMoveFactory.CreateDesire(
+            monster,
+            new DesireIntentSpec(
+                Desire: 1,
+                Damage: 3,
+                EffectText: "造成3点伤害，欲望增加1，将1张溶解液置入弃牌堆。"));
+        ctx.AssertEqual("delayed hazard has only damage and desire icons", 2,
+            delayedHazard.Intents.Count);
+        ctx.AssertEqual("delayed hazard has one desire icon", 1,
+            delayedHazard.Intents.Count(intent => intent is DesireGainIntent));
+        ctx.AssertEqual("delayed hazard hides clothing status icon", 0,
+            delayedHazard.Intents.Count(intent => intent is ClothingHazardIntent));
+
+        MoveState directTear = IntentMoveFactory.CreateDesire(
+            monster,
+            new DesireIntentSpec(
+                Desire: 1,
+                Damage: 3,
+                EffectText: "造成3点伤害，欲望增加1，撕裂衣服。"));
+        ctx.AssertEqual("direct tear has damage, desire and tear icons", 3,
+            directTear.Intents.Count);
+        ctx.AssertEqual("direct tear has one tear icon", 1,
+            directTear.Intents.Count(intent => intent is TearClothingIntent));
+        await Task.Yield();
     }
 
     public static async Task<string> Run(Player player)
