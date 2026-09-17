@@ -34,6 +34,10 @@ public class MaidenSuccubusCharacter
     : ModCharacterTemplate<MSNeutralCardPool, MSRelicPool, MSPotionPool>,
       IMaidenSuccubusStartProfile
 {
+    private const string TopBarIconFallback =
+        "res://scenes/ui/character_icons/ironclad_icon.tscn";
+    private static CharacterAssetProfile? _assetProfile;
+
     public virtual MaidenSuccubusStartProfileId StartProfileId =>
         MaidenSuccubusStartProfileId.Normal;
     public virtual int InitialCorruption => 0;
@@ -48,9 +52,16 @@ public class MaidenSuccubusCharacter
     public override int StartingHp => 60;
     public override int StartingGold => 99;
 
-    // 占位：继承 Ironclad 的所有视觉资源（模型、能量表盘、商店、火堆等）
-    // 后续将逐步替换为 res://MaidenSuccubus/scenes/... 自定义场景
-    public override CharacterAssetProfile AssetProfile => CharacterAssetProfiles.Ironclad();
+    // 未替换的视觉资源继续回退到 Ironclad。顶栏读取 CharacterModel.Icon
+    // （不是 IconTexture），因此通过 RitsuLib 的 Ui.IconPath 正式资产通道
+    // 提供可加载的 Texture2D resource，由其运行时工厂生成 Icon Control。
+    public override CharacterAssetProfile AssetProfile =>
+        _assetProfile ??= new CharacterAssetProfile(
+            Ui: new CharacterUiAssetSet(
+                IconPath: RuntimeTextureAssets.PrepareResource(
+                    "ui/core/hibiki_amane_character_icon_128.png",
+                    "user://maiden_succubus_top_bar_icon.tres",
+                    TopBarIconFallback)));
 
     // 骨架阶段不实现时间线小故事
     public override bool RequiresEpochAndTimeline => false;

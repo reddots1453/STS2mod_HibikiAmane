@@ -98,6 +98,8 @@ $routeCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
     Join-Path $ProjectDir "src\UI\RouteCardVisuals.cs")
 $powerCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
     Join-Path $ProjectDir "src\UI\PowerIconAssets.cs")
+$characterCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
+    Join-Path $ProjectDir "src\Characters\MaidenSuccubusCharacter.cs")
 if ($corruptionCode -notmatch 'corruption_balance_\{state\}\.png') {
     throw "Corruption meter is not wired to reviewed state textures."
 }
@@ -139,6 +141,12 @@ if ($libraryCode -notmatch 'pair.Key is MaidenSuccubusCharacter' -or
     $libraryCode -notmatch 'ui/core/hibiki_amane_character_icon_128.png' -or
     $libraryCode -notmatch 'image.Texture = texture;') {
     throw "Compendium character filter must assign the reviewed Maiden icon to its own Image."
+}
+if ($characterCode -notmatch 'new CharacterUiAssetSet\(' -or
+    $characterCode -notmatch 'IconPath: RuntimeTextureAssets\.PrepareResource\(' -or
+    $characterCode -notmatch 'ui/core/hibiki_amane_character_icon_128\.png' -or
+    $characterCode -notmatch 'user://maiden_succubus_top_bar_icon\.tres') {
+    throw "Character profile must route the reviewed Maiden icon through RitsuLib Ui.IconPath for the top bar."
 }
 if ($desireCode -notmatch 'desire_meter_\{state:00\}\.png') {
     throw "Desire meter is not wired to reviewed state textures."
