@@ -83,7 +83,15 @@ public static class DesireResource
                         IconSize = new Vector2(128f, 128f),
                         FontSize = 36,
                         OutlineSize = 14,
-                        AmountLabelOffset = new Vector2(0f, 20f),
+                        AmountLabelOffset = Vector2.Zero,
+                        IconStyle = SecondaryResourceIconStyle.Default with
+                        {
+                            Size = new Vector2(128f, 128f),
+                            HoverTip = SecondaryResourceHoverTipStyle.Default with
+                            {
+                                ResolveGlobalPosition = ResolveCombatHoverPosition,
+                            },
+                        },
                         OutlineColor = StsColors.defaultStarCostOutline,
                         GainFeedback = SecondaryResourceCounterGainFeedback.StarCounterLike,
                         FormatAmount = (amount, _) => amount.ToString(),
@@ -120,5 +128,38 @@ public static class DesireResource
         MaidenSuccubusMod.Logger.Info(
             $"Secondary resource registered: {Definition.Id} " +
             $"(persistence=Run, max=10)");
+    }
+
+    private static Vector2 ResolveCombatHoverPosition(
+        SecondaryResourceHoverTipPlacementContext context)
+    {
+        // NHoverTipSet is a plain Control: its Size is not the size of its
+        // text container. Measure the visible children in the same canvas
+        // coordinates as the icon, including their offsets and scale.
+        Rect2? contentBounds = null;
+        foreach (Node child in context.TipSet.GetChildren())
+        {
+            if (child is not Godot.Control control || !control.Visible
+                || control.Size.X <= 0f || control.Size.Y <= 0f)
+            {
+                continue;
+            }
+            Rect2 rect = control.GetGlobalRect();
+            contentBounds = contentBounds?.Merge(rect) ?? rect;
+        }
+        if (contentBounds is not Rect2 bounds)
+        {
+            return context.TipSet.GlobalPosition;
+        }
+
+        const float gap = 16f;
+        Rect2 owner = context.Owner.GetGlobalRect();
+        Rect2 viewport = context.Owner.GetViewportRect();
+        Vector2 target = new(
+            Mathf.Clamp(owner.End.X + gap, viewport.Position.X + gap,
+                Math.Max(viewport.Position.X + gap, viewport.End.X - bounds.Size.X - gap)),
+            Mathf.Clamp(owner.Position.Y - bounds.Size.Y - gap, viewport.Position.Y + gap,
+                Math.Max(viewport.Position.Y + gap, viewport.End.Y - bounds.Size.Y - gap)));
+        return context.TipSet.GlobalPosition + target - bounds.Position;
     }
 }
