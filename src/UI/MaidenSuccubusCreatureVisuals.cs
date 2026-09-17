@@ -106,7 +106,10 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         {
             Name = "ExpressionSprite",
             FlipH = true,
-            ZIndex = root._characterSprite.ZIndex + 1,
+            // Sibling order draws the face over the body at the same Z.
+            // A higher Z escapes later-drawn screen dimmers (game over,
+            // deck/map overlays), leaving bright floating eyes above them.
+            ZIndex = root._characterSprite.ZIndex,
         };
         root._visualRoot.AddChild(root._expressionSprite);
         return root;
