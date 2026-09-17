@@ -1,3 +1,4 @@
+using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models;
@@ -7,6 +8,7 @@ using MaidenSuccubus.Cards;
 using MaidenSuccubus.Core.Routes;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Util;
+using MaidenSuccubus.UI;
 
 namespace MaidenSuccubus.Patches;
 
@@ -40,6 +42,22 @@ public static class CardLibraryRoutePoolPatch
                 }
 
                 ____poolFilters[entry.Value] = IsMaidenSuccubusCompendiumCard;
+                // RitsuLib creates this button from CustomIconTexturePath,
+                // bypassing the CharacterModel.IconTexture getter override.
+                // Set only our existing Image's texture, preserving its shader,
+                // size, selection animation and the other character buttons.
+                TextureRect? image = entry.Value.GetNodeOrNull<TextureRect>("Image");
+                Texture2D? texture = RuntimeTextureAssets.Load(
+                    "ui/core/hibiki_amane_character_icon_128.png");
+                if (image != null && texture != null)
+                {
+                    image.Texture = texture;
+                }
+                else
+                {
+                    MaidenSuccubusMod.Logger.Warn(
+                        "[CardLibraryRoutePoolPatch] Custom compendium icon unavailable; keeping existing icon.");
+                }
                 MaidenSuccubusMod.Logger.Info(
                     "[CardLibraryRoutePoolPatch] Installed three-route compendium filter.");
             },

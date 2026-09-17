@@ -132,6 +132,14 @@ for ($i = 0; $i -lt $expectedTicks.Count; $i++) {
     }
 }
 Write-Host "Validated corruption hover geometry: -5/-3/0/+3/+5, five UI scales."
+$libraryCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
+    Join-Path $ProjectDir "src\Patches\CardLibraryRoutePoolPatch.cs")
+if ($libraryCode -notmatch 'pair.Key is MaidenSuccubusCharacter' -or
+    $libraryCode -notmatch 'entry.Value.GetNodeOrNull<TextureRect>\("Image"\)' -or
+    $libraryCode -notmatch 'ui/core/hibiki_amane_character_icon_128.png' -or
+    $libraryCode -notmatch 'image.Texture = texture;') {
+    throw "Compendium character filter must assign the reviewed Maiden icon to its own Image."
+}
 if ($desireCode -notmatch 'desire_meter_\{state:00\}\.png') {
     throw "Desire meter is not wired to reviewed state textures."
 }
