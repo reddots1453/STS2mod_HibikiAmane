@@ -4,7 +4,6 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardLibrary;
 using MaidenSuccubus.Characters;
-using MaidenSuccubus.Cards;
 using MaidenSuccubus.Core.Routes;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Util;
@@ -14,9 +13,8 @@ namespace MaidenSuccubus.Patches;
 
 /// <summary>
 /// RitsuLib's character filter normally matches only CharacterModel.CardPool.
-/// This character deliberately uses separate route and generated-card pools,
-/// so the compendium predicate must group those pools without merging reward
-/// generation pools.
+/// This character deliberately uses separate route pools, so the compendium
+/// predicate must group those pools without merging reward generation pools.
 /// </summary>
 [HarmonyAfter("com.ritsukage.sts2-RitsuLib.framework-character-assets")]
 [HarmonyPriority(Priority.Last)]
@@ -65,6 +63,5 @@ public static class CardLibraryRoutePoolPatch
     }
 
     private static bool IsMaidenSuccubusCompendiumCard(CardModel card) =>
-        card is IMaidenSuccubusRouteCard
-        || card is MaidenStrike or MaidenDefend;
+        card is IMaidenSuccubusRouteCard;
 }

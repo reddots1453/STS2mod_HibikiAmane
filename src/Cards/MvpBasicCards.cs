@@ -16,8 +16,8 @@ using MegaCrit.Sts2.Core.Runs;
 
 namespace MaidenSuccubus.Cards;
 
-[RegisterCard(typeof(MSGeneratedCardPool))]
-public sealed class MaidenStrike : MSGeneratedCard
+[RegisterCard(typeof(MSNeutralCardPool))]
+public sealed class MaidenStrike : MSNeutralCard
 {
     protected override HashSet<CardTag> CanonicalTags => [CardTag.Strike];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
@@ -28,8 +28,7 @@ public sealed class MaidenStrike : MSGeneratedCard
             1,
             CardType.Attack,
             CardRarity.Basic,
-            TargetType.AnyEnemy,
-            shouldShowInCardLibrary: true) { }
+            TargetType.AnyEnemy) { }
 
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
@@ -44,8 +43,8 @@ public sealed class MaidenStrike : MSGeneratedCard
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
 }
 
-[RegisterCard(typeof(MSGeneratedCardPool))]
-public sealed class MaidenDefend : MSGeneratedCard
+[RegisterCard(typeof(MSNeutralCardPool))]
+public sealed class MaidenDefend : MSNeutralCard
 {
     public override bool GainsBlock => true;
     protected override HashSet<CardTag> CanonicalTags => [CardTag.Defend];
@@ -57,8 +56,7 @@ public sealed class MaidenDefend : MSGeneratedCard
             1,
             CardType.Skill,
             CardRarity.Basic,
-            TargetType.Self,
-            shouldShowInCardLibrary: true) { }
+            TargetType.Self) { }
 
     protected override Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay) =>
         CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, cardPlay);
