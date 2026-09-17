@@ -191,6 +191,7 @@ if (Test-Path -LiteralPath $scripturePreviewHelper) {
 $cardLibraryRoutePool = Read-Text "src\Patches\CardLibraryRoutePoolPatch.cs"
 $generatedCards = Read-Text "src\Cards\MvpGeneratedCards.cs"
 $basicCards = Read-Text "src\Cards\MvpBasicCards.cs"
+$cardLocalization = Read-Text "MaidenSuccubus\localization\zhs\cards.json"
 Assert-Contains "card-library Ritsu ordering" $cardLibraryRoutePool '\[HarmonyAfter\("com\.ritsukage\.sts2-RitsuLib\.framework-character-assets"\)\]'
 Assert-Contains "card-library final priority" $cardLibraryRoutePool '\[HarmonyPriority\(Priority\.Last\)\]'
 Assert-Contains "card-library route cards" $cardLibraryRoutePool 'card\s+is\s+IMaidenSuccubusRouteCard'
@@ -201,9 +202,12 @@ Assert-Contains "generated-card library visibility forwarded" $generatedCards ':
 Assert-Contains "Maiden Strike enters card-library source list" $basicCards 'MaidenStrike\(\)[\s\S]*?shouldShowInCardLibrary:\s*true'
 Assert-Contains "Maiden Defend enters card-library source list" $basicCards 'MaidenDefend\(\)[\s\S]*?shouldShowInCardLibrary:\s*true'
 Assert-Contains "Transform canonical-safe description" $basicCards 'Transform[\s\S]*?AddExtraArgsToDescription[\s\S]*?IsMutable\s*&&\s*Owner\?\.RunState'
-Assert-Contains "Dark Element canonical-safe corrupt description" $basicCards 'DarkElement[\s\S]*?AddExtraArgsToDescription[\s\S]*?!IsMutable\s*\|\|\s*Owner\?\.RunState\s+is\s+not\s+RunState'
+Assert-Contains "Dark Element canonical-safe holy variation" $basicCards 'DarkElement[\s\S]*?IsMutable[\s\S]*?CorruptionQuery\.Get\(runState\)\s*<=\s*-3'
 Assert-Contains "Transform variation changes route identity" $basicCards 'Transform[\s\S]*?override\s+RouteCardKind\s+RouteKind[\s\S]*?CorruptionQuery\.Get\(runState\)\s*>=\s*3[\s\S]*?RouteCardKind\.Corrupt[\s\S]*?RouteCardKind\.Holy'
-Assert-Contains "Dark Element variation changes route identity" $basicCards 'DarkElement[\s\S]*?override\s+RouteCardKind\s+RouteKind[\s\S]*?CorruptionQuery\.Get\(runState\)\s*<=\s*3[\s\S]*?RouteCardKind\.Holy[\s\S]*?RouteCardKind\.Corrupt'
+Assert-Contains "Dark Element variation changes route identity" $basicCards 'DarkElement[\s\S]*?override\s+RouteCardKind\s+RouteKind\s*=>\s*IsHolyVariation[\s\S]*?RouteCardKind\.Holy[\s\S]*?RouteCardKind\.Corrupt'
+Assert-Contains "Dark Element corrupt release repeats damage" $basicCards 'DarkElement[\s\S]*?if\s*\(!IsHolyVariation\)[\s\S]*?DamageCmd\.Attack[\s\S]*?else[\s\S]*?CreatureCmd\.GainBlock'
+Assert-Contains "Dark Element minus-three localization" $cardLocalization 'MAIDEN_SUCCUBUS_CARD_DARK_ELEMENT\.description"\s*:\s*"[^"]*\u9B54\u529B\u89E3\u653E[^"]*\u9020\u6210\{Damage:diff\(\)\}[^"]*\u5815\u843D\u503C[^\"]*≤-3[^\"]*\u5815\u843D\u503C[^\"]*＞-3'
+Assert-Contains "Dark Element zero-corruption effect coverage" $cardEffectCatalog 'DarkElementProbe[\s\S]*?Set\(runState,\s*0\)[\s\S]*?zero corruption remains the corrupt base form[\s\S]*?zero-corruption magic release repeats amplified damage'
 
 $frameworkSelfTests = Read-Text "src\Debugging\FrameworkSelfTests.cs"
 Assert-Contains "route probability self-test magnitude 2" $frameworkSelfTests 'AssertProbabilities\(2,\s*0\.08m,\s*0\.20m,\s*0\.72m\)'

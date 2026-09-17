@@ -2476,31 +2476,38 @@ internal static class CardEffectTestCatalog
                 RouteCardKind.Holy, RouteCardQuery.Get(card));
             ctx.AssertTrue("holy variation remains unsealed",
                 !CombatSealQuery.IsSealed(runState, card));
-            CorruptionCmd.Set(runState, 4);
-            ctx.AssertEqual("corrupt variation route identity",
+            ctx.AssertTrue("holy variation gains block", card.GainsBlock);
+
+            CorruptionCmd.Set(runState, -2);
+            ctx.AssertEqual("crossing above minus three restores corrupt identity",
+                RouteCardKind.Corrupt, RouteCardQuery.Get(card));
+            CorruptionCmd.Set(runState, 0);
+            ctx.AssertEqual("zero corruption remains the corrupt base form",
                 RouteCardKind.Corrupt, RouteCardQuery.Get(card));
             ctx.AssertTrue("corrupt variation remains unsealed",
                 !CombatSealQuery.IsSealed(runState, card));
-            CorruptionCmd.Set(runState, 0);
+            ctx.AssertTrue("corrupt base form does not gain block", !card.GainsBlock);
 
             await ctx.ApplyPower<MagicAmplificationPower>(ctx.Self, 1);
             int hp = ctx.PrimaryEnemy.CurrentHp;
             int block = ctx.Self.Block;
             await ctx.Play(card, ctx.PrimaryEnemy);
             int amplified = upgraded ? 9 : 6;
-            ctx.AssertDamage("amplified damage", ctx.PrimaryEnemy, hp, amplified);
-            ctx.AssertBlock("amplified holy magic-release block", block, amplified);
+            ctx.AssertDamage("zero-corruption magic release repeats amplified damage",
+                ctx.PrimaryEnemy, hp, amplified * 2);
+            ctx.AssertBlock("zero-corruption base form grants no release block", block, 0);
 
-            CorruptionCmd.Set(runState, 4);
-            DarkElement corrupt = ctx.Create<DarkElement>(upgraded);
+            CorruptionCmd.Set(runState, -3);
+            DarkElement holy = ctx.Create<DarkElement>(upgraded);
             await ctx.ApplyPower<MagicAmplificationPower>(ctx.Self, 1);
             hp = ctx.PrimaryEnemy.CurrentHp;
             block = ctx.Self.Block;
-            await ctx.Play(corrupt, ctx.PrimaryEnemy);
-            ctx.AssertDamage("corrupt magic-release repeats amplified damage",
-                ctx.PrimaryEnemy, hp, amplified * 2);
-            ctx.AssertBlock("corrupt route grants no release block", block, 0);
-        }, 4);
+            await ctx.Play(holy, ctx.PrimaryEnemy);
+            ctx.AssertDamage("holy variation keeps the initial amplified damage",
+                ctx.PrimaryEnemy, hp, amplified);
+            ctx.AssertBlock("holy variation magic release grants amplified block",
+                block, amplified);
+        }, 11);
 
     private static void DarkPunishmentProbe() =>
         CustomVariants<DarkPunishment>(async (ctx, card, upgraded) =>

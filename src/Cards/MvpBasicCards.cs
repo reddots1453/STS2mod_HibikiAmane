@@ -105,17 +105,20 @@ public sealed class Transform : MSHolyCard
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class DarkElement : MSCorruptCard
 {
-    public override RouteCardKind RouteKind =>
+    private bool IsHolyVariation =>
         IsMutable
         && Owner?.RunState is RunState runState
-        && CorruptionQuery.Get(runState) <= 3
+        && CorruptionQuery.Get(runState) <= -3;
+
+    public override RouteCardKind RouteKind =>
+        IsHolyVariation
             ? RouteCardKind.Holy
             : RouteCardKind.Corrupt;
 
     protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
         [CardHoverTipSupport.Static("MAIDENSUCCUBUS_VARIATION")];
 
-    public override bool GainsBlock => true;
+    public override bool GainsBlock => IsHolyVariation;
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new DamageVar(4, ValueProp.Move), new BlockVar(4, ValueProp.Move)];
 
@@ -124,9 +127,7 @@ public sealed class DarkElement : MSCorruptCard
     protected override void AddExtraArgsToDescription(LocString description) =>
         description.Add(
             "IsCorrupt",
-            !IsMutable
-                || Owner?.RunState is not RunState runState
-                || CorruptionQuery.Get(runState) > 3);
+            !IsHolyVariation);
 
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
@@ -141,7 +142,7 @@ public sealed class DarkElement : MSCorruptCard
         {
             return;
         }
-        if (Owner.RunState is RunState runState && CorruptionQuery.Get(runState) > 3)
+        if (!IsHolyVariation)
         {
             await DamageCmd.Attack(DynamicVars.Damage.BaseValue)
                 .FromCard(this, cardPlay)

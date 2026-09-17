@@ -1,6 +1,6 @@
 {
   "MAIDEN_SUCCUBUS_CARD_DARK_ELEMENT.title": "黑暗元素",
-  "MAIDEN_SUCCUBUS_CARD_DARK_ELEMENT.description": "造成{Damage:diff()}点伤害。\n[gold]魔力解放[/gold]：{IsCorrupt:造成{Damage:diff()}点伤害|获得{Block:diff()}点[gold]格挡[/gold]}。\n{IsCorrupt:[purple]堕落值[/purple]≤3|[purple]堕落值[/purple]＞3}：[gold]变奏[/gold]。",
+  "MAIDEN_SUCCUBUS_CARD_DARK_ELEMENT.description": "造成{Damage:diff()}点伤害。\n[gold]魔力解放[/gold]：{IsCorrupt:造成{Damage:diff()}点伤害|获得{Block:diff()}点[gold]格挡[/gold]}。\n{IsCorrupt:[purple]堕落值[/purple]≤-3|[purple]堕落值[/purple]＞-3}：[gold]变奏[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_AROUSAL_STATUS.title": "发情",
   "MAIDEN_SUCCUBUS_CARD_AROUSAL_STATUS.description": "每当你抽到该牌时，获得1[pink]欲望[/pink]。",
   "MAIDEN_SUCCUBUS_CARD_NAKED_DESIRE_STATUS.title": "赤裸欲",
