@@ -21,9 +21,17 @@ namespace MaidenSuccubus.UI;
     DuplicatePolicy = NodeAttachmentDuplicatePolicy.ReuseExistingByName)]
 public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
 {
-    private const int SegmentCount = 11;
     private const float MeterWidth = 256f;
     private const float MeterHeight = 72f;
+    // Pixel coordinates in the reviewed 512x144 balance artwork, not eleven
+    // equal slices of its canvas (which includes transparent side margins).
+    private static readonly (int Value, float ArtworkX)[] HoverTicks =
+    [
+        (-5, 104f), (-3, 165f), (0, 256f), (3, 347f), (5, 408f),
+    ];
+    private const float HoverWidth = 24f;
+    private const float HoverTop = 89f / 144f * MeterHeight;
+    private const float HoverHeight = 48f / 144f * MeterHeight;
 
     private TextureRect? _meterTexture;
     private int _displayedValue = int.MaxValue;
@@ -92,15 +100,15 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
         };
         AddChild(_meterTexture);
 
-        float zoneWidth = MeterWidth / SegmentCount;
-        for (int index = 0; index < SegmentCount; index++)
+        foreach (var tick in HoverTicks)
         {
-            int value = index - 5;
+            int value = tick.Value;
+            float centerX = tick.ArtworkX / 512f * MeterWidth;
             Control zone = new()
             {
                 Name = $"Hover{value:+0;-0;0}",
-                Position = new Vector2(index * zoneWidth, 0f),
-                Size = new Vector2(zoneWidth, MeterHeight),
+                Position = new Vector2(centerX - HoverWidth / 2f, HoverTop),
+                Size = new Vector2(HoverWidth, HoverHeight),
                 MouseFilter = MouseFilterEnum.Stop,
             };
             zone.MouseEntered += () => ShowHoverTipForValue(value);

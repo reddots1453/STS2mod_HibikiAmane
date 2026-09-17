@@ -101,6 +101,37 @@ $powerCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
 if ($corruptionCode -notmatch 'corruption_balance_\{state\}\.png') {
     throw "Corruption meter is not wired to reviewed state textures."
 }
+# Keep hover hitboxes aligned with the five visible ticks in the 512x144 art.
+$tickMatches = [regex]::Matches($corruptionCode, '\((-?\d+), (\d+)f\)')
+$expectedTicks = @(@(-5, 104), @(-3, 165), @(0, 256), @(3, 347), @(5, 408))
+if ($tickMatches.Count -ne $expectedTicks.Count -or
+    $corruptionCode -notmatch 'tick.ArtworkX / 512f \* MeterWidth' -or
+    $corruptionCode -notmatch 'centerX - HoverWidth / 2f, HoverTop' -or
+    $corruptionCode -match 'SegmentCount') {
+    throw "Corruption hover zones must use artwork tick centers, not canvas segments."
+}
+$hoverWidth = [double]([regex]::Match($corruptionCode, 'HoverWidth = ([\d.]+)f').Groups[1].Value)
+for ($i = 0; $i -lt $expectedTicks.Count; $i++) {
+    $value = [int]$tickMatches[$i].Groups[1].Value
+    $x = [double]$tickMatches[$i].Groups[2].Value
+    if ($value -ne $expectedTicks[$i][0] -or $x -ne $expectedTicks[$i][1]) {
+        throw "Corruption hover tick $i differs from the reviewed artwork."
+    }
+    # Check screen-scaled centers and non-overlap at common UI scales.
+    foreach ($scale in @(0.75, 1.0, 1.25, 1.5, 2.0)) {
+        $center = $x / 512 * 256 * $scale
+        $halfWidth = $hoverWidth / 2 * $scale
+        if ($halfWidth -le 0 -or $center - $halfWidth -lt 0 -or
+            $center + $halfWidth -gt 256 * $scale) {
+            throw "Corruption hover tick $value lies outside the meter."
+        }
+        if ($i -gt 0 -and
+            ($x - $expectedTicks[$i - 1][1]) / 512 * 256 * $scale -le 2 * $halfWidth) {
+            throw "Corruption hover tick $value overlaps its neighbor."
+        }
+    }
+}
+Write-Host "Validated corruption hover geometry: -5/-3/0/+3/+5, five UI scales."
 if ($desireCode -notmatch 'desire_meter_\{state:00\}\.png') {
     throw "Desire meter is not wired to reviewed state textures."
 }
