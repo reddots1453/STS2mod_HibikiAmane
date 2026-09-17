@@ -119,9 +119,17 @@ public sealed partial class TemptationMeter : Control, INodeAttachmentSetup
         LocString description = new(
             "static_hover_tips",
             "MAIDENSUCCUBUS_TEMPTATION.description");
-        description.Add("Current", Temptation.Get(_player));
-        description.Add("Base", Temptation.FormBaseValue(_player.Creature));
-        description.Add("Armor", Temptation.ArmorModifier(_player.Creature));
+        int current = Temptation.Get(_player);
+        int baseValue = Temptation.FormBaseValue(_player.Creature);
+        int armor = Temptation.ArmorModifier(_player.Creature);
+        // Includes the saved card/relic modifier and hand-dependent effects
+        // such as TransparentOutfitCurse. Use the actual total so the displayed
+        // breakdown cannot omit a source that participates in the calculation.
+        int other = current - baseValue - armor;
+        description.Add("Current", current);
+        description.Add("Base", baseValue);
+        description.Add("Armor", armor.ToString("+0;-0;0"));
+        description.Add("Other", other.ToString("+0;-0;0"));
         NHoverTipSet.CreateAndShow(
             this,
             new HoverTip(

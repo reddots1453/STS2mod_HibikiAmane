@@ -25,7 +25,7 @@
   "MAIDENSUCCUBUS_CURSE_INFECTION.description": "当这张牌被[gold]消耗[/gold]时，抽2张牌，并将这一效果附加到随机[gold]手牌[/gold]上。不能叠加给已有该效果的牌。",
   "MAIDENSUCCUBUS_CURSE_INFECTION.extraCardText": "当这张牌被[gold]消耗[/gold]时，抽2张牌，并将这一效果附加到随机[gold]手牌[/gold]上。",
   "MAIDENSUCCUBUS_TEMPTATION.title": "诱惑度",
-  "MAIDENSUCCUBUS_TEMPTATION.description": "当前[gold]诱惑度[/gold]：[blue]{Current}[/blue]。\n（来源：基础诱惑度[blue]{Base}[/blue] + [gold]魔装耐久[/gold][blue]{Armor}[/blue] + ...）\n[gold]诱惑度[/gold]决定敌人是否会使用[pink]色情攻击[/pink]。",
+  "MAIDENSUCCUBUS_TEMPTATION.description": "当前[gold]诱惑度[/gold]：[blue]{Current}[/blue]。\n来源：\n基础诱惑度：[blue]{Base}[/blue]\n[gold]魔装耐久[/gold]修正：[blue]{Armor}[/blue]\n其他卡牌、遗物效果修正：[blue]{Other}[/blue]\n[gold]诱惑度[/gold]决定敌人是否会使用[pink]色情攻击[/pink]。",
   "MAIDENSUCCUBUS_CORRUPTION_REFERENCE.title": "堕落值",
   "MAIDENSUCCUBUS_CORRUPTION_REFERENCE.description": "天音的[purple]堕落值[/purple]影响从卡牌奖励中获取[gold]圣洁[/gold]路线和[purple]堕落[/purple]路线卡牌的概率，以及事件选项。",
   "MAIDENSUCCUBUS_TEMPTATION_REFERENCE.title": "诱惑度",

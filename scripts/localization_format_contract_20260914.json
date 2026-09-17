@@ -25,7 +25,7 @@
     "MAIDENSUCCUBUS_SCRIPTURE.description": "一系列持续生效多个回合的0费衍生牌。",
     "MAIDENSUCCUBUS_ESCAPE_KEYWORD.description": "减少[gold]拘束[/gold]状态相应层数。",
     "MAIDENSUCCUBUS_CONTROL.description": "相应类型的非[gold]随身[/gold]牌临时变为[gold]挣脱[/gold]。尽快[gold]挣脱[/gold]以避免遭受[gold]侵犯[/gold]。",
-    "MAIDENSUCCUBUS_TEMPTATION.description": "当前[gold]诱惑度[/gold]：[blue]{Current}[/blue]。\n（来源：基础诱惑度[blue]{Base}[/blue] + [gold]魔装耐久[/gold][blue]{Armor}[/blue] + ...）\n[gold]诱惑度[/gold]决定敌人是否会使用[pink]色情攻击[/pink]。"
+    "MAIDENSUCCUBUS_TEMPTATION.description": "当前[gold]诱惑度[/gold]：[blue]{Current}[/blue]。\n来源：\n基础诱惑度：[blue]{Base}[/blue]\n[gold]魔装耐久[/gold]修正：[blue]{Armor}[/blue]\n其他卡牌、遗物效果修正：[blue]{Other}[/blue]\n[gold]诱惑度[/gold]决定敌人是否会使用[pink]色情攻击[/pink]。"
   },
   "powers": {
     "MAIDEN_SUCCUBUS_POWER_PURIFICATION_POWER.description": "回合开始时，每有1层[gold]净化[/gold]，随机失去1层可叠加的负面状态。",
