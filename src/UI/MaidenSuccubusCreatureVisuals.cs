@@ -273,17 +273,20 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
 
         _feedbackTween?.Kill();
         _feedbackActive = true;
+        Vector2 transientScale = WithCurrentFacing(scale);
+        Vector2 restScale = WithCurrentFacing(RestScale);
         _feedbackTween = CreateTween().SetParallel();
         _feedbackTween.TweenProperty(_visualRoot, "position", position, duration * 0.35f);
         _feedbackTween.TweenProperty(_visualRoot, "rotation", rotation, duration * 0.35f);
-        _feedbackTween.TweenProperty(_visualRoot, "scale", scale, duration * 0.35f);
+        _feedbackTween.TweenProperty(
+            _visualRoot, "scale", transientScale, duration * 0.35f);
         _feedbackTween.TweenProperty(_visualRoot, "modulate", modulate, duration * 0.35f);
         _feedbackTween.Chain().TweenProperty(
             _visualRoot, "position", RestPosition, duration * 0.65f);
         _feedbackTween.Parallel().TweenProperty(
             _visualRoot, "rotation", 0f, duration * 0.65f);
         _feedbackTween.Parallel().TweenProperty(
-            _visualRoot, "scale", RestScale, duration * 0.65f);
+            _visualRoot, "scale", restScale, duration * 0.65f);
         _feedbackTween.Parallel().TweenProperty(
             _visualRoot, "modulate", Colors.White, duration * 0.65f);
         _feedbackTween.Chain().TweenCallback(Callable.From(() =>
@@ -300,14 +303,21 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         _feedbackTween?.Kill();
         _dead = true;
         _feedbackActive = true;
+        Vector2 deathScale = WithCurrentFacing(Vector2.One * 0.34f);
         _feedbackTween = CreateTween().SetParallel();
         _feedbackTween.TweenProperty(
             _visualRoot, "position", new Vector2(-18f, -174f), 0.7f);
         _feedbackTween.TweenProperty(_visualRoot, "rotation", -0.28f, 0.7f);
         _feedbackTween.TweenProperty(
-            _visualRoot, "scale", Vector2.One * 0.34f, 0.7f);
+            _visualRoot, "scale", deathScale, 0.7f);
         _feedbackTween.TweenProperty(
             _visualRoot, "modulate", new Color(0.45f, 0.45f, 0.52f, 0.25f), 0.7f);
+    }
+
+    private Vector2 WithCurrentFacing(Vector2 scale)
+    {
+        float facing = _visualRoot?.Scale.X < 0f ? -1f : 1f;
+        return new Vector2(MathF.Abs(scale.X) * facing, scale.Y);
     }
 
     private void RefreshExpressionAndEdge()

@@ -73,6 +73,7 @@ Assert-Contains "escape affliction preservation" $originalState 'nameof\(CardCmd
 $escapeVisuals = Read-Text "src\UI\EscapeCardVisuals.cs"
 Assert-Contains "escape visual reentrancy" $escapeVisuals '\[ThreadStatic\]\s+private static bool _refreshing'
 Assert-Contains "escape visual reentrancy" $escapeVisuals 'if \(_refreshing\)'
+Assert-Contains "escape overlay is reloaded after projection changes" $escapeVisuals 'node\.Call\(NCard\.MethodName\.Reload\)'
 
 $pickupEnchantment = Read-Text "src\Commands\PickupEnchantmentCmd.cs"
 $combatEnchantment = Read-Text "src\Commands\CombatEnchantmentCmd.cs"
@@ -83,11 +84,13 @@ $cardEffectCatalog = Read-Text "src\Debugging\CardEffects\CardEffectTestCatalog.
 $iteration2ExpansionCards = Read-Text "src\Cards\Iteration2ExpansionCards.cs"
 $advancedCards = Read-Text "src\Cards\MvpAdvancedCards.cs"
 Assert-Contains "pickup enchantment model update" $pickupEnchantment 'CardCmd\.Enchant'
-Assert-Contains "shared enchantment vanilla vfx" $enchantmentVfx 'NCardEnchantVfx\.Create\(card\)'
-Assert-Contains "shared enchantment preview container" $enchantmentVfx 'CardPreviewContainer\.AddChildSafely\(vfx\)'
+Assert-Contains "shared enchantment vanilla vfx" $enchantmentVfx 'NCardEnchantVfx\.Create\(previewCard\)'
+Assert-Contains "shared enchantment preview container" $enchantmentVfx 'container\.AddChildSafely\(vfx\)'
+Assert-Contains "projected enchantment vfx uses original-state clone" $enchantmentVfx 'SuppressPresentation\(\)[\s\S]*?MutableClone\(\)[\s\S]*?RemoveCapability<EscapeProjectionCapability>'
+Assert-Contains "enchantment vfx is de-duplicated" $enchantmentVfx 'ActiveCards\.Add\(card\)[\s\S]*?TreeExited'
 Assert-Contains "pickup enchantment shared preview" $pickupEnchantment 'EnchantmentVfxCmd\.Preview\(card\)'
-Assert-Contains "combat enchantment new-instance preview" $combatEnchantment 'AfterCombatEnchantmentApplied\(card\);[\s\S]*?EnchantmentVfxCmd\.Preview\(card\)'
-Assert-Contains "combat enchantment stack preview" $combatEnchantment 'existing\.Amount\s*\+=[\s\S]*?EnchantmentVfxCmd\.Preview\(card\)[\s\S]*?return existing'
+Assert-Contains "combat enchantment accesses original projected state" $combatEnchantment 'using\s*\(ControlQuery\.SuppressPresentation\(\)\)'
+Assert-Contains "combat enchantment shared preview" $combatEnchantment 'AfterCombatEnchantmentApplied\(card\);[\s\S]*?EnchantmentVfxCmd\.Preview\(card\)[\s\S]*?return applied'
 Assert-Contains "dark storm pickup enchantment preview" $strengthCards 'PickupEnchantmentCmd\.EnchantAndPreview<Glam>'
 Assert-Contains "magic sword pickup enchantment preview" $neutralCardsBatch3 'PickupEnchantmentCmd\.EnchantAndPreview<ChargeEnchantment>'
 Assert-Contains "surf uses final displayed energy cost" $neutralCardsBatch3 'Surf[\s\S]*?GetWithModifiers\(CostModifiers\.All\)'
@@ -167,8 +170,8 @@ Assert-Contains "desire intent canonical title" $intentLocalization '"MAIDENSUCC
 Assert-Contains "desire intent centered amount label" $intentModels 'DesireGainIntent[\s\S]*?ExtraIconAmountLabelSpec\.PlainCustom\('
 Assert-NotContains "desire intent reserved vanilla corner" $intentModels 'DesireGainIntent[\s\S]*?ExtraIconAmountLabelCorner\.BottomRight'
 $intentFactory = Read-Text "src\Core\Intents\IntentMoveFactory.cs"
-Assert-Contains "desire attack must not repeat generic supplemental intents" $intentFactory 'BuildDesireIntents(?:(?!BuildSupplementalIntents)[\s\S])*?return\s+intents\.ToArray\(\);'
-Assert-Contains "desire attack retains direct tear icon" $intentFactory 'BuildDesireIntents[\s\S]*?new\s+TearClothingIntent\(\)'
+Assert-Contains "desire attack derives supplemental icons from effect parser" $intentFactory 'BuildDesireIntents[\s\S]*?BuildSupplementalIntents\([\s\S]*?EroticIntentKind\.Desire'
+Assert-Contains "invasion stun is queued after an executing move" $intentFactory 'if\s*\(monster\.IsPerformingMove\)[\s\S]*?current\.FollowUpState\s*=\s*stun'
 
 $runtimePower = Read-Text "src\Powers\EroticIntentRuntimePower.cs"
 foreach ($field in @(
@@ -240,7 +243,14 @@ Assert-Contains "desire has per-player cross-combat storage" $desireFacade 'Play
 Assert-Contains "non-combat desire reads persistent value" $desireFacade 'if\s*\(HasCombatState\(player\)\)[\s\S]*?AmountHandle\.Get\(player\)'
 Assert-Contains "combat desire updates persistent value" $desireResourceRules 'RememberCombatValue\([\s\S]*?context\.NewAmount'
 Assert-Contains "combat start restores persistent desire" $desirePersistence 'SubscribeLifecycle<CombatStartingEvent>[\s\S]*?SecondaryResourcePersistence\.RestoreSnapshot'
+Assert-Contains "combat start explicitly refreshes restored desire" $desirePersistence 'DesireEvents\.Publish\(new DesireChanged\([\s\S]*?finalValue,[\s\S]*?finalValue'
 Assert-Contains "combat end captures desire" $desirePersistence 'SubscribeLifecycle<CombatEndedEvent>[\s\S]*?RememberCombatValue'
+
+$characterModel = Read-Text "src\Characters\MaidenSuccubusCharacter.cs"
+Assert-Contains "character hook rechecks cross-combat desire" $characterModel 'BeforeCombatStart[\s\S]*?DesirePersistenceCoordinator\.RestoreForCombat'
+
+$characterVisuals = Read-Text "src\UI\MaidenSuccubusCreatureVisuals.cs"
+Assert-Contains "combat feedback preserves surrounded facing" $characterVisuals 'WithCurrentFacing\(scale\)[\s\S]*?WithCurrentFacing\(RestScale\)'
 
 $fourthRouteScreen = Read-Text "src\UI\FourthRouteSelectionScreen.cs"
 Assert-Contains "fourth-route map modal" $fourthRouteScreen 'IScreenContext'

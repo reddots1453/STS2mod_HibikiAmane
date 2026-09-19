@@ -30,7 +30,17 @@ public static class EscapeCardVisuals
                 foreach (var card in pileType.GetPile(player).Cards)
                 {
                     NCard? node = NCard.FindOnTable(card);
-                    node?.UpdateVisuals(pileType, CardPreviewMode.Normal);
+                    if (node == null)
+                    {
+                        continue;
+                    }
+
+                    // UpdateVisuals refreshes text and costs but deliberately
+                    // leaves capability overlays intact. Reload also invokes
+                    // NCard.ReloadOverlay, removing the Queen/Bound chains as
+                    // soon as the Escape capability is reconciled away.
+                    node.Call(NCard.MethodName.Reload);
+                    node.UpdateVisuals(pileType, CardPreviewMode.Normal);
                 }
             }
         }

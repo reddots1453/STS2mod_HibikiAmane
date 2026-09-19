@@ -19,6 +19,7 @@ using MaidenSuccubus.Keywords;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Combat;
 using MaidenSuccubus.Core.Corruption;
+using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Core.Intents;
 using MaidenSuccubus.Characters.Starts;
 using MaidenSuccubus.UI;
@@ -143,6 +144,13 @@ public class MaidenSuccubusCharacter
             ReferenceEquals(candidate.Character, this));
         if (player != null)
         {
+            // Lifecycle listeners restore this earlier in normal setup. Repeat
+            // the operation at the character hook (it is idempotent) because
+            // this is the first point where every combat player state is
+            // guaranteed to exist, including resumed and unusual encounters.
+            DesirePersistenceCoordinator.RestoreForCombat(
+                player,
+                combatState);
             await Temptation.Initialize(
                 new ThrowingPlayerChoiceContext(), player);
             if (!player.Creature.HasPower<TakemikazuchiTrackerPower>())

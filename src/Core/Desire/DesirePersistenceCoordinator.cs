@@ -1,3 +1,5 @@
+using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Runs;
 using STS2RitsuLib;
 using STS2RitsuLib.Combat.SecondaryResources;
@@ -47,24 +49,37 @@ internal static class DesirePersistenceCoordinator
             {
                 continue;
             }
+            RestoreForCombat(player, evt.CombatState);
+        }
+    }
 
-            DesireAmountState persisted = Data.Desire.AmountHandle.Get(player);
-            int restoredByRitsu = SecondaryResourceCmd.Get(
+    internal static void RestoreForCombat(
+        Player player,
+        ICombatState combatState)
+    {
+        if (player.Character is not MaidenSuccubusCharacter)
+        {
+            return;
+        }
+
+        DesireAmountState persisted = Data.Desire.AmountHandle.Get(player);
+        int restoredByRitsu = SecondaryResourceCmd.Get(
+            player,
+            DesireResource.Id);
+
+        if (!persisted.HasValue)
+        {
+            // Migrate runs saved before the non-combat bridge existed.
+            Data.Desire.RememberCombatValue(player, restoredByRitsu);
+            DesireEvents.Publish(new DesireChanged(
                 player,
-                DesireResource.Id);
+                restoredByRitsu,
+                restoredByRitsu));
+            return;
+        }
 
-            if (!persisted.HasValue)
-            {
-                // Migrate runs saved before the non-combat bridge existed.
-                Data.Desire.RememberCombatValue(player, restoredByRitsu);
-                continue;
-            }
-
-            if (restoredByRitsu == persisted.Amount)
-            {
-                continue;
-            }
-
+        if (restoredByRitsu != persisted.Amount)
+        {
             var snapshot = new SecondaryResourceRunSaveState
             {
                 PlayerAmounts = new Dictionary<ulong, Dictionary<string, int>>
@@ -76,9 +91,18 @@ internal static class DesirePersistenceCoordinator
                 },
             };
             SecondaryResourcePersistence.RestoreSnapshot(
-                evt.CombatState,
+                combatState,
                 snapshot);
         }
+
+        // RestoreSnapshot intentionally emits no resource-change event. Send
+        // an equal-value refresh so the left meter and expression bind to the
+        // restored run value without replaying the ten-desire climax effect.
+        int finalValue = SecondaryResourceCmd.Get(player, DesireResource.Id);
+        DesireEvents.Publish(new DesireChanged(
+            player,
+            finalValue,
+            finalValue));
     }
 
     private static void OnCombatEnded(CombatEndedEvent evt)

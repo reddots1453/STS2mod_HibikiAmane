@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Enchantments;
+using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Enchantments;
 
 namespace MaidenSuccubus.Commands;
@@ -79,46 +80,57 @@ public static class CombatEnchantmentCmd
         EnsureCombatClone(card);
         enchantment.AssertMutable();
 
-        // A permanent enchantment is deep-cloned together with its deck card.
-        // CardModel only has one Enchantment slot, so it cannot coexist with a
-        // combat-only enchantment without a separate overlay system.
-        if (card.Enchantment != null)
+        T applied;
+        using (ControlQuery.SuppressPresentation())
         {
-            if (card.Enchantment is T existing
-                && card.DeckVersion?.Enchantment?.GetType() != typeof(T)
-                && existing.IsStackable)
+            // Escape is a presentation projection over this same card
+            // instance. Read and mutate the original enchantment slot while
+            // the projection getters are suppressed; otherwise EnchantInternal
+            // receives a card whose visible Enchantment was deliberately null.
+            // A permanent enchantment is deep-cloned together with its deck
+            // card and still cannot coexist with another combat enchantment.
+            if (card.Enchantment != null)
             {
-                existing.Amount += (int)amount;
-                card.FinalizeUpgradeInternal();
-                EnchantmentVfxCmd.Preview(card);
-                return existing;
+                if (card.Enchantment is T existing
+                    && card.DeckVersion?.Enchantment?.GetType() != typeof(T)
+                    && existing.IsStackable)
+                {
+                    existing.Amount += (int)amount;
+                    card.FinalizeUpgradeInternal();
+                    applied = existing;
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Cannot apply combat-only enchantment {enchantment.Id} to {card.Id}: " +
+                        $"the combat card already has enchantment {card.Enchantment.Id}.");
+                }
             }
+            else
+            {
+                if (!enchantment.CanEnchant(card))
+                {
+                    throw new InvalidOperationException(
+                        $"Combat-only enchantment {enchantment.Id} cannot enchant card {card.Id}.");
+                }
 
-            throw new InvalidOperationException(
-                $"Cannot apply combat-only enchantment {enchantment.Id} to {card.Id}: " +
-                $"the combat card already has enchantment {card.Enchantment.Id}.");
+                // This intentionally mirrors the state-changing part of
+                // CardCmd.Enchant, but omits CardsEnchanted run-history.
+                card.EnchantInternal(enchantment, amount);
+                enchantment.ModifyCard();
+                card.FinalizeUpgradeInternal();
+                foreach (ICombatEnchantmentAppliedListener listener in card.CombatState!
+                    .IterateHookListeners()
+                    .OfType<ICombatEnchantmentAppliedListener>())
+                {
+                    listener.AfterCombatEnchantmentApplied(card);
+                }
+                applied = enchantment;
+            }
         }
 
-        if (!enchantment.CanEnchant(card))
-        {
-            throw new InvalidOperationException(
-                $"Combat-only enchantment {enchantment.Id} cannot enchant card {card.Id}.");
-        }
-
-        // This intentionally mirrors the state-changing part of
-        // CardCmd.Enchant, but omits CardsEnchanted run-history recording.
-        // The target is the combat clone; DeckVersion is never written.
-        card.EnchantInternal(enchantment, amount);
-        enchantment.ModifyCard();
-        card.FinalizeUpgradeInternal();
-        foreach (ICombatEnchantmentAppliedListener listener in card.CombatState!
-            .IterateHookListeners()
-            .OfType<ICombatEnchantmentAppliedListener>())
-        {
-            listener.AfterCombatEnchantmentApplied(card);
-        }
         EnchantmentVfxCmd.Preview(card);
-        return enchantment;
+        return applied;
     }
 
     public static bool TryApply<T>(CardModel card, decimal amount, out T? enchantment)

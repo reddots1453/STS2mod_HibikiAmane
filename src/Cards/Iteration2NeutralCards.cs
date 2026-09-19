@@ -156,7 +156,8 @@ public sealed class Takemikazuchi : MSHolyCard
             context,
             play,
             DynamicVars.Damage.BaseValue,
-            DynamicVars["Hits"].IntValue);
+            (int)((CalculatedVar)DynamicVars["Hits"])
+                .Calculate(play.Target));
     }
 
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(2);

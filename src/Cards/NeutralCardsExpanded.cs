@@ -178,7 +178,15 @@ public sealed class HealingArt : MSNeutralCard
         [CardKeyword.Exhaust];
 
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new HealVar(4), new DynamicVar("PerBuff", 2)];
+    [
+        new HealVar(4),
+        new DynamicVar("PerBuff", 2),
+        new CalculationBaseVar(4),
+        new CalculationExtraVar(2),
+        new CalculatedVar("CalculatedHeal").WithMultiplier(
+            static (card, _) =>
+                PowerLayerQuery.CountBuffLayers(card.Owner.Creature)),
+    ];
 
     public HealingArt()
         : base(2, CardType.Skill, CardRarity.Rare, TargetType.Self)
@@ -189,13 +197,16 @@ public sealed class HealingArt : MSNeutralCard
         PlayerChoiceContext choiceContext,
         CardPlay cardPlay)
     {
-        decimal healing = DynamicVars.Heal.BaseValue
-            + PowerLayerQuery.CountBuffLayers(Owner.Creature)
-            * DynamicVars["PerBuff"].BaseValue;
-        return CreatureCmd.Heal(Owner.Creature, healing);
+        return CreatureCmd.Heal(
+            Owner.Creature,
+            ((CalculatedVar)DynamicVars["CalculatedHeal"]).Calculate(null));
     }
 
-    protected override void OnUpgrade() => DynamicVars.Heal.UpgradeValueBy(4);
+    protected override void OnUpgrade()
+    {
+        DynamicVars.Heal.UpgradeValueBy(4);
+        DynamicVars.CalculationBase.UpgradeValueBy(4);
+    }
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]

@@ -135,14 +135,13 @@ public static class IntentMoveFactory
                 spec.DisplayName,
                 spec.EffectText));
         }
-        // A desire attack already exposes its complete effect text through the
-        // DesireGainIntent hover. Do not repeat debuff, status-card, buff or
-        // healing icons beside it; only the two dedicated desire components
-        // have their own supplemental visuals.
-        if (spec.EffectText.Contains("撕裂衣服", StringComparison.Ordinal))
-        {
-            intents.Add(new TearClothingIntent());
-        }
+        // The text parser is also the source of truth for the executed extra
+        // effects. Derive every supplemental icon from that same text so a
+        // block/heal/buff/status component cannot silently disagree with the
+        // move that will resolve.
+        intents.AddRange(EroticEffectCmd.BuildSupplementalIntents(
+            spec.EffectText,
+            EroticIntentKind.Desire));
         return intents.ToArray();
     }
 
@@ -182,16 +181,42 @@ public static class IntentMoveFactory
     {
         IntentRuntimeState runtime = IntentAdapterRegistry.GetRuntime(monster);
         runtime.ForceStun = true;
-        SetTransient(
-            monster,
-            new MoveState("STUNNED", _ =>
-            {
-                runtime.ForceStun = false;
-                return Task.CompletedTask;
-            }, new StunIntent())
-            {
-                MustPerformOnceBeforeTransitioning = true,
-            });
+        MoveState stun = new MoveState("STUNNED", _ =>
+        {
+            runtime.ForceStun = false;
+            return Task.CompletedTask;
+        }, new StunIntent())
+        {
+            MustPerformOnceBeforeTransitioning = true,
+        };
+
+        if (monster.IsPerformingMove)
+        {
+            // Invasion disables further erotic intents after its own move has
+            // started. Replacing the current state here calls OnExitState on
+            // the move that is still awaiting, resetting its performed flag
+            // and leaving several bespoke monster state machines deadlocked.
+            // Insert the stun between the current move and its continuation;
+            // normal RollMove processing will enter it after this move ends.
+            MoveState current = monster.NextMove;
+            MonsterMoveStateMachine machine = monster.MoveStateMachine
+                ?? throw new InvalidOperationException(
+                    $"Monster {monster.Id} has no move state machine.");
+            MonsterState continuation = current.FollowUpState
+                ?? (current.FollowUpStateId is { } continuationId
+                    && machine.States.TryGetValue(
+                        continuationId,
+                        out MonsterState? registered)
+                        ? registered
+                        : throw new InvalidOperationException(
+                            $"Move {current.StateId} has no valid continuation."));
+            stun.FollowUpState = continuation;
+            machine.States[stun.StateId] = stun;
+            current.FollowUpState = stun;
+            return;
+        }
+
+        SetTransient(monster, stun);
     }
 
     public static async Task Stun(Creature creature)
