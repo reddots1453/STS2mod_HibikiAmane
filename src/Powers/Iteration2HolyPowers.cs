@@ -14,6 +14,7 @@ public sealed class HolyFlamePower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
+    protected override bool IsVisibleInternal => false;
 
     public override decimal ModifyPowerAmountGivenAdditive(
         PowerModel power,
