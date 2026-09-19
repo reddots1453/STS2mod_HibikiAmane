@@ -178,7 +178,7 @@ function New-PolishGraph([int]$variant, $spec, [int64]$seed) {
 function New-UpscaleGraph([int]$variant, [int64]$seed) {
     $positive = @($quality, $identity, $subject, $layout) -join ", "
     $graph = New-BaseNodes $positive
-    $graph["8"] = @{ class_type = "LoadImage"; inputs = @{ image = ("MaidenSuccubus/EroticLocalV6/final/058_MasochisticTrance_LOCAL_COMFYUI_v6_{0:D2}.png" -f $variant) } }
+    $graph["8"] = @{ class_type = "LoadImage"; inputs = @{ image = ("MaidenSuccubus/EroticLocalV6/intermediate/058_MasochisticTrance_v6_{0:D2}_stageB_detail.png" -f $variant) } }
     $graph["9"] = @{ class_type = "UpscaleModelLoader"; inputs = @{ model_name = $upscaleModel } }
     $graph["10"] = @{ class_type = "UltimateSDUpscale"; inputs = @{
         image = @("8", 0); model = @("2", 0); positive = @("4", 0); negative = @("5", 0); vae = @("1", 2)
@@ -291,7 +291,7 @@ foreach ($variant in $Variants) {
     $finalImage = $stageBImage
 
     if ($Upscale) {
-        Upload-ComfyImage $stageBPath "MaidenSuccubus/EroticLocalV6/final" ("058_MasochisticTrance_LOCAL_COMFYUI_v6_{0:D2}.png" -f $variant)
+        Upload-ComfyImage $stageBPath "MaidenSuccubus/EroticLocalV6/intermediate" (Split-Path -Leaf $stageBPath)
         Clear-ComfyModels
         $upscaleGraph = New-UpscaleGraph $variant $seed
         $upscaleGraph | ConvertTo-Json -Depth 40 | Set-Content -LiteralPath (Join-Path $workflowDir ("058_MasochisticTrance_v6_{0:D2}_stageC_upscale_api.json" -f $variant)) -Encoding utf8
