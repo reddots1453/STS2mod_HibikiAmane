@@ -82,8 +82,8 @@ foreach ($copy in $coreCopies) {
 foreach ($size in @("64x64", "256x256")) {
     $runtimeDir = Join-Path $runtime "powers\$size"
     $runtimeFiles = @(Get-ChildItem -LiteralPath $runtimeDir -Filter "*.png" -File)
-    if ($runtimeFiles.Count -ne 68) {
-        throw "Expected 68 runtime $size power/mechanism icons, found $($runtimeFiles.Count)."
+    if ($runtimeFiles.Count -ne 72) {
+        throw "Expected 72 runtime $size power/mechanism icons, found $($runtimeFiles.Count)."
     }
     foreach ($runtimeFile in $runtimeFiles) {
         Assert-ExactCopy (Find-ReviewedAsset $runtimeFile.Name) $runtimeFile.FullName
@@ -170,5 +170,23 @@ if ($powerCode -notmatch 'RegisterPowerIconTextureProvider' -or
     $powerCode -notmatch 'RegisterPowerBigIconTextureProvider') {
     throw "Power icon providers are not registered for both icon sizes."
 }
+foreach ($binding in @(
+    @("CorruptRobePower", "corrupt_robe"),
+    @("HolyFlamePower", "holy_flame"),
+    @("OpeningPrayerPower", "opening_prayer"),
+    @("WetPower", "wet")
+)) {
+    $pattern = '\["' + [regex]::Escape($binding[0]) + '"\]\s*=\s*"' +
+        [regex]::Escape($binding[1]) + '"'
+    if ($powerCode -notmatch $pattern) {
+        throw "Iteration-two power icon binding is missing: $($binding[0])."
+    }
+}
+$holyPowerCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
+    Join-Path $ProjectDir "src\Powers\Iteration2HolyPowers.cs")
+if ($holyPowerCode -match
+    'HolyFlamePower[\s\S]*?IsVisibleInternal\s*=>\s*false') {
+    throw "Holy Flame must remain a visible Power state."
+}
 
-Write-Host "Validated visual assets: 11 corruption states, 11 desire states, 7 core/route icons, and 68 paired power/mechanism icons."
+Write-Host "Validated visual assets: 11 corruption states, 11 desire states, 7 core/route icons, and 72 paired power/mechanism icons."
