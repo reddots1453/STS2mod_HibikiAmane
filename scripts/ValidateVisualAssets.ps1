@@ -79,6 +79,13 @@ foreach ($copy in $coreCopies) {
     Assert-ExactCopy (Find-ReviewedAsset $copy[0]) (Join-Path $runtime $copy[1])
 }
 
+$schoolUniformRelativePath = [regex]::Unescape(
+    "\u56fe\u7247\u7d20\u6750/\u53d8\u8eab\u5f62\u6001/" +
+    "\u6821\u670d\u5f62\u6001/\u666e\u901a\u6821\u670d.png")
+$schoolUniformSource = Join-Path $ProjectDir $schoolUniformRelativePath
+Assert-ExactCopy $schoolUniformSource (
+    Join-Path $runtime "character\character_normal.png")
+
 foreach ($size in @("64x64", "256x256")) {
     $runtimeDir = Join-Path $runtime "powers\$size"
     $runtimeFiles = @(Get-ChildItem -LiteralPath $runtimeDir -Filter "*.png" -File)
@@ -189,4 +196,4 @@ if ($holyPowerCode -match
     throw "Holy Flame must remain a visible Power state."
 }
 
-Write-Host "Validated visual assets: 11 corruption states, 11 desire states, 7 core/route icons, and 72 paired power/mechanism icons."
+Write-Host "Validated visual assets: school-uniform portrait, 11 corruption states, 11 desire states, 7 core/route icons, and 72 paired power/mechanism icons."

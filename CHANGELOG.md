@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-22 — 校服形态脚部消光边修复接入
+
+- 变更前快照：`maiden-pre-school-uniform-foot-halo-fix-20260922`（`3a16f19`）。
+- 将已彻底清除脚部白色消光边的`图片素材/变身形态/校服形态/普通校服.png`原样接入运行时`character_normal.png`；保持922×1250画布、角色锚点、表情差分和形态切换逻辑不变。
+- 视觉资产验证新增校服评审源与运行时纹理SHA-256精确一致门，防止后续构建重新带回旧版脚部边缘。
+- 验证：Windows PowerShell 5与PowerShell 7视觉资产门均通过；纯编译通过（0 warning、0 error）。完整`ValidateMod=true`已通过内容、结构与视觉门，随后仍被当前DesignDoc尚未同步实现的10项卡牌稀有度/费用差异阻断，本轮未越界修改卡牌。
+- 部署：否；本轮未收到显式部署要求。
+
+
 ## 2026-09-21 — 色情表现卡图完成与正式归档
 
 - 变更前快照：`maiden-pre-erotic-card-art-completion-20260921`（`8134704`）。未修改玩家正在编辑的`DesignDoc.md`，也未部署运行时资源。
