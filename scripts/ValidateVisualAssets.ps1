@@ -27,6 +27,18 @@ function Get-Sha256([string]$Path) {
     }
 }
 
+function Assert-ManifestCopy(
+    [string]$Source,
+    [string]$Destination,
+    [string]$ExpectedHash
+) {
+    Assert-ExactCopy $Source $Destination
+    $actualHash = Get-Sha256 $Source
+    if ($actualHash -ne $ExpectedHash.ToUpperInvariant()) {
+        throw "Formal visual source hash differs from manifest: $Source"
+    }
+}
+
 $runtime = Join-Path $ProjectDir "MaidenSuccubus\images"
 $reviewedAssetsByName = @{}
 Get-ChildItem -LiteralPath $ProjectDir -Recurse -File | Where-Object {
@@ -47,17 +59,39 @@ function Find-ReviewedAsset([string]$FileName) {
     return $matches[0]
 }
 
-foreach ($value in -5..5) {
-    $state = if ($value -lt 0) {
-        "neg$(-$value)"
-    } elseif ($value -gt 0) {
-        "pos$value"
-    } else {
-        "zero"
+$cardArtRelativePath = [regex]::Unescape(
+    "\u56fe\u7247\u7d20\u6750/\u5b8c\u6210\u7248\u5361\u56fe")
+$cardArtSource = Join-Path $ProjectDir $cardArtRelativePath
+$cardArtManifest = Get-Content -Raw -Encoding UTF8 -LiteralPath (
+    Join-Path $cardArtSource "manifest.json") | ConvertFrom-Json
+$cardRuntime = Join-Path $runtime "cards"
+$cardRuntimeFiles = @(Get-ChildItem -LiteralPath $cardRuntime -Filter "*.png" -File)
+if ($cardArtManifest.items.Count -ne 112 -or $cardRuntimeFiles.Count -ne 113) {
+    throw "Expected 112 dedicated formal card arts plus one default runtime art."
+}
+$seenCardClasses = @{}
+foreach ($item in $cardArtManifest.items) {
+    if ($seenCardClasses.ContainsKey($item.class)) {
+        throw "Duplicate C# class in formal card-art manifest: $($item.class)"
     }
-    $file = "corruption_balance_$state.png"
-    Assert-ExactCopy (Find-ReviewedAsset $file) (
-        Join-Path $runtime "ui\corruption\$file")
+    $seenCardClasses[$item.class] = $true
+    Assert-ManifestCopy (
+        Join-Path $cardArtSource $item.file) (
+        Join-Path $cardRuntime "$($item.class).png") $item.sha256
+}
+Assert-ManifestCopy (
+    Join-Path $cardArtSource $cardArtManifest.default.file) (
+    Join-Path $cardRuntime "default.png") $cardArtManifest.default.sha256
+
+$corruptionRelativePath = [regex]::Unescape(
+    "\u56fe\u7247\u7d20\u6750/\u5815\u843d\u503c\u5929\u5e73")
+$corruptionSource = Join-Path $ProjectDir $corruptionRelativePath
+$corruptionManifest = Get-Content -Raw -Encoding UTF8 -LiteralPath (
+    Join-Path $corruptionSource "manifest.json") | ConvertFrom-Json
+foreach ($state in $corruptionManifest.states.psobject.Properties.Value) {
+    Assert-ManifestCopy (
+        Join-Path $corruptionSource $state.file) (
+        Join-Path $runtime "ui\corruption\$($state.file)") $state.sha256
 }
 
 foreach ($value in 0..10) {
@@ -86,6 +120,42 @@ $schoolUniformSource = Join-Path $ProjectDir $schoolUniformRelativePath
 Assert-ExactCopy $schoolUniformSource (
     Join-Path $runtime "character\character_normal.png")
 
+$intentRelativePath = [regex]::Unescape(
+    "\u56fe\u7247\u7d20\u6750/\u72b6\u6001\u56fe\u6807/" +
+    "\u6b63\u5f0f\u7d20\u6750/\u610f\u56fe\u56fe\u6807")
+$intentSource = Join-Path $ProjectDir $intentRelativePath
+$intentNames = @(
+    "desire_gain_intent",
+    "restraint_attack_intent",
+    "restraint_power_intent",
+    "restraint_skill_intent",
+    "tear_clothing_intent"
+)
+foreach ($size in @("64x64", "256x256")) {
+    $suffix = if ($size -eq "256x256") { "_big" } else { "" }
+    foreach ($name in $intentNames) {
+        $file = "$name$suffix.png"
+        Assert-ExactCopy (Join-Path $intentSource "$size\$file") (
+            Join-Path $runtime "intents\$size\$file")
+    }
+}
+
+$temptationRelativePath = [regex]::Unescape(
+    "\u56fe\u7247\u7d20\u6750/\u72b6\u6001\u56fe\u6807/" +
+    "\u6b63\u5f0f\u7d20\u6750/\u8bf1\u60d1\u5ea6UI/" +
+    "temptation_lipstick_64.png")
+Assert-ExactCopy (Join-Path $ProjectDir $temptationRelativePath) (
+    Join-Path $runtime "ui\temptation\temptation_lipstick_64.png")
+
+$worldRelativePath = [regex]::Unescape(
+    "\u56fe\u7247\u7d20\u6750/\u706b\u5806\u4e0e\u5546\u5e97\u89d2\u8272/" +
+    "\u6b63\u5f0f\u7d20\u6750")
+$worldSource = Join-Path $ProjectDir $worldRelativePath
+foreach ($file in @("hibiki_amane_rest_site.png", "hibiki_amane_merchant.png")) {
+    Assert-ExactCopy (Join-Path $worldSource $file) (
+        Join-Path $runtime "character\$file")
+}
+
 foreach ($size in @("64x64", "256x256")) {
     $runtimeDir = Join-Path $runtime "powers\$size"
     $runtimeFiles = @(Get-ChildItem -LiteralPath $runtimeDir -Filter "*.png" -File)
@@ -110,11 +180,12 @@ $characterCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
 if ($corruptionCode -notmatch 'corruption_balance_\{state\}\.png') {
     throw "Corruption meter is not wired to reviewed state textures."
 }
-# Keep hover hitboxes aligned with the five visible ticks in the 512x144 art.
+# Keep hover hitboxes aligned with the five visible ticks in the 2172x724 art.
 $tickMatches = [regex]::Matches($corruptionCode, '\((-?\d+), (\d+)f\)')
-$expectedTicks = @(@(-5, 104), @(-3, 165), @(0, 256), @(3, 347), @(5, 408))
+$expectedTicks = @(@(-5, 560), @(-3, 770), @(0, 1086), @(3, 1401), @(5, 1611))
 if ($tickMatches.Count -ne $expectedTicks.Count -or
-    $corruptionCode -notmatch 'tick.ArtworkX / 512f \* MeterWidth' -or
+    $corruptionCode -notmatch 'MeterHeight = 85f' -or
+    $corruptionCode -notmatch 'tick.ArtworkX / 2172f \* MeterWidth' -or
     $corruptionCode -notmatch 'centerX - HoverWidth / 2f, HoverTop' -or
     $corruptionCode -match 'SegmentCount') {
     throw "Corruption hover zones must use artwork tick centers, not canvas segments."
@@ -128,14 +199,14 @@ for ($i = 0; $i -lt $expectedTicks.Count; $i++) {
     }
     # Check screen-scaled centers and non-overlap at common UI scales.
     foreach ($scale in @(0.75, 1.0, 1.25, 1.5, 2.0)) {
-        $center = $x / 512 * 256 * $scale
+        $center = $x / 2172 * 256 * $scale
         $halfWidth = $hoverWidth / 2 * $scale
         if ($halfWidth -le 0 -or $center - $halfWidth -lt 0 -or
             $center + $halfWidth -gt 256 * $scale) {
             throw "Corruption hover tick $value lies outside the meter."
         }
         if ($i -gt 0 -and
-            ($x - $expectedTicks[$i - 1][1]) / 512 * 256 * $scale -le 2 * $halfWidth) {
+            ($x - $expectedTicks[$i - 1][1]) / 2172 * 256 * $scale -le 2 * $halfWidth) {
             throw "Corruption hover tick $value overlaps its neighbor."
         }
     }
@@ -150,10 +221,53 @@ if ($libraryCode -notmatch 'pair.Key is MaidenSuccubusCharacter' -or
     throw "Compendium character filter must assign the reviewed Maiden icon to its own Image."
 }
 if ($characterCode -notmatch 'new CharacterUiAssetSet\(' -or
-    $characterCode -notmatch 'IconPath: RuntimeTextureAssets\.PrepareResource\(' -or
+    $characterCode -notmatch 'string iconPath = RuntimeTextureAssets\.PrepareResource\(' -or
+    $characterCode -notmatch 'IconPath: iconPath' -or
     $characterCode -notmatch 'ui/core/hibiki_amane_character_icon_128\.png' -or
-    $characterCode -notmatch 'user://maiden_succubus_top_bar_icon\.tres') {
+    $characterCode -notmatch 'user://maiden_succubus_character_icon\.tres') {
     throw "Character profile must route the reviewed Maiden icon through RitsuLib Ui.IconPath for the top bar."
+}
+$cardArtCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
+    Join-Path $ProjectDir "src\UI\CardArtAssets.cs")
+$allCardFiles = Get-ChildItem -LiteralPath (Join-Path $ProjectDir "src\Cards") `
+    -Filter "*.cs" -Recurse
+$allCardCode = ($allCardFiles | ForEach-Object {
+            Get-Content -Raw -Encoding UTF8 -LiteralPath $_.FullName
+        }) -join "`n"
+if ($cardArtCode -notmatch 'cards/\{cardType\.Name\}\.png' -or
+    $cardArtCode -notmatch 'cards/default\.png' -or
+    $allCardCode -match 'card_portraits/ironclad/bash\.png') {
+    throw "All Maiden card profiles must resolve reviewed art by class with the formal default fallback."
+}
+$intentCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
+    Join-Path $ProjectDir "src\UI\MaidenIntentIconAssets.cs")
+foreach ($binding in @(
+    "restraint_attack_intent.png",
+    "restraint_skill_intent.png",
+    "restraint_power_intent.png",
+    "desire_gain_intent.png",
+    "tear_clothing_intent.png"
+)) {
+    if ($intentCode -notmatch [regex]::Escape($binding)) {
+        throw "Formal intent icon binding is missing: $binding"
+    }
+}
+$temptationCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
+    Join-Path $ProjectDir "src\UI\TemptationMeter.cs")
+if ($temptationCode -notmatch 'ui/temptation/temptation_lipstick_64\.png' -or
+    $temptationCode -notmatch 'Position = new Vector2\(56f, 34f\)') {
+    throw "Temptation meter must use the formal lipstick with an independent value label."
+}
+foreach ($scene in @("maiden_succubus_rest_site.tscn", "maiden_succubus_merchant.tscn")) {
+    if (!(Test-Path -LiteralPath (Join-Path $ProjectDir "MaidenSuccubus\scenes\$scene") -PathType Leaf)) {
+        throw "Character world scene is missing: $scene"
+    }
+}
+if ($characterCode -notmatch 'MerchantAnimPath: MerchantScenePath' -or
+    $characterCode -notmatch 'RestSiteAnimPath: RestSiteScenePath' -or
+    $characterCode -notmatch 'character/hibiki_amane_merchant\.png' -or
+    $characterCode -notmatch 'character/hibiki_amane_rest_site\.png') {
+    throw "Character profile must bind both formal merchant and rest-site assets."
 }
 if ($desireCode -notmatch 'desire_meter_\{state:00\}\.png') {
     throw "Desire meter is not wired to reviewed state textures."
@@ -196,4 +310,4 @@ if ($holyPowerCode -match
     throw "Holy Flame must remain a visible Power state."
 }
 
-Write-Host "Validated visual assets: school-uniform portrait, 11 corruption states, 11 desire states, 7 core/route icons, and 72 paired power/mechanism icons."
+Write-Host "Validated visual assets: 112 card arts plus default, school-uniform/world portraits, 11 HD corruption states, 11 desire states, 10 intent icons, temptation UI, 7 core/route icons, and 72 paired power/mechanism icons."

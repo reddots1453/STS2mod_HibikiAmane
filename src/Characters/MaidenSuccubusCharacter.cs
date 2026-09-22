@@ -37,6 +37,12 @@ public class MaidenSuccubusCharacter
 {
     private const string TopBarIconFallback =
         "res://scenes/ui/character_icons/ironclad_icon.tscn";
+    private const string CharacterVisualsPath =
+        "res://MaidenSuccubus/scenes/maiden_succubus_character.tscn";
+    private const string MerchantScenePath =
+        "res://MaidenSuccubus/scenes/maiden_succubus_merchant.tscn";
+    private const string RestSiteScenePath =
+        "res://MaidenSuccubus/scenes/maiden_succubus_rest_site.tscn";
     private static CharacterAssetProfile? _assetProfile;
 
     public virtual MaidenSuccubusStartProfileId StartProfileId =>
@@ -57,12 +63,41 @@ public class MaidenSuccubusCharacter
     // （不是 IconTexture），因此通过 RitsuLib 的 Ui.IconPath 正式资产通道
     // 提供可加载的 Texture2D resource，由其运行时工厂生成 Icon Control。
     public override CharacterAssetProfile AssetProfile =>
-        _assetProfile ??= new CharacterAssetProfile(
+        _assetProfile ??= CreateAssetProfile();
+
+    private static CharacterAssetProfile CreateAssetProfile()
+    {
+        string iconPath = RuntimeTextureAssets.PrepareResource(
+            "ui/core/hibiki_amane_character_icon_128.png",
+            "user://maiden_succubus_character_icon.tres",
+            TopBarIconFallback);
+        string outlinePath = RuntimeTextureAssets.PrepareResource(
+            "ui/core/hibiki_amane_character_icon_outline_128.png",
+            "user://maiden_succubus_character_icon_outline.tres",
+            iconPath);
+
+        // The two world scenes reference these user resources. Preparing them
+        // here keeps loose debug assets and packed releases on the same path
+        // without relying on Godot's editor import database.
+        RuntimeTextureAssets.PrepareResource(
+            "character/hibiki_amane_merchant.png",
+            "user://maiden_succubus_merchant_texture.tres",
+            iconPath);
+        RuntimeTextureAssets.PrepareResource(
+            "character/hibiki_amane_rest_site.png",
+            "user://maiden_succubus_rest_site_texture.tres",
+            iconPath);
+
+        return new CharacterAssetProfile(
+            Scenes: new CharacterSceneAssetSet(
+                VisualsPath: CharacterVisualsPath,
+                MerchantAnimPath: MerchantScenePath,
+                RestSiteAnimPath: RestSiteScenePath),
             Ui: new CharacterUiAssetSet(
-                IconPath: RuntimeTextureAssets.PrepareResource(
-                    "ui/core/hibiki_amane_character_icon_128.png",
-                    "user://maiden_succubus_top_bar_icon.tres",
-                    TopBarIconFallback)));
+                IconTexturePath: iconPath,
+                IconOutlineTexturePath: outlinePath,
+                IconPath: iconPath));
+    }
 
     // 骨架阶段不实现时间线小故事
     public override bool RequiresEpochAndTimeline => false;
@@ -222,5 +257,5 @@ public class MaidenSuccubusCharacter
     protected override NCreatureVisuals? TryCreateCreatureVisuals() =>
         MaidenSuccubusCreatureVisuals.TryCreate()
         ?? RitsuGodotNodeFactories.CreateFromScenePath<NCreatureVisuals>(
-            AssetProfile.Scenes!.VisualsPath!);
+            CharacterVisualsPath);
 }

@@ -208,6 +208,11 @@ public sealed class TearClothingIntent :
         IEnumerable<Creature> targets,
         Creature owner) => IntentAnimData.cardDebuff;
 
+    public override Texture2D? GetTexture(
+        IEnumerable<Creature> targets,
+        Creature owner) => MaidenIntentIconAssets.Get(this)
+            ?? base.GetTexture(targets, owner);
+
     public IReadOnlyList<ExtraIconAmountLabelSpec>
         GetIntentExtraCornerAmountLabelSpecs() =>
         [ExtraIconAmountLabelSpec.PlainCustom("1", 2f, 40f, 64f, 63f)];

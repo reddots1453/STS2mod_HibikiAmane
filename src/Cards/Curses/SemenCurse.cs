@@ -16,6 +16,7 @@ using MaidenSuccubus.Core.Invasion;
 using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Core.Temptation;
 using MaidenSuccubus.Powers;
+using MaidenSuccubus.UI;
 
 namespace MaidenSuccubus.Cards.Curses;
 
@@ -33,7 +34,7 @@ public abstract class MSInvasionCurseTemplate :
         [CardKeyword.Exhaust];
 
     public override CardAssetProfile AssetProfile => new(
-        PortraitPath: "res://images/packed/card_portraits/ironclad/bash.png");
+        PortraitPath: CardArtAssets.GetPortraitPath(GetType()));
 
     protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
     protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
@@ -255,7 +256,7 @@ public abstract class MSEventCurseTemplate : ModCardTemplate
     public override bool CanBeGeneratedByModifiers => false;
     public override CardPoolModel Pool => ModelDb.CardPool<MSGeneratedCardPool>();
     public override CardAssetProfile AssetProfile => new(
-        PortraitPath: "res://images/packed/card_portraits/ironclad/bash.png");
+        PortraitPath: CardArtAssets.GetPortraitPath(GetType()));
     protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
     protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
         CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)

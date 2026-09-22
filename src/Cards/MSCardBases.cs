@@ -15,7 +15,7 @@ public abstract class MSNeutralCardTemplate : ModCardTemplate, IMaidenSuccubusRo
     public override CardPoolModel Pool => ModelDb.CardPool<MSNeutralCardPool>();
 
     public override CardAssetProfile AssetProfile => new(
-        PortraitPath: "res://images/packed/card_portraits/ironclad/bash.png");
+        PortraitPath: CardArtAssets.GetPortraitPath(GetType()));
 
     protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
     protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
@@ -46,7 +46,7 @@ public abstract class MSCorruptCardTemplate :
     public override CardPoolModel Pool => ModelDb.CardPool<MSCorruptCardPool>();
 
     public override CardAssetProfile AssetProfile => new(
-        PortraitPath: "res://images/packed/card_portraits/ironclad/bash.png");
+        PortraitPath: CardArtAssets.GetPortraitPath(GetType()));
 
     protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
     protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
@@ -81,7 +81,7 @@ public abstract class MSHolyCardTemplate :
     public override CardPoolModel Pool => ModelDb.CardPool<MSHolyCardPool>();
 
     public override CardAssetProfile AssetProfile => new(
-        PortraitPath: "res://images/packed/card_portraits/ironclad/bash.png");
+        PortraitPath: CardArtAssets.GetPortraitPath(GetType()));
 
     protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
     protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>

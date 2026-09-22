@@ -1,0 +1,48 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="user://maiden_succubus_rest_site_texture.tres" id="1_rest"]
+
+[node name="MaidenSuccubusRestSite" type="Node2D"]
+
+[node name="Sprite" type="Sprite2D" parent="."]
+position = Vector2(0, 75)
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("1_rest")
+centered = false
+offset = Vector2(-512, -1536)
+
+[node name="ControlRoot" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+
+[node name="SelectionReticle" type="Control" parent="ControlRoot"]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_left = -170.0
+offset_top = -405.0
+offset_right = 170.0
+offset_bottom = 90.0
+
+[node name="Hitbox" type="Control" parent="ControlRoot"]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_left = -145.0
+offset_top = -345.0
+offset_right = 145.0
+offset_bottom = 80.0
+
+[node name="ThoughtBubbleRight" type="Control" parent="ControlRoot"]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_left = 125.0
+offset_top = -300.0
+offset_right = 125.0
+offset_bottom = -300.0
+
+[node name="ThoughtBubbleLeft" type="Control" parent="ControlRoot"]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_left = -125.0
+offset_top = -300.0
+offset_right = -125.0
+offset_bottom = -300.0

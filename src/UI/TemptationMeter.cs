@@ -47,8 +47,8 @@ public sealed partial class TemptationMeter : Control, INodeAttachmentSetup
             CallDeferred(Node.MethodName.Reparent, topBar);
         }
         SetAnchorsPreset(LayoutPreset.TopLeft);
-        Position = new Vector2(88f, 220f);
-        CustomMinimumSize = new Vector2(64f, 64f);
+        Position = new Vector2(86f, 214f);
+        CustomMinimumSize = new Vector2(88f, 64f);
         Size = CustomMinimumSize;
         MouseFilter = MouseFilterEnum.Stop;
         ZIndex = 100;
@@ -60,8 +60,8 @@ public sealed partial class TemptationMeter : Control, INodeAttachmentSetup
         {
             Name = "TemptationIcon",
             Texture = RuntimeTextureAssets.Load(
-                "powers/64x64/temptation_power.png"),
-            Size = CustomMinimumSize,
+                "ui/temptation/temptation_lipstick_64.png"),
+            Size = new Vector2(64f, 64f),
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
             StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
             MouseFilter = MouseFilterEnum.Ignore,
@@ -70,8 +70,8 @@ public sealed partial class TemptationMeter : Control, INodeAttachmentSetup
         _value = new Label
         {
             Text = "10",
-            Position = new Vector2(0f, 37f),
-            Size = new Vector2(64f, 25f),
+            Position = new Vector2(56f, 34f),
+            Size = new Vector2(30f, 26f),
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore,
@@ -88,7 +88,7 @@ public sealed partial class TemptationMeter : Control, INodeAttachmentSetup
         if (_topBar != null && GodotObject.IsInstanceValid(_topBar))
         {
             // Follow the desire rail below the top-left relic rows.
-            Position = new Vector2(88f, 220f) - _topBar.GlobalPosition;
+            Position = new Vector2(86f, 214f) - _topBar.GlobalPosition;
         }
         RunState? runState = RunManager.Instance?.DebugOnlyGetState();
         _player = runState == null ? null : LocalContext.GetMe(runState);

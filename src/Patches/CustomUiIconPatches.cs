@@ -80,7 +80,7 @@ public static class MaidenCardEnergyIconPatch
 }
 
 /// <summary>
-/// NIntent animates sprites from vanilla atlases. Replace only the three custom
+/// NIntent animates sprites from vanilla atlases. Replace only the custom
 /// intent types that have reviewed art and stop the vanilla frame writer for
 /// those instances. Any signature mismatch disables this cosmetic patch.
 /// </summary>
@@ -115,7 +115,8 @@ public static class MaidenIntentSpritePatch
             {
                 var intent = IntentField!.GetValue(__instance) as
                     MegaCrit.Sts2.Core.MonsterMoves.Intents.AbstractIntent;
-                if (intent is not (ControlIntent or InvasionIntent or DesireGainIntent))
+                if (intent is not (ControlIntent or InvasionIntent
+                    or DesireGainIntent or TearClothingIntent))
                 {
                     return;
                 }

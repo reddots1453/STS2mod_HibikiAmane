@@ -22,16 +22,16 @@ namespace MaidenSuccubus.UI;
 public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
 {
     private const float MeterWidth = 256f;
-    private const float MeterHeight = 72f;
-    // Pixel coordinates in the reviewed 512x144 balance artwork, not eleven
+    private const float MeterHeight = 85f;
+    // Pixel coordinates in the reviewed 2172x724 balance artwork, not eleven
     // equal slices of its canvas (which includes transparent side margins).
     private static readonly (int Value, float ArtworkX)[] HoverTicks =
     [
-        (-5, 104f), (-3, 165f), (0, 256f), (3, 347f), (5, 408f),
+        (-5, 560f), (-3, 770f), (0, 1086f), (3, 1401f), (5, 1611f),
     ];
     private const float HoverWidth = 24f;
-    private const float HoverTop = 89f / 144f * MeterHeight;
-    private const float HoverHeight = 48f / 144f * MeterHeight;
+    private const float HoverTop = 400f / 724f * MeterHeight;
+    private const float HoverHeight = 220f / 724f * MeterHeight;
 
     private TextureRect? _meterTexture;
     private int _displayedValue = int.MaxValue;
@@ -103,7 +103,7 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
         foreach (var tick in HoverTicks)
         {
             int value = tick.Value;
-            float centerX = tick.ArtworkX / 512f * MeterWidth;
+            float centerX = tick.ArtworkX / 2172f * MeterWidth;
             Control zone = new()
             {
                 Name = $"Hover{value:+0;-0;0}",

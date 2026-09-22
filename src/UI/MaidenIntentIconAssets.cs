@@ -1,5 +1,6 @@
 using Godot;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
+using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Core.Intents;
 
 namespace MaidenSuccubus.UI;
@@ -8,15 +9,27 @@ public static class MaidenIntentIconAssets
 {
     public static Texture2D? Get(AbstractIntent intent)
     {
-        string? basename = intent switch
+        string? fileName = intent switch
         {
-            ControlIntent => "restraint",
-            InvasionIntent => "violation",
-            DesireGainIntent => "desire_attack",
+            ControlIntent { ControlType: ControlType.Attack } =>
+                "restraint_attack_intent.png",
+            ControlIntent { ControlType: ControlType.Skill } =>
+                "restraint_skill_intent.png",
+            ControlIntent { ControlType: ControlType.Power } =>
+                "restraint_power_intent.png",
+            DesireGainIntent => "desire_gain_intent.png",
+            TearClothingIntent => "tear_clothing_intent.png",
+            // Invasion keeps its reviewed Power icon until a dedicated formal
+            // intent icon is accepted.
+            InvasionIntent => null,
             _ => null,
         };
-        return basename == null
-            ? null
-            : RuntimeTextureAssets.Load($"powers/64x64/{basename}_power.png");
+        if (fileName != null)
+        {
+            return RuntimeTextureAssets.Load($"intents/64x64/{fileName}");
+        }
+        return intent is InvasionIntent
+            ? RuntimeTextureAssets.Load("powers/64x64/violation_power.png")
+            : null;
     }
 }

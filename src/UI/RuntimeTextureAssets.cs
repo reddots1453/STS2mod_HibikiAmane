@@ -16,6 +16,9 @@ public static class RuntimeTextureAssets
     private static readonly HashSet<string> FailedLoads =
         new(StringComparer.Ordinal);
 
+    public static bool Exists(string relativePath) =>
+        Godot.FileAccess.FileExists(RootPath + relativePath);
+
     public static Texture2D? Load(string relativePath)
     {
         if (Cache.TryGetValue(relativePath, out Texture2D? cached)

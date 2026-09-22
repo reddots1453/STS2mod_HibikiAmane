@@ -9,6 +9,7 @@ using MaidenSuccubus.Core.Transformation;
 using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Content;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
+using MaidenSuccubus.UI;
 
 namespace MaidenSuccubus.Cards;
 
@@ -16,7 +17,7 @@ public abstract class MSGeneratedCard : ModCardTemplate
 {
     public override CardPoolModel Pool => ModelDb.CardPool<MSGeneratedCardPool>();
     public override CardAssetProfile AssetProfile => new(
-        PortraitPath: "res://images/packed/card_portraits/ironclad/bash.png");
+        PortraitPath: CardArtAssets.GetPortraitPath(GetType()));
     protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
     protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
         CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)

@@ -7,6 +7,7 @@ using STS2RitsuLib.Scaffolding.Content;
 using MaidenSuccubus.Commands;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers.Scriptures;
+using MaidenSuccubus.UI;
 
 namespace MaidenSuccubus.Cards.Scriptures;
 
@@ -42,7 +43,7 @@ public abstract class MSScriptureCardTemplate : ModCardTemplate
         [new IntVar("Duration", 2), new EnergyVar(1), new IntVar("Cards", 1)];
 
     public override CardAssetProfile AssetProfile => new(
-        PortraitPath: "res://images/packed/card_portraits/ironclad/bash.png");
+        PortraitPath: CardArtAssets.GetPortraitPath(GetType()));
 
     protected virtual IEnumerable<IHoverTip> CardSpecificHoverTips => [];
     protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
