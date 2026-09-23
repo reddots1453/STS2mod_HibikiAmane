@@ -30,3 +30,10 @@
 - `dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=true` 已完成编译、内容契约、结构契约与视觉契约；视觉门确认 120 张正式卡图、默认图和高清大图管线通过。
 - 完整验证最终被当前工作区 DesignDoc 尚未同步实现的 12 条卡牌审计差异阻断，本轮未越界修改这些卡牌语义。
 - `dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 通过，`0 warning / 0 error`。
+
+## 提交与部署
+
+- 功能提交：`8830cf2`（`fix(maiden): restore standalone card art rendering`）。
+- 游戏进程未运行时执行 `dotnet build -c Debug -p:DeployMod=true -p:ValidateMod=false --no-restore`，部署构建 `0 warning / 0 error`。
+- 源码产物与安装目录 DLL SHA-256 均为 `1052D1723E282A575F6308C4F4800F5DDEF42C2966FA479B2547FB437D51B793`；PDB SHA-256 均为 `760464CA7A4BFE6685F4BF2D73AC2D85876DC2A5BE1651CC9AB44A66FAC7AC51`。
+- 源码运行时目录、安装目录和热加载目录均包含 121 张 PNG（120 张正式卡图及 `default.png`）。
