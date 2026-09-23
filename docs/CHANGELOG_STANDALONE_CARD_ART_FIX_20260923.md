@@ -47,3 +47,6 @@
 - 首次成功替换会在游戏日志写入 `Card portrait pipeline active`，便于下一轮实测直接确认正式取图链已经执行。
 - 修改前快照：`maiden-pre-card-model-portrait-pipeline-fix-20260923`（目标提交 `f3f1cd92342d72a93b386a149a2f4f5b97ee3502`）。
 - 规定验证构建已通过编译、内容契约、结构契约和视觉契约，随后仍被同一组 12 条既存 DesignDoc/源码卡牌审计差异阻断；独立无验证构建为 `0 warning / 0 error`。
+- 功能提交：`258ac3b`（`fix(maiden): route standalone art through card model`）。
+- 已在游戏进程关闭时部署，部署构建为 `0 warning / 0 error`；源码产物与安装目录 DLL SHA-256 均为 `DE22EBF134B09B2D507539D5D1CEBD9B3B3398368F9855C36FCC8E0BBCC0C493`，PDB SHA-256 均为 `8CD80098DF51A18CEFCB8FDCFE3FB8FD15B716A61EFD1C87F441ED1F08245E35`。
+- 源码运行时目录、安装目录及热加载目录再次核对，均为 121 张卡图 PNG。
