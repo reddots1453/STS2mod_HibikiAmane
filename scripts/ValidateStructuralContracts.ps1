@@ -185,6 +185,7 @@ Assert-Contains "stun cannot follow itself by state id" $intentFactory 'ShouldQu
 Assert-Contains "stun cannot follow itself by move instance" $intentFactory 'ShouldQueueStun\(MoveState current\)[\s\S]*?current\.FollowUpState is not MoveState followUp[\s\S]*?!IsStunMove\(followUp\)'
 
 $energyFormatter = Read-Text "src\Localization\MaidenEnergyIconsFormatter.cs"
+$desireFormatter = Read-Text "src\Localization\MaidenDesireIconsFormatter.cs"
 $energyFormatterPatch = Read-Text "src\Patches\MaidenEnergyFormatterPatch.cs"
 $energyCardLocalization = Read-Text "MaidenSuccubus\localization\zhs\cards.json"
 Assert-Contains "maiden inline energy formatter owns a distinct name" $energyFormatter 'get\s*=>\s*"maidenEnergyIcons"'
@@ -193,6 +194,18 @@ Assert-Contains "maiden inline energy formatter follows vanilla image markup" $e
 Assert-NotContains "maiden inline energy formatter must not bypass autosize measurement" $energyFormatter '\[img=[^\]]+'
 Assert-Contains "maiden inline energy formatter registration" $energyFormatterPatch 'Smart\.Default\?\.AddExtensions'
 Assert-NotContains "maiden localization must not use vanilla energy formatter" $energyCardLocalization ':energyIcons\('
+Assert-Contains "maiden inline desire formatter owns a distinct name" $desireFormatter 'get\s*=>\s*"maidenDesireIcons"'
+Assert-Contains "maiden inline desire formatter uses font-sized resource" $desireFormatter 'desire_resource_icon_32\.png'
+Assert-Contains "maiden inline desire formatter follows vanilla image markup" $desireFormatter '\[img\]\{MaidenDesireIconAssets\.TextIconResourcePath\}\[/img\]'
+Assert-NotContains "maiden inline desire formatter must not bypass autosize measurement" $desireFormatter '\[img=[^\]]+'
+Assert-Contains "maiden inline desire formatter registration" $energyFormatterPatch 'new\s+MaidenDesireIconsFormatter\(\)'
+Assert-Contains "card localization uses desire icons" $energyCardLocalization ':maidenDesireIcons\('
+$desireWord = [regex]::Unescape('\u6b32\u671b')
+$pointWord = [regex]::Unescape('\u70b9')
+$consumeWord = [regex]::Unescape('\u6d88\u8017')
+$spendWord = [regex]::Unescape('\u82b1\u8d39')
+Assert-NotContains "numeric card desire units must use icons" $energyCardLocalization "(?:\d+|\{[^}]+\})(?:$pointWord)?\[pink\]$desireWord\[/pink\]"
+Assert-NotContains "card desire costs must use icons" $energyCardLocalization "(?:$consumeWord\[/gold\]|$spendWord)\[pink\]$desireWord\[/pink\]"
 
 $runtimePower = Read-Text "src\Powers\EroticIntentRuntimePower.cs"
 foreach ($field in @(

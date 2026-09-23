@@ -14,7 +14,8 @@ internal static class MaidenEnergyFormatterPatch
     {
         Safe.Run(
             () => Smart.Default?.AddExtensions(
-                new MaidenEnergyIconsFormatter()),
+                new MaidenEnergyIconsFormatter(),
+                new MaidenDesireIconsFormatter()),
             nameof(MaidenEnergyFormatterPatch));
     }
 }

@@ -38,6 +38,7 @@ public static class MaidenSuccubusMod
         RitsuLibFramework.EnsureGodotScriptsRegistered(assembly, Logger);
         PowerIconAssets.Register();
         MaidenEnergyIconAssets.Register();
+        MaidenDesireIconAssets.Register();
         RegisterRunSavedData();
         RegisterKeywords();
         DesireResource.Register();
