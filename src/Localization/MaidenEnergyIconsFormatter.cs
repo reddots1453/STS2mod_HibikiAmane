@@ -66,7 +66,7 @@ public sealed class MaidenEnergyIconsFormatter : IFormatter
             return false;
         }
 
-        string icon = $"[img=32x32]{MaidenEnergyIconAssets.TextIconResourcePath}[/img]";
+        string icon = $"[img=16x16]{MaidenEnergyIconAssets.TextIconResourcePath}[/img]";
         string output = amount is > 0 and < 4
             ? string.Concat(Enumerable.Repeat(icon, amount))
             : $"{amount}{icon}";
