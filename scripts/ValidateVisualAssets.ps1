@@ -253,12 +253,14 @@ if ($cardArtCode -notmatch 'cards/\{cardType\.Name\}\.png' -or
 }
 $cardPresentationCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
     Join-Path $ProjectDir "src\Patches\CardArtPresentationPatch.cs")
-if ($cardPresentationCode -notmatch 'HarmonyPatch\(typeof\(NCard\), "Reload"\)' -or
+if ($cardPresentationCode -notmatch 'HarmonyPatch\(typeof\(CardModel\), nameof\(CardModel\.Portrait\), MethodType\.Getter\)' -or
+    $cardPresentationCode -notmatch '__result = texture;' -or
+    $cardPresentationCode -notmatch 'HarmonyPatch\(typeof\(NCard\), "Reload"\)' -or
     $cardPresentationCode -notmatch 'HarmonyPatch\(typeof\(NInspectCardScreen\), "UpdateCardDisplay"\)' -or
     $cardPresentationCode -notmatch 'AccessTools\.DeclaredField\(typeof\(NCard\), "_portrait"\)' -or
     $cardPresentationCode -notmatch 'portrait\.Texture = texture;' -or
     $cardPresentationCode -match 'SetDeferred') {
-    throw "Card art presentation must synchronously cover normal cards and the inspect-card HD view."
+    throw "Card art presentation must replace CardModel.Portrait and synchronously cover normal cards and the inspect-card HD view."
 }
 $characterSelectPatchCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
     Join-Path $ProjectDir "src\Patches\CharacterSelectVisualPatch.cs")

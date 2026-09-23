@@ -1,4 +1,5 @@
 using Godot;
+using MegaCrit.Sts2.Core.Models;
 
 namespace MaidenSuccubus.UI;
 
@@ -14,6 +15,7 @@ namespace MaidenSuccubus.UI;
 /// </summary>
 public static class CardArtAssets
 {
+    private const string CardIdPrefix = "MAIDEN_SUCCUBUS_CARD_";
     private const string VanillaFallback =
         "res://images/packed/card_portraits/ironclad/bash.png";
     private static readonly Dictionary<Type, string> RelativePaths = [];
@@ -23,6 +25,10 @@ public static class CardArtAssets
         _ = cardType;
         return VanillaFallback;
     }
+
+    public static bool IsMaidenCard(CardModel model) =>
+        model.GetType().Assembly == typeof(CardArtAssets).Assembly
+        || model.Id.Entry.StartsWith(CardIdPrefix, StringComparison.Ordinal);
 
     public static Texture2D? GetPortraitTexture(Type cardType)
     {

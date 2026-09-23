@@ -10,9 +10,48 @@ using MaidenSuccubus.Util;
 namespace MaidenSuccubus.Patches;
 
 /// <summary>
-/// Installs loose HD art directly on this mod's NCard instances. The model's
-/// path remains a valid vanilla CompressedTexture2D so third-party inspect-card
-/// patches cannot fail their compressed-texture cast.
+/// Supplies loose HD art at the same model-level texture getter consumed by
+/// every vanilla card surface. The separately exposed PortraitPath remains a
+/// valid vanilla CompressedTexture2D so third-party inspect-card patches that
+/// insist on loading that concrete type cannot fail their cast.
+/// </summary>
+[HarmonyPatch(typeof(CardModel), nameof(CardModel.Portrait), MethodType.Getter)]
+[HarmonyPriority(Priority.Last)]
+public static class MaidenCardModelPortraitPatch
+{
+    private static bool _loggedFirstReplacement;
+
+    public static void Postfix(CardModel __instance, ref Texture2D __result)
+    {
+        if (!CardArtAssets.IsMaidenCard(__instance))
+        {
+            return;
+        }
+
+        Texture2D? texture = null;
+        Safe.Run(
+            () => texture = CardArtAssets.GetPortraitTexture(__instance.GetType()),
+            nameof(MaidenCardModelPortraitPatch));
+        if (texture == null)
+        {
+            return;
+        }
+
+        __result = texture;
+        if (!_loggedFirstReplacement)
+        {
+            _loggedFirstReplacement = true;
+            MaidenSuccubusMod.Logger.Info(
+                $"Card portrait pipeline active: {__instance.Id.Entry} -> "
+                + $"{texture.GetType().Name} {texture.GetSize()}.");
+        }
+    }
+}
+
+/// <summary>
+/// Reapplies the model-selected texture directly to initialized NCard nodes.
+/// This is a compatibility fallback for card UI extensions that cache or
+/// replace the portrait after reading CardModel.Portrait.
 /// </summary>
 [HarmonyPatch(typeof(NCard), "Reload")]
 [HarmonyPriority(Priority.Last)]
@@ -30,8 +69,7 @@ public static class MaidenCardPortraitPresentationPatch
     internal static void Apply(NCard card)
     {
         CardModel? model = card.Model;
-        if (model == null
-            || model.GetType().Assembly != typeof(MaidenSuccubusMod).Assembly)
+        if (model == null || !CardArtAssets.IsMaidenCard(model))
         {
             return;
         }
