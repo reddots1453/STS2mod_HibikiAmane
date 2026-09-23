@@ -25,3 +25,12 @@
 - 11 项控制意图运行时场景结构验证通过。
 - `dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`：0 警告、0 错误。
 - 完整 DesignDoc 审计仍被修改前已有的 12 项卡牌映射/费用/稀有度差异阻断；本次未新增审计差异。
+
+## 部署
+
+- 功能提交：`2c8681a`（`fix(maiden): preserve card text size around energy icons`）
+- 部署命令：`dotnet build -c Debug -p:DeployMod=true -p:ValidateMod=false --no-restore`
+- 部署结果：0 警告、0 错误。
+- 源与安装目录 DLL SHA-256：`B071B64BE7F636310BDE6157B706725208B06DA3F1BC49D2C312CE5757003960`
+- 源与安装目录 PDB SHA-256：`9F26558FEB83A80BBE3657EC01A951CEB78F02C92B138BD90D4B5F1262D7A3BC`
+- 源与安装目录 `magic_energy_cost_icon_32.png` SHA-256：`B08A870CBF5A696B39273DE716745114CA1D5DD988C11601BEE6E0DB8A75947C`
