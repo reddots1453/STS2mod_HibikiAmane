@@ -22,3 +22,13 @@
 - 11 项控制意图运行时场景结构验证通过。
 - `dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`：0 警告、0 错误。
 - 完整 DesignDoc 审计当前被14项卡牌映射/费用/稀有度差异阻断；其中功性魔防壁与功性魔防壁IV两项来自并行修改的 DesignDoc，均不属于本次文本图标化范围。
+
+## 部署
+
+- 功能提交：`31e3a8c`（`feat(maiden): render desire costs as inline icons`）
+- 部署命令：`dotnet build -c Debug -p:DeployMod=true -p:ValidateMod=false --no-restore`
+- 部署结果：0 警告、0 错误。
+- 源与安装目录 DLL SHA-256：`F04142FC805D448A79A1AF754FF16BDC89DD11BD61476DA3471D63FDBDFB219B`
+- 源与安装目录 PDB SHA-256：`1A779B9C14A3B6BA16CF7402D87AD0F263C056177F1F196BB059C3F7DF2BBAFF`
+- 源与安装目录卡牌本地化 SHA-256：`BB45B84E5055441BBABC6163C5816D97E3E7C82A2A973C8BA421DABFD134E854`
+- 源与安装目录欲望文本图标 SHA-256：`16B22162585DDDA7CDAD65D707318EFF87B78B6569FEE29A96341F7EB692DF2C`
