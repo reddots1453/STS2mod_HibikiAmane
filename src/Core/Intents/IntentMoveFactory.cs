@@ -179,6 +179,16 @@ public static class IntentMoveFactory
 
     public static void ForceStun(MonsterModel monster)
     {
+        MoveState current = monster.NextMove;
+        if (!ShouldQueueStun(current))
+        {
+            // Invasion can schedule a stun while the move is executing, then
+            // releasing its ControlPower can request the same recovery again.
+            // Replacing the registered STUNNED state in that situation makes
+            // its follow-up resolve to itself and traps the monster forever.
+            return;
+        }
+
         IntentRuntimeState runtime = IntentAdapterRegistry.GetRuntime(monster);
         runtime.ForceStun = true;
         MoveState stun = new MoveState("STUNNED", _ =>
@@ -198,7 +208,6 @@ public static class IntentMoveFactory
             // and leaving several bespoke monster state machines deadlocked.
             // Insert the stun between the current move and its continuation;
             // normal RollMove processing will enter it after this move ends.
-            MoveState current = monster.NextMove;
             MonsterMoveStateMachine machine = monster.MoveStateMachine
                 ?? throw new InvalidOperationException(
                     $"Monster {monster.Id} has no move state machine.");
@@ -218,6 +227,26 @@ public static class IntentMoveFactory
 
         SetTransient(monster, stun);
     }
+
+    internal static bool ShouldQueueStun(MoveState current)
+    {
+        if (IsStunMove(current))
+        {
+            return false;
+        }
+
+        if (current.FollowUpStateId == "STUNNED")
+        {
+            return false;
+        }
+
+        return current.FollowUpState is not MoveState followUp
+            || !IsStunMove(followUp);
+    }
+
+    private static bool IsStunMove(MoveState move) =>
+        move.StateId == "STUNNED"
+        || move.Intents.Any(intent => intent is StunIntent);
 
     public static async Task Stun(Creature creature)
     {

@@ -52,6 +52,10 @@
       <HintPath>$(Sts2Dir)\data_sts2_windows_x86_64\0Harmony.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="SmartFormat">
+      <HintPath>$(Sts2Dir)\data_sts2_windows_x86_64\SmartFormat.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <PackageReference Include="STS2.RitsuLib" Version="0.4.64" />
     <EmbeddedResource Include="docs\EROTIC_ATTACK_ASSIGNMENTS.md" />
     <EmbeddedResource Include="docs\EROTIC_ATTACK_INTENTS.md" />

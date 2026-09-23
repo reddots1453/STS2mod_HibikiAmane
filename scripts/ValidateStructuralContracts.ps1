@@ -172,6 +172,18 @@ Assert-NotContains "desire intent reserved vanilla corner" $intentModels 'Desire
 $intentFactory = Read-Text "src\Core\Intents\IntentMoveFactory.cs"
 Assert-Contains "desire attack derives supplemental icons from effect parser" $intentFactory 'BuildDesireIntents[\s\S]*?BuildSupplementalIntents\([\s\S]*?EroticIntentKind\.Desire'
 Assert-Contains "invasion stun is queued after an executing move" $intentFactory 'if\s*\(monster\.IsPerformingMove\)[\s\S]*?current\.FollowUpState\s*=\s*stun'
+Assert-Contains "duplicate stun scheduling is coalesced" $intentFactory 'ForceStun\(MonsterModel monster\)[\s\S]*?if\s*\(!ShouldQueueStun\(current\)\)[\s\S]*?return;'
+Assert-Contains "stun cannot follow itself by state id" $intentFactory 'ShouldQueueStun\(MoveState current\)[\s\S]*?current\.FollowUpStateId\s*==\s*"STUNNED"'
+Assert-Contains "stun cannot follow itself by move instance" $intentFactory 'ShouldQueueStun\(MoveState current\)[\s\S]*?current\.FollowUpState is not MoveState followUp[\s\S]*?!IsStunMove\(followUp\)'
+
+$energyFormatter = Read-Text "src\Localization\MaidenEnergyIconsFormatter.cs"
+$energyFormatterPatch = Read-Text "src\Patches\MaidenEnergyFormatterPatch.cs"
+$energyCardLocalization = Read-Text "MaidenSuccubus\localization\zhs\cards.json"
+Assert-Contains "maiden inline energy formatter owns a distinct name" $energyFormatter 'get\s*=>\s*"maidenEnergyIcons"'
+Assert-Contains "maiden inline energy formatter uses custom resource" $energyFormatter 'magic_energy_cost_icon_128\.png'
+Assert-Contains "maiden inline energy formatter sizes rich-text icons" $energyFormatter '\[img=32x32\]'
+Assert-Contains "maiden inline energy formatter registration" $energyFormatterPatch 'Smart\.Default\?\.AddExtensions'
+Assert-NotContains "maiden localization must not use vanilla energy formatter" $energyCardLocalization ':energyIcons\('
 
 $runtimePower = Read-Text "src\Powers\EroticIntentRuntimePower.cs"
 foreach ($field in @(
@@ -218,6 +230,7 @@ Assert-Contains "Dark Element zero-corruption effect coverage" $cardEffectCatalo
 $frameworkSelfTests = Read-Text "src\Debugging\FrameworkSelfTests.cs"
 Assert-Contains "route probability self-test magnitude 2" $frameworkSelfTests 'AssertProbabilities\(2,\s*0\.08m,\s*0\.20m,\s*0\.72m\)'
 Assert-Contains "route probability self-test magnitude 4" $frameworkSelfTests 'AssertProbabilities\(4,\s*0\.00m,\s*0\.45m,\s*0\.55m\)'
+Assert-Contains "duplicate stun scheduling self-test" $frameworkSelfTests 'AssertStunSchedulingIsIdempotent\(\)'
 Assert-Contains "route probability self-test magnitude 5" $frameworkSelfTests 'AssertProbabilities\(5,\s*0\.00m,\s*0\.65m,\s*0\.35m\)'
 $modInitializer = Read-Text "src\MaidenSuccubusMod.cs"
 Assert-Contains "runtime self-tests cannot block patch installation" $modInitializer 'RunFrameworkSelfTestsWithoutBlockingInitialization\(\)'

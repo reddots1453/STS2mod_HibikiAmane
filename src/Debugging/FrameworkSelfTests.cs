@@ -7,7 +7,10 @@ using MaidenSuccubus.Core.Desire;
 using STS2RitsuLib.Combat.SecondaryResources;
 using MaidenSuccubus.Core.Control;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.MonsterMoves.Intents;
+using MegaCrit.Sts2.Core.MonsterMoves.MonsterMoveStateMachine;
 using MaidenSuccubus.Acts;
+using MaidenSuccubus.Core.Intents;
 
 namespace MaidenSuccubus.Debugging;
 
@@ -34,6 +37,7 @@ public static class FrameworkSelfTests
         AssertControlTypes();
         AssertFourthActRoutes();
         AssertFourthRouteQuests();
+        AssertStunSchedulingIsIdempotent();
 
         var normalized = RouteRewardProbabilities.Calculate(
             corruption: 5,
@@ -136,6 +140,39 @@ public static class FrameworkSelfTests
                 && definition.TurnStartPolicy
                     == SecondaryResourceTurnStartPolicy.None,
             "desire resource definition");
+    }
+
+    private static void AssertStunSchedulingIsIdempotent()
+    {
+        var normal = new MoveState("NORMAL", _ => Task.CompletedTask);
+        var stun = new MoveState(
+            "STUNNED",
+            _ => Task.CompletedTask,
+            new StunIntent());
+
+        AssertBoolean(
+            true,
+            IntentMoveFactory.ShouldQueueStun(normal),
+            "normal move can schedule stun");
+        AssertBoolean(
+            false,
+            IntentMoveFactory.ShouldQueueStun(stun),
+            "stun does not schedule itself");
+
+        normal.FollowUpState = stun;
+        AssertBoolean(
+            false,
+            IntentMoveFactory.ShouldQueueStun(normal),
+            "queued stun is not duplicated");
+
+        var stateIdOnly = new MoveState("STATE_ID_ONLY", _ => Task.CompletedTask)
+        {
+            FollowUpStateId = "STUNNED",
+        };
+        AssertBoolean(
+            false,
+            IntentMoveFactory.ShouldQueueStun(stateIdOnly),
+            "stun follow-up id is not duplicated");
     }
 
     private static void AssertDesireAmountState()
