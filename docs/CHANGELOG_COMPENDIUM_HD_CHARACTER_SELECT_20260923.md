@@ -29,3 +29,13 @@
 - 从百科、奖励和牌组打开卡牌大图时显示对应正式高清卡图，日志中不再出现上述纹理类型转换异常。
 - 选角界面显示响木天音正式背景和角色图标；锁定图标使用正式描边版本。
 - 三类色情意图阈值 Power 的右下角分别显示其怪物配置阈值。
+
+## 构建与部署记录
+
+- 功能提交：`2ae07b2109c14c61e4f5c06c1294f9a96bdd51bb`。
+- Debug 编译：`0 warning / 0 error`。
+- 内容契约、结构契约、视觉契约、本地化样式、222 张卡牌测试契约和 11 个拘束意图场景契约通过。
+- 完整验证仍报告既有的 10 条 DesignDoc 卡牌审计差异；本轮未新增差异。
+- 已部署到 `D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`，并同步热加载目录 `D:\game_backup\steam\steamapps\common\Slay the Spire 2\MaidenSuccubus`。
+- 部署 DLL SHA-256：`A03E38F5D84DE201E944F1901D574E0C14C631706B13B40F17C71D1E4AC1EB10`。
+- 两个部署目录均包含 121 个运行时 PNG（120 张正式卡图 + `default.png`）；抽查 DLL、选角背景、256px 图标和新增卡图均与源码产物 SHA-256 一致。
