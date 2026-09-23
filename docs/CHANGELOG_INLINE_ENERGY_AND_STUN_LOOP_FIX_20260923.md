@@ -21,3 +21,7 @@
 
 - 修复前快照：`maiden-pre-inline-energy-and-stun-loop-fix-20260923`
 - 基线提交：`5ebe8078ba4ceea1218601c014799a6f4b51a960`
+- 功能提交：`5b8c2bd`（`fix(maiden): prevent stun loops and style energy text`）。
+- 完整验证已通过编译、内容契约、结构契约与视觉契约，随后仍被同一组 12 项既存 DesignDoc/源码卡牌差异阻断；独立本地化、卡牌效果、拘束意图测试契约均通过，无验证构建和部署构建均为 0 警告、0 错误。
+- 已在游戏进程关闭时部署。源码与安装目录 DLL SHA-256 均为 `FBDC449CEF1020A60805D434AA12740D8661A5220AF0E5682433FC27AF86D634`，PDB SHA-256 均为 `8D3166FACD6EFF2E535DEDC9EC246F25DF5E7942A0DAA0C54453A48E0070774F`。
+- 源码、安装目录和热加载目录的中文卡牌文本 SHA-256 均为 `AA27977265A07772FA8B1419CB913EB7BD2C79B97F7655343A17A1AB2CA0D1F9`；能量图标素材 SHA-256 均为 `10D62346CB9BFE87E1CE638285679F588A783622F3042FF79BDB4F7476D15FBB`。
