@@ -1,5 +1,6 @@
 using Godot;
 using HarmonyLib;
+using System.Reflection;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Screens;
@@ -17,6 +18,11 @@ namespace MaidenSuccubus.Patches;
 [HarmonyPriority(Priority.Last)]
 public static class MaidenCardPortraitPresentationPatch
 {
+    private static readonly FieldInfo? PortraitField =
+        AccessTools.DeclaredField(typeof(NCard), "_portrait");
+    private static readonly FieldInfo? AncientPortraitField =
+        AccessTools.DeclaredField(typeof(NCard), "_ancientPortrait");
+
     public static void Postfix(NCard __instance) => Safe.Run(
         () => Apply(__instance),
         nameof(MaidenCardPortraitPresentationPatch));
@@ -36,12 +42,25 @@ public static class MaidenCardPortraitPresentationPatch
             return;
         }
 
-        card.GetNodeOrNull<TextureRect>("%Portrait")?.SetDeferred(
-            TextureRect.PropertyName.Texture,
-            texture);
-        card.GetNodeOrNull<TextureRect>("%AncientPortrait")?.SetDeferred(
-            TextureRect.PropertyName.Texture,
-            texture);
+        // NCard.Reload has already assigned Model.Portrait when its postfixes
+        // run. Replace the initialized backing nodes synchronously so the
+        // custom image does not depend on another mod scheduling a later card
+        // refresh, and so pooled/off-screen compendium cards cannot lose a
+        // deferred assignment before it is processed.
+        TextureRect? portrait = PortraitField?.GetValue(card) as TextureRect
+            ?? card.GetNodeOrNull<TextureRect>("%Portrait");
+        TextureRect? ancientPortrait =
+            AncientPortraitField?.GetValue(card) as TextureRect
+            ?? card.GetNodeOrNull<TextureRect>("%AncientPortrait");
+
+        if (portrait != null)
+        {
+            portrait.Texture = texture;
+        }
+        if (ancientPortrait != null)
+        {
+            ancientPortrait.Texture = texture;
+        }
     }
 }
 
