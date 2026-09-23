@@ -80,11 +80,12 @@ public static class MaidenCardEnergyIconPatch
 }
 
 /// <summary>
-/// NIntent animates sprites from vanilla atlases. Replace only the custom
-/// intent types that have reviewed art and stop the vanilla frame writer for
-/// those instances. Any signature mismatch disables this cosmetic patch.
+/// NIntent's frame loop normally writes a vanilla atlas frame after
+/// UpdateVisuals. Custom intents opt out of that animation, and this stable
+/// public update entry installs their reviewed standalone sprite. Any field
+/// signature mismatch disables this cosmetic patch safely.
 /// </summary>
-[HarmonyPatch(typeof(NIntent), "UpdateVisuals")]
+[HarmonyPatch(typeof(NIntent), nameof(NIntent.UpdateIntent))]
 public static class MaidenIntentSpritePatch
 {
     private static readonly FieldInfo? IntentField =
@@ -128,6 +129,8 @@ public static class MaidenIntentSpritePatch
                 }
 
                 __instance.GetNode<Sprite2D>("%Intent").Texture = texture;
+                // Keep both fields clear even if another mod called the
+                // update entry with stale animation state on this reused node.
                 AnimationNameField!.SetValue(__instance, null);
                 AnimationFrameField!.SetValue(__instance, null);
             },

@@ -165,10 +165,18 @@ Assert-NotContains "erotic intent ids" $intent 'Interlocked\.Increment'
 Assert-Contains "erotic intent ids" $intent '\$"MAIDENSUCCUBUS_\{kind\}"'
 
 $intentModels = Read-Text "src\Core\Intents\MaidenSuccubusIntents.cs"
+$customUiIconPatches = Read-Text "src\Patches\CustomUiIconPatches.cs"
 $intentLocalization = Read-Text "MaidenSuccubus\localization\zhs\intents.json"
 Assert-Contains "desire intent canonical title" $intentLocalization '"MAIDENSUCCUBUS_DESIRE\.title"\s*:\s*"\u6B32\u671B\u653B\u51FB"'
 Assert-Contains "desire intent centered amount label" $intentModels 'DesireGainIntent[\s\S]*?ExtraIconAmountLabelSpec\.PlainCustom\('
 Assert-NotContains "desire intent reserved vanilla corner" $intentModels 'DesireGainIntent[\s\S]*?ExtraIconAmountLabelCorner\.BottomRight'
+Assert-Contains "custom intent sprite uses stable public update entry" $customUiIconPatches 'HarmonyPatch\(typeof\(NIntent\),\s*nameof\(NIntent\.UpdateIntent\)\)'
+Assert-NotContains "custom intent sprite must not rely on inline-prone private update" $customUiIconPatches 'HarmonyPatch\(typeof\(NIntent\),\s*"UpdateVisuals"\)'
+foreach ($intentType in @(
+    "ControlIntent", "InvasionIntent", "DesireGainIntent", "TearClothingIntent")) {
+    Assert-Contains "$intentType disables vanilla intent animation" $intentModels (
+        'class\s+' + $intentType + '[\s\S]*?GetAnimation\([\s\S]*?\)\s*=>\s*null!;')
+}
 $intentFactory = Read-Text "src\Core\Intents\IntentMoveFactory.cs"
 Assert-Contains "desire attack derives supplemental icons from effect parser" $intentFactory 'BuildDesireIntents[\s\S]*?BuildSupplementalIntents\([\s\S]*?EroticIntentKind\.Desire'
 Assert-Contains "invasion stun is queued after an executing move" $intentFactory 'if\s*\(monster\.IsPerformingMove\)[\s\S]*?current\.FollowUpState\s*=\s*stun'
