@@ -16,8 +16,8 @@ public static class MaidenEnergyIconAssets
     public static void Register()
     {
         TextIconResourcePath = RuntimeTextureAssets.PrepareResource(
-            "ui/core/magic_energy_cost_icon_128.png",
-            "user://maiden_succubus_magic_energy_text_icon.tres",
+            "ui/core/magic_energy_cost_icon_32.png",
+            "user://maiden_succubus_magic_energy_text_icon_32.tres",
             FallbackPath);
     }
 }
@@ -66,7 +66,7 @@ public sealed class MaidenEnergyIconsFormatter : IFormatter
             return false;
         }
 
-        string icon = $"[img=16x16]{MaidenEnergyIconAssets.TextIconResourcePath}[/img]";
+        string icon = $"[img]{MaidenEnergyIconAssets.TextIconResourcePath}[/img]";
         string output = amount is > 0 and < 4
             ? string.Concat(Enumerable.Repeat(icon, amount))
             : $"{amount}{icon}";

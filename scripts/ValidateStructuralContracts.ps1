@@ -188,8 +188,9 @@ $energyFormatter = Read-Text "src\Localization\MaidenEnergyIconsFormatter.cs"
 $energyFormatterPatch = Read-Text "src\Patches\MaidenEnergyFormatterPatch.cs"
 $energyCardLocalization = Read-Text "MaidenSuccubus\localization\zhs\cards.json"
 Assert-Contains "maiden inline energy formatter owns a distinct name" $energyFormatter 'get\s*=>\s*"maidenEnergyIcons"'
-Assert-Contains "maiden inline energy formatter uses custom resource" $energyFormatter 'magic_energy_cost_icon_128\.png'
-Assert-Contains "maiden inline energy formatter sizes rich-text icons" $energyFormatter '\[img=16x16\]'
+Assert-Contains "maiden inline energy formatter uses font-sized resource" $energyFormatter 'magic_energy_cost_icon_32\.png'
+Assert-Contains "maiden inline energy formatter follows vanilla image markup" $energyFormatter '\[img\]\{MaidenEnergyIconAssets\.TextIconResourcePath\}\[/img\]'
+Assert-NotContains "maiden inline energy formatter must not bypass autosize measurement" $energyFormatter '\[img=[^\]]+'
 Assert-Contains "maiden inline energy formatter registration" $energyFormatterPatch 'Smart\.Default\?\.AddExtensions'
 Assert-NotContains "maiden localization must not use vanilla energy formatter" $energyCardLocalization ':energyIcons\('
 

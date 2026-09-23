@@ -105,6 +105,7 @@ $coreCopies = @(
     @("hibiki_amane_character_icon_outline_128.png", "ui\core\hibiki_amane_character_icon_outline_128.png"),
     @("hibiki_amane_character_icon_256.png", "ui\core\hibiki_amane_character_icon_256.png"),
     @("hibiki_amane_character_icon_outline_256.png", "ui\core\hibiki_amane_character_icon_outline_256.png"),
+    @("magic_energy_cost_icon_32.png", "ui\core\magic_energy_cost_icon_32.png"),
     @("magic_energy_cost_icon_128.png", "ui\core\magic_energy_cost_icon_128.png"),
     @("desire_resource_icon_32.png", "ui\core\desire_resource_icon_32.png"),
     @("desire_resource_icon_128.png", "ui\core\desire_resource_icon_128.png"),
