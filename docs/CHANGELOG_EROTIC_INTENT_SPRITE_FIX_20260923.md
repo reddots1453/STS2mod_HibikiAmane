@@ -22,3 +22,7 @@
 
 - 修复前快照：`maiden-pre-intent-sprite-render-fix-20260923`
 - 基线提交：`feefbba00f0ae8835a107d9c7e6245c48222de58`
+- 功能提交：`56afca7`（`fix(maiden): render custom erotic intent sprites`）。
+- 完整验证通过编译、内容、结构与视觉契约，随后仍被同一组 12 项既存 DesignDoc/源码卡牌差异阻断；独立本地化、卡牌效果、拘束意图测试契约均通过，部署构建为 0 警告、0 错误。
+- 已在游戏进程关闭时部署。源码与安装目录 DLL SHA-256 均为 `16D76DFC64D0C3FEF94EF38396C407E202302F7B94055F39A7FA797946148C55`，PDB SHA-256 均为 `BEDACCE08B701F29BA5D8164B31EF4B60376DC0723C4982822B765CA2ECD6073`。
+- 欲望与撕裂衣服意图素材在源码、安装目录和热加载目录中的 SHA-256 分别一致为 `0EF61A19F9178CC8E9035D0C2B67702B01A9B86A4D5066409E68FF7327F15764`、`CFAE3B7837C1AF78D6F1A6E8BF1CC2707AF0BE750AC0C08E0236984C28A3264C`。
