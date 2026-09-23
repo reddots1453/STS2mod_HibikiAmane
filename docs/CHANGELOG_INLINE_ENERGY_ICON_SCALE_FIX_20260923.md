@@ -23,3 +23,11 @@
 - 11 项控制意图运行时场景结构验证通过。
 - `dotnet build -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`：0 警告、0 错误。
 - 完整 DesignDoc 审计仍被修改前已有的 12 项卡牌映射/费用/稀有度差异阻断；本次未新增审计差异。
+
+## 部署
+
+- 功能提交：`c47a290`（`fix(maiden): align inline energy icon scale`）
+- 部署命令：`dotnet build -c Debug -p:DeployMod=true -p:ValidateMod=false --no-restore`
+- 部署结果：0 警告、0 错误。
+- 源与安装目录 DLL SHA-256：`A06C2918DE15EC066B11BB4827F293CA5AC256C6236963699241F40D67375F27`
+- 源与安装目录 PDB SHA-256：`45D0E6ABB9832166C9D9B54BDADABCB4B4167041E703A85B80AC916515308032`
