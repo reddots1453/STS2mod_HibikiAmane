@@ -63,8 +63,14 @@ public static class RuntimeTextureAssets
     public static string PrepareResource(
         string relativePath,
         string userResourcePath,
-        string fallbackPath)
+        string fallbackPath,
+        bool reuseExisting = false)
     {
+        if (reuseExisting && ResourceLoader.Exists(userResourcePath))
+        {
+            return userResourcePath;
+        }
+
         Texture2D? texture = Load(relativePath);
         if (texture == null)
         {

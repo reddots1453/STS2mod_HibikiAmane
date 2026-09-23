@@ -43,6 +43,8 @@ public class MaidenSuccubusCharacter
         "res://MaidenSuccubus/scenes/maiden_succubus_merchant.tscn";
     private const string RestSiteScenePath =
         "res://MaidenSuccubus/scenes/maiden_succubus_rest_site.tscn";
+    private const string CharacterSelectBgFallback =
+        "res://scenes/screens/char_select/char_select_bg_ironclad.tscn";
     private static CharacterAssetProfile? _assetProfile;
 
     public virtual MaidenSuccubusStartProfileId StartProfileId =>
@@ -75,6 +77,11 @@ public class MaidenSuccubusCharacter
             "ui/core/hibiki_amane_character_icon_outline_128.png",
             "user://maiden_succubus_character_icon_outline.tres",
             iconPath);
+        string characterSelectBgPath = RuntimeTextureAssets.PrepareResource(
+            "ui/character_select/hibiki_amane_char_select_bg_v01_2561x1201.png",
+            "user://maiden_succubus_character_select_bg_v01.tres",
+            CharacterSelectBgFallback,
+            reuseExisting: true);
 
         // The two world scenes reference these user resources. Preparing them
         // here keeps loose debug assets and packed releases on the same path
@@ -96,7 +103,8 @@ public class MaidenSuccubusCharacter
             Ui: new CharacterUiAssetSet(
                 IconTexturePath: iconPath,
                 IconOutlineTexturePath: outlinePath,
-                IconPath: iconPath));
+                IconPath: iconPath,
+                CharacterSelectBgPath: characterSelectBgPath));
     }
 
     // 骨架阶段不实现时间线小故事

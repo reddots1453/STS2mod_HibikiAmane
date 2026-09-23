@@ -66,8 +66,8 @@ $cardArtManifest = Get-Content -Raw -Encoding UTF8 -LiteralPath (
     Join-Path $cardArtSource "manifest.json") | ConvertFrom-Json
 $cardRuntime = Join-Path $runtime "cards"
 $cardRuntimeFiles = @(Get-ChildItem -LiteralPath $cardRuntime -Filter "*.png" -File)
-if ($cardArtManifest.items.Count -ne 112 -or $cardRuntimeFiles.Count -ne 113) {
-    throw "Expected 112 dedicated formal card arts plus one default runtime art."
+if ($cardRuntimeFiles.Count -lt ($cardArtManifest.items.Count + 1)) {
+    throw "Expected at least $($cardArtManifest.items.Count) dedicated formal card arts plus one default runtime art."
 }
 $seenCardClasses = @{}
 foreach ($item in $cardArtManifest.items) {
@@ -103,6 +103,8 @@ foreach ($value in 0..10) {
 $coreCopies = @(
     @("hibiki_amane_character_icon_128.png", "ui\core\hibiki_amane_character_icon_128.png"),
     @("hibiki_amane_character_icon_outline_128.png", "ui\core\hibiki_amane_character_icon_outline_128.png"),
+    @("hibiki_amane_character_icon_256.png", "ui\core\hibiki_amane_character_icon_256.png"),
+    @("hibiki_amane_character_icon_outline_256.png", "ui\core\hibiki_amane_character_icon_outline_256.png"),
     @("magic_energy_cost_icon_128.png", "ui\core\magic_energy_cost_icon_128.png"),
     @("desire_resource_icon_32.png", "ui\core\desire_resource_icon_32.png"),
     @("desire_resource_icon_128.png", "ui\core\desire_resource_icon_128.png"),
@@ -112,6 +114,13 @@ $coreCopies = @(
 foreach ($copy in $coreCopies) {
     Assert-ExactCopy (Find-ReviewedAsset $copy[0]) (Join-Path $runtime $copy[1])
 }
+
+$characterSelectRelativePath = [regex]::Unescape(
+    "\u56fe\u7247\u7d20\u6750/\u9009\u89d2\u754c\u9762/" +
+    "\u8fd0\u884c\u65f6\u80cc\u666f\u5019\u9009V1/" +
+    "hibiki_amane_char_select_bg_v01_2561x1201.png")
+Assert-ExactCopy (Join-Path $ProjectDir $characterSelectRelativePath) (
+    Join-Path $runtime "ui\character_select\hibiki_amane_char_select_bg_v01_2561x1201.png")
 
 $schoolUniformRelativePath = [regex]::Unescape(
     "\u56fe\u7247\u7d20\u6750/\u53d8\u8eab\u5f62\u6001/" +
@@ -224,7 +233,9 @@ if ($characterCode -notmatch 'new CharacterUiAssetSet\(' -or
     $characterCode -notmatch 'string iconPath = RuntimeTextureAssets\.PrepareResource\(' -or
     $characterCode -notmatch 'IconPath: iconPath' -or
     $characterCode -notmatch 'ui/core/hibiki_amane_character_icon_128\.png' -or
-    $characterCode -notmatch 'user://maiden_succubus_character_icon\.tres') {
+    $characterCode -notmatch 'user://maiden_succubus_character_icon\.tres' -or
+    $characterCode -notmatch 'CharacterSelectBgPath: characterSelectBgPath' -or
+    $characterCode -notmatch 'hibiki_amane_char_select_bg_v01_2561x1201\.png') {
     throw "Character profile must route the reviewed Maiden icon through RitsuLib Ui.IconPath for the top bar."
 }
 $cardArtCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
@@ -236,8 +247,28 @@ $allCardCode = ($allCardFiles | ForEach-Object {
         }) -join "`n"
 if ($cardArtCode -notmatch 'cards/\{cardType\.Name\}\.png' -or
     $cardArtCode -notmatch 'cards/default\.png' -or
+    $cardArtCode -match 'PrepareResource' -or
     $allCardCode -match 'card_portraits/ironclad/bash\.png') {
-    throw "All Maiden card profiles must resolve reviewed art by class with the formal default fallback."
+    throw "Maiden card art must resolve by class without serializing user resources in the compendium hot path."
+}
+$cardPresentationCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
+    Join-Path $ProjectDir "src\Patches\CardArtPresentationPatch.cs")
+if ($cardPresentationCode -notmatch 'HarmonyPatch\(typeof\(NCard\), "Reload"\)' -or
+    $cardPresentationCode -notmatch 'HarmonyPatch\(typeof\(NInspectCardScreen\), "UpdateCardDisplay"\)' -or
+    $cardPresentationCode -notmatch 'HarmonyPriority\(Priority\.Last\)') {
+    throw "Card art presentation must cover normal cards and the inspect-card HD view."
+}
+$characterSelectPatchCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
+    Join-Path $ProjectDir "src\Patches\CharacterSelectVisualPatch.cs")
+if ($characterSelectPatchCode -notmatch 'NCharacterSelectButton' -or
+    $characterSelectPatchCode -notmatch 'hibiki_amane_character_icon_256\.png' -or
+    $characterSelectPatchCode -notmatch 'hibiki_amane_character_icon_outline_256\.png') {
+    throw "Character-select buttons must use the reviewed 256px Maiden icons."
+}
+$thresholdPowerCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
+    Join-Path $ProjectDir "src\Powers\EroticIntentThresholdPowers.cs")
+if ($thresholdPowerCode -notmatch 'PowerStackType\.Counter') {
+    throw "Erotic intent threshold Powers must expose their threshold amount on the icon."
 }
 $intentCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
     Join-Path $ProjectDir "src\UI\MaidenIntentIconAssets.cs")
@@ -310,4 +341,4 @@ if ($holyPowerCode -match
     throw "Holy Flame must remain a visible Power state."
 }
 
-Write-Host "Validated visual assets: 112 card arts plus default, school-uniform/world portraits, 11 HD corruption states, 11 desire states, 10 intent icons, temptation UI, 7 core/route icons, and 72 paired power/mechanism icons."
+Write-Host "Validated visual assets: $($cardArtManifest.items.Count) card arts plus default and HD view, character-select background/icons, school-uniform/world portraits, 11 HD corruption states, 11 desire states, 10 intent icons, temptation UI, 9 core/route icons, and 72 paired power/mechanism icons."

@@ -10,7 +10,9 @@ namespace MaidenSuccubus.Powers;
 public abstract class EroticIntentThresholdPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.None;
-    public override PowerStackType StackType => PowerStackType.Single;
+    // NPower renders Counter amounts in the icon's lower-right corner. The
+    // amount is the monster-specific trigger threshold applied below.
+    public override PowerStackType StackType => PowerStackType.Counter;
 
     internal static async Task ApplyAll(
         MonsterModel monster,
