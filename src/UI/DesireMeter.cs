@@ -51,14 +51,14 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
         if (parent is NTopBar topBar)
         {
             _topBar = topBar;
-            CallDeferred(Node.MethodName.Reparent, topBar);
+            CallDeferred(nameof(AttachToRail));
         }
 
         SetAnchorsPreset(LayoutPreset.TopLeft);
         CustomMinimumSize = MeterSize;
         Size = MeterSize;
         MouseFilter = MouseFilterEnum.Stop;
-        ZIndex = 100;
+        ZIndex = 2;
         Visible = false;
         MouseEntered += ShowHoverTip;
         MouseExited += ClearHoverTip;
@@ -95,7 +95,7 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore,
         };
-        _valueLabel.AddThemeFontSizeOverride("font_size", 15);
+        _valueLabel.AddThemeFontSizeOverride("font_size", 18);
         _valueLabel.AddThemeColorOverride("font_color", Colors.White);
         _valueLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
         _valueLabel.AddThemeConstantOverride("outline_size", 4);
@@ -191,6 +191,11 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
         if (_valueLabel != null && _player != null)
         {
             _valueLabel.Text = value.ToString();
+            _valueLabel.AddThemeColorOverride(
+                "font_color",
+                value >= 8
+                    ? new Color(1f, 0.62f, 0.82f)
+                    : Colors.White);
         }
         if (_bubbles != null)
         {
@@ -237,11 +242,29 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
 
     private void UpdatePosition()
     {
-        if (_topBar != null && GodotObject.IsInstanceValid(_topBar))
+        if (GetParent() is MaidenSidebarRail)
         {
-            // Keep the persistent rail below the top-left relic rows.
-            Position = new Vector2(18f, 214f) - _topBar.GlobalPosition;
+            Position = MaidenSidebarRail.DesirePosition;
         }
+        else
+        {
+            AttachToRail();
+        }
+    }
+
+    private void AttachToRail()
+    {
+        if (_topBar == null || !GodotObject.IsInstanceValid(_topBar))
+        {
+            return;
+        }
+
+        MaidenSidebarRail rail = MaidenSidebarRail.GetOrCreate(_topBar);
+        if (!ReferenceEquals(GetParent(), rail))
+        {
+            Reparent(rail);
+        }
+        Position = MaidenSidebarRail.DesirePosition;
     }
 
     private static Texture2D CreateBubbleTexture()

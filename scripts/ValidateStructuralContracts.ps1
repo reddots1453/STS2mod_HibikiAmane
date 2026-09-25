@@ -297,8 +297,10 @@ Assert-Contains "combat desire UI" $desireResource 'RegisterCombatUi\('
 Assert-Contains "combat desire UI" $desireResource 'AlwaysShowInCombatUiForCharacter<MaidenSuccubusCharacter>'
 Assert-Contains "persistent left-side desire UI" $desireMeter 'displayed along the left side in and out of combat'
 Assert-Contains "combat transition refreshes left-side desire UI" $desireMeter 'private\s+void\s+OnCombatVisibilityChanged\(bool\s+_\)'
-Assert-Contains "temptation meter retains combat transition state" $temptationMeter '_combatVisibility\s*=\s*inCombat'
-Assert-Contains "temptation meter retries until local player is published" $temptationMeter 'inCombat\s*&&\s*_player\s*==\s*null\s*&&\s*_initialRefreshAttempts\+\+\s*<\s*4'
+Assert-Contains "combat transition refreshes temptation UI" $temptationMeter 'OnCombatVisibilityChanged\(bool\s+_\)[\s\S]*?CallDeferred\(nameof\(Refresh\)\)'
+Assert-Contains "temptation meter retries until local player is published" $temptationMeter '_player\s*==\s*null\s*&&\s*_initialRefreshAttempts\+\+\s*<\s*4'
+Assert-Contains "temptation meter remains visible outside combat" $temptationMeter 'Visible\s*=\s*_player\?\.Character\s+is\s+MaidenSuccubusCharacter'
+Assert-NotContains "temptation meter must not be combat-only" $temptationMeter 'Visible\s*=\s*inCombat'
 Assert-NotContains "combat must not hide left-side desire UI" $desireMeter 'Visible\s*=\s*!inCombat'
 Assert-NotContains "combat must not suppress left-side desire UI refresh" $desireMeter 'CombatManager\.Instance\.IsInProgress'
 Assert-Contains "desire has per-player cross-combat storage" $desireFacade 'PlayerRunSavedData<DesireAmountState>\s+AmountHandle'
@@ -316,6 +318,11 @@ Assert-Contains "combat feedback preserves surrounded facing" $characterVisuals 
 Assert-Contains "high-desire warning uses smooth pixel-distance falloff" $characterVisuals 'edge_pixels[\s\S]*?SCREEN_PIXEL_SIZE[\s\S]*?smoothstep'
 Assert-Contains "high-desire warning expands inward" $characterVisuals 'shader_parameter/glow_width_px[\s\S]*?220f[\s\S]*?280f'
 Assert-NotContains "high-desire warning must not use rectangular edge strips" $characterVisuals 'AddEdgeRect'
+
+$sidebarRail = Read-Text "src\UI\MaidenSidebarRail.cs"
+Assert-Contains "resource widgets share a vertical rail" $sidebarRail 'TemptationPosition\s*=\s*new\(7f,\s*8f\)[\s\S]*?DesirePosition\s*=\s*new\(7f,\s*88f\)'
+Assert-Contains "resource rail hides for settings" $sidebarRail 'SettingsOpened\s*\+=\s*OnSettingsOpened[\s\S]*?Visible\s*=\s*!open'
+Assert-Contains "resource rail clears hover tips while hidden" $sidebarRail 'NHoverTipSet\.Remove\(child\)'
 
 $fourthRouteScreen = Read-Text "src\UI\FourthRouteSelectionScreen.cs"
 Assert-Contains "fourth-route map modal" $fourthRouteScreen 'IScreenContext'
