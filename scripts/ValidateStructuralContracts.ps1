@@ -313,6 +313,11 @@ Assert-Contains "combat end captures desire" $desirePersistence 'SubscribeLifecy
 $characterModel = Read-Text "src\Characters\MaidenSuccubusCharacter.cs"
 Assert-Contains "character hook rechecks cross-combat desire" $characterModel 'BeforeCombatStart[\s\S]*?DesirePersistenceCoordinator\.RestoreForCombat'
 
+$customUiIconPatches = Read-Text "src\Patches\CustomUiIconPatches.cs"
+Assert-Contains "run-history character icon patch is screen-local" $customUiIconPatches 'HarmonyPatch\(typeof\(NRunHistoryPlayerIcon\),\s*nameof\(NRunHistoryPlayerIcon\.LoadRun\)\)'
+Assert-Contains "run-history character icon uses vanilla visual bounds" $customUiIconPatches 'InsetAnchor\s*=\s*0\.25f[\s\S]*?FarAnchor\s*=\s*0\.75f'
+Assert-Contains "run-history character icon only resizes generated texture controls" $customUiIconPatches 'character\s+is\s+not\s+MaidenSuccubusCharacter[\s\S]*?is\s+not\s+TextureRect\s+icon'
+
 $characterVisuals = Read-Text "src\UI\MaidenSuccubusCreatureVisuals.cs"
 Assert-Contains "combat feedback preserves surrounded facing" $characterVisuals 'WithCurrentFacing\(scale\)[\s\S]*?WithCurrentFacing\(RestScale\)'
 Assert-Contains "high-desire warning uses smooth pixel-distance falloff" $characterVisuals 'edge_pixels[\s\S]*?SCREEN_PIXEL_SIZE[\s\S]*?smoothstep'

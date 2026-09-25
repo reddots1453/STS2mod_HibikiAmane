@@ -3,6 +3,8 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Combat;
+using MegaCrit.Sts2.Core.Nodes.Screens.RunHistoryScreen;
+using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Core.Intents;
 using MaidenSuccubus.UI;
@@ -53,6 +55,61 @@ public static class MaidenCharacterIconOutlinePatch
         }
         __result = replacement;
         return false;
+    }
+}
+
+/// <summary>
+/// Vanilla character icon scenes keep their visible portrait inside the
+/// center half of the run-history player slot. RitsuLib's texture-backed
+/// fallback fills the entire slot, so constrain only that generated
+/// TextureRect while leaving the shared character icon asset unchanged.
+/// </summary>
+[HarmonyPatch(typeof(NRunHistoryPlayerIcon), nameof(NRunHistoryPlayerIcon.LoadRun))]
+public static class MaidenRunHistoryCharacterIconPatch
+{
+    private const float InsetAnchor = 0.25f;
+    private const float FarAnchor = 0.75f;
+    private static readonly FieldInfo? CurrentIconField =
+        AccessTools.Field(typeof(NRunHistoryPlayerIcon), "_currentIcon");
+
+    public static bool Prepare()
+    {
+        bool compatible = CurrentIconField?.FieldType == typeof(Control);
+        if (!compatible)
+        {
+            MaidenSuccubusMod.Logger.Warn(
+                "[MaidenRunHistoryCharacterIconPatch] Run-history icon field changed; "
+                + "portrait sizing patch disabled safely.");
+        }
+        return compatible;
+    }
+
+    public static void Postfix(
+        NRunHistoryPlayerIcon __instance,
+        RunHistoryPlayer player)
+    {
+        Safe.Run(
+            () =>
+            {
+                CharacterModel character =
+                    ModelDb.GetById<CharacterModel>(player.Character);
+                if (character is not MaidenSuccubusCharacter
+                    || CurrentIconField!.GetValue(__instance)
+                        is not TextureRect icon)
+                {
+                    return;
+                }
+
+                icon.AnchorLeft = InsetAnchor;
+                icon.AnchorTop = InsetAnchor;
+                icon.AnchorRight = FarAnchor;
+                icon.AnchorBottom = FarAnchor;
+                icon.OffsetLeft = 0f;
+                icon.OffsetTop = 0f;
+                icon.OffsetRight = 0f;
+                icon.OffsetBottom = 0f;
+            },
+            nameof(MaidenRunHistoryCharacterIconPatch));
     }
 }
 
