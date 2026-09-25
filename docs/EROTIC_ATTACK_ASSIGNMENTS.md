@@ -7,6 +7,8 @@
 > 规则权威：色情攻击、诱惑度阈值、意图栈、拘束与侵犯规则以[`../DesignDoc.md`](../DesignDoc.md)第3.4、3.5节为准；本文只负责原版怪物的适配分配。
 >
 > 逐怪物意图名称与完整效果：[`EROTIC_ATTACK_INTENTS.md`](EROTIC_ATTACK_INTENTS.md)
+>
+> 原版校准基线：STS2 `v0.111.0`（commit `41cef1ea`），反编译快照：[`../../../_decompiled/sts2-v0.111.0`](../../../_decompiled/sts2-v0.111.0)。
 
 ## 1. 文档用途
 
@@ -29,6 +31,7 @@
 3. 具有生物性、类人生物性、寄生性、吞噬性或明确侵入表现的怪物可以获得`I`；纯粹武器、炮台、雕像和一般构装体默认不获得`I`。
 4. 不适合色情表现的纯机械、静物、门、蛋、肢体分段或附属物使用`S`。意志坚定显示在怪物状态栏中，并使该对象不参与色情攻击判定。
 5. Boss可以拥有更完整的候选集合，但具体数值、诅咒和重复次数仍需单独设计，不能因Boss身份自动提高概率。
+6. **侵犯必须具有本怪物自身可达的拘束前置。**凡分配`I`的怪物必须同时分配`B`；只有不可拆分、必定同时在场且本文明确写明协作关系的复合Boss才允许例外。普通遭遇中的随机队友、召唤物或玩家卡牌造成的拘束不能作为侵犯可达性的设计前提。当前分配表不使用例外。
 
 ## 2.1 每场战斗使用次数上限（初稿）
 
@@ -36,7 +39,7 @@
 
 | 幕 | 遭遇/对象 | 怪物ID | A | B | I |
 |---|---|---|---:|---:|---:|
-| 密林 | 红宝石劫掠者 | `ASSASSIN_RUBY_RAIDER`、`AXE_RUBY_RAIDER`、`BRUTE_RUBY_RAIDER`、`CROSSBOW_RUBY_RAIDER`、`TRACKER_RUBY_RAIDER` | 2 | — | 1 |
+| 密林 | 红宝石劫掠者 | `ASSASSIN_RUBY_RAIDER`、`AXE_RUBY_RAIDER`、`BRUTE_RUBY_RAIDER`、`CROSSBOW_RUBY_RAIDER`、`TRACKER_RUBY_RAIDER` | 2 | 1 | 1 |
 | 密林 | 多尼斯异鸟 | `BYRDONIS` | 3 | 2 | — |
 | 密林 | 仪式兽 | `CEREMONIAL_BEAST` | 4 | 3 | 2 |
 | 密林 | 密林真菌 | `FLYCONID` | 2 | — | — |
@@ -44,10 +47,10 @@
 | 密林 | 毛绒伏地虫 | `FUZZY_WURM_CRAWLER` | 2 | 2 | 1 |
 | 密林 | 墨宝 | `INKLET` | 2 | 1 | — |
 | 密林 | 蛮兽 | `MAWLER` | 2 | 1 | 1 |
-| 密林 | 小啃兽 | `NIBBIT` | 1 | — | 1 |
+| 密林 | 小啃兽 | `NIBBIT` | 1 | 1 | 1 |
 | 密林 | 缩小甲虫 | `SHRINKER_BEETLE` | 2 | 1 | — |
 | 密林 | 异蛙寄生虫 | `PHROG_PARASITE` | 3 | 2 | 2 |
-| 密林 | 寄生虫附属体 | `WRIGGLER` | 2 | — | 2 |
+| 密林 | 寄生虫附属体 | `WRIGGLER` | 2 | 1 | 2 |
 | 密林 | 密林史莱姆 | `LEAF_SLIME_M`、`LEAF_SLIME_S`、`TWIG_SLIME_M`、`TWIG_SLIME_S` | 1 | 1 | 1 |
 | 密林 | 巨口果 | `SNAPPING_JAXFRUIT` | 2 | 2 | 1 |
 | 密林 | 扼杀者 | `SLITHERING_STRANGLER` | 2 | 2 | 1 |
@@ -59,32 +62,32 @@
 | 巢穴 | 帝皇蟹双组件 | `CRUSHER`、`ROCKET` | 4 | 3 | 2 |
 | 巢穴 | 残杀千足虫前段 | `DECIMILLIPEDE_SEGMENT_FRONT` | 3 | 2 | 2 |
 | 巢穴 | 蜂群术士 | `ENTOMANCER` | 3 | 2 | 2 |
-| 巢穴 | 外骨骼虫 | `EXOSKELETON` | 2 | — | 1 |
+| 巢穴 | 外骨骼虫 | `EXOSKELETON` | 2 | 1 | 1 |
 | 巢穴 | 猎人杀手 | `HUNTER_KILLER` | 2 | 2 | 1 |
 | 巢穴 | 感染棱柱 | `INFESTED_PRISM` | 3 | 2 | — |
 | 巢穴 | 知识恶魔 | `KNOWLEDGE_DEMON` | 4 | 3 | 2 |
 | 巢穴 | 虱虫之祖 | `LOUSE_PROGENITOR` | 2 | 1 | 2 |
-| 巢穴 | 异螨群 | `MYTE` | 1 | — | 1 |
+| 巢穴 | 异螨群 | `MYTE` | 1 | 1 | 1 |
 | 巢穴 | 直飞产卵虫 | `OVICOPTER` | 2 | 2 | 3 |
-| 巢穴 | 棘刺蟾蜍 | `SPINY_TOAD` | 2 | — | 1 |
+| 巢穴 | 棘刺蟾蜍 | `SPINY_TOAD` | 2 | 1 | 1 |
 | 巢穴 | 熟睡甲虫 | `SLUMBERING_BEETLE` | 2 | 1 | 1 |
 | 巢穴 | 胧光怪 | `THE_OBSCURA` | 2 | 1 | 1 |
-| 巢穴 | 偷窃草蜢 | `THIEVING_HOPPER` | 1 | — | 1 |
+| 巢穴 | 偷窃草蜢 | `THIEVING_HOPPER` | 1 | 1 | 1 |
 | 巢穴 | 地道虫 | `TUNNELER` | 2 | 2 | 1 |
 | 巢穴 | 无厌沙虫 | `THE_INSATIABLE` | 4 | 3 | 3 |
-| 荣耀城 | 虔诚雕刻师 | `DEVOTED_SCULPTOR` | 2 | — | 1 |
-| 荣耀城 | 门扉缔造者 | `DOORMAKER` | 4 | 3 | 2 |
+| 荣耀城 | 虔诚雕刻师 | `DEVOTED_SCULPTOR` | 2 | 1 | 1 |
+| 荣耀城 | Aeonglass | `AEONGLASS` | 4 | 3 | — |
 | 荣耀城 | 骑士团伙 | `FLAIL_KNIGHT`、`MAGI_KNIGHT`、`SPECTRAL_KNIGHT` | 3 | 2 | 2 |
 | 荣耀城 | 青蛙骑士 | `FROG_KNIGHT` | 2 | 2 | 1 |
 | 荣耀城 | 活体盾牌 | `LIVING_SHIELD` | 2 | 2 | — |
-| 荣耀城 | 猫头鹰法官 | `OWL_MAGISTRATE` | 2 | — | 1 |
+| 荣耀城 | 猫头鹰法官 | `OWL_MAGISTRATE` | 2 | 1 | 1 |
 | 荣耀城 | 咬人卷轴 | `SCROLL_OF_BITING` | 2 | 2 | — |
 | 荣耀城 | 史莱姆狂战士 | `SLIMED_BERSERKER` | 2 | 2 | 1 |
 | 荣耀城 | 灵魂枢纽 | `SOUL_NEXUS` | 3 | 2 | — |
 | 荣耀城 | 女王与火炬头聚合体 | `QUEEN`、`TORCH_HEAD_AMALGAM` | 4 | 3 | 2 |
 | 荣耀城 | 实验体 | `TEST_SUBJECT` | 4 | 3 | 3 |
 | 荣耀城 | 失落与遗忘之物 | `THE_LOST`、`THE_FORGOTTEN` | 2 | 1 | 1 |
-| 荣耀城 | 高塔炮手 | `TURRET_OPERATOR` | 2 | — | 1 |
+| 荣耀城 | 高塔炮手 | `TURRET_OPERATOR` | 2 | 1 | 1 |
 | 暗港 | 邪教徒 | `CALCIFIED_CULTIST`、`DAMP_CULTIST` | 2 | 1 | 1 |
 | 暗港 | 噬尸蛞蝓 | `CORPSE_SLUG` | 2 | 2 | 2 |
 | 暗港 | 化石追踪者 | `FOSSIL_STALKER` | 2 | 1 | 1 |
@@ -93,17 +96,30 @@
 | 暗港 | 幽灵船 | `HAUNTED_SHIP` | 2 | 2 | — |
 | 暗港 | 乐加维林族母 | `LAGAVULIN_MATRIARCH` | 4 | 3 | 2 |
 | 暗港 | 花园幽灵鳗 | `PHANTASMAL_GARDENER` | 3 | 2 | 2 |
-| 暗港 | 海洋混混 | `SEAPUNK` | 1 | — | 1 |
+| 暗港 | 海洋混混 | `SEAPUNK` | 1 | 1 | 1 |
 | 暗港 | 下水道蚌 | `SEWER_CLAM` | 2 | 2 | 1 |
 | 暗港 | 鬼祟珊瑚群 | `SKULKING_COLONY` | 3 | 2 | 2 |
 | 暗港 | 淤泥旋螺 | `SLUDGE_SPINNER` | 2 | 2 | 1 |
 | 暗港 | 灵魂异鱼 | `SOUL_FYSH` | 4 | 3 | 3 |
 | 暗港 | 骇鳗 | `TERROR_EEL` | 3 | 2 | 2 |
-| 暗港 | 蟾蜍蝌蚪 | `TOADPOLE` | 1 | — | 1 |
+| 暗港 | 蟾蜍蝌蚪 | `TOADPOLE` | 1 | 1 | 1 |
 | 暗港 | 双尾鼠 | `TWO_TAILED_RAT` | 2 | 2 | 1 |
 | 暗港 | 瀑布巨人 | `WATERFALL_GIANT` | 4 | 3 | 2 |
 
 分配采用以下初始梯度，供后续运行时测试微调：普通弱小敌人通常为`A1/B1/I1`，普通强敌通常为`A2/B1～2/I1`，精英通常为`A3/B2/I1～2`，Boss通常为`A4/B3/I2～3`。产卵、寄生、吞噬等以侵犯为核心风味的敌人可以提高`I`，但不得超过4。
+
+### 2.1.0 相对威胁校准
+
+色情意图会替换怪物本轮原意图，因此不能只按色情效果的绝对数值设计，还必须与该怪物失去的原行动机会比较。逐怪物数值采用以下校准目标：
+
+| 对象 | 欲望攻击目标 | 拘束目标 | 侵犯目标 |
+|---|---|---|---|
+| 普通弱怪 | 约为原版常用行动威胁的50%～65%，再附加1点欲望或轻度牌堆干扰 | 阻止值约为其常用单次攻击的60%～80%；挣脱值1～2 | 伤害低于原版强攻击，但永久侵犯诅咒使总威胁不低于普通行动 |
+| 普通强敌 | 约为原版常用行动威胁的60%～75%，附加1点欲望；后半程敌人可使用2点欲望 | 阻止值8～14；挣脱值2～3 | 以中等伤害加1张侵犯诅咒作为流程终点 |
+| 精英 | 必须达到原版中等行动的约65%～80%；不得只给予1点欲望和单层常规减益 | 阻止值12～16；挣脱值3～4 | 中高伤害加侵犯诅咒；因结算后晕眩，可低于原版最高爆发 |
+| Boss | 必须是需要立即应对的独立行动，通常包含2点欲望以及伤害、成长、格挡或牌堆压力之一 | 阻止值14～18；挣脱值4～5 | 高伤害加高威胁侵犯诅咒；仍受各自次数与高诱惑度阈值限制 |
+
+多人或多怪遭遇按“同一回合可能有多个敌人同时替换意图”折减单体数值；单体精英和Boss则按其完整行动经济校准。撕裂衣服及延迟撕衣状态本身占据显著威胁预算，不能再叠加接近原版满额的伤害。
 
 ### 2.1.1 诱惑度阈值与色情意图选择
 
@@ -121,11 +137,11 @@
 
 | 怪物ID | A阈值 | B阈值 | I阈值 | 阈值设计摘要 |
 |---|---:|---:|---:|---|
-| `ASSASSIN_RUBY_RAIDER` | 25 | — | 50 | 单次欲望攻击带伤害；侵犯为标准威胁。 |
-| `AXE_RUBY_RAIDER` | 25 | — | 50 | 欲望攻击附带直接撕衣，提高至25以避免完整魔装过早触发。 |
-| `BRUTE_RUBY_RAIDER` | 25 | — | 50 | 伤害与减益较强，以25延后欲望攻击。 |
-| `CROSSBOW_RUBY_RAIDER` | 25 | — | 50 | 远程伤害型欲望攻击，使用标准侵犯阈值。 |
-| `TRACKER_RUBY_RAIDER` | 30 | — | 50 | 欲望攻击附带较强追猎减益，阈值高于同队成员。 |
+| `ASSASSIN_RUBY_RAIDER` | 25 | 35 | 50 | 匕首近身动作可自然衔接腕锁拘束，B在I前开放。 |
+| `AXE_RUBY_RAIDER` | 25 | 40 | 50 | 欲望攻击附带直接撕衣，重型压制拘束延后开放。 |
+| `BRUTE_RUBY_RAIDER` | 25 | 40 | 50 | 蛮力拘束威胁较高，使用40点B阈值。 |
+| `CROSSBOW_RUBY_RAIDER` | 25 | 35 | 50 | 倒刺钩索既形成延迟撕衣，也提供可达的拖拽拘束。 |
+| `TRACKER_RUBY_RAIDER` | 30 | 40 | 50 | 追猎减益与猎网拘束均较强，整体晚于同队成员。 |
 | `BYRDONIS` | 25 | 40 | — | 拘束强于欲望攻击，需进入明显破损阶段。 |
 | `CEREMONIAL_BEAST` | 35 | 45 | 60 | Boss三类意图均高威胁，侵犯仅在极高诱惑度出现。 |
 | `FLYCONID` | 20 | — | — | 单一孢子诱惑，腐化形态可较早触发。 |
@@ -133,10 +149,10 @@
 | `FUZZY_WURM_CRAWLER` | 20 | 35 | 50 | 弱怪标准递进：诱惑、缠绕、侵犯。 |
 | `INKLET` | 20 | 35 | — | 墨液诱惑较轻，拘束于部分破损阶段开放。 |
 | `MAWLER` | 30 | 40 | 50 | 压制力强，三类阈值整体偏高。 |
-| `NIBBIT` | 20 | — | 50 | 轻度欲望攻击与标准侵犯。 |
+| `NIBBIT` | 20 | 35 | 50 | 啃咬拖倒补足侵犯前置，拘束强度仍按弱怪处理。 |
 | `SHRINKER_BEETLE` | 25 | 35 | — | 缩小减益提高欲望攻击威胁，拘束保持弱怪阈值。 |
 | `PHROG_PARASITE` | 25 | 40 | 55 | 寄生侵犯威胁较高，需超过纯洁形态完全破损基线。 |
-| `WRIGGLER` | 20 | — | 50 | 附属体以侵犯为核心，前置诱惑较早开放。 |
+| `WRIGGLER` | 20 | 35 | 50 | 寄生附着先形成拘束，再开放深入侵犯。 |
 | `LEAF_SLIME_M` | 25 | 35 | 50 | 中型史莱姆以溶解液形成可处理的延迟撕衣威胁。 |
 | `LEAF_SLIME_S` | 15 | 30 | 50 | 小型史莱姆较早生成溶解液，但原意图强度较低。 |
 | `TWIG_SLIME_M` | 25 | 35 | 50 | 中型史莱姆以腐蚀黏液生成溶解液。 |
@@ -160,17 +176,17 @@
 | `ROCKET` | 30 | 40 | 55 | Boss远程组件的侵犯门槛略低于主体但高于普通怪物。 |
 | `DECIMILLIPEDE_SEGMENT_FRONT` | 30 | 45 | 60 | 大型Boss前段的拘束与侵犯均采用高阈值。 |
 | `ENTOMANCER` | 30 | 40 | 55 | 精英召唤与控制协同强，整体阈值偏高。 |
-| `EXOSKELETON` | 20 | — | 50 | 行为简单，使用较早A与标准I。 |
+| `EXOSKELETON` | 20 | 35 | 50 | 节肢钳制补足侵犯前置，使用普通弱怪梯度。 |
 | `HUNTER_KILLER` | 30 | 40 | 50 | 追猎减益较强，提高A/B门槛。 |
 | `INFESTED_PRISM` | 30 | 40 | — | 纯法术控制对象，不分配侵犯。 |
 | `KNOWLEDGE_DEMON` | 35 | 45 | 60 | Boss级知识控制与侵犯均只在高诱惑度开放。 |
 | `LOUSE_PROGENITOR` | 25 | 40 | 55 | 祖虫的孵化与寄生侵犯威胁较高。 |
-| `MYTE` | 20 | — | 50 | 小型虫群采用简单A/I基线。 |
+| `MYTE` | 20 | 35 | 50 | 虫群覆体作为低强度拘束前置。 |
 | `OVICOPTER` | 25 | 40 | 55 | 产卵主题使侵犯更危险，I阈值提高。 |
-| `SPINY_TOAD` | 25 | — | 50 | 棘刺欲望攻击延后，侵犯保持标准。 |
+| `SPINY_TOAD` | 25 | 40 | 50 | 倒刺欲望攻击后以长舌缠卷进入拘束。 |
 | `SLUMBERING_BEETLE` | 20 | 35 | 50 | 睡眠型弱怪使用标准低阶梯度。 |
 | `THE_OBSCURA` | 30 | 35 | 55 | 视觉诱导较强，拘束稍后即开放，侵犯提高至55。 |
-| `THIEVING_HOPPER` | 20 | — | 50 | 小型偷窃者采用简单A/I基线。 |
+| `THIEVING_HOPPER` | 20 | 35 | 50 | 擒抱与掠夺形成短拘束前置。 |
 | `TUNNELER` | 25 | 35 | 50 | 地道突袭与拖拽使用标准递进。 |
 | `THE_INSATIABLE` | 35 | 45 | 60 | Boss吞噬主题三类均高威胁。 |
 
@@ -178,23 +194,23 @@
 
 | 怪物ID | A阈值 | B阈值 | I阈值 | 阈值设计摘要 |
 |---|---:|---:|---:|---|
-| `DEVOTED_SCULPTOR` | 25 | — | 50 | 雕刻诱导为中等威胁，侵犯保持标准。 |
-| `DOORMAKER` | 35 | 45 | 60 | Boss空间控制能力强，使用完整Boss梯度。 |
-| `FLAIL_KNIGHT` | 25 | 40 | 50 | 链枷拘束强于欲望攻击，侵犯保持标准。 |
-| `MAGI_KNIGHT` | 25 | 40 | 50 | 法术诱导与束缚使用标准强敌梯度。 |
-| `SPECTRAL_KNIGHT` | 30 | 40 | 55 | 幽灵控制与侵犯更危险，整体延后。 |
+| `DEVOTED_SCULPTOR` | 25 | 40 | 50 | 塑形禁锢补足侵犯前置；后半程普通敌人使用40点B阈值。 |
+| `AEONGLASS` | 35 | 50 | — | v0.111.0单体Boss；时间与折光只适配A/B，不分配实体侵犯。 |
+| `FLAIL_KNIGHT` | 30 | 45 | 55 | 强化后的欲望攻击按精英行动校准，同时提高三段阈值。 |
+| `MAGI_KNIGHT` | 30 | 45 | 55 | 魔弹兼具伤害与牌堆压力，以精英梯度限制频率。 |
+| `SPECTRAL_KNIGHT` | 30 | 45 | 55 | 灵体攻击兼具伤害和减益，整体使用精英梯度。 |
 | `FROG_KNIGHT` | 20 | 35 | 50 | 普通敌人使用较低标准梯度。 |
 | `LIVING_SHIELD` | 25 | 40 | — | 防御构装体只分配诱惑与压制。 |
-| `OWL_MAGISTRATE` | 30 | — | 50 | 审判减益较强，A阈值提高。 |
+| `OWL_MAGISTRATE` | 30 | 45 | 55 | 刑具拘押补足侵犯前置，后半程强敌整体延后。 |
 | `SCROLL_OF_BITING` | 25 | 35 | — | 魔法卷轴不分配侵犯。 |
 | `SLIMED_BERSERKER` | 30 | 40 | 50 | 狂战士叠加战斗压力，A/B门槛提高。 |
-| `SOUL_NEXUS` | 25 | 40 | — | 灵魂构装体只保留诱惑和拘束。 |
+| `SOUL_NEXUS` | 35 | 45 | — | 单体精英原版行动为29～31伤害、6～7×4伤害或18～19伤害加双减益，强化A/B后提高阈值。 |
 | `QUEEN` | 35 | 45 | 60 | Boss主体使用完整高威胁梯度。 |
-| `TORCH_HEAD_AMALGAM` | 35 | 40 | 55 | Boss附属体较早进入拘束，侵犯仍高于普通怪物。 |
+| `TORCH_HEAD_AMALGAM` | 35 | 45 | 55 | v0.111.0攻击提高至26～32、18～22及8×3，强化色情意图并提高B阈值。 |
 | `TEST_SUBJECT` | 35 | 45 | 60 | Boss实验控制与侵犯均采用最高常规梯度。 |
 | `THE_LOST` | 25 | 35 | 50 | 失落者使用标准普通敌人递进。 |
 | `THE_FORGOTTEN` | 30 | 40 | 50 | 遗忘者效果更强，A/B阈值各提高一档。 |
-| `TURRET_OPERATOR` | 25 | — | 50 | 操作者保留A/I；炮台本体仍为意志坚定。 |
+| `TURRET_OPERATOR` | 25 | 40 | 50 | 操作者以制式拘捕补足侵犯前置；炮台本体仍为意志坚定。 |
 
 #### 暗港
 
@@ -211,13 +227,13 @@
 | `HAUNTED_SHIP` | 25 | 40 | — | 非生物对象只分配诱惑与拘束。 |
 | `LAGAVULIN_MATRIARCH` | 35 | 45 | 60 | 精英族母的控制与侵犯均为最高威胁。 |
 | `PHANTASMAL_GARDENER` | 25 | 40 | 55 | 幽灵园艺师的缠绕与侵犯较危险。 |
-| `SEAPUNK` | 25 | — | 50 | 单体斗殴者采用A/I标准。 |
+| `SEAPUNK` | 25 | 40 | 50 | 街头擒抱补足侵犯前置。 |
 | `SEWER_CLAM` | 20 | 40 | 50 | 夹钳拘束强，B阈值显著高于A。 |
 | `SKULKING_COLONY` | 25 | 40 | 55 | 群体包围和侵犯具有较高威胁。 |
 | `SLUDGE_SPINNER` | 25 | 35 | 55 | 欲望攻击生成溶解液；黏液侵犯带牌组干扰，I提高至55。 |
 | `SOUL_FYSH` | 35 | 45 | 60 | Boss灵魂控制使用完整高威胁梯度。 |
 | `TERROR_EEL` | 30 | 40 | 55 | 恐惧与电击控制使三类阈值整体偏高。 |
-| `TOADPOLE` | 20 | — | 50 | 小型敌人采用简单A/I基线。 |
+| `TOADPOLE` | 20 | 35 | 50 | 黏舌缠身作为低强度拘束前置。 |
 | `TWO_TAILED_RAT` | 20 | 35 | 50 | 普通敌人使用较低标准梯度。 |
 | `WATERFALL_GIANT` | 35 | 45 | 60 | Boss级巨体压制与侵犯均在高诱惑度开放。 |
 
@@ -250,9 +266,9 @@
 | 巢穴 | `HUNTER_KILLER` | 直接撕衣 | 捕猎撕咬 | 移除2层易伤。 |
 | 巢穴 | `SPINY_TOAD` | 倒刺钩 | 棘刺倒钩钩在衣装上，尚可拔除 | 伤害6→4，移除1层脆弱。 |
 | 巢穴 | `TUNNELER` | 倒刺钩 | 钩状碎石挂住衣装，尚可清除 | 伤害5→3，以倒刺钩替换黏液。 |
-| 荣耀城 | `FLAIL_KNIGHT` | 直接撕衣 | 链刃连续抽打 | 每段伤害3→2。 |
+| 荣耀城 | `FLAIL_KNIGHT` | 直接撕衣 | 链刃连续抽打 | 相对原版9～10×2，改为5×2并附带1点欲望。 |
 | 荣耀城 | `SCROLL_OF_BITING` | 咬衣纸片 | 活化纸页正咬住衣装，尚可扯下 | 以咬衣纸片替换发情。 |
-| 荣耀城 | `TORCH_HEAD_AMALGAM` | 衣物燃烧 | 火焰点燃衣装，尚可扑灭 | 伤害8→5，移除1层燃烧。 |
+| 荣耀城 | `TORCH_HEAD_AMALGAM` | 衣物燃烧 | 火焰点燃衣装，尚可扑灭 | 相对v0.111.0的14～32点单次攻击与8×3攻击，改为8点伤害并生成衣物燃烧。 |
 | 暗港 | `CORPSE_SLUG` | 溶解液 | 尸液正在溶解衣料，尚可清理 | 移除1层虚弱和1层易伤。 |
 | 暗港 | `FOSSIL_STALKER` | 直接撕衣 | 化石利爪追猎 | 伤害6→4，移除2层易伤。 |
 | 暗港 | `SNEAKY_GREMLIN` | 直接撕衣 | 背后刀刃偷袭 | 伤害4→2，移除1层易伤。 |
@@ -274,10 +290,10 @@
 
 | 幕 | 怪物ID |
 |---|---|
-| 密林 | `FOGMOG`、`FUZZY_WURM_CRAWLER`、`INKLET`、`MAWLER`、`SHRINKER_BEETLE`、`LEAF_SLIME_M`、`LEAF_SLIME_S`、`TWIG_SLIME_M`、`TWIG_SLIME_S`、`SNAPPING_JAXFRUIT`、`SLITHERING_STRANGLER`、`VINE_SHAMBLER`、`KIN_FOLLOWER` |
-| 巢穴 | `BOWLBUG_NECTAR`、`BOWLBUG_ROCK`、`BOWLBUG_SILK`、`CHOMPER`、`HUNTER_KILLER`、`LOUSE_PROGENITOR`、`OVICOPTER`、`SLUMBERING_BEETLE`、`THE_OBSCURA`、`TUNNELER` |
-| 荣耀城 | `FROG_KNIGHT`、`LIVING_SHIELD`、`SCROLL_OF_BITING`、`SLIMED_BERSERKER`、`THE_LOST`、`THE_FORGOTTEN` |
-| 暗港 | `CALCIFIED_CULTIST`、`DAMP_CULTIST`、`CORPSE_SLUG`、`FOSSIL_STALKER`、`LIVING_FOG`、`GREMLIN_MERC`、`SNEAKY_GREMLIN`、`FAT_GREMLIN`、`HAUNTED_SHIP`、`SEWER_CLAM`、`SLUDGE_SPINNER`、`TWO_TAILED_RAT` |
+| 密林 | `ASSASSIN_RUBY_RAIDER`、`AXE_RUBY_RAIDER`、`BRUTE_RUBY_RAIDER`、`CROSSBOW_RUBY_RAIDER`、`TRACKER_RUBY_RAIDER`、`FOGMOG`、`FUZZY_WURM_CRAWLER`、`INKLET`、`MAWLER`、`NIBBIT`、`SHRINKER_BEETLE`、`WRIGGLER`、`LEAF_SLIME_M`、`LEAF_SLIME_S`、`TWIG_SLIME_M`、`TWIG_SLIME_S`、`SNAPPING_JAXFRUIT`、`SLITHERING_STRANGLER`、`VINE_SHAMBLER`、`KIN_FOLLOWER` |
+| 巢穴 | `BOWLBUG_NECTAR`、`BOWLBUG_ROCK`、`BOWLBUG_SILK`、`CHOMPER`、`EXOSKELETON`、`HUNTER_KILLER`、`LOUSE_PROGENITOR`、`MYTE`、`OVICOPTER`、`SPINY_TOAD`、`SLUMBERING_BEETLE`、`THE_OBSCURA`、`THIEVING_HOPPER`、`TUNNELER` |
+| 荣耀城 | `DEVOTED_SCULPTOR`、`FROG_KNIGHT`、`LIVING_SHIELD`、`OWL_MAGISTRATE`、`SCROLL_OF_BITING`、`SLIMED_BERSERKER`、`THE_LOST`、`THE_FORGOTTEN`、`TURRET_OPERATOR` |
+| 暗港 | `CALCIFIED_CULTIST`、`DAMP_CULTIST`、`CORPSE_SLUG`、`FOSSIL_STALKER`、`LIVING_FOG`、`GREMLIN_MERC`、`SNEAKY_GREMLIN`、`FAT_GREMLIN`、`HAUNTED_SHIP`、`SEAPUNK`、`SEWER_CLAM`、`SLUDGE_SPINNER`、`TOADPOLE`、`TWO_TAILED_RAT` |
 
 `KIN_FOLLOWER`虽然出现在Boss战中，但本身是低生命值随从，明确按弱怪处理。
 
@@ -296,14 +312,14 @@
 | 巢穴 | `ENTOMANCER` | `SPEAR_MOVE` | 造成一次原版“长矛”伤害。 |
 | 巢穴 | `INFESTED_PRISM` | `RADIATE_MOVE` | 造成一次较低伤害并获得格挡。 |
 | 巢穴 | `KNOWLEDGE_DEMON` | `SLAP_MOVE` | 造成一次原版“拍击”伤害。 |
-| 巢穴 | `THE_INSATIABLE` | `THRASH_MOVE_1` | 造成8点伤害2次。 |
-| 荣耀城 | `DOORMAKER` | `WHAT_IS_IT_MOVE` | 进入其原版晕眩行动。 |
-| 荣耀城 | `FLAIL_KNIGHT` | `RAM_MOVE` | 造成15点伤害。 |
-| 荣耀城 | `MAGI_KNIGHT` | `RAM_MOVE` | 造成10点伤害。 |
-| 荣耀城 | `SPECTRAL_KNIGHT` | `SOUL_FLAME` | 造成3点伤害3次。 |
-| 荣耀城 | `SOUL_NEXUS` | `DRAIN_LIFE_MOVE` | 造成18点伤害并结算该意图原有减益。 |
+| 巢穴 | `THE_INSATIABLE` | `THRASH_MOVE` | 造成8～9点伤害2次。 |
+| 荣耀城 | `AEONGLASS` | `EYE_LASERS_MOVE` | 造成11～12点伤害2次。 |
+| 荣耀城 | `FLAIL_KNIGHT` | `RAM_MOVE` | 造成15～17点伤害。 |
+| 荣耀城 | `MAGI_KNIGHT` | `RAM_MOVE` | 造成10～11点伤害。 |
+| 荣耀城 | `SPECTRAL_KNIGHT` | `SOUL_FLAME` | 造成3～4点伤害3次。 |
+| 荣耀城 | `SOUL_NEXUS` | `DRAIN_LIFE_MOVE` | 造成18～19点伤害，给予2层虚弱和2层易伤。 |
 | 荣耀城 | `QUEEN` | `OFF_WITH_YOUR_HEAD_MOVE` | 造成原版低伤害多段攻击。 |
-| 荣耀城 | `TORCH_HEAD_AMALGAM` | `TACKLE_3_MOVE` | 造成14点伤害。 |
+| 荣耀城 | `TORCH_HEAD_AMALGAM` | `TACKLE_3_MOVE` | 造成14～16点伤害。 |
 | 荣耀城 | `TEST_SUBJECT` | `SKULL_BASH_MOVE` | 造成一次较低伤害并结算该意图原有减益。 |
 | 暗港 | `LAGAVULIN_MATRIARCH` | `SLASH2_MOVE` | 造成12点伤害并获得格挡。 |
 | 暗港 | `PHANTASMAL_GARDENER` | `FLAIL_MOVE` | 造成1点伤害3次。 |
@@ -318,7 +334,7 @@
 
 | 遭遇/对象 | 怪物ID | 允许类型 | 首选 | 匹配依据 |
 |---|---|---|---|---|
-| 红宝石劫掠者 | `ASSASSIN_RUBY_RAIDER`、`AXE_RUBY_RAIDER`、`BRUTE_RUBY_RAIDER`、`CROSSBOW_RUBY_RAIDER`、`TRACKER_RUBY_RAIDER` | A、I | A | 类人敌人适合设计低伤害欲望攻击；受拘束后可参与侵犯，但不凭空增加统一拘束动作。 |
+| 红宝石劫掠者 | `ASSASSIN_RUBY_RAIDER`、`AXE_RUBY_RAIDER`、`BRUTE_RUBY_RAIDER`、`CROSSBOW_RUBY_RAIDER`、`TRACKER_RUBY_RAIDER` | A、B、I | A | 类人敌人的腕锁、重压、钩索和猎网分别构成独立拘束，确保各自侵犯意图可达。 |
 | 旧日雕像 | `BYGONE_EFFIGY` | S | S | 静止雕像不适合色情攻击，获得意志坚定。 |
 | 多尼斯异鸟 | `BYRDONIS` | A、B | B | 俯冲和爪部压制可表现为拘束，不分配侵犯。 |
 | 仪式兽 | `CEREMONIAL_BEAST` | A、B、I | B | 仪式、压制和野兽体型均匹配完整流程。 |
@@ -329,10 +345,10 @@
 | 毛绒伏地虫 | `FUZZY_WURM_CRAWLER` | A、B、I | B | 爬行、缠绕和生物性均匹配。 |
 | 墨宝 | `INKLET` | A、B | A | 墨汁适合低伤害欲望攻击或短暂拘束，不分配侵犯。 |
 | 蛮兽 | `MAWLER` | A、B、I | A | 野兽撕咬、扑倒与侵犯均匹配。 |
-| 小啃兽 | `NIBBIT` | A、I | A | 可设计低伤害啃咬欲望攻击；已有拘束时可侵犯，但缺乏独立拘束表现。 |
+| 小啃兽 | `NIBBIT` | A、B、I | A | 啃咬可以拖倒玩家形成短拘束，再衔接侵犯。 |
 | 缩小甲虫 | `SHRINKER_BEETLE` | A、B | A | 缩小效果可以构成纯欲望攻击，甲虫肢体可压制，不分配侵犯。 |
 | 异蛙寄生虫 | `PHROG_PARASITE` | A、B、I | I | 寄生是其主要风味，优先侵犯，也可实施拘束。 |
-| 寄生虫附属体 | `WRIGGLER` | A、I | I | 作为寄生体可以使用低伤害欲望攻击，并在玩家受拘束后侵犯。 |
+| 寄生虫附属体 | `WRIGGLER` | A、B、I | I | 先以虫体附着形成短拘束，再进行寄生侵犯。 |
 | 密林史莱姆 | `LEAF_SLIME_M`、`LEAF_SLIME_S`、`TWIG_SLIME_M`、`TWIG_SLIME_S` | A、B、I | B | 黏液天然适合欲望攻击、包裹拘束和受拘束后的侵犯。 |
 | 巨口果 | `SNAPPING_JAXFRUIT` | A、B、I | B | 巨口与植物肢体适合咬合拘束和吞入式侵犯。 |
 | 扼杀者 | `SLITHERING_STRANGLER` | A、B、I | B | 缠绕是原有主题，优先拘束。 |
@@ -351,18 +367,18 @@
 | 残杀千足虫前段 | `DECIMILLIPEDE_SEGMENT_FRONT` | A、B、I | B | 前段视为Boss行动主体，虫体和巨颚适合拘束并衔接侵犯。 |
 | 残杀千足虫其余分段 | `DECIMILLIPEDE_SEGMENT_MIDDLE`、`DECIMILLIPEDE_SEGMENT_BACK` | S | S | 非行动主体分段获得意志坚定，避免同一Boss重复判定。 |
 | 蜂群术士 | `ENTOMANCER` | A、B、I | B | 虫群可形成欲望攻击、包围拘束并衔接侵犯。 |
-| 外骨骼虫 | `EXOSKELETON` | A、I | A | 适合低伤害欲望攻击；已有拘束时可侵犯，但缺少鲜明拘束动作。 |
+| 外骨骼虫 | `EXOSKELETON` | A、B、I | A | 节肢和外壳可以实施钳制，补足侵犯前置。 |
 | 猎人杀手 | `HUNTER_KILLER` | A、B、I | B | 捕猎、压制和大型生物结构均匹配。 |
 | 感染棱柱 | `INFESTED_PRISM` | A、B | A | 感染能量可以形成纯欲望攻击，几何结构可以禁锢；不分配侵犯。 |
 | 知识恶魔 | `KNOWLEDGE_DEMON` | A、B、I | A | 精神诱导、契约束缚和恶魔风味均匹配完整流程。 |
 | 虱虫之祖 | `LOUSE_PROGENITOR` | A、B、I | I | 繁殖与寄生风味优先侵犯。 |
-| 异螨群 | `MYTE` | A、I | A | 群体啃咬适合低伤害欲望攻击，玩家已受拘束时可侵犯。 |
+| 异螨群 | `MYTE` | A、B、I | A | 虫群覆体可形成低强度拘束并衔接寄生侵犯。 |
 | 直飞产卵虫 | `OVICOPTER` | A、B、I | I | 产卵与抓取动作明确适配侵犯和拘束。 |
 | 产卵虫附属蛋 | `TOUGH_EGG` | S | S | 附属蛋不适合色情攻击，获得意志坚定。 |
-| 棘刺蟾蜍 | `SPINY_TOAD` | A、I | A | 舌击、毒液或棘刺适合低伤害欲望攻击；已有拘束时可侵犯。 |
+| 棘刺蟾蜍 | `SPINY_TOAD` | A、B、I | A | 倒刺负责欲望攻击与撕衣，长舌负责拘束，流程完整。 |
 | 熟睡甲虫 | `SLUMBERING_BEETLE` | A、B、I | B | 甲虫肢体和苏醒后的压制动作适合拘束，并可衔接侵犯。 |
 | 胧光怪 | `THE_OBSCURA` | A、B、I | A | 光与形体干扰可以形成纯欲望攻击，异常形体可拘束、侵犯。 |
-| 偷窃草蜢 | `THIEVING_HOPPER` | A、I | A | 突袭和偷取适合低伤害欲望攻击，已有拘束时可侵犯。 |
+| 偷窃草蜢 | `THIEVING_HOPPER` | A、B、I | A | 突袭、擒抱与掠夺可自然形成拘束前置。 |
 | 地道虫 | `TUNNELER` | A、B、I | B | 钻地包围、虫体缠绕与吞入表现均匹配。 |
 | 无厌沙虫 | `THE_INSATIABLE` | A、B、I | I | 吞噬与巨口是主要表现，优先侵犯。 |
 
@@ -371,9 +387,8 @@
 | 遭遇/对象 | 怪物ID | 允许类型 | 首选 | 匹配依据 |
 |---|---|---|---|---|
 | 斧械 | `AXEBOT` | S | S | 纯武器机械不适合色情攻击，获得意志坚定。 |
-| 虔诚雕刻师 | `DEVOTED_SCULPTOR` | A、I | A | 类人施法适合纯欲望攻击；玩家受拘束时可侵犯。 |
-| 门扉缔造者 | `DOORMAKER` | A、B、I | B | 类人Boss可通过门扉和构造实施拘束，并衔接侵犯。 |
-| 门扉组件 | `DOOR` | S | S | Boss机制组件不适合色情攻击，获得意志坚定。 |
+| 虔诚雕刻师 | `DEVOTED_SCULPTOR` | A、B、I | A | 类人施法适合诱导，以塑形魔法定住玩家后再衔接侵犯。 |
+| Aeonglass | `AEONGLASS` | A、B | A | v0.111.0的时间、折光与枯萎能力适合诱导和封锁；石质构装体不分配实体侵犯。 |
 | 组装师 | `FABRICATOR` | S | S | 纯机械制造单位不适合色情攻击，获得意志坚定。 |
 | 组装师机械单位 | `GUARDBOT`、`NOISEBOT`、`STABBOT`、`ZAPBOT` | S | S | 功能型机械附属单位获得意志坚定。 |
 | 骑士团伙 | `FLAIL_KNIGHT`、`MAGI_KNIGHT`、`SPECTRAL_KNIGHT` | A、B、I | A | 武器与魔法适合低伤害或纯欲望攻击，链枷或法术可以拘束，类人单位可在拘束后侵犯。 |
@@ -381,7 +396,7 @@
 | 机甲骑士 | `MECHA_KNIGHT` | S | S | 纯机甲单位不适合色情攻击，获得意志坚定。 |
 | 电球头 | `GLOBE_HEAD` | S | S | 功能型能量机械不适合色情攻击，获得意志坚定。 |
 | 活体盾牌 | `LIVING_SHIELD` | A、B | B | 身体阻挡和压制适合拘束，不分配侵犯。 |
-| 猫头鹰法官 | `OWL_MAGISTRATE` | A、I | A | 审判与凝视适合纯欲望攻击；受拘束后可侵犯。 |
+| 猫头鹰法官 | `OWL_MAGISTRATE` | A、B、I | A | 审判与凝视适合欲望攻击，刑具和法术拘押提供侵犯前置。 |
 | 拳击构装体 | `PUNCH_CONSTRUCT` | S | S | 纯构装体不适合色情攻击，获得意志坚定。 |
 | 咬人卷轴 | `SCROLL_OF_BITING` | A、B | B | 纸带可以缠绕拘束，咬击可以设计为低伤害欲望攻击，不侵犯。 |
 | 史莱姆狂战士 | `SLIMED_BERSERKER` | A、B、I | B | 类人攻击与黏液同时支持完整流程。 |
@@ -389,7 +404,7 @@
 | 女王与火炬头聚合体 | `QUEEN`、`TORCH_HEAD_AMALGAM` | A、B、I | B | Boss主体与聚合体共同承担完整流程，但每个实际行动单位分别判定。 |
 | 实验体 | `TEST_SUBJECT` | A、B、I | I | 实验、变异与拘禁风味适合完整流程。 |
 | 失落与遗忘之物 | `THE_LOST`、`THE_FORGOTTEN` | A、B、I | A | 异常形体和幽灵性适合纯欲望攻击、包裹和侵犯。 |
-| 高塔炮手 | `TURRET_OPERATOR` | A、I | A | 类人操作员适合低伤害欲望攻击；已有拘束时可侵犯。 |
+| 高塔炮手 | `TURRET_OPERATOR` | A、B、I | A | 类人操作员使用制式拘捕装置形成拘束；炮台本体仍不单独判定。 |
 
 ## 6. 暗港（UNDERDOCKS）
 
@@ -404,13 +419,13 @@
 | 幽灵船 | `HAUNTED_SHIP` | A、B | B | 船索和幽灵力量适合拘束，船体本身不侵犯。 |
 | 乐加维林族母 | `LAGAVULIN_MATRIARCH` | A、B、I | B | 巨型生物、甲壳肢体和族母风味支持完整流程。 |
 | 花园幽灵鳗 | `PHANTASMAL_GARDENER` | A、B、I | B | 长体、幽灵触肢和园艺束缚支持完整流程。 |
-| 海洋混混 | `SEAPUNK` | A、I | A | 类人敌人可使用低伤害欲望攻击；玩家受拘束时可侵犯。 |
+| 海洋混混 | `SEAPUNK` | A、B、I | A | 斗殴与擒抱动作可以形成短拘束并衔接侵犯。 |
 | 下水道蚌 | `SEWER_CLAM` | A、B、I | B | 壳体夹合可拘束，软体结构可衔接侵犯。 |
 | 鬼祟珊瑚群 | `SKULKING_COLONY` | A、B、I | B | 群体包围和珊瑚肢体适合拘束、侵犯。 |
 | 淤泥旋螺 | `SLUDGE_SPINNER` | A、B、I | B | 淤泥与旋转包裹支持完整流程。 |
 | 灵魂异鱼 | `SOUL_FYSH` | A、B、I | I | 吞食灵魂与巨口结构优先侵犯。 |
 | 骇鳗 | `TERROR_EEL` | A、B、I | B | 长体缠绕、电击和侵入均匹配。 |
-| 蟾蜍蝌蚪 | `TOADPOLE` | A、I | A | 生物攻击可以设计为低伤害欲望攻击；已有拘束时可侵犯。 |
+| 蟾蜍蝌蚪 | `TOADPOLE` | A、B、I | A | 黏舌与湿滑身体可形成低强度拘束并衔接侵犯。 |
 | 双尾鼠 | `TWO_TAILED_RAT` | A、B、I | B | 双尾提供明确拘束动作，并可衔接侵犯。 |
 | 瀑布巨人 | `WATERFALL_GIANT` | A、B、I | B | 巨型水流和体型压制适合欲望攻击、拘束并衔接侵犯。 |
 
