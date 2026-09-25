@@ -22,7 +22,7 @@ namespace MaidenSuccubus.Cards;
 public sealed class SoulFuenika : MSHolyCard
 {
     [SavedProperty]
-    public int PendingPostCombatCopies { get; set; }
+    public List<SerializableCard> PendingPostCombatCards { get; set; } = [];
 
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [CardKeyword.Exhaust];
@@ -42,26 +42,23 @@ public sealed class SoulFuenika : MSHolyCard
             3,
             Owner.RunState.Rng.CombatCardGeneration).ToList();
         CardModel? selected = await CardSelectCmd.FromChooseACardScreen(
-            context, choices, Owner, canSkip: true);
+            context, choices, Owner, canSkip: false);
         if (selected != null)
         {
+            SoulFuenika persistent = DeckVersion as SoulFuenika ?? this;
+            persistent.PendingPostCombatCards.Add(selected.ToSerializable());
             await CardPileCmd.AddGeneratedCardToCombat(
                 selected, PileType.Hand, Owner);
         }
-
-        SoulFuenika persistent = DeckVersion as SoulFuenika ?? this;
-        persistent.PendingPostCombatCopies++;
     }
 
     public override async Task AfterCombatEnd(CombatRoom room)
     {
-        int copies = PendingPostCombatCopies;
-        PendingPostCombatCopies = 0;
-        for (int i = 0; i < copies; i++)
+        SerializableCard[] cards = PendingPostCombatCards.ToArray();
+        PendingPostCombatCards.Clear();
+        foreach (SerializableCard savedCard in cards)
         {
-            SoulFuenika copy = Owner.RunState.CreateCard<SoulFuenika>(Owner);
-            if (IsUpgraded)
-                CardCmd.Upgrade(copy);
+            CardModel copy = Owner.RunState.LoadCard(savedCard, Owner);
             CardCmd.PreviewCardPileAdd(await CardPileCmd.Add(copy, PileType.Deck));
         }
     }

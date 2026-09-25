@@ -242,6 +242,19 @@ public sealed class BattleTechniqueReplay : MSHolyCard
 
     public override async Task BeforeCombatStart()
     {
+        await EnsureReplayPower();
+    }
+
+    public override async Task AfterCardEnteredCombat(CardModel card)
+    {
+        if (card == this)
+        {
+            await EnsureReplayPower();
+        }
+    }
+
+    private async Task EnsureReplayPower()
+    {
         if (!Owner.Creature.HasPower<BattleTechniqueReplayPower>())
         {
             await PowerCmd.Apply<BattleTechniqueReplayPower>(

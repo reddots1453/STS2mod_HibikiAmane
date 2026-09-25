@@ -588,36 +588,39 @@ internal static class CardEffectTestCatalog
     private static void SoulFuenikaProbe() =>
         CustomVariants<SoulFuenika>(async (ctx, card, upgraded) =>
         {
-            HashSet<SoulFuenika> deckCopiesBefore = ctx.Player.Deck.Cards
-                .OfType<SoulFuenika>()
+            HashSet<CardModel> deckBefore = ctx.Player.Deck.Cards.ToHashSet();
+            HashSet<CardModel> handBefore = PileType.Hand.GetPile(ctx.Player).Cards
                 .ToHashSet();
-            int holyInHand = PileType.Hand.GetPile(ctx.Player).Cards
-                .Count(candidate => candidate is MSHolyCard);
             await ctx.Play(card, selectedIndices: [0]);
-            ctx.AssertEqual("chosen holy card added to hand", holyInHand + 1,
-                PileType.Hand.GetPile(ctx.Player).Cards
-                    .Count(candidate => candidate is MSHolyCard));
+            CardModel selected = PileType.Hand.GetPile(ctx.Player).Cards
+                .Single(candidate => !handBefore.Contains(candidate)
+                    && candidate is MSHolyCard);
+            ctx.AssertTrue("chosen holy card added to hand", selected is MSHolyCard);
             ctx.AssertEqual("post-combat copy scheduled", 1,
-                card.PendingPostCombatCopies);
+                card.PendingPostCombatCards.Count);
+            ctx.AssertEqual("scheduled card is the chosen card", selected.Id,
+                card.PendingPostCombatCards.Single().Id!);
 
-            int deckBefore = ctx.Player.Deck.Cards.Count;
+            int deckCountBefore = ctx.Player.Deck.Cards.Count;
             await card.AfterCombatEnd(null!);
-            SoulFuenika[] added = ctx.Player.Deck.Cards
-                .OfType<SoulFuenika>()
-                .Where(candidate => !deckCopiesBefore.Contains(candidate))
+            CardModel[] added = ctx.Player.Deck.Cards
+                .Where(candidate => !deckBefore.Contains(candidate))
                 .ToArray();
             try
             {
-                ctx.AssertEqual("unavoidable post-combat deck copy", deckBefore + 1,
+                ctx.AssertEqual("unavoidable post-combat deck copy", deckCountBefore + 1,
                     ctx.Player.Deck.Cards.Count);
-                ctx.AssertEqual("copy preserves upgrade", upgraded,
-                    added.Single().IsUpgraded);
+                ctx.AssertEqual("copy is the chosen card", selected.Id,
+                    added.Single().Id);
+                ctx.AssertEqual("copy preserves chosen-card upgrade",
+                    selected.CurrentUpgradeLevel,
+                    added.Single().CurrentUpgradeLevel);
                 ctx.AssertEqual("copy schedule consumed", 0,
-                    card.PendingPostCombatCopies);
+                    card.PendingPostCombatCards.Count);
             }
             finally
             {
-                foreach (SoulFuenika copy in added)
+                foreach (CardModel copy in added)
                 {
                     if (!copy.HasBeenRemovedFromState
                         && copy.Pile?.Type == PileType.Deck)
@@ -1572,13 +1575,12 @@ internal static class CardEffectTestCatalog
     private static void BattleTechniqueReplayProbe() =>
         CustomVariants<BattleTechniqueReplay>(async (ctx, card, upgraded) =>
         {
-            await card.BeforeCombatStart();
-            ctx.AssertEqual("combat-start replay power installed", 1,
+            BattleTechniqueReplay replay = await ctx.Add<BattleTechniqueReplay>(
+                PileType.Hand, upgraded, skipVisuals: false);
+            ctx.AssertEqual("entering combat installs replay power", 1,
                 ctx.PowerAmount<BattleTechniqueReplayPower>(ctx.Self));
             ctx.AssertEqual("replay listener power stays hidden", false,
                 ctx.Self.GetPower<BattleTechniqueReplayPower>()!.IsVisible);
-            BattleTechniqueReplay replay = await ctx.Add<BattleTechniqueReplay>(
-                PileType.Hand, upgraded, skipVisuals: false);
             MaidenStrike strike = ctx.Create<MaidenStrike>();
             await ctx.Play(strike, ctx.PrimaryEnemy);
 
@@ -2922,8 +2924,10 @@ internal static class CardEffectTestCatalog
     private static void StigmaProbe() =>
         CustomVariants<Stigma>(async (ctx, card, upgraded) =>
         {
-            await ctx.Play(card, selectedIndices: [0]);
-            ctx.AssertPower("selected condemnation applied to selected self target",
+            ctx.AssertTrue("stigma accepts a non-enemy target",
+                card.IsValidTarget(ctx.Self));
+            await ctx.Play(card, ctx.Self, selectedIndices: [0]);
+            ctx.AssertPower("condemnation choice applies to the pointed target",
                 ctx.Self, "CondemnationPower", upgraded ? 3 : 2);
         }, 1);
 

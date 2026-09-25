@@ -42,31 +42,20 @@ public sealed class Stigma : MSHolyCard
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new DynamicVar("Layers", 2)];
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
-    public Stigma() : base(0, CardType.Skill, CardRarity.Common, TargetType.Self) { }
+    public Stigma() : base(0, CardType.Skill, CardRarity.Common, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
-        ArgumentNullException.ThrowIfNull(CombatState);
+        ArgumentNullException.ThrowIfNull(play.Target);
         List<CardModel> choices =
         [
             Owner.RunState.CreateCard<StigmaCondemnationChoice>(Owner),
             Owner.RunState.CreateCard<StigmaWeakChoice>(Owner)
         ];
         CardModel? choice = await CardSelectCmd.FromChooseACardScreen(context, choices, Owner, canSkip: false);
-        List<Creature> creatures = [Owner.Creature, .. CombatState.HittableEnemies];
-        List<CardModel> targets = [];
-        for (int i = 0; i < creatures.Count; i++)
-        {
-            StigmaTargetChoice targetChoice = Owner.RunState.CreateCard<StigmaTargetChoice>(Owner);
-            targetChoice.Configure(i, creatures[i].Name);
-            targets.Add(targetChoice);
-        }
-        StigmaTargetChoice? selectedTarget = await CardSelectCmd.FromChooseACardScreen(
-            context, targets, Owner, canSkip: false) as StigmaTargetChoice;
-        Creature target = creatures[Math.Clamp(selectedTarget?.TargetIndex ?? 0, 0, creatures.Count - 1)];
         if (choice is StigmaCondemnationChoice)
-            await CondemnationCmd.Apply(context, target, DynamicVars["Layers"].BaseValue, Owner.Creature, this);
-        else
-            await PowerCmd.Apply<WeakPower>(context, target, DynamicVars["Layers"].BaseValue, Owner.Creature, this);
+            await CondemnationCmd.Apply(context, play.Target, DynamicVars["Layers"].BaseValue, Owner.Creature, this);
+        else if (choice is StigmaWeakChoice)
+            await PowerCmd.Apply<WeakPower>(context, play.Target, DynamicVars["Layers"].BaseValue, Owner.Creature, this);
     }
     protected override void OnUpgrade()
     {

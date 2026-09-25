@@ -35,6 +35,7 @@ public static class CombatEnchantmentCmd
     {
         if (typeof(T) != typeof(Sharp)
             && typeof(T) != typeof(Nimble)
+            && typeof(T) != typeof(Adroit)
             && typeof(T) != typeof(Swift)
             && typeof(T) != typeof(Glam)
             && typeof(T) != typeof(TezcatarasEmber)

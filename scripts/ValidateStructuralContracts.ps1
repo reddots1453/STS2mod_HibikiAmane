@@ -91,6 +91,7 @@ Assert-Contains "enchantment vfx is de-duplicated" $enchantmentVfx 'ActiveCards\
 Assert-Contains "pickup enchantment shared preview" $pickupEnchantment 'EnchantmentVfxCmd\.Preview\(card\)'
 Assert-Contains "combat enchantment accesses original projected state" $combatEnchantment 'using\s*\(ControlQuery\.SuppressPresentation\(\)\)'
 Assert-Contains "combat enchantment shared preview" $combatEnchantment 'AfterCombatEnchantmentApplied\(card\);[\s\S]*?EnchantmentVfxCmd\.Preview\(card\)[\s\S]*?return applied'
+Assert-Contains "Kifuda Adroit is audited for temporary combat use" $combatEnchantment 'typeof\(T\)\s*!=\s*typeof\(Adroit\)'
 Assert-Contains "dark storm pickup enchantment preview" $strengthCards 'PickupEnchantmentCmd\.EnchantAndPreview<Glam>'
 Assert-Contains "magic sword pickup enchantment preview" $neutralCardsBatch3 'PickupEnchantmentCmd\.EnchantAndPreview<ChargeEnchantment>'
 Assert-Contains "surf uses final displayed energy cost" $neutralCardsBatch3 'Surf[\s\S]*?GetWithModifiers\(CostModifiers\.All\)'
@@ -101,6 +102,7 @@ Assert-Contains "shining sword pickup enchantment preview" $iteration2ExpansionC
 Assert-Contains "Yarus memory pickup enchantment preview" $advancedCards 'PickupEnchantmentCmd\.EnchantAndPreview\('
 
 $battleReplayPower = Read-Text "src\Powers\Iteration1HolyPowers.cs"
+$battleReplayCard = Read-Text "src\Cards\Iteration1HolyCards.cs"
 $battleReplayCapability = Read-Text "src\Core\Replay\BattleReplayOriginCapability.cs"
 $battleReplayVisuals = Read-Text "src\UI\BattleReplayCardVisuals.cs"
 Assert-Contains "battle replay instance marker" $battleReplayPower 'ModelCapabilityRegistry\.Create<BattleReplayOriginCapability>\(\)'
@@ -112,6 +114,7 @@ Assert-Contains "battle replay shadow visuals" $battleReplayVisuals 'CreateShado
 Assert-Contains "battle replay edge shadow" $battleReplayVisuals 'AddEdgeBands'
 Assert-NotContains "battle replay type-wide overlay" $battleReplayPower 'OverlayPath'
 Assert-NotContains "battle replay persistent visual timer" $battleReplayVisuals 'new\s+Timer'
+Assert-Contains "battle replay installs its listener when added during combat" $battleReplayCard 'AfterCardEnteredCombat\(CardModel card\)[\s\S]*?card == this[\s\S]*?EnsureReplayPower'
 
 $scripturePowers = Read-Text "src\Powers\Scriptures\ScripturePowers.cs"
 $guardianScriptureBlock = Read-Text "src\Powers\Scriptures\GuardianScriptureBlockVar.cs"
@@ -199,6 +202,7 @@ Assert-Contains "maiden inline formatter registration is idempotent" $formatterR
 Assert-Contains "maiden inline energy formatter registration" $formatterRegistration 'new\s+MaidenEnergyIconsFormatter\(\)'
 Assert-Contains "maiden inline formatter registers during mod init" $modInitializer 'MaidenLocalizationFormatters\.Register\(\)'
 Assert-Contains "maiden inline formatter re-registers after localization reload" $energyFormatterPatch 'MaidenLocalizationFormatters\.Register'
+Assert-Contains "maiden inline formatter registers after LocManager construction" $energyFormatterPatch 'HarmonyPatch\(typeof\(LocManager\),\s*nameof\(LocManager\.Initialize\)\)'
 Assert-NotContains "maiden localization must not use vanilla energy formatter" $energyCardLocalization ':energyIcons\('
 Assert-Contains "maiden inline desire formatter owns a distinct name" $desireFormatter 'get\s*=>\s*"maidenDesireIcons"'
 Assert-Contains "maiden inline desire formatter uses font-sized resource" $desireFormatter 'desire_resource_icon_32\.png'
@@ -206,6 +210,8 @@ Assert-Contains "maiden inline desire formatter follows vanilla image markup" $d
 Assert-NotContains "maiden inline desire formatter must not bypass autosize measurement" $desireFormatter '\[img=[^\]]+'
 Assert-Contains "maiden inline desire formatter registration" $formatterRegistration 'new\s+MaidenDesireIconsFormatter\(\)'
 Assert-Contains "card localization uses desire icons" $energyCardLocalization ':maidenDesireIcons\('
+Assert-Contains "All Hope Lost has a symbolic non-combat description" $energyCardLocalization 'ALL_HOPE_LOST\.description"\s*:\s*"\u9020\u6210\{InCombat:\{Damage:diff\(\)\}\|6X\}\u70B9\u4F24\u5BB3\{InCombat:\{Hits:diff\(\)\}\|Y\}\u6B21'
+Assert-Contains "Soul Fuenika names the selected-card copy" $energyCardLocalization 'SOUL_FUENIKA\.description"\s*:\s*"[^"]*\u9009\u62E9\u7684\u724C\u7684\u590D\u5236'
 $exhaustCards = Read-Text "src\Cards\MvpExhaustCards.cs"
 Assert-Contains "destruction reaction selects newly drawn cards from the hand UI" $exhaustCards 'class\s+DestructionReaction[\s\S]*?CardSelectCmd\.FromHand'
 Assert-NotContains "exhaust cards must not fall back to detached simple-grid selection" $exhaustCards 'CardSelectCmd\.FromSimpleGrid'

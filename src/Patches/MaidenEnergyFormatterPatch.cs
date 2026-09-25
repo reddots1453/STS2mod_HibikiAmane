@@ -16,3 +16,15 @@ internal static class MaidenEnergyFormatterPatch
             nameof(MaidenEnergyFormatterPatch));
     }
 }
+
+[HarmonyPatch(typeof(LocManager), nameof(LocManager.Initialize))]
+internal static class MaidenLocalizationInitializePatch
+{
+    [HarmonyPostfix]
+    private static void Postfix()
+    {
+        Safe.Run(
+            MaidenLocalizationFormatters.Register,
+            nameof(MaidenLocalizationInitializePatch));
+    }
+}

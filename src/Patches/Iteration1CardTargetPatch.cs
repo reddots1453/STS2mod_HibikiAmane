@@ -1,8 +1,13 @@
 using HarmonyLib;
+using Godot;
+using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Nodes.Cards;
+using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Vfx;
 using MaidenSuccubus.Cards;
 using MaidenSuccubus.Core.Intents;
@@ -22,6 +27,12 @@ public static class Iteration1CardTargetPatch
         bool updated = __result;
         Safe.Run(() =>
         {
+            if (__instance is Stigma)
+            {
+                updated = target?.IsAlive == true;
+                return;
+            }
+
             if (!updated || target?.Monster == null)
                 return;
 
@@ -37,6 +48,78 @@ public static class Iteration1CardTargetPatch
             }
         }, nameof(Iteration1CardTargetPatch));
         __result = updated;
+    }
+}
+
+[HarmonyPatch]
+internal static class StigmaTargetingStartPatch
+{
+    internal static bool IsActive { get; private set; }
+
+    private static System.Reflection.MethodBase TargetMethod() =>
+        AccessTools.Method(
+            typeof(NTargetManager),
+            nameof(NTargetManager.StartTargeting),
+            [
+                typeof(TargetType),
+                typeof(Control),
+                typeof(TargetMode),
+                typeof(Func<bool>),
+                typeof(Func<Node, bool>)
+            ]);
+
+    [HarmonyPrefix]
+    private static void Prefix(Control control)
+    {
+        IsActive = control is NCard { Model: Stigma };
+    }
+
+    internal static void Reset()
+    {
+        IsActive = false;
+    }
+}
+
+[HarmonyPatch(typeof(NTargetManager), "AllowedToTargetCreature")]
+internal static class StigmaAllowedTargetPatch
+{
+    [HarmonyPostfix]
+    private static void Postfix(Creature creature, ref bool __result)
+    {
+        if (StigmaTargetingStartPatch.IsActive && creature.IsAlive)
+        {
+            __result = true;
+        }
+    }
+}
+
+[HarmonyPatch(typeof(CombatState), nameof(CombatState.GetOpponentsOf))]
+internal static class StigmaControllerTargetListPatch
+{
+    [HarmonyPostfix]
+    private static void Postfix(
+        Creature creature,
+        ref IReadOnlyList<Creature> __result)
+    {
+        ICombatState? combatState = creature.CombatState;
+        if (StigmaTargetingStartPatch.IsActive
+            && creature.IsPlayer
+            && combatState != null)
+        {
+            __result = combatState.Creatures
+                .Where(candidate => candidate.IsAlive)
+                .ToArray();
+        }
+    }
+}
+
+[HarmonyPatch(typeof(NTargetManager), "FinishTargeting")]
+internal static class StigmaTargetingFinishedPatch
+{
+    [HarmonyPostfix]
+    private static void Postfix()
+    {
+        StigmaTargetingStartPatch.Reset();
     }
 }
 
