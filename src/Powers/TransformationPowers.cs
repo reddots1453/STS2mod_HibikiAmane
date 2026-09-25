@@ -12,6 +12,7 @@ using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Content;
 using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Core.Temptation;
+using MaidenSuccubus.Presentation;
 
 namespace MaidenSuccubus.Powers;
 
@@ -207,6 +208,26 @@ public sealed class MagicAmplificationPower : MaidenSuccubusPowerTemplate
 
     public bool IsAmplifying(CardModel card) => ReferenceEquals(card, _cardToAmplify);
 
+    public override Task AfterApplied(Creature? applier, CardModel? cardSource)
+    {
+        PlayGainFeedback();
+        return Task.CompletedTask;
+    }
+
+    public override Task AfterPowerAmountChanged(
+        PlayerChoiceContext context,
+        PowerModel power,
+        decimal amount,
+        Creature? applier,
+        CardModel? cardSource)
+    {
+        if (ReferenceEquals(power, this) && amount > 0)
+        {
+            PlayGainFeedback();
+        }
+        return Task.CompletedTask;
+    }
+
     internal bool TryReserveForOverdraft(CardModel? card)
     {
         if (card == null
@@ -278,6 +299,17 @@ public sealed class MagicAmplificationPower : MaidenSuccubusPowerTemplate
         || (card?.Enchantment != null && Owner.HasPower<TacticalCorePower>())
             ? 2m
             : 1.5m;
+
+    private void PlayGainFeedback()
+    {
+        if (CombatManager.Instance.IsInProgress
+            && !CombatManager.Instance.IsEnding
+            && Owner.CombatState != null
+            && PerformanceAudience.IsLocalMaiden(Owner.Player))
+        {
+            PerformanceAudioService.PlayOneShot(PerformanceAudioCue.MagicCast);
+        }
+    }
 
     public override async Task AfterCardPlayed(
         PlayerChoiceContext context,

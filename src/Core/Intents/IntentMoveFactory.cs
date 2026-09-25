@@ -11,6 +11,7 @@ using MaidenSuccubus.Data;
 using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Powers;
 using MaidenSuccubus.Core.Transformation;
+using MaidenSuccubus.Presentation;
 
 namespace MaidenSuccubus.Core.Intents;
 
@@ -54,6 +55,7 @@ public static class IntentMoveFactory
                 IntentAdapterRegistry.GetRuntime(source)
                     .ControlCooldownThroughTurn =
                         source.CombatState.RoundNumber + 1;
+                await PerformanceDirector.PlayControlAsync(source, target);
                 await EroticEffectCmd.Resolve(
                     new BlockingPlayerChoiceContext(),
                     source,
@@ -76,15 +78,24 @@ public static class IntentMoveFactory
                 new BlockingPlayerChoiceContext(),
                 source,
                 target.Player,
-                spec);
+                spec,
+                deferCompletion: true);
             if (succeeded)
             {
-                await EroticEffectCmd.Resolve(
-                    new BlockingPlayerChoiceContext(),
-                    source,
-                    target,
-                    spec.EffectText,
-                    applyDesireFromText: true);
+                try
+                {
+                    await PerformanceDirector.PlayInvasionAsync(source, target.Player);
+                    await EroticEffectCmd.Resolve(
+                        new BlockingPlayerChoiceContext(),
+                        source,
+                        target,
+                        spec.EffectText,
+                        applyDesireFromText: true);
+                }
+                finally
+                {
+                    InvasionCmd.Complete(source);
+                }
             }
         }, BuildInvasionIntents(spec));
     }
@@ -98,6 +109,8 @@ public static class IntentMoveFactory
             Creature? target = FindMaidenSuccubus(targets);
             if (target?.Player == null) return;
             EroticIntentVisualEvents.Publish(target, EroticIntentKind.Desire);
+            using IDisposable performance =
+                PerformanceDirector.BeginDesireAction(source, target);
             if (spec.Damage > 0)
             {
                 await DamageCmd.Attack(spec.Damage)

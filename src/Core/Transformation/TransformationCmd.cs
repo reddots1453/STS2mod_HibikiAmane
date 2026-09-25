@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MaidenSuccubus.Powers;
 using MaidenSuccubus.Cards;
+using MaidenSuccubus.Presentation;
 
 namespace MaidenSuccubus.Core.Transformation;
 
@@ -71,6 +72,10 @@ public static class TransformationCmd
         Creature creature,
         CardModel? source)
     {
+        if (PerformanceAudience.IsLocalMaiden(creature.Player))
+        {
+            PerformanceAudioService.PlayOneShot(PerformanceAudioCue.TransformationStart);
+        }
         ImmaculateRobePower? form = creature.Powers
             .OfType<ImmaculateRobePower>()
             .FirstOrDefault();
@@ -88,6 +93,10 @@ public static class TransformationCmd
         }
         await PowerCmd.Apply<MagicArmorPower>(
             choiceContext, creature, MaxArmor, creature, source);
+        if (PerformanceAudience.IsLocalMaiden(creature.Player))
+        {
+            PerformanceAudioService.PlayOneShot(PerformanceAudioCue.TransformationComplete);
+        }
     }
 
     public static async Task EnterCorruptRobe(
@@ -95,6 +104,10 @@ public static class TransformationCmd
         Creature creature,
         CardModel? source)
     {
+        if (PerformanceAudience.IsLocalMaiden(creature.Player))
+        {
+            PerformanceAudioService.PlayOneShot(PerformanceAudioCue.TransformationStart);
+        }
         foreach (var form in creature.Powers
             .Where(power => power is ImmaculateRobePower or CorruptRobePower)
             .ToArray())
@@ -112,6 +125,10 @@ public static class TransformationCmd
         }
         await PowerCmd.Apply<MagicArmorPower>(
             choiceContext, creature, MaxArmor, creature, source);
+        if (PerformanceAudience.IsLocalMaiden(creature.Player))
+        {
+            PerformanceAudioService.PlayOneShot(PerformanceAudioCue.TransformationComplete);
+        }
     }
 
     public static async Task<bool> GainArmor(
@@ -135,6 +152,10 @@ public static class TransformationCmd
         {
             await PowerCmd.ModifyAmount(
                 choiceContext, armor, amount, creature, source);
+        }
+        if (PerformanceAudience.IsLocalMaiden(creature.Player))
+        {
+            PerformanceAudioService.PlayOneShot(PerformanceAudioCue.MagicCast);
         }
         return true;
     }

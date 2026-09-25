@@ -72,6 +72,17 @@
 | `SYS-SCR-001` | 六种圣言及持续Power | READY | 下一轮 | DEFERRED（样本保留） | 不进入MVP验收；来源牌不展开圣言卡图悬停预览 |
 | `SYS-BLS-001` | Boss后光明/黑暗恩赐 | OPEN | 下一轮 | DEFERRED（框架保留） | 不进入MVP验收 |
 
+### 2.1 表现层接入追踪（2026-09-26）
+
+| 交付ID | 关联需求 | 边界 | 交付状态 | 验收入口 |
+|---|---|---|---|---|
+| `PERF-CG-001` | `SYS-CTL-001`、`SYS-INV-001`、`SYS-DES-003A` | 成功结算后的可跳过CG；跳过不撤销规则 | IMPLEMENTED | `CutscenePlaybackService`、专项资源门、游戏内手测 |
+| `PERF-CG-002` | `SYS-CTL-001`、`SYS-INV-001` | 怪物类型映射独立于UI，未知侵犯回退弱怪 | IMPLEMENTED | `MonsterPerformanceProfiles`映射审查 |
+| `PERF-AUD-001` | `SYS-TRF-001/002`、`SYS-DES-001/002A` | 普通提示、成人演出分轨；循环单例；场景清理 | IMPLEMENTED | `PerformanceAudioService`、Debug构建 |
+| `PERF-AUD-002` | `SYS-DES-003B`、`SYS-CTL-001`、`SYS-INV-001` | 只在效果实际执行/成功后播放，同怪同动作去重 | IMPLEMENTED | 意图入口审查、游戏内手测 |
+| `PERF-CFG-001` | 表现设置降级 | 成人CG/音频独立接口；未确认产品默认前均关闭 | IMPLEMENTED（设置UI OPEN） | `PerformanceSettings`、关闭态手测 |
+| `PERF-REG-001` | `MP-001`、角色隔离 | 仅正确本地响木天音显示，不重复规则命令 | IMPLEMENTED；待多人手测 | `PerformanceAudience`、手测清单 |
+
 ## 3. 内容章节追踪
 
 | ID范围 | 内容分类 | 当前成熟度 | 实现策略 |

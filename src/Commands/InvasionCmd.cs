@@ -25,7 +25,8 @@ public static class InvasionCmd
         PlayerChoiceContext choiceContext,
         MonsterModel source,
         Player target,
-        InvasionIntentSpec spec)
+        InvasionIntentSpec spec,
+        bool deferCompletion = false)
     {
         if (source.Creature.IsDead || target.Creature.IsDead) return false;
 
@@ -62,10 +63,18 @@ public static class InvasionCmd
             }
         }
 
+        if (!deferCompletion)
+        {
+            Complete(source);
+        }
+        return true;
+    }
+
+    public static void Complete(MonsterModel source)
+    {
         IntentRuntimeState runtime = IntentAdapterRegistry.GetRuntime(source);
         runtime.ControlDisabled = true;
         IntentMoveFactory.ForceStun(source);
-        return true;
     }
 
     private static async Task<MSInvasionCurseTemplate?> AddCurse(

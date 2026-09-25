@@ -16,6 +16,7 @@ using MaidenSuccubus.Keywords;
 using STS2RitsuLib.Keywords;
 using MaidenSuccubus.UI;
 using MaidenSuccubus.Localization;
+using MaidenSuccubus.Presentation;
 #if DEBUG
 using MaidenSuccubus.Debugging.CardEffects;
 using MaidenSuccubus.Debugging.ControlIntents;
@@ -44,6 +45,7 @@ public static class MaidenSuccubusMod
         RegisterKeywords();
         DesireResource.Register();
         DesirePersistenceCoordinator.Initialize();
+        PerformanceAudioService.Initialize();
         if (MvpFeatureFlags.EnemyIntentExtensions)
         {
             EroticAttackCatalog.Validate();

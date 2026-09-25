@@ -7,6 +7,7 @@ using STS2RitsuLib.Combat.SecondaryResources;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.Powers;
+using MaidenSuccubus.Presentation;
 
 namespace MaidenSuccubus.Core.Desire;
 
@@ -110,9 +111,11 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
                 Data.Desire.Handle.Modify(
                     runState,
                     state => state.PendingClimaxResolution = true);
+                PlayDesireFull(context.Player);
                 return;
             }
 
+            PlayDesireFull(context.Player);
             await SecondaryResourceCmd.Set(
                 context.Player,
                 DesireResource.Id,
@@ -129,6 +132,14 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
         finally
         {
             ResolvingPlayers.Remove(context.Player);
+        }
+    }
+
+    private static void PlayDesireFull(Player player)
+    {
+        if (PerformanceAudience.IsLocalMaiden(player))
+        {
+            PerformanceAudioService.PlayOneShot(PerformanceAudioCue.DesireFull);
         }
     }
 

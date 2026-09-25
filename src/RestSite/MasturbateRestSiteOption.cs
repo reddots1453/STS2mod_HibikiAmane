@@ -4,6 +4,7 @@ using STS2RitsuLib.Scaffolding.Content;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.Core.Corruption;
 using MegaCrit.Sts2.Core.Runs;
+using MaidenSuccubus.Presentation;
 
 namespace MaidenSuccubus.RestSite;
 
@@ -41,6 +42,7 @@ public sealed class MasturbateRestSiteOption : ModRestSiteOptionTemplate
         {
             CorruptionCmd.Modify(runState, 1, CorruptionChangeSource.Unknown);
         }
+        await PerformanceDirector.PlayMasturbationAsync(Owner);
         return true;
     }
 }

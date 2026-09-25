@@ -13,6 +13,7 @@ using MaidenSuccubus.Cards;
 using MaidenSuccubus.Commands;
 using MaidenSuccubus.Powers;
 using MaidenSuccubus.Core.Transformation;
+using MaidenSuccubus.Presentation;
 
 namespace MaidenSuccubus.Core.Intents;
 
@@ -38,6 +39,10 @@ public static class EroticEffectCmd
         if (effect.Contains("撕裂衣服", StringComparison.Ordinal))
         {
             await TransformationCmd.LoseArmor(context, target, 1, source);
+            if (PerformanceAudience.IsLocalMaiden(target.Player))
+            {
+                PerformanceAudioService.PlayOneShot(PerformanceAudioCue.ClothesTear);
+            }
         }
         await ApplyOtherEnemyResources(context, source, effect);
         await ApplySelfResources(context, source, effect);
