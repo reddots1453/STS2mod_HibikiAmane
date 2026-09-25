@@ -313,6 +313,9 @@ Assert-Contains "character hook rechecks cross-combat desire" $characterModel 'B
 
 $characterVisuals = Read-Text "src\UI\MaidenSuccubusCreatureVisuals.cs"
 Assert-Contains "combat feedback preserves surrounded facing" $characterVisuals 'WithCurrentFacing\(scale\)[\s\S]*?WithCurrentFacing\(RestScale\)'
+Assert-Contains "high-desire warning uses smooth pixel-distance falloff" $characterVisuals 'edge_pixels[\s\S]*?SCREEN_PIXEL_SIZE[\s\S]*?smoothstep'
+Assert-Contains "high-desire warning expands inward" $characterVisuals 'shader_parameter/glow_width_px[\s\S]*?220f[\s\S]*?280f'
+Assert-NotContains "high-desire warning must not use rectangular edge strips" $characterVisuals 'AddEdgeRect'
 
 $fourthRouteScreen = Read-Text "src\UI\FourthRouteSelectionScreen.cs"
 Assert-Contains "fourth-route map modal" $fourthRouteScreen 'IScreenContext'

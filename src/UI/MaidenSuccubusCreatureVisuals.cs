@@ -40,6 +40,7 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
     private Tween? _edgeTween;
     private CanvasLayer? _edgeLayer;
     private Control? _edgeVisual;
+    private ShaderMaterial? _edgeMaterial;
     private bool _feedbackActive;
     private bool _dead;
 
@@ -368,57 +369,44 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         };
         AddChild(_edgeLayer);
 
-        _edgeVisual = new Control
+        var edgeShader = new Shader
+        {
+            Code = """
+                shader_type canvas_item;
+                render_mode unshaded;
+
+                uniform vec4 glow_color : source_color = vec4(1.0, 0.12, 0.52, 0.62);
+                uniform float glow_width_px : hint_range(32.0, 320.0) = 56.0;
+
+                void fragment() {
+                    vec2 edge_pixels = min(UV, vec2(1.0) - UV) / SCREEN_PIXEL_SIZE;
+                    float edge_distance = min(edge_pixels.x, edge_pixels.y);
+                    float falloff = 1.0 - smoothstep(0.0, glow_width_px, edge_distance);
+                    float soft_glow = falloff * falloff;
+                    COLOR = vec4(glow_color.rgb, glow_color.a * soft_glow);
+                }
+                """,
+        };
+        _edgeMaterial = new ShaderMaterial
+        {
+            Shader = edgeShader,
+        };
+
+        _edgeVisual = new ColorRect
         {
             Name = "PinkEdges",
             MouseFilter = Control.MouseFilterEnum.Ignore,
             Modulate = Colors.Transparent,
+            Color = Colors.White,
+            Material = _edgeMaterial,
         };
         _edgeLayer.AddChild(_edgeVisual);
         _edgeVisual.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-
-        AddEdgeRect("Top", 0f, 0f, 1f, 0f, 0f, 0f, 0f, 46f);
-        AddEdgeRect("Bottom", 0f, 1f, 1f, 1f, 0f, -46f, 0f, 0f);
-        AddEdgeRect("Left", 0f, 0f, 0f, 1f, 0f, 0f, 46f, 0f);
-        AddEdgeRect("Right", 1f, 0f, 1f, 1f, -46f, 0f, 0f, 0f);
-    }
-
-    private void AddEdgeRect(
-        string name,
-        float anchorLeft,
-        float anchorTop,
-        float anchorRight,
-        float anchorBottom,
-        float offsetLeft,
-        float offsetTop,
-        float offsetRight,
-        float offsetBottom)
-    {
-        if (_edgeVisual == null)
-        {
-            return;
-        }
-
-        var edge = new ColorRect
-        {
-            Name = name,
-            Color = new Color(1f, 0.16f, 0.55f, 0.48f),
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            AnchorLeft = anchorLeft,
-            AnchorTop = anchorTop,
-            AnchorRight = anchorRight,
-            AnchorBottom = anchorBottom,
-            OffsetLeft = offsetLeft,
-            OffsetTop = offsetTop,
-            OffsetRight = offsetRight,
-            OffsetBottom = offsetBottom,
-        };
-        _edgeVisual.AddChild(edge);
     }
 
     private void SetPersistentPinkEdge(bool enabled)
     {
-        if (_edgeVisual == null)
+        if (_edgeVisual == null || _edgeMaterial == null)
         {
             return;
         }
@@ -428,18 +416,39 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         if (!enabled)
         {
             _edgeVisual.Modulate = Colors.Transparent;
+            _edgeMaterial.SetShaderParameter("glow_width_px", 56f);
             return;
         }
 
         _edgeVisual.Modulate = new Color(1f, 1f, 1f, 0f);
+        _edgeMaterial.SetShaderParameter("glow_width_px", 56f);
         _edgeTween = CreateTween().SetLoops();
-        _edgeTween.TweenInterval(0.8f);
+        _edgeTween.TweenCallback(Callable.From(() =>
+        {
+            if (_edgeVisual != null && _edgeMaterial != null)
+            {
+                _edgeVisual.Modulate = new Color(1f, 1f, 1f, 0f);
+                _edgeMaterial.SetShaderParameter("glow_width_px", 56f);
+            }
+        }));
+        _edgeTween.TweenInterval(0.75f);
         _edgeTween.TweenProperty(
-            _edgeVisual, "modulate:a", 0.34f, 0.35f);
-        _edgeTween.TweenInterval(0.35f);
+                _edgeVisual, "modulate:a", 0.34f, 0.42f)
+            .SetTrans(Tween.TransitionType.Sine)
+            .SetEase(Tween.EaseType.Out);
+        _edgeTween.Parallel().TweenProperty(
+                _edgeMaterial, "shader_parameter/glow_width_px", 220f, 0.9f)
+            .SetTrans(Tween.TransitionType.Cubic)
+            .SetEase(Tween.EaseType.Out);
         _edgeTween.TweenProperty(
-            _edgeVisual, "modulate:a", 0f, 0.65f);
-        _edgeTween.TweenInterval(1.25f);
+                _edgeVisual, "modulate:a", 0f, 0.85f)
+            .SetTrans(Tween.TransitionType.Sine)
+            .SetEase(Tween.EaseType.In);
+        _edgeTween.Parallel().TweenProperty(
+                _edgeMaterial, "shader_parameter/glow_width_px", 280f, 0.85f)
+            .SetTrans(Tween.TransitionType.Sine)
+            .SetEase(Tween.EaseType.Out);
+        _edgeTween.TweenInterval(1.1f);
     }
 
     private void PlayPinkEdgeFlash()
