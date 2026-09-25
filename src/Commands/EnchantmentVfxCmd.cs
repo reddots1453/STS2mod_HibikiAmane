@@ -1,6 +1,8 @@
+using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes;
+using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Vfx;
 using MaidenSuccubus.Core.Control;
 using STS2RitsuLib.Models.Capabilities;
@@ -16,6 +18,39 @@ public static class EnchantmentVfxCmd
 {
     private static readonly HashSet<CardModel> ActiveCards =
         new(ReferenceEqualityComparer.Instance);
+
+    /// <summary>
+    /// Pickup hooks run before the game's ordinary obtained-card preview is
+    /// created. Defer the enchantment reveal until that preview has left the
+    /// shared container, otherwise two identical card nodes overlap and both
+    /// enchantment tabs remain visible.
+    /// </summary>
+    public static void PreviewAfterCardPickup(CardModel card)
+    {
+        ArgumentNullException.ThrowIfNull(card);
+        TaskHelper.RunSafely(PreviewAfterCardPickupAsync(card));
+    }
+
+    private static async Task PreviewAfterCardPickupAsync(CardModel card)
+    {
+        // Let CardPileCmd.Add finish its pile-change hooks so its caller can
+        // create the standard obtained-card preview first.
+        await Cmd.Wait(0.2f);
+
+        for (int check = 0; check < 30; check++)
+        {
+            var container = NRun.Instance?.GlobalUi.CardPreviewContainer;
+            bool ordinaryPreviewIsActive = container?.GetChildren()
+                .OfType<NCard>()
+                .Any(node => ReferenceEquals(node.Model, card)) == true;
+            if (!ordinaryPreviewIsActive)
+                break;
+
+            await Cmd.Wait(0.1f);
+        }
+
+        Preview(card);
+    }
 
     public static void Preview(CardModel card)
     {

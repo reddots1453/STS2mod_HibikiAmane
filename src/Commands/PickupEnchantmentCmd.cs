@@ -14,7 +14,7 @@ public static class PickupEnchantmentCmd
     {
         T? applied = CardCmd.Enchant<T>(card, amount);
         if (applied != null)
-            EnchantmentVfxCmd.Preview(card);
+            EnchantmentVfxCmd.PreviewAfterCardPickup(card);
         return applied;
     }
 
@@ -26,7 +26,7 @@ public static class PickupEnchantmentCmd
         EnchantmentModel? applied = CardCmd.Enchant(
             enchantment, card, amount);
         if (applied != null)
-            EnchantmentVfxCmd.Preview(card);
+            EnchantmentVfxCmd.PreviewAfterCardPickup(card);
         return applied;
     }
 }
