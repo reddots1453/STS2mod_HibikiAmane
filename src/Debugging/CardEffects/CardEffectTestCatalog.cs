@@ -2844,6 +2844,18 @@ internal static class CardEffectTestCatalog
             MultipleReproductionPower delayed = ctx.Self.Powers
                 .OfType<MultipleReproductionPower>().Single();
             ctx.AssertTrue("without overdraft extra turn waits one turn", delayed.DelayOneTurn);
+            ctx.AssertEqual("delayed extra-turn icon marker", "下",
+                delayed.GetPowerExtraIconAmountLabelSpecs().Single().Text);
+            ctx.AssertEqual("delayed extra-turn title", "多重再现·下回合",
+                delayed.Title.GetFormattedText());
+            ctx.AssertTrue("delayed power skips the current turn",
+                !delayed.ShouldTakeExtraTurn(ctx.Player));
+            ctx.AssertTrue("delayed power becomes current-turn state",
+                !delayed.DelayOneTurn);
+            ctx.AssertEqual("current-turn icon marker after rollover", "本",
+                delayed.GetPowerExtraIconAmountLabelSpecs().Single().Text);
+            ctx.AssertEqual("current-turn title after rollover", "多重再现·本回合",
+                delayed.Title.GetFormattedText());
 
             await PowerCmd.Remove(delayed);
             await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 1);
@@ -2852,6 +2864,10 @@ internal static class CardEffectTestCatalog
             MultipleReproductionPower immediate = ctx.Self.Powers
                 .OfType<MultipleReproductionPower>().Single();
             ctx.AssertTrue("overdraft makes extra turn immediate", !immediate.DelayOneTurn);
+            ctx.AssertEqual("immediate extra-turn icon marker", "本",
+                immediate.GetPowerExtraIconAmountLabelSpecs().Single().Text);
+            ctx.AssertEqual("immediate extra-turn title", "多重再现·本回合",
+                immediate.Title.GetFormattedText());
             ctx.AssertPower("overdraft armor payment", ctx.Self, "MagicArmorPower", 0);
         }, 3);
 
