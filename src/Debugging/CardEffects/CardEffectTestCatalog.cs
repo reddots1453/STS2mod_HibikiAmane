@@ -158,7 +158,7 @@ internal static class CardEffectTestCatalog
             extra: AssertSelectedCardsEthereal);
         ExhaustTypesForPower<MiasmaConversion>();
         DamageAllTargetPower<MiasmaFlame>(8, 10, "BurningPower", 2, 2);
-        ExhaustSelectionGenerateCopies<MimicProliferation>(2, 3);
+        MimicProliferationProbe();
         Draw<PlayingWithFire>(2, 3, extra: AssertSelfBurning);
         BlockDrawGenerate<PleasureDrowning, ArousalStatus>(7, 7, 2, 3, 2,
             PileType.Draw);
@@ -1376,15 +1376,24 @@ internal static class CardEffectTestCatalog
             await ctx.Play(card);
             ChainDestructionPower power =
                 ctx.Self.Powers.OfType<ChainDestructionPower>().Single();
+            ctx.AssertEqual("counter starts four exhausts from trigger", 4,
+                power.DisplayAmount);
             for (int i = 0; i < 4; i++)
+            {
                 await CardCmd.Exhaust(new BlockingPlayerChoiceContext(),
                     await ctx.Add<MaidenDefend>(PileType.Hand));
-            ctx.AssertEqual("four exhausts arm one replay", 1, power.ArmedReplays);
+                ctx.AssertEqual("counter displays remaining exhausts",
+                    i == 3 ? 4 : 3 - i,
+                    power.DisplayAmount);
+            }
+            ctx.AssertPower("four exhausts arm one visible replay", ctx.Self,
+                "ChainDestructionReplayPower", 1);
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(ctx.Create<MaidenStrike>(), ctx.PrimaryEnemy);
             ctx.AssertDamage("next card plays twice", ctx.PrimaryEnemy, hp, 12);
-            ctx.AssertEqual("armed replay consumed", 0, power.ArmedReplays);
-        }, 3);
+            ctx.AssertPower("visible replay consumed", ctx.Self,
+                "ChainDestructionReplayPower", 0);
+        }, 8);
 
     private static void CurseWedgeProbe() =>
         CustomVariants<CurseWedge>(async (ctx, card, upgraded) =>
@@ -1442,8 +1451,8 @@ internal static class CardEffectTestCatalog
             ctx.AssertEqual("desire cost", 0, Desire.Get(ctx.Player));
             WinterHolly copy = PileType.Hand.GetPile(ctx.Player).Cards
                 .OfType<WinterHolly>().Single();
-            ctx.AssertTrue("copy loses ethereal",
-                !copy.Keywords.Contains(CardKeyword.Ethereal));
+            ctx.AssertTrue("copy retains ethereal",
+                copy.Keywords.Contains(CardKeyword.Ethereal));
             ctx.AssertTrue("copy gains exhaust",
                 copy.Keywords.Contains(CardKeyword.Exhaust));
             ctx.AssertEqual("copy preserves upgrade", upgraded, copy.IsUpgraded);
@@ -2398,13 +2407,28 @@ internal static class CardEffectTestCatalog
         CustomVariants<AllHopeLost>(async (ctx, card, upgraded) =>
         {
             await PlayerCmd.SetEnergy(3, ctx.Player);
+            await Desire.Set(ctx.Player, 2);
+            card.DynamicVars.Damage.UpdateCardPreview(
+                card,
+                CardPreviewMode.Normal,
+                ctx.PrimaryEnemy,
+                runGlobalHooks: true);
+            card.DynamicVars["Hits"].UpdateCardPreview(
+                card,
+                CardPreviewMode.Normal,
+                ctx.PrimaryEnemy,
+                runGlobalHooks: true);
+            ctx.AssertEqual("desire-scaled damage preview", 12m,
+                card.DynamicVars.Damage.PreviewValue);
+            ctx.AssertEqual("current-energy hit preview", upgraded ? 4m : 3m,
+                card.DynamicVars["Hits"].PreviewValue);
             await card.AfterSecondaryResourceSpent(new SecondaryResourceSpendContext(
                 ctx.Combat, ctx.Player, DesireResource.Definition, card, 2, card));
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(card, ctx.PrimaryEnemy);
             ctx.AssertDamage("two desire times six damage for each X hit",
                 ctx.PrimaryEnemy, hp, upgraded ? 48 : 36);
-        }, 1);
+        }, 3);
 
     private static void BiteInvaderProbe() =>
         CustomVariants<BiteInvader>(async (ctx, card, _) =>
@@ -2684,6 +2708,29 @@ internal static class CardEffectTestCatalog
                 }
             }
         }, 3);
+
+    private static void MimicProliferationProbe() =>
+        CustomVariants<MimicProliferation>(async (ctx, card, upgraded) =>
+        {
+            ThousandCurseScythe fixture =
+                await ctx.Add<ThousandCurseScythe>(PileType.Hand);
+            ctx.AssertTrue("generated permanent-growth fixture has no deck version",
+                fixture.DeckVersion == null);
+            await ctx.Play(card, selectedCards: [fixture]);
+            ctx.AssertEqual("selected generated card exhausted",
+                PileType.Exhaust,
+                fixture.Pile?.Type);
+            ctx.AssertEqual("combat-only permanent growth still resolves", 12,
+                fixture.CurrentDamage);
+            ThousandCurseScythe[] copies = PileType.Hand.GetPile(ctx.Player).Cards
+                .OfType<ThousandCurseScythe>()
+                .ToArray();
+            ctx.AssertEqual("copies generated after safe combat-only exhaust",
+                upgraded ? 3 : 2,
+                copies.Length);
+            ctx.AssertTrue("copies preserve combat growth",
+                copies.All(copy => copy.CurrentDamage == 12));
+        }, 5);
 
     private static void SharpForgeProbe() =>
         CustomVariants<SharpForge>(async (ctx, card, upgraded) =>

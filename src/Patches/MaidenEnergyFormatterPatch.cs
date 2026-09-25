@@ -2,7 +2,6 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Localization;
 using MaidenSuccubus.Localization;
 using MaidenSuccubus.Util;
-using SmartFormat;
 
 namespace MaidenSuccubus.Patches;
 
@@ -13,9 +12,7 @@ internal static class MaidenEnergyFormatterPatch
     private static void Postfix()
     {
         Safe.Run(
-            () => Smart.Default?.AddExtensions(
-                new MaidenEnergyIconsFormatter(),
-                new MaidenDesireIconsFormatter()),
+            MaidenLocalizationFormatters.Register,
             nameof(MaidenEnergyFormatterPatch));
     }
 }

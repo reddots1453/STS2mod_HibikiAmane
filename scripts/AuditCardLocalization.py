@@ -212,6 +212,8 @@ VAR_CLASS_NAMES = {
     "IntVar": None,
     "StringVar": None,
     "DynamicVar": None,
+    "DesireScaledDamageVar": "Damage",
+    "CurrentEnergyHitsVar": "Hits",
 }
 
 

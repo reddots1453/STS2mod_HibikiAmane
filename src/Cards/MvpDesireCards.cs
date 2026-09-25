@@ -1,12 +1,15 @@
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Commands;
 using MaidenSuccubus.Core.Desire;
+using MaidenSuccubus.Data;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
 using STS2RitsuLib.Combat.SecondaryResources;
@@ -83,7 +86,6 @@ public sealed class WinterHolly : MSCorruptCard
         await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
         ArgumentNullException.ThrowIfNull(CombatState);
         CardModel copy = CombatState.CloneCard(this);
-        copy.RemoveKeyword(CardKeyword.Ethereal);
         copy.AddKeyword(CardKeyword.Exhaust);
         await CardPileCmd.Add(copy, PileType.Hand);
     }
@@ -93,9 +95,70 @@ public sealed class WinterHolly : MSCorruptCard
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class AllHopeLost : MSCorruptCard, ISecondaryResourceHookListener
 {
+    private sealed class DesireScaledDamageVar : DamageVar
+    {
+        public DesireScaledDamageVar() : base(6, ValueProp.Move) { }
+
+        public override void UpdateCardPreview(
+            CardModel card,
+            CardPreviewMode previewMode,
+            Creature? target,
+            bool runGlobalHooks)
+        {
+            int desire = card.CombatState == null
+                ? 1
+                : Math.Max(0, Desire.Get(card.Owner));
+            decimal damage = BaseValue * desire;
+            if (runGlobalHooks)
+            {
+                PreviewValue = Hook.ModifyDamage(
+                    card.Owner.RunState,
+                    card.CombatState,
+                    target,
+                    card.Owner.Creature,
+                    damage,
+                    Props,
+                    card,
+                    null,
+                    ModifyDamageHookType.All,
+                    previewMode,
+                    out _);
+                return;
+            }
+
+            EnchantmentModel? enchantment = card.Enchantment;
+            if (enchantment != null)
+            {
+                damage += enchantment.EnchantDamageAdditive(damage, Props);
+                damage *= enchantment.EnchantDamageMultiplicative(damage, Props);
+            }
+            PreviewValue = Math.Max(0, damage);
+        }
+    }
+
+    private sealed class CurrentEnergyHitsVar : RepeatVar
+    {
+        public CurrentEnergyHitsVar() : base("Hits", 0) { }
+
+        public override void UpdateCardPreview(
+            CardModel card,
+            CardPreviewMode previewMode,
+            Creature? target,
+            bool runGlobalHooks)
+        {
+            PreviewValue = card.CombatState == null
+                ? BaseValue
+                : Hook.ModifyXValue(
+                    card.CombatState,
+                    card,
+                    card.EnergyCost.GetAmountToSpend()) + BaseValue;
+        }
+    }
+
     private int _desireSpent;
     protected override bool HasEnergyCostX => true;
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(6, ValueProp.Move)];
+    protected override IEnumerable<DynamicVar> CanonicalVars =>
+        [new DesireScaledDamageVar(), new CurrentEnergyHitsVar()];
     public AllHopeLost() : base(0, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy) =>
         this.SecondaryCosts().Set(DesireResource.Id, SecondaryResourceCost.X());
 
@@ -115,7 +178,7 @@ public sealed class AllHopeLost : MSCorruptCard, ISecondaryResourceHookListener
         return DamageCmd.Attack(damage).WithHitCount(hits).FromCard(this, play)
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
     }
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade() => DynamicVars["Hits"].UpgradeValueBy(1);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]

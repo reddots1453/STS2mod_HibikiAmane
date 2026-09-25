@@ -186,20 +186,34 @@ Assert-Contains "stun cannot follow itself by move instance" $intentFactory 'Sho
 
 $energyFormatter = Read-Text "src\Localization\MaidenEnergyIconsFormatter.cs"
 $desireFormatter = Read-Text "src\Localization\MaidenDesireIconsFormatter.cs"
+$formatterRegistration = Read-Text "src\Localization\MaidenLocalizationFormatters.cs"
 $energyFormatterPatch = Read-Text "src\Patches\MaidenEnergyFormatterPatch.cs"
+$modInitializer = Read-Text "src\MaidenSuccubusMod.cs"
 $energyCardLocalization = Read-Text "MaidenSuccubus\localization\zhs\cards.json"
 Assert-Contains "maiden inline energy formatter owns a distinct name" $energyFormatter 'get\s*=>\s*"maidenEnergyIcons"'
 Assert-Contains "maiden inline energy formatter uses font-sized resource" $energyFormatter 'magic_energy_cost_icon_32\.png'
 Assert-Contains "maiden inline energy formatter follows vanilla image markup" $energyFormatter '\[img\]\{MaidenEnergyIconAssets\.TextIconResourcePath\}\[/img\]'
 Assert-NotContains "maiden inline energy formatter must not bypass autosize measurement" $energyFormatter '\[img=[^\]]+'
-Assert-Contains "maiden inline energy formatter registration" $energyFormatterPatch 'Smart\.Default\?\.AddExtensions'
+Assert-Contains "maiden inline formatter registration reads Smart.Default" $formatterRegistration 'Smart\.Default'
+Assert-Contains "maiden inline formatter registration is idempotent" $formatterRegistration 'GetFormatterExtensions\(\)\.Any'
+Assert-Contains "maiden inline energy formatter registration" $formatterRegistration 'new\s+MaidenEnergyIconsFormatter\(\)'
+Assert-Contains "maiden inline formatter registers during mod init" $modInitializer 'MaidenLocalizationFormatters\.Register\(\)'
+Assert-Contains "maiden inline formatter re-registers after localization reload" $energyFormatterPatch 'MaidenLocalizationFormatters\.Register'
 Assert-NotContains "maiden localization must not use vanilla energy formatter" $energyCardLocalization ':energyIcons\('
 Assert-Contains "maiden inline desire formatter owns a distinct name" $desireFormatter 'get\s*=>\s*"maidenDesireIcons"'
 Assert-Contains "maiden inline desire formatter uses font-sized resource" $desireFormatter 'desire_resource_icon_32\.png'
 Assert-Contains "maiden inline desire formatter follows vanilla image markup" $desireFormatter '\[img\]\{MaidenDesireIconAssets\.TextIconResourcePath\}\[/img\]'
 Assert-NotContains "maiden inline desire formatter must not bypass autosize measurement" $desireFormatter '\[img=[^\]]+'
-Assert-Contains "maiden inline desire formatter registration" $energyFormatterPatch 'new\s+MaidenDesireIconsFormatter\(\)'
+Assert-Contains "maiden inline desire formatter registration" $formatterRegistration 'new\s+MaidenDesireIconsFormatter\(\)'
 Assert-Contains "card localization uses desire icons" $energyCardLocalization ':maidenDesireIcons\('
+$exhaustCards = Read-Text "src\Cards\MvpExhaustCards.cs"
+Assert-Contains "destruction reaction selects newly drawn cards from the hand UI" $exhaustCards 'class\s+DestructionReaction[\s\S]*?CardSelectCmd\.FromHand'
+Assert-NotContains "exhaust cards must not fall back to detached simple-grid selection" $exhaustCards 'CardSelectCmd\.FromSimpleGrid'
+$chainDestructionPowers = Read-Text "src\Powers\MvpExhaustPowers2.cs"
+Assert-Contains "chain destruction exposes an orbit-style remaining counter" $chainDestructionPowers 'class\s+ChainDestructionPower[\s\S]*?DisplayAmount\s*=>\s*4\s*-\s*ExhaustProgress\s*%\s*4'
+Assert-Contains "chain destruction arms a separate visible replay state" $chainDestructionPowers 'PowerCmd\.Apply<ChainDestructionReplayPower>'
+$permanentCardCmd = Read-Text "src\Commands\PermanentCardCmd.cs"
+Assert-Contains "generated permanent-growth copies may omit a deck version" $permanentCardCmd 'TryModifyDeckVersion[\s\S]*?if\s*\(deckCard\s*==\s*null\)[\s\S]*?return\s+false'
 $desireWord = [regex]::Unescape('\u6b32\u671b')
 $pointWord = [regex]::Unescape('\u70b9')
 $consumeWord = [regex]::Unescape('\u6d88\u8017')

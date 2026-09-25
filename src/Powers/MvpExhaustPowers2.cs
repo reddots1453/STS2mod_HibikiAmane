@@ -34,30 +34,44 @@ public sealed class IgnitePower : MaidenSuccubusPowerTemplate
 public sealed class ChainDestructionPower : MaidenSuccubusPowerTemplate
 {
     [SavedProperty] public int ExhaustProgress { get; set; }
-    [SavedProperty] public int ArmedReplays { get; set; }
     public override PowerType Type => PowerType.Buff;
-    public override PowerStackType StackType => PowerStackType.Single;
+    public override PowerStackType StackType => PowerStackType.Counter;
+    public override int DisplayAmount => 4 - ExhaustProgress % 4;
 
-    public override Task AfterCardExhausted(PlayerChoiceContext context, CardModel card, bool causedByEthereal)
+    public override async Task AfterCardExhausted(
+        PlayerChoiceContext context,
+        CardModel card,
+        bool causedByEthereal)
     {
-        if (card.Owner.Creature != Owner) return Task.CompletedTask;
+        if (card.Owner.Creature != Owner) return;
         ExhaustProgress++;
         if (ExhaustProgress >= 4)
         {
-            ArmedReplays += ExhaustProgress / 4;
+            int replays = ExhaustProgress / 4;
             ExhaustProgress %= 4;
             Flash();
+            await PowerCmd.Apply<ChainDestructionReplayPower>(
+                context,
+                Owner,
+                replays,
+                Owner,
+                null);
         }
-        return Task.CompletedTask;
+        InvokeDisplayAmountChanged();
     }
+}
 
+[RegisterPower]
+public sealed class ChainDestructionReplayPower : MaidenSuccubusPowerTemplate
+{
+    public override PowerType Type => PowerType.Buff;
+    public override PowerStackType StackType => PowerStackType.Counter;
     public override int ModifyCardPlayCount(CardModel card, Creature? target, int playCount) =>
-        card.Owner.Creature == Owner && ArmedReplays > 0 ? playCount + 1 : playCount;
+        card.Owner.Creature == Owner ? playCount + 1 : playCount;
 
-    public override Task AfterModifyingCardPlayCount(CardModel card)
+    public override async Task AfterModifyingCardPlayCount(CardModel card)
     {
-        if (card.Owner.Creature == Owner && ArmedReplays > 0) ArmedReplays--;
-        return Task.CompletedTask;
+        await PowerCmd.Decrement(this);
     }
 }
 

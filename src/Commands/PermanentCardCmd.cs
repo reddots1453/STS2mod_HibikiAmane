@@ -9,28 +9,25 @@ namespace MaidenSuccubus.Commands;
 /// </summary>
 public static class PermanentCardCmd
 {
-    public static void ModifyDeckVersion(
+    /// <summary>
+    /// Persists a combat mutation when the card originated in the run deck.
+    /// Generated combat-only copies are valid permanent-growth cards too, but
+    /// have no deck version to update and therefore return <see langword="false"/>.
+    /// </summary>
+    public static bool TryModifyDeckVersion(
         CardModel combatCard,
         Action<CardModel> mutation)
     {
         ArgumentNullException.ThrowIfNull(combatCard);
         ArgumentNullException.ThrowIfNull(mutation);
 
-        if (combatCard is not IPermanentGrowthCard)
-        {
-            throw new InvalidOperationException(
-                $"Card {combatCard.Id} has not opted into permanent growth.");
-        }
+        ValidatePermanentCombatCard(combatCard);
 
-        if (!CombatEnchantmentCmd.IsCombatClone(combatCard))
+        CardModel? deckCard = combatCard.DeckVersion;
+        if (deckCard == null)
         {
-            throw new InvalidOperationException(
-                $"Card {combatCard.Id} is not an active combat clone.");
+            return false;
         }
-
-        CardModel deckCard = combatCard.DeckVersion
-            ?? throw new InvalidOperationException(
-                $"Combat card {combatCard.Id} has no run-deck version.");
         if (deckCard is not IPermanentGrowthCard
             || deckCard.GetType() != combatCard.GetType())
         {
@@ -39,5 +36,28 @@ public static class PermanentCardCmd
         }
 
         mutation(deckCard);
+        return true;
+    }
+
+    public static void ModifyDeckVersion(
+        CardModel combatCard,
+        Action<CardModel> mutation)
+    {
+        ArgumentNullException.ThrowIfNull(combatCard);
+        ArgumentNullException.ThrowIfNull(mutation);
+
+        if (!TryModifyDeckVersion(combatCard, mutation))
+            throw new InvalidOperationException(
+                $"Combat card {combatCard.Id} has no run-deck version.");
+    }
+
+    private static void ValidatePermanentCombatCard(CardModel combatCard)
+    {
+        if (combatCard is not IPermanentGrowthCard)
+            throw new InvalidOperationException(
+                $"Card {combatCard.Id} has not opted into permanent growth.");
+        if (!CombatEnchantmentCmd.IsCombatClone(combatCard))
+            throw new InvalidOperationException(
+                $"Card {combatCard.Id} is not an active combat clone.");
     }
 }

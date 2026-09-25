@@ -51,6 +51,7 @@ public static class PowerIconAssets
             ["DesireRecyclePower"] = "desire_recycle",
             ["IgnitePower"] = "ignite",
             ["ChainDestructionPower"] = "chain_destruction",
+            ["ChainDestructionReplayPower"] = "chain_destruction",
             ["CurseCorridorPower"] = "curse_corridor",
             ["ConsecrationPower"] = "consecration",
             ["SoulPurificationPower"] = "soul_purification",

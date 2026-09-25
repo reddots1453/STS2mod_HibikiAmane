@@ -134,7 +134,9 @@ public sealed class GrudgeBlade : MSCorruptCard, IPermanentGrowthCard
         if (card != this) return Task.CompletedTask;
         int increase = DynamicVars["Increase"].IntValue;
         CurrentDamage += increase;
-        PermanentCardCmd.ModifyDeckVersion(this, deck => ((GrudgeBlade)deck).CurrentDamage += increase);
+        PermanentCardCmd.TryModifyDeckVersion(
+            this,
+            deck => ((GrudgeBlade)deck).CurrentDamage += increase);
         return Task.CompletedTask;
     }
     protected override void OnUpgrade() => DynamicVars["Increase"].UpgradeValueBy(1);

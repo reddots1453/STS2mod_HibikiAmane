@@ -39,6 +39,7 @@ public static class MaidenSuccubusMod
         PowerIconAssets.Register();
         MaidenEnergyIconAssets.Register();
         MaidenDesireIconAssets.Register();
+        MaidenLocalizationFormatters.Register();
         RegisterRunSavedData();
         RegisterKeywords();
         DesireResource.Register();

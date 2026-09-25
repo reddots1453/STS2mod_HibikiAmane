@@ -74,8 +74,14 @@ public sealed class DestructionReaction : MSCorruptCard
     {
         CardModel[] drawn = (await CardPileCmd.Draw(context, DynamicVars.Cards.IntValue, Owner)).ToArray();
         if (drawn.Length == 0) return;
-        CardModel? selected = (await CardSelectCmd.FromSimpleGrid(context, drawn, Owner,
-            new CardSelectorPrefs(CardSelectorPrefs.ExhaustSelectionPrompt, 1))).FirstOrDefault();
+        HashSet<CardModel> selectable = drawn
+            .Where(card => card.Pile?.Type == PileType.Hand)
+            .ToHashSet();
+        if (selectable.Count == 0) return;
+        CardModel? selected = (await CardSelectCmd.FromHand(context, Owner,
+            new CardSelectorPrefs(CardSelectorPrefs.ExhaustSelectionPrompt, 1),
+            selectable.Contains,
+            this)).FirstOrDefault();
         if (selected != null) await CardCmd.Exhaust(context, selected);
     }
     protected override void OnUpgrade() => DynamicVars.Cards.UpgradeValueBy(1);
@@ -124,7 +130,7 @@ public sealed class ThousandCurseScythe : MSCorruptCard, IPermanentGrowthCard
         }
         int growth = DynamicVars["Growth"].IntValue;
         CurrentDamage += growth;
-        PermanentCardCmd.ModifyDeckVersion(
+        PermanentCardCmd.TryModifyDeckVersion(
             this,
             deck => ((ThousandCurseScythe)deck).CurrentDamage += growth);
         return Task.CompletedTask;

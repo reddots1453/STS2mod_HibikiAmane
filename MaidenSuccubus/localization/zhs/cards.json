@@ -222,7 +222,7 @@
   "MAIDEN_SUCCUBUS_CARD_WINTER_HOLLY.title": "冬青之雾",
   "MAIDEN_SUCCUBUS_CARD_WINTER_HOLLY.description": "获得{Block:diff()}点[gold]格挡[/gold]。\n将一张该牌具有[gold]消耗[/gold]的复制加入你的[gold]手牌[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_ALL_HOPE_LOST.title": "万念俱灰",
-  "MAIDEN_SUCCUBUS_CARD_ALL_HOPE_LOST.description": "造成6Y点伤害{IfUpgraded:show:X+1|X}次。",
+  "MAIDEN_SUCCUBUS_CARD_ALL_HOPE_LOST.description": "造成{Damage:diff()}点伤害{Hits:diff()}次。",
   "MAIDEN_SUCCUBUS_CARD_LEGENDARY_MINER.title": "传奇矿工",
   "MAIDEN_SUCCUBUS_CARD_LEGENDARY_MINER.description": "每当{energyPrefix:maidenDesireIcons(1)}被获得或使用，获得{BlockPerDesire:diff()}点[gold]格挡[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_TRANQUILIZER.title": "镇静药",
