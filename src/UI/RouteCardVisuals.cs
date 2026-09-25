@@ -16,7 +16,7 @@ public static class RouteCardVisuals
 
     private static CardOverlayContribution CreateContribution(
         RouteCardKind routeKind) => CardOverlayContribution.FromFactory(
-        "maiden_route_wing_v3",
+        "maiden_route_wing_v4",
         _ => CreateOverlay(routeKind),
         order: 0,
         fullRect: true);
@@ -26,8 +26,8 @@ public static class RouteCardVisuals
         bool holy = routeKind == RouteCardKind.Holy;
         Texture2D? texture = RuntimeTextureAssets.Load(
             holy
-                ? "ui/route_marks/route_holy_wing_v3.png"
-                : "ui/route_marks/route_corrupt_wing_v3.png");
+                ? "ui/route_marks/route_holy_angel_wing_v4.png"
+                : "ui/route_marks/route_corrupt_succubus_wing_v4.png");
         if (texture == null)
         {
             return null;
@@ -36,8 +36,8 @@ public static class RouteCardVisuals
         Control root = new()
         {
             Name = holy
-                ? "MaidenHolyRouteWingV3"
-                : "MaidenCorruptRouteWingV3",
+                ? "MaidenHolyRouteWingV4"
+                : "MaidenCorruptRouteWingV4",
             MouseFilter = Control.MouseFilterEnum.Ignore,
             ClipContents = false,
             ZIndex = 0,
@@ -54,9 +54,11 @@ public static class RouteCardVisuals
             StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
             CustomMinimumSize = Vector2.Zero,
             MouseFilter = Control.MouseFilterEnum.Ignore,
+            ClipContents = false,
+            ZIndex = 0,
         };
         root.AddChild(image);
-        // Configure IgnoreSize before assigning the 512px source texture.
+        // Configure IgnoreSize before assigning the high-resolution source texture.
         // Otherwise TextureRect can retain the texture's raw minimum size and
         // the route mark spills across the whole card grid.
         image.Texture = texture;

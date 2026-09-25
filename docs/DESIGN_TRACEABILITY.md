@@ -181,3 +181,13 @@
 2026-08-24 基线更正：第一轮开始时间为`2026-08-22 02:12:23 +08:00`，最后MVP源码写入时间为`2026-08-21 21:03:17 +08:00`。完整时间戳MVP树由提交`36764029f670c49b9b8298e40da399c3477735ab`保存。新的合并分支必须直接以此提交为父节点，再逐功能正向合入第一轮；禁止把MVP文件反向复制到错误第一轮树。
 
 先前第一轮实现因错误基线作废，只保留为取证来源，不继承其`IMPLEMENTED`结论。新分支每个批次完成代码和MVP回归后单独标记`IMPLEMENTED`；统一运行时验收见`docs/ITERATION1_MANUAL_TEST_CHECKLIST.md`。
+
+## 7. 2026-09-26 UI正式素材交接同步
+
+| 类型 | 需求ID/范围 | 实现映射 | 当前状态 |
+|---|---|---|---|
+| CHANGE | `UI-ROUTE-V4-001` | `RouteCardVisuals`使用`maiden_route_wing_v4`贡献和两张V4正式翼饰；仅圣洁/堕落路线返回覆盖层，旧V3运行时资源移除 | IMPLEMENTED（待游戏内视觉验收） |
+| CHANGE | `UI-CHAR-SELECT-V2-001` | `MaidenSuccubusCharacter`显式绑定V2背景、正常/锁定头像及新缓存名；`MaidenCharacterSelectVisualPatch`仅在选角按钮使用V2头像，顶栏Q版图标不变 | IMPLEMENTED（待游戏内视觉验收） |
+| AUDIT | `UI-FORMAL-ASSET-AUDIT-001` | `完成版卡图/manifest.json`的130张正式卡图及默认图、火堆/商店正式素材、CG/音频清单均与运行时逐项哈希一致 | IMPLEMENTED（静态复验通过） |
+
+本节不改变DesignDoc机制含义，也不把素材候选、V1选角背景或V3路线翼饰重新纳入运行时。

@@ -1,6 +1,7 @@
 param([Parameter(Mandatory = $true)][string]$ProjectDir)
 
 $ErrorActionPreference = "Stop"
+$ProjectDir = (Resolve-Path -LiteralPath $ProjectDir).Path
 
 function Assert-ExactCopy([string]$Source, [string]$Destination) {
     if (!(Test-Path -LiteralPath $Source -PathType Leaf)) {
@@ -109,19 +110,37 @@ $coreCopies = @(
     @("magic_energy_cost_icon_128.png", "ui\core\magic_energy_cost_icon_128.png"),
     @("desire_resource_icon_32.png", "ui\core\desire_resource_icon_32.png"),
     @("desire_resource_icon_128.png", "ui\core\desire_resource_icon_128.png"),
-    @("route_holy_wing_v3.png", "ui\route_marks\route_holy_wing_v3.png"),
-    @("route_corrupt_wing_v3.png", "ui\route_marks\route_corrupt_wing_v3.png")
+    @("route_holy_angel_wing_v4.png", "ui\route_marks\route_holy_angel_wing_v4.png"),
+    @("route_corrupt_succubus_wing_v4.png", "ui\route_marks\route_corrupt_succubus_wing_v4.png")
 )
 foreach ($copy in $coreCopies) {
     Assert-ExactCopy (Find-ReviewedAsset $copy[0]) (Join-Path $runtime $copy[1])
 }
+foreach ($legacyRouteMark in @(
+    "ui\route_marks\route_holy_wing_v3.png",
+    "ui\route_marks\route_corrupt_wing_v3.png"
+)) {
+    if (Test-Path -LiteralPath (Join-Path $runtime $legacyRouteMark) -PathType Leaf) {
+        throw "Legacy V3 route mark must not remain in the runtime package: $legacyRouteMark"
+    }
+}
 
 $characterSelectRelativePath = [regex]::Unescape(
     "\u56fe\u7247\u7d20\u6750/\u9009\u89d2\u754c\u9762/" +
-    "\u8fd0\u884c\u65f6\u80cc\u666f\u5019\u9009V1/" +
-    "hibiki_amane_char_select_bg_v01_2561x1201.png")
-Assert-ExactCopy (Join-Path $ProjectDir $characterSelectRelativePath) (
-    Join-Path $runtime "ui\character_select\hibiki_amane_char_select_bg_v01_2561x1201.png")
+    "V2\u9ad8\u6e05\u91cd\u7ed8")
+foreach ($file in @(
+    "hibiki_amane_char_select_bg_v02_2561x1201.png",
+    "hibiki_amane_character_icon_v02_256.png",
+    "hibiki_amane_character_icon_outline_v02_256.png"
+)) {
+    Assert-ExactCopy (Join-Path $ProjectDir "$characterSelectRelativePath\$file") (
+        Join-Path $runtime "ui\character_select\$file")
+}
+if (Test-Path -LiteralPath (
+    Join-Path $runtime "ui\character_select\hibiki_amane_char_select_bg_v01_2561x1201.png") `
+    -PathType Leaf) {
+    throw "Legacy V1 character-select background must not remain in the runtime package."
+}
 
 $schoolUniformRelativePath = [regex]::Unescape(
     "\u56fe\u7247\u7d20\u6750/\u53d8\u8eab\u5f62\u6001/" +
@@ -236,7 +255,10 @@ if ($characterCode -notmatch 'new CharacterUiAssetSet\(' -or
     $characterCode -notmatch 'ui/core/hibiki_amane_character_icon_128\.png' -or
     $characterCode -notmatch 'user://maiden_succubus_character_icon\.tres' -or
     $characterCode -notmatch 'CharacterSelectBgPath: characterSelectBgPath' -or
-    $characterCode -notmatch 'hibiki_amane_char_select_bg_v01_2561x1201\.png') {
+    $characterCode -notmatch 'CharacterSelectIconPath: characterSelectIconPath' -or
+    $characterCode -notmatch 'CharacterSelectLockedIconPath: characterSelectLockedIconPath' -or
+    $characterCode -notmatch 'hibiki_amane_char_select_bg_v02_2561x1201\.png' -or
+    $characterCode -notmatch 'user://maiden_succubus_character_select_bg_v02\.tres') {
     throw "Character profile must route the reviewed Maiden icon through RitsuLib Ui.IconPath for the top bar."
 }
 $cardArtCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
@@ -266,8 +288,8 @@ if ($cardPresentationCode -notmatch 'HarmonyPatch\(typeof\(CardModel\), nameof\(
 $characterSelectPatchCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
     Join-Path $ProjectDir "src\Patches\CharacterSelectVisualPatch.cs")
 if ($characterSelectPatchCode -notmatch 'NCharacterSelectButton' -or
-    $characterSelectPatchCode -notmatch 'hibiki_amane_character_icon_256\.png' -or
-    $characterSelectPatchCode -notmatch 'hibiki_amane_character_icon_outline_256\.png') {
+    $characterSelectPatchCode -notmatch 'hibiki_amane_character_icon_v02_256\.png' -or
+    $characterSelectPatchCode -notmatch 'hibiki_amane_character_icon_outline_v02_256\.png') {
     throw "Character-select buttons must use the reviewed 256px Maiden icons."
 }
 $thresholdPowerCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
@@ -319,9 +341,20 @@ if ($escapeVisualCode -notmatch 'ModelDb\.Affliction<Bound>\(\)\.CreateOverlay\(
     $escapeVisualCode -match 'Label\s+chains\s*=\s*new') {
     throw "Escape cards must reuse the vanilla Bound overlay instead of a font-positioned chain label."
 }
-if ($routeCode -notmatch 'route_holy_wing_v3\.png' -or
-    $routeCode -notmatch 'route_corrupt_wing_v3\.png') {
-    throw "Route overlays are not wired to both reviewed V3 wings."
+if ($routeCode -notmatch 'maiden_route_wing_v4' -or
+    $routeCode -notmatch 'route_holy_angel_wing_v4\.png' -or
+    $routeCode -notmatch 'route_corrupt_succubus_wing_v4\.png' -or
+    $routeCode -match 'route_(holy|corrupt)_wing_v3\.png' -or
+    $routeCode -notmatch 'new Vector2\(-222f, -255f\)' -or
+    $routeCode -notmatch 'new Vector2\(124f, -248f\)' -or
+    $routeCode -notmatch 'new Vector2\(92f, 92f\)' -or
+    $routeCode -notmatch 'new Vector2\(84f, 90f\)' -or
+    $routeCode -notmatch 'ExpandMode = TextureRect\.ExpandModeEnum\.IgnoreSize' -or
+    $routeCode -notmatch 'StretchMode = TextureRect\.StretchModeEnum\.KeepAspectCentered' -or
+    $routeCode -notmatch 'MouseFilter = Control\.MouseFilterEnum\.Ignore' -or
+    $routeCode -notmatch 'ClipContents = false' -or
+    $routeCode -notmatch 'ZIndex = 0') {
+    throw "Route overlays are not wired to the reviewed V4 wings and geometry."
 }
 if ($powerCode -notmatch 'RegisterPowerIconTextureProvider' -or
     $powerCode -notmatch 'RegisterPowerBigIconTextureProvider') {
@@ -346,4 +379,4 @@ if ($holyPowerCode -match
     throw "Holy Flame must remain a visible Power state."
 }
 
-Write-Host "Validated visual assets: $($cardArtManifest.items.Count) card arts plus default and HD view, character-select background/icons, school-uniform/world portraits, 11 HD corruption states, 11 desire states, 10 intent icons, temptation UI, 9 core/route icons, and 72 paired power/mechanism icons."
+Write-Host "Validated visual assets: $($cardArtManifest.items.Count) card arts plus default and HD view, V2 character-select background/icons, school-uniform/world portraits, 11 HD corruption states, 11 desire states, 10 intent icons, temptation UI, 10 core/route icons, and 72 paired power/mechanism icons."

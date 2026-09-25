@@ -45,8 +45,8 @@ public static class MaidenCharacterSelectVisualPatch
             }
 
             string file = button.IsLocked
-                ? "ui/core/hibiki_amane_character_icon_outline_256.png"
-                : "ui/core/hibiki_amane_character_icon_256.png";
+                ? "ui/character_select/hibiki_amane_character_icon_outline_v02_256.png"
+                : "ui/character_select/hibiki_amane_character_icon_v02_256.png";
             Texture2D? texture = RuntimeTextureAssets.Load(file);
             if (texture != null)
             {

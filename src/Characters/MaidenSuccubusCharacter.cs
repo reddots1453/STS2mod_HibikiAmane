@@ -78,10 +78,17 @@ public class MaidenSuccubusCharacter
             "user://maiden_succubus_character_icon_outline.tres",
             iconPath);
         string characterSelectBgPath = RuntimeTextureAssets.PrepareResource(
-            "ui/character_select/hibiki_amane_char_select_bg_v01_2561x1201.png",
-            "user://maiden_succubus_character_select_bg_v01.tres",
-            CharacterSelectBgFallback,
-            reuseExisting: true);
+            "ui/character_select/hibiki_amane_char_select_bg_v02_2561x1201.png",
+            "user://maiden_succubus_character_select_bg_v02.tres",
+            CharacterSelectBgFallback);
+        string characterSelectIconPath = RuntimeTextureAssets.PrepareResource(
+            "ui/character_select/hibiki_amane_character_icon_v02_256.png",
+            "user://maiden_succubus_character_select_icon_v02.tres",
+            iconPath);
+        string characterSelectLockedIconPath = RuntimeTextureAssets.PrepareResource(
+            "ui/character_select/hibiki_amane_character_icon_outline_v02_256.png",
+            "user://maiden_succubus_character_select_locked_icon_v02.tres",
+            characterSelectIconPath);
 
         // The two world scenes reference these user resources. Preparing them
         // here keeps loose debug assets and packed releases on the same path
@@ -104,7 +111,9 @@ public class MaidenSuccubusCharacter
                 IconTexturePath: iconPath,
                 IconOutlineTexturePath: outlinePath,
                 IconPath: iconPath,
-                CharacterSelectBgPath: characterSelectBgPath));
+                CharacterSelectBgPath: characterSelectBgPath,
+                CharacterSelectIconPath: characterSelectIconPath,
+                CharacterSelectLockedIconPath: characterSelectLockedIconPath));
     }
 
     // 骨架阶段不实现时间线小故事

@@ -103,6 +103,40 @@ def sync_world_character_art() -> int:
     return 2
 
 
+def sync_route_marks() -> int:
+    source_root = PROJECT / "图片素材" / "路线标识" / "正式素材"
+    destination_root = RUNTIME / "ui" / "route_marks"
+    for file_name in (
+        "route_holy_angel_wing_v4.png",
+        "route_corrupt_succubus_wing_v4.png",
+    ):
+        copy_exact(source_root / file_name, destination_root / file_name)
+    for legacy_name in (
+        "route_holy_wing_v3.png",
+        "route_corrupt_wing_v3.png",
+    ):
+        (destination_root / legacy_name).unlink(missing_ok=True)
+    return 2
+
+
+def sync_character_select() -> int:
+    source_root = PROJECT / "图片素材" / "选角界面" / "V2高清重绘"
+    destination_root = RUNTIME / "ui" / "character_select"
+    for file_name in (
+        "hibiki_amane_char_select_bg_v02_2561x1201.png",
+        "hibiki_amane_character_icon_v02_256.png",
+        "hibiki_amane_character_icon_outline_v02_256.png",
+    ):
+        copy_exact(
+            source_root / file_name,
+            destination_root / file_name,
+        )
+    (destination_root / "hibiki_amane_char_select_bg_v01_2561x1201.png").unlink(
+        missing_ok=True
+    )
+    return 3
+
+
 def main() -> None:
     counts = {
         "card_art": sync_card_art(),
@@ -110,6 +144,8 @@ def main() -> None:
         "intent_icons": sync_intents(),
         "temptation": sync_temptation(),
         "world_character_art": sync_world_character_art(),
+        "route_marks": sync_route_marks(),
+        "character_select": sync_character_select(),
     }
     print("Synchronized formal visual assets: " + ", ".join(
         f"{name}={count}" for name, count in counts.items()
