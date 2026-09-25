@@ -205,14 +205,18 @@ Assert-Contains "maiden inline energy formatter registration" $formatterRegistra
 Assert-Contains "maiden inline formatter registers during mod init" $modInitializer 'MaidenLocalizationFormatters\.Register\(\)'
 Assert-Contains "maiden inline formatter re-registers after localization reload" $energyFormatterPatch 'MaidenLocalizationFormatters\.Register'
 Assert-Contains "maiden inline formatter registers after LocManager construction" $energyFormatterPatch 'HarmonyPatch\(typeof\(LocManager\),\s*nameof\(LocManager\.Initialize\)\)'
-Assert-Contains "maiden inline formatter self-heals before active formatting" $energyFormatterPatch 'HarmonyPatch\(typeof\(LocManager\),\s*nameof\(LocManager\.SmartFormat\)\)[\s\S]*?HarmonyPrefix[\s\S]*?MaidenLocalizationFormatters\.Register'
+Assert-NotContains "maiden inline formatter must not patch exception-filtered SmartFormat" $energyFormatterPatch 'nameof\(LocManager\.SmartFormat\)'
 Assert-NotContains "maiden localization must not use vanilla energy formatter" $energyCardLocalization ':energyIcons\('
 Assert-Contains "maiden inline desire formatter owns a distinct name" $desireFormatter 'get\s*=>\s*"maidenDesireIcons"'
 Assert-Contains "maiden inline desire formatter uses font-sized resource" $desireFormatter 'desire_resource_icon_32\.png'
-Assert-Contains "maiden inline desire formatter follows vanilla image markup" $desireFormatter '\[img\]\{MaidenDesireIconAssets\.TextIconResourcePath\}\[/img\]'
+Assert-Contains "maiden inline desire formatter follows vanilla image markup" $desireFormatter '\$"\[img\]\{TextIconResourcePath\}\[/img\]"'
 Assert-NotContains "maiden inline desire formatter must not bypass autosize measurement" $desireFormatter '\[img=[^\]]+'
 Assert-Contains "maiden inline desire formatter registration" $formatterRegistration 'new\s+MaidenDesireIconsFormatter\(\)'
 Assert-Contains "card localization uses desire icons" $energyCardLocalization ':maidenDesireIcons\('
+foreach ($cardKey in @("ECSTASY_DEW", "BLASPHEMOUS_DESIRE", "TRANQUILIZER", "PURIFICATION_ORB")) {
+    Assert-Contains "$cardKey uses deterministic desire icon text" $energyCardLocalization (
+        'MAIDEN_SUCCUBUS_CARD_' + $cardKey + '\.description"\s*:\s*"[^\"]*\{DesireIcons\}')
+}
 Assert-Contains "All Hope Lost has a symbolic non-combat description" $energyCardLocalization 'ALL_HOPE_LOST\.description"\s*:\s*"\u9020\u6210\{InCombat:\{Damage:diff\(\)\}\|6X\}\u70B9\u4F24\u5BB3\{InCombat:\{Hits:diff\(\)\}\|Y\}\u6B21'
 Assert-Contains "Soul Fuenika names the selected-card copy" $energyCardLocalization 'SOUL_FUENIKA\.description"\s*:\s*"[^"]*\u9009\u62E9\u7684\u724C\u7684\u590D\u5236'
 $exhaustCards = Read-Text "src\Cards\MvpExhaustCards.cs"

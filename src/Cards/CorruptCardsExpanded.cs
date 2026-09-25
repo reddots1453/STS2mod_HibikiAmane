@@ -10,6 +10,7 @@ using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Core.Transformation;
+using MaidenSuccubus.Localization;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
 using STS2RitsuLib.Combat.SecondaryResources;
@@ -25,7 +26,8 @@ public sealed class BlasphemousDesire : MSCorruptCard
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new PowerVar<StrengthPower>(3),
             SecondaryResourceVars.ForLocal(
-                "Desire", MaidenSuccubusMod.ModId, DesireResource.LocalId, 5)];
+                "Desire", MaidenSuccubusMod.ModId, DesireResource.LocalId, 5),
+            new StringVar("DesireIcons", MaidenDesireIconAssets.FormatAmount(5))];
 
     public BlasphemousDesire()
         : base(0, CardType.Skill, CardRarity.Rare, TargetType.Self)
@@ -52,8 +54,12 @@ public sealed class BlasphemousDesire : MSCorruptCard
         await Data.Desire.Modify(Owner, DynamicVars["Desire"].IntValue);
     }
 
-    protected override void OnUpgrade() =>
+    protected override void OnUpgrade()
+    {
         DynamicVars["Desire"].UpgradeValueBy(2);
+        ((StringVar)DynamicVars["DesireIcons"]).StringValue =
+            MaidenDesireIconAssets.FormatAmount(DynamicVars["Desire"].IntValue);
+    }
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]

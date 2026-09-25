@@ -8,6 +8,7 @@ using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Core.Powers;
 using MaidenSuccubus.Core.Transformation;
+using MaidenSuccubus.Localization;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
 using STS2RitsuLib.Combat.SecondaryResources;
@@ -22,6 +23,7 @@ public sealed class EcstasyDew : MSCorruptCard
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [SecondaryResourceVars.ForLocal(
             "Desire", MaidenSuccubusMod.ModId, DesireResource.LocalId, 2),
+            new StringVar("DesireIcons", MaidenDesireIconAssets.FormatAmount(2)),
             new CardsVar(1)];
     public EcstasyDew() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
@@ -29,7 +31,12 @@ public sealed class EcstasyDew : MSCorruptCard
         await Data.Desire.Modify(Owner, DynamicVars["Desire"].IntValue);
         await CardPileCmd.Draw(context, DynamicVars.Cards.IntValue, Owner);
     }
-    protected override void OnUpgrade() => DynamicVars["Desire"].UpgradeValueBy(1);
+    protected override void OnUpgrade()
+    {
+        DynamicVars["Desire"].UpgradeValueBy(1);
+        ((StringVar)DynamicVars["DesireIcons"]).StringValue =
+            MaidenDesireIconAssets.FormatAmount(DynamicVars["Desire"].IntValue);
+    }
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]

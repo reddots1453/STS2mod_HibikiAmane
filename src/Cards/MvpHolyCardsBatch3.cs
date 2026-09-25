@@ -14,6 +14,7 @@ using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
 using MaidenSuccubus.Core.Transformation;
+using MaidenSuccubus.Localization;
 using STS2RitsuLib.Combat.SecondaryResources;
 using STS2RitsuLib.Interop.AutoRegistration;
 
@@ -26,6 +27,7 @@ public sealed class Tranquilizer : MSHolyCard
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [SecondaryResourceVars.ForLocal(
             "DesireLoss", MaidenSuccubusMod.ModId, DesireResource.LocalId, 2),
+            new StringVar("DesireIcons", MaidenDesireIconAssets.FormatAmount(2)),
             new CardsVar(1)];
     public Tranquilizer() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
@@ -33,7 +35,12 @@ public sealed class Tranquilizer : MSHolyCard
         await Data.Desire.Modify(Owner, -DynamicVars["DesireLoss"].IntValue);
         await CardPileCmd.Draw(context, DynamicVars.Cards.IntValue, Owner);
     }
-    protected override void OnUpgrade() => DynamicVars["DesireLoss"].UpgradeValueBy(1);
+    protected override void OnUpgrade()
+    {
+        DynamicVars["DesireLoss"].UpgradeValueBy(1);
+        ((StringVar)DynamicVars["DesireIcons"]).StringValue =
+            MaidenDesireIconAssets.FormatAmount(DynamicVars["DesireLoss"].IntValue);
+    }
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]

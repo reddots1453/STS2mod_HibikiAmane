@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MaidenSuccubus.Core.Temptation;
 using MaidenSuccubus.Core.Transformation;
+using MaidenSuccubus.Localization;
 using MaidenSuccubus.Keywords;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
@@ -90,7 +91,9 @@ public sealed class PurificationOrb : MSHolyCard
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [CardKeyword.Exhaust, PortableKeyword.Value];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DynamicVar("Desire", 2), new DynamicVar("Armor", 1),
+        [new DynamicVar("Desire", 2),
+            new StringVar("DesireIcons", MaidenDesireIconAssets.FormatAmount(2)),
+            new DynamicVar("Armor", 1),
             new DynamicVar("Temptation", 10)];
 
     public PurificationOrb()

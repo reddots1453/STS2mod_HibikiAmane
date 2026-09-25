@@ -20,6 +20,14 @@ public static class MaidenDesireIconAssets
             "user://maiden_succubus_desire_text_icon_32.tres",
             FallbackPath);
     }
+
+    public static string FormatAmount(int amount)
+    {
+        string icon = $"[img]{TextIconResourcePath}[/img]";
+        return amount is > 0 and < 4
+            ? string.Concat(Enumerable.Repeat(icon, amount))
+            : $"{amount}{icon}";
+    }
 }
 
 /// <summary>
@@ -66,12 +74,7 @@ public sealed class MaidenDesireIconsFormatter : IFormatter
             return false;
         }
 
-        string icon =
-            $"[img]{MaidenDesireIconAssets.TextIconResourcePath}[/img]";
-        string output = amount is > 0 and < 4
-            ? string.Concat(Enumerable.Repeat(icon, amount))
-            : $"{amount}{icon}";
-        formattingInfo.Write(output);
+        formattingInfo.Write(MaidenDesireIconAssets.FormatAmount(amount));
         return true;
     }
 }

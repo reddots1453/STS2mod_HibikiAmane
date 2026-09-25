@@ -28,15 +28,3 @@ internal static class MaidenLocalizationInitializePatch
             nameof(MaidenLocalizationInitializePatch));
     }
 }
-
-[HarmonyPatch(typeof(LocManager), nameof(LocManager.SmartFormat))]
-internal static class MaidenLocalizationSmartFormatPatch
-{
-    [HarmonyPrefix]
-    private static void Prefix()
-    {
-        Safe.Run(
-            MaidenLocalizationFormatters.Register,
-            nameof(MaidenLocalizationSmartFormatPatch));
-    }
-}
