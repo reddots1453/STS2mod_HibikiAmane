@@ -187,24 +187,31 @@ public sealed class EnvyRouteRelic : FourthRouteRelic
 public sealed class GluttonyRouteRelic : FourthRouteRelic
 {
     public override FourthRouteQuest Quest => FourthRouteQuest.Gluttony;
-    public override bool HasUponPickupEffect => true;
+    public override bool HasUponPickupEffect => Stage > 0;
+    [SavedProperty] public bool PickupEffectGranted { get; set; }
     public override async Task AfterObtained()
     {
-        if (Stage == 0) return;
-        if (Stage <= 2)
+        if (Stage == 0 || PickupEffectGranted) return;
+        PickupEffectGranted = true;
+        int maxHp = GluttonyRules.PickupMaxHp(Stage);
+        if (maxHp > 0)
         {
-            await CreatureCmd.GainMaxHp(Owner.Creature, 5);
-            await PlayerCmd.GainMaxPotionCount(1, Owner);
+            await CreatureCmd.GainMaxHp(Owner.Creature, maxHp);
+            await PlayerCmd.GainMaxPotionCount(GluttonyRules.PickupSlots(Stage), Owner);
         }
-        else if (Stage >= 3)
+        else if (GluttonyRules.FillOnPickup(Stage))
         {
-            int empty = Owner.MaxPotionCount - Owner.Potions.Count();
+            int empty = GluttonyRules.EmptySlots(Owner.MaxPotionCount, Owner.Potions.Count());
+            if (empty == 0) return;
             IEnumerable<PotionModel> potions = PotionFactory.CreateRandomPotionsOutOfCombat(Owner, empty, Owner.RunState.Rng.CombatPotionGeneration);
             foreach (PotionModel potion in potions) await PotionCmd.TryToProcure(potion.ToMutable(), Owner);
         }
     }
-    public override Task AfterPotionUsed(PotionModel potion, Creature? target) =>
-        Stage >= 3 ? CreatureCmd.GainMaxHp(Owner.Creature, 5) : Task.CompletedTask;
+    public override Task AfterPotionUsed(PotionModel potion, Creature? target)
+    {
+        int amount = GluttonyRules.MaxHpOnPotionUsed(Stage, potion.Owner == Owner);
+        return amount > 0 ? CreatureCmd.GainMaxHp(Owner.Creature, amount) : Task.CompletedTask;
+    }
 }
 
 [RegisterRelic(typeof(MSRelicPool))]

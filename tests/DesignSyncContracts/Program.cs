@@ -324,3 +324,25 @@ foreach (var row in combatVirtues)
     Equal(row.AtTurn ? 4 : row.AtCombat ? 1 : 0, generated, "four-turn cumulative generation");
 }
 Console.WriteLine($"PASS DS27 production combat virtues: {checks - beforeCombatVirtues} assertions; {checks} total.");
+
+int beforeGluttony = checks;
+(int Stage, int Hp, int Slots, bool Fill, int OnUse)[] gluttonyStages =
+[
+    (0, 0, 0, false, 0), (1, 4, 1, false, 0), (2, 4, 1, false, 0),
+    (3, 0, 0, true, 4), (4, 0, 0, true, 4), (-1, 0, 0, false, 0), (5, 0, 0, false, 0)
+];
+foreach (var row in gluttonyStages)
+{
+    Equal(row.Hp, GluttonyRules.PickupMaxHp(row.Stage), "gluttony pickup hp");
+    Equal(row.Slots, GluttonyRules.PickupSlots(row.Stage), "gluttony pickup slots");
+    Equal(row.Fill, GluttonyRules.FillOnPickup(row.Stage), "gluttony fill only awakened");
+    Equal(row.OnUse, GluttonyRules.MaxHpOnPotionUsed(row.Stage, true), "own potion use");
+    Equal(0, GluttonyRules.MaxHpOnPotionUsed(row.Stage, false), "other potion owner ignored");
+}
+for (int capacity = 0; capacity <= 8; capacity++)
+for (int occupied = 0; occupied <= 10; occupied++)
+    Equal(occupied >= capacity ? 0 : capacity - occupied, GluttonyRules.EmptySlots(capacity, occupied), "only empty slots filled");
+Equal(0, GluttonyRules.EmptySlots(int.MinValue, int.MaxValue), "invalid negative capacity safe");
+Equal(3, GluttonyRules.EmptySlots(3, -1), "invalid occupancy bounded at zero");
+Equal(int.MaxValue, GluttonyRules.EmptySlots(int.MaxValue, int.MinValue), "no subtraction overflow");
+Console.WriteLine($"PASS DS27 production gluttony: {checks - beforeGluttony} assertions; {checks} total.");
