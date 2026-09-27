@@ -100,9 +100,23 @@ public sealed class Transform : MSHolyCard
     protected override void OnUpgrade() => AddKeyword(CardKeyword.Innate);
 }
 
+[RegisterArchaicToothTranscendence(typeof(DarkOrigin))]
 [RegisterCard(typeof(MSCorruptCardPool))]
-public sealed class DarkElement : MSCorruptCard
+public sealed class DarkElement : DarkElementBase
 {
+    public DarkElement() : base(CardRarity.Basic, 4, 2) { }
+}
+
+[RegisterCard(typeof(MSCorruptCardPool))]
+public sealed class DarkOrigin : DarkElementBase
+{
+    public DarkOrigin() : base(CardRarity.Ancient, 8, 4) { }
+}
+
+public abstract class DarkElementBase : MSCorruptCard
+{
+    private readonly int _baseAmount;
+    private readonly int _upgradeAmount;
     private bool IsHolyVariation =>
         IsMutable
         && Owner?.RunState is RunState runState
@@ -118,9 +132,14 @@ public sealed class DarkElement : MSCorruptCard
 
     public override bool GainsBlock => IsHolyVariation;
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(4, ValueProp.Move), new BlockVar(4, ValueProp.Move)];
+        [new DamageVar(_baseAmount, ValueProp.Move), new BlockVar(_baseAmount, ValueProp.Move)];
 
-    public DarkElement() : base(0, CardType.Attack, CardRarity.Basic, TargetType.AnyEnemy) { }
+    protected DarkElementBase(CardRarity rarity, int baseAmount, int upgradeAmount)
+        : base(0, CardType.Attack, rarity, TargetType.AnyEnemy)
+    {
+        _baseAmount = baseAmount;
+        _upgradeAmount = upgradeAmount;
+    }
 
     protected override void AddExtraArgsToDescription(LocString description) =>
         description.Add(
@@ -156,7 +175,7 @@ public sealed class DarkElement : MSCorruptCard
 
     protected override void OnUpgrade()
     {
-        DynamicVars.Damage.UpgradeValueBy(2);
-        DynamicVars.Block.UpgradeValueBy(2);
+        DynamicVars.Damage.UpgradeValueBy(_upgradeAmount);
+        DynamicVars.Block.UpgradeValueBy(_upgradeAmount);
     }
 }

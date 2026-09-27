@@ -30,6 +30,7 @@ public static class PowerIconAssets
             ["LordOfBlazePower"] = "lord_of_blaze",
             ["DarkFlameBarrierPower"] = "dark_flame_barrier",
             ["RecollectionRoomPower"] = "recollection_room",
+            ["YarusLibraryPower"] = "recollection_room",
             ["SemenAppetitePower"] = "semen_appetite",
             ["ChastityDefensePower"] = "chastity_defense",
             ["RegenerativeMagicFiberPower"] = "regenerative_magic_fiber",

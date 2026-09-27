@@ -127,6 +127,7 @@ internal static class CardEffectTestCatalog
         CurseInfectionProbe();
         CurseWedgeProbe();
         DarkElementProbe();
+        DarkOriginProbe();
         DarkFlameBarrierProbe();
         DarkPunishmentProbe();
         DamageAllTargetPower<DarkStorm>(8, 10, "VulnerablePower", 1, 2);
@@ -281,6 +282,7 @@ internal static class CardEffectTestCatalog
         EmptyDescription<DrowsyStatus>();
         ConfigureEnchantmentChoice();
         ConfigureQuestChoice();
+        LibraryPileChoiceProbe();
         HandCostRestriction<GagCurse>(CardType.Skill, 1);
         Scripture<GuardianScripture>("GuardianScripturePower", 2, 3);
         SelectedCardDouble<HumilityLesson>();
@@ -1511,15 +1513,80 @@ internal static class CardEffectTestCatalog
         }, 2);
 
     private static void InsatiableGreedProbe() =>
-        CustomVariants<InsatiableGreed>(async (ctx, card, _) =>
+        CustomVariants<InsatiableGreed>(async (ctx, card, upgraded) =>
         {
-            await ctx.Play(card);
-            await Desire.Set(ctx.Player, 0);
-            await Desire.Modify(ctx.Player, 12);
-            ctx.AssertEqual("desire cap removed", 12, Desire.Get(ctx.Player));
-            await ctx.Play(ctx.Create<DesireWhip>(), ctx.PrimaryEnemy);
-            ctx.AssertEqual("corrupt card grants one desire", 13, Desire.Get(ctx.Player));
-        }, 2);
+            ctx.AssertEqual("library ancient rarity", CardRarity.Ancient, card.Rarity, effect: false);
+            ctx.AssertEqual("library cost", 2, card.EnergyCost.GetWithModifiers(CostModifiers.All), effect: false);
+            ctx.AssertEqual("library upgraded retain", upgraded, card.Keywords.Contains(CardKeyword.Retain), effect: false);
+            var tome = ModelDb.Relic<MegaCrit.Sts2.Core.Models.Relics.DustyTome>().ToMutable()
+                as MegaCrit.Sts2.Core.Models.Relics.DustyTome;
+            tome!.SetupForPlayer(ctx.Player);
+            ctx.AssertEqual("Dusty Tome selects library", card.Id, tome.AncientCard!, effect: false);
+            foreach (PileType pile in new[] { PileType.Draw, PileType.Discard, PileType.Exhaust })
+            foreach (int count in new[] { 0, 1, 12 })
+            {
+                await ctx.Reset();
+                await ctx.Play(ctx.Create<InsatiableGreed>(upgraded));
+                await ctx.AddFillerCards(pile, count);
+                YarusLibraryPower power = ctx.Self.GetPower<YarusLibraryPower>()!;
+                ctx.AssertTrue("library blocks ordinary and turn-start draw",
+                    !power.ShouldDraw(ctx.Player, false) && !power.ShouldDraw(ctx.Player, true));
+                await CardPileCmd.Draw(new BlockingPlayerChoiceContext(), 1, ctx.Player);
+                ctx.AssertEqual("actual Draw does not add a card", 0,
+                    PileType.Hand.GetPile(ctx.Player).Cards.Count);
+                int hpBefore = ctx.Enemies.Sum(enemy => enemy.CurrentHp);
+                TestCardSelector selector = new();
+                selector.PrepareToSelect([pile == PileType.Draw ? 0 : pile == PileType.Discard ? 1 : 2]);
+                using (CardSelectCmd.UseSelector(selector))
+                    await power.AfterPlayerTurnStart(new BlockingPlayerChoiceContext(), ctx.Player);
+                ctx.AssertEqual($"library {pile} count={count} plays distinct cards up to ten",
+                    Math.Min(10, count) * 6, hpBefore - ctx.Enemies.Sum(enemy => enemy.CurrentHp));
+            }
+        }, 27);
+
+    private static void LibraryPileChoiceProbe() =>
+        CustomVariants<LibraryPileChoice>((ctx, card, _) =>
+        {
+            foreach (PileType pile in new[] { PileType.Draw, PileType.Discard, PileType.Exhaust })
+            {
+                card.Configure(pile);
+                ctx.AssertEqual("choice keeps selected pile", pile, card.SelectedPile, effect: false);
+                string expectedTitle = pile switch
+                {
+                    PileType.Draw => "抽牌堆",
+                    PileType.Discard => "弃牌堆",
+                    _ => "消耗牌堆",
+                };
+                ctx.AssertEqual("choice title binds its own pile", expectedTitle, card.Title, effect: false);
+            }
+            return Task.CompletedTask;
+        }, 0);
+
+    private static void DarkOriginProbe() =>
+        CustomVariants<DarkOrigin>(async (ctx, card, upgraded) =>
+        {
+            ctx.AssertEqual("origin is ancient", CardRarity.Ancient, card.Rarity, effect: false);
+            ctx.AssertTrue("origin registered as tooth transcendence",
+                MegaCrit.Sts2.Core.Models.Relics.ArchaicTooth.TranscendenceCards
+                    .Any(candidate => candidate.Id == card.Id), effect: false);
+            var run = (MegaCrit.Sts2.Core.Runs.RunState)ctx.Player.RunState;
+            foreach (int corruption in new[] { -3, -2, 0 })
+            {
+                await ctx.Reset();
+                CorruptionCmd.Set(run, corruption);
+                DarkOrigin current = ctx.Create<DarkOrigin>(upgraded);
+                ctx.AssertEqual("origin variation route", corruption <= -3 ? RouteCardKind.Holy : RouteCardKind.Corrupt,
+                    current.RouteKind);
+                await ctx.ApplyPower<MagicAmplificationPower>(ctx.Self, 1);
+                int hp = ctx.PrimaryEnemy.CurrentHp;
+                int block = ctx.Self.Block;
+                await ctx.Play(current, ctx.PrimaryEnemy);
+                int amplified = upgraded ? 18 : 12;
+                ctx.AssertDamage("origin released damage", ctx.PrimaryEnemy, hp,
+                    amplified * (corruption <= -3 ? 1 : 2));
+                ctx.AssertBlock("origin released block", block, corruption <= -3 ? amplified : 0);
+            }
+        }, 9);
 
     private static void LegendaryMinerProbe() =>
         CustomVariants<LegendaryMiner>(async (ctx, card, upgraded) =>

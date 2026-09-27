@@ -509,19 +509,17 @@ public sealed class BiteInvader : MSCorruptCard
     protected override void OnUpgrade() { }
 }
 
+[RegisterDustyTomeCard(typeof(MaidenSuccubus.Characters.MaidenSuccubusCharacter))]
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class InsatiableGreed : MSCorruptCard
 {
-    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
-        [CardHoverTipSupport.Static("MAIDENSUCCUBUS_VARIATION")];
-
+    // Retain the existing serialized identity for the renamed ancient card.
     public InsatiableGreed()
-        : base(1, CardType.Power, CardRarity.Ancient, TargetType.Self) =>
-        this.SecondaryCosts().Set(DesireResource.Id, 2);
+        : base(2, CardType.Power, CardRarity.Ancient, TargetType.Self) { }
 
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
-        PowerCmd.Apply<UnboundedDesirePower>(
+        PowerCmd.Apply<YarusLibraryPower>(
             context, Owner.Creature, 1, Owner.Creature, this);
 
-    protected override void OnUpgrade() => AddKeyword(CardKeyword.Innate);
+    protected override void OnUpgrade() => AddKeyword(CardKeyword.Retain);
 }

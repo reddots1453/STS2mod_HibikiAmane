@@ -1,7 +1,7 @@
-"""DS27 first-batch static contracts, not substitutes for in-game effect tests.
+"""DS27 incremental static contracts, not substitutes for in-game effect tests.
 
 Run: python scripts/TestDesignSync20260927.py
-Runtime counterparts: CardEffectTestCatalog's four affected probes (Shift+F10).
+Runtime counterparts: CardEffectTestCatalog (Shift+F10) and ms_test_events confirm.
 Descriptions are compared exactly, including punctuation; no line-number parsing.
 """
 import json
@@ -71,6 +71,60 @@ class DesignSyncBatchOne(unittest.TestCase):
         self.assertLess(source.index("AddGeneratedCardToCombat"), source.index("Apply<FamiliarEnchantment>"))
         self.assertEqual(self.cards["MAIDEN_SUCCUBUS_CARD_FAMILIAR_CONTRACT.description"],
                          "将X张{IfUpgraded:show:升级过的|}随机[gold]圣洁[/gold]牌加入[gold]手牌[/gold]。\n为这些牌[gold]附魔[/gold]：[purple]使魔[/purple]。")
+
+    def test_library_identity_and_cost(self):
+        self.assertEqual(self.cards["MAIDEN_SUCCUBUS_CARD_INSATIABLE_GREED.title"], "娅露丝的书库")
+        self.assertEqual(self.cards["MAIDEN_SUCCUBUS_CARD_INSATIABLE_GREED.description"],
+                         "你不能抽牌。\n回合开始时，选择一个牌堆，随机打出其中的10张牌。")
+        source = card_class("src/Cards/Iteration1CorruptCards.cs", "InsatiableGreed")
+        self.assertIn("base(2, CardType.Power, CardRarity.Ancient", source)
+        self.assertIn("AddKeyword(CardKeyword.Retain)", source)
+        self.assertNotIn("SecondaryCosts", source)
+
+    def test_ancient_integrations_registered(self):
+        self.assertIn("RegisterDustyTomeCard(typeof(MaidenSuccubus.Characters.MaidenSuccubusCharacter))",
+                      read("src/Cards/Iteration1CorruptCards.cs"))
+        self.assertIn("RegisterArchaicToothTranscendence(typeof(DarkOrigin))", read("src/Cards/MvpBasicCards.cs"))
+        self.assertIn("base(CardRarity.Ancient, 8, 4)", card_class("src/Cards/MvpBasicCards.cs", "DarkOrigin"))
+        self.assertEqual(self.cards["MAIDEN_SUCCUBUS_CARD_DARK_ORIGIN.description"],
+                         self.cards["MAIDEN_SUCCUBUS_CARD_DARK_ELEMENT.description"])
+
+    def test_library_pile_choices_and_draw_ban(self):
+        source = read("src/Powers/YarusLibraryPower.cs")
+        self.assertIn("PileType.Draw, PileType.Discard, PileType.Exhaust", source)
+        self.assertIn("cards.StableShuffle(player.RunState.Rng.CombatCardGeneration)", source)
+        self.assertIn("cards.Take(10)", source)
+        self.assertIn("ShouldDraw(Player player, bool fromHandDraw) => player.Creature != Owner", source)
+
+    def test_library_choice_title_uses_dynamic_contributor(self):
+        source = read("src/Cards/LibraryPileChoice.cs")
+        self.assertIn("ICardTitleContributor", source)
+        self.assertIn("CardTitleFragmentPlacement.ReplaceBase", source)
+        self.assertEqual(self.cards["MAIDEN_SUCCUBUS_CARD_LIBRARY_PILE_CHOICE.title"], "选择牌堆")
+        self.assertEqual(self.cards["MAIDEN_SUCCUBUS_CARD_LIBRARY_PILE_CHOICE.pileTitle"], "{PileName}")
+
+    def test_event_hp_cost_text(self):
+        events = json.loads(read("MaidenSuccubus/localization/zhs/events.json"))
+        self.assertEqual(events["MAIDEN_SUCCUBUS_EVENT_UNDEAD_GATHERING.pages.INITIAL.options.PRAY.description"],
+                         "失去{HpLoss}点生命值。选择2张牌，将其变化为随机[gold]圣洁[/gold]牌。失去1点[purple]堕落值[/purple]。")
+        source = read("src/Events/UndeadGathering.cs")
+        self.assertIn("DynamicVars.AddTo(option.Description)", source)
+        self.assertIn("DynamicVars.HpLoss.IntValue, ValueProp.Unblockable | ValueProp.Unpowered", source)
+        self.assertNotIn("CreatureCmd.LoseMaxHp(", source)
+
+    def test_event_scope_and_unlock(self):
+        source = read("src/Events/UndeadGathering.cs")
+        self.assertIn("runState.CurrentActIndex is 1 or 2", source)
+        self.assertIn("runState.Players.All(player => player.Character is MaidenSuccubusCharacter)", source)
+        self.assertIn("Corruption >= 3 && canEnchant ? Learn : null", source)
+        self.assertIn("[RegisterSharedEvent]", source)
+
+    def test_event_runtime_tests_require_confirmation(self):
+        source = read("src/ConsoleCommands/DesignEventTestConsoleCmd.cs")
+        self.assertIn('args[0] != "confirm"', source)
+        self.assertIn("CombatManager.Instance.IsInProgress", source)
+        self.assertIn("prayer.Chosen()", source)
+        self.assertIn("maximum hp unchanged", source)
 
 
 if __name__ == "__main__":

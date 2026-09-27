@@ -1,4 +1,7 @@
 {
+  "MAIDEN_SUCCUBUS_POWER_YARUS_LIBRARY_POWER.title": "娅露丝的书库",
+  "MAIDEN_SUCCUBUS_POWER_YARUS_LIBRARY_POWER.description": "你不能抽牌。\n回合开始时，选择[gold]抽牌堆[/gold]、[gold]弃牌堆[/gold]或[gold]消耗牌堆[/gold]，随机打出其中的10张牌。",
+  "MAIDEN_SUCCUBUS_POWER_YARUS_LIBRARY_POWER.smartDescription": "你不能抽牌。\n回合开始时，选择[gold]抽牌堆[/gold]、[gold]弃牌堆[/gold]或[gold]消耗牌堆[/gold]，随机打出其中的10张牌。",
   "MAIDEN_SUCCUBUS_POWER_IMMACULATE_ROBE_POWER.title": "变身：无垢天衣形态",
   "MAIDEN_SUCCUBUS_POWER_IMMACULATE_ROBE_POWER.description": "每回合开始时获得1层[gold]魔力增幅[/gold]。",
   "MAIDEN_SUCCUBUS_POWER_IMMACULATE_ROBE_POWER.smartDescription": "每回合开始时获得1层[gold]魔力增幅[/gold]。",
