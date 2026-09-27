@@ -316,12 +316,18 @@ public sealed class HumilityRouteRelic : FourthRouteRelic
 public sealed class GenerosityRouteRelic : FourthRouteRelic
 {
     public override FourthRouteQuest Quest => FourthRouteQuest.Generosity;
-    public override bool HasUponPickupEffect => true;
+    public override bool HasUponPickupEffect => Stage is 1 or 2;
+    [SavedProperty] public bool PickupEffectGranted { get; set; }
     public override async Task AfterObtained()
     {
-        if (Stage == 0 || Stage > 2) return;
+        if (!HasUponPickupEffect || PickupEffectGranted) return;
+        int count = Stage;
+        // Reserve before awaiting the native synchronized selector: pickup must not open twice.
+        PickupEffectGranted = true;
+        CardSelectorPrefs prefs = new(CardSelectorPrefs.RemoveSelectionPrompt, count) { Cancelable = false };
         List<CardModel> cards = (await CardSelectCmd.FromDeckForRemoval(
-            Owner, new CardSelectorPrefs(CardSelectorPrefs.RemoveSelectionPrompt, 1))).ToList();
+            Owner, prefs)).Where(card => card.Owner == Owner && card.Pile?.Type == PileType.Deck
+                && card.IsRemovable).Distinct().Take(count).ToList();
         await CardPileCmd.RemoveFromDeck(cards);
     }
 }

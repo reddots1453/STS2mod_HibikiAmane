@@ -49,9 +49,12 @@ class ThreeTrialContracts(unittest.TestCase):
         code = read("src/Relics/FourthRouteRelics.cs")
         self.assertIn("Math.Clamp(value, 0, 4)", code)
         for name in ("Pride", "Greed", "Lust", "Gluttony", "Wrath", "Humility",
-                     "Generosity", "Chastity", "Benevolence", "Temperance", "Diligence"):
+                     "Chastity", "Benevolence", "Temperance", "Diligence"):
             section = code.split(f"public sealed class {name}RouteRelic", 1)[1].split("[RegisterRelic", 1)[0]
             self.assertTrue("Stage == 0" in section or "Stage is 0" in section, name)
+        generosity = code.split("public sealed class GenerosityRouteRelic", 1)[1].split("[RegisterRelic", 1)[0]
+        self.assertIn("HasUponPickupEffect => Stage is 1 or 2", generosity)
+        self.assertIn("if (!HasUponPickupEffect || PickupEffectGranted) return", generosity)
         self.assertIn("VirtueCombatRules.PatienceAtCombatStart(Stage) ? CreateHoly()", code)
         self.assertIn("PatienceAtCombatStart(int stage) => stage is 1 or 2",
                       read("src/Core/Relics/VirtueCombatRules.cs"))
