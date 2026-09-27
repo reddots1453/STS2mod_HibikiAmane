@@ -83,6 +83,7 @@ internal static class CardEffectTestRunner
                         DesignSyncNeutralContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncHolyContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncCardBatchSixContract.Validate(context, card, scenario.Upgraded);
+                        DesignSyncTextBatchContract.Validate(context, card, scenario.Upgraded);
                         await scenario.Execute(context, card);
 
                         if (scenarioResult.EffectAssertionCount < scenario.MinimumEffectAssertions)
@@ -173,6 +174,15 @@ internal static class CardEffectTestRunner
                 .Where(spec => DesignSyncHolyContract.Contains(spec.CardType)).ToArray();
             if (batch.Length != DesignSyncHolyContract.Entries.Length || batch.Length != 10)
                 throw new InvalidOperationException("DS27 holy suite must cover all 10 design entries.");
+            return batch;
+        }
+
+        if (string.Equals(requestedCard, "ds27-text", StringComparison.OrdinalIgnoreCase))
+        {
+            CardEffectSpec[] batch = CardEffectTestCatalog.All
+                .Where(spec => DesignSyncTextBatchContract.Types.Contains(spec.CardType)).ToArray();
+            if (batch.Length != 12)
+                throw new InvalidOperationException("DS27 text suite must cover all 12 design entries.");
             return batch;
         }
 

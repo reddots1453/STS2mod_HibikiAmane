@@ -120,7 +120,7 @@ internal static class CardEffectTestCatalog
         DesireAndSelfPowers<BlasphemousDesire>(5, 7,
             ("StrengthPower", -3, -3), ("RestoreStrengthAtTurnEndPower", 3, 3));
         Damage<BlasphemousTwilight>(25, 36);
-        DamageAndExhaustSelection<BurningBladeRitual>(10, 13);
+        BurningBladeRitualProbe();
         BurningDesireProbe();
         ChainDestructionProbe();
         ChangePantiesProbe();
@@ -2472,13 +2472,23 @@ internal static class CardEffectTestCatalog
     private static void HealingArtProbe() =>
         CustomVariants<HealingArt>(async (ctx, card, upgraded) =>
         {
+            await CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);
             await CreatureCmd.SetCurrentHp(ctx.Self, ctx.Self.MaxHp - 30);
+            await ctx.ApplyPower<StrengthPower>(ctx.Self, 2);
+            string text = DesignSyncTextBatchContract.Text(card, PileType.Hand);
+            ctx.AssertTrue("healing preview after buff increase and Exhaust before total",
+                text.EndsWith($"消耗。\n（恢复{(upgraded ? 12 : 8)}点生命值）", StringComparison.Ordinal));
+            await PowerCmd.Remove(ctx.Self.GetPower<StrengthPower>()!);
+            ctx.AssertTrue("healing preview after buff removal",
+                DesignSyncTextBatchContract.Text(card, PileType.Hand)
+                    .EndsWith($"（恢复{(upgraded ? 8 : 4)}点生命值）", StringComparison.Ordinal));
             await ctx.ApplyPower<StrengthPower>(ctx.Self, 2);
             int hp = ctx.Self.CurrentHp;
             await ctx.Play(card);
             ctx.AssertEqual("base healing plus two per buff layer",
                 (upgraded ? 8 : 4) + 4, ctx.Self.CurrentHp - hp);
-        }, 1);
+            ctx.AssertEqual("healing still exhausts once", PileType.Exhaust, card.Pile?.Type);
+        }, 4);
 
     private static void MagicSwordProbe() =>
         CustomVariants<MagicSword>(async (ctx, card, upgraded) =>
@@ -2508,13 +2518,23 @@ internal static class CardEffectTestCatalog
     private static void JudgmentBladeProbe() =>
         CustomVariants<JudgmentBlade>(async (ctx, card, upgraded) =>
         {
+            await CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);
             await ctx.ApplyPower<WeakPower>(ctx.PrimaryEnemy, 1);
             await ctx.ApplyPower<FrailPower>(ctx.PrimaryEnemy, 2);
+            ctx.AssertTrue("damage preview includes three debuff layers",
+                DesignSyncTextBatchContract.Text(card, PileType.Hand, ctx.PrimaryEnemy)
+                    .EndsWith($"（造成{(upgraded ? 22 : 16)}点伤害）", StringComparison.Ordinal));
+            ctx.AssertTrue("clearing target resets damage preview",
+                DesignSyncTextBatchContract.Text(card, PileType.Hand)
+                    .EndsWith("（造成7点伤害）", StringComparison.Ordinal));
+            ctx.AssertTrue("retargeting restores calculated preview",
+                DesignSyncTextBatchContract.Text(card, PileType.Hand, ctx.PrimaryEnemy)
+                    .EndsWith($"（造成{(upgraded ? 22 : 16)}点伤害）", StringComparison.Ordinal));
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(card, ctx.PrimaryEnemy);
             ctx.AssertDamage("damage with three debuff layers", ctx.PrimaryEnemy, hp,
                 upgraded ? 22 : 16);
-        }, 1);
+        }, 4);
 
     private static void LightningRecoilProbe() =>
         CustomVariants<LightningRecoil>(async (ctx, card, upgraded) =>
@@ -3404,6 +3424,21 @@ internal static class CardEffectTestCatalog
                     await CardPileCmd.RemoveFromDeck(inDeck, showPreview: false);
             }
         }, 3);
+
+    private static void BurningBladeRitualProbe() =>
+        CustomVariants<BurningBladeRitual>(async (ctx, card, upgraded) =>
+        {
+            int hp = ctx.PrimaryEnemy.CurrentHp;
+            await ctx.Play(card, ctx.PrimaryEnemy);
+            ctx.AssertDamage("no other hand card still deals independent damage",
+                ctx.PrimaryEnemy, hp, upgraded ? 13 : 10);
+            ctx.AssertEqual("empty selection does not exhaust this card", PileType.Discard, card.Pile?.Type);
+            CardModel fixture = await ctx.Add<StrikeIronclad>(PileType.Hand);
+            hp = ctx.PrimaryEnemy.CurrentHp;
+            await ctx.Play(card, ctx.PrimaryEnemy, [fixture]);
+            ctx.AssertDamage("damage after actual exhaustion", ctx.PrimaryEnemy, hp, upgraded ? 13 : 10);
+            ctx.AssertEqual("selected hand card exhausted", PileType.Exhaust, fixture.Pile?.Type);
+        }, 4);
 
     private static void DamageAndExhaustSelection<T>(int baseDamage, int upgradedDamage)
         where T : CardModel => CustomVariants<T>(async (ctx, card, upgraded) =>

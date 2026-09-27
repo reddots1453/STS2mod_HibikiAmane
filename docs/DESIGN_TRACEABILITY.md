@@ -6,6 +6,10 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-02L：十二牌文本回归（IMPLEMENTED，游戏内待验）
+
+前置`fc20da7a`；CARD-C燃烧/消耗/力量、CARD-H压制/防御/断罪/附魔、CARD-N桥接完整条目→DS27-02L→精确卡面模板、原生关键词/动态预览与焚刃祭仪独立伤害→DS27-CARD-TEXT/EFFECT。12牌核对，8牌文案/布局回修，焚刃祭仪无可消耗手牌仍造成伤害。8新静态（累计155项）、305规则/33编码断言、Debug和四门通过，视觉门既有317失败；`ms_test_cards confirm ds27-text`基础/升级及动态/空手边界测试编译未执行。全量未完成，未部署，见`DESIGN_SYNC_20260927_BATCH17.md`。
+
 ## 1. Git基线
 
 | 项目 | 值 |

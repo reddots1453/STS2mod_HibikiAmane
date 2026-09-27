@@ -109,11 +109,11 @@ public sealed class BurningBladeRitual : MSCorruptCard
             new CardSelectorPrefs(CardSelectorPrefs.ExhaustSelectionPrompt, 1),
             card => card != this,
             this)).FirstOrDefault();
-        if (selected == null)
+        if (selected != null)
         {
-            return;
+            await CardCmd.Exhaust(choiceContext, selected);
         }
-        await CardCmd.Exhaust(choiceContext, selected);
+        // These are independent effects, not an exhaust-success damage condition.
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue)
             .FromCard(this, cardPlay)
             .Targeting(cardPlay.Target)
