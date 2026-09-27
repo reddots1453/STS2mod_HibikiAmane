@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Saves.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Commands;
+using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
 using STS2RitsuLib.Interop.AutoRegistration;
@@ -52,6 +53,7 @@ public sealed class BlackVortex : MSCorruptCard
                 CardModel? card = PileType.Draw.GetPile(Owner).Cards.FirstOrDefault();
                 if (card == null) break;
                 played.Add(card);
+                using var noAmplificationConsumption = AmplificationConsumptionScope.Enter(card);
                 await CardCmd.AutoPlay(context, card, null);
             }
             if (played.Count == 0 || !await OverdraftCmd.Offer(context, this, 1)) break;

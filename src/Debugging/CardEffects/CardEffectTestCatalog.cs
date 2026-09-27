@@ -2399,6 +2399,8 @@ internal static class CardEffectTestCatalog
                 generated.Single().EnergyCost.GetWithModifiers(CostModifiers.All));
             ctx.AssertTrue("generated card remains in current candidate pool",
                 DemonStaff.CandidateIds.Contains(generated.Single().Id.Entry));
+            ctx.AssertTrue("staff has real Exhaust keyword", card.Keywords.Contains(CardKeyword.Exhaust), effect: false);
+            ctx.AssertEqual("staff exhausts after generation", PileType.Exhaust, card.Pile?.Type);
         }, 3);
 
     private static void BalanceBladeProbe() =>
@@ -2707,18 +2709,7 @@ internal static class CardEffectTestCatalog
         }, 2);
 
     private static void BlackVortexProbe() =>
-        CustomVariants<BlackVortex>(async (ctx, card, _) =>
-        {
-            await ctx.SetUpArmour(1);
-            await ctx.AddFillerCards(PileType.Draw, 2);
-            int totalHp = ctx.Enemies.Sum(enemy => enemy.CurrentHp);
-            await ctx.Play(card, selectedIndices: [0]);
-            ctx.AssertEqual("two top attacks total damage", 12,
-                totalHp - ctx.Enemies.Sum(enemy => enemy.CurrentHp));
-            ctx.AssertEqual("overdraft exhausts both played cards", 2,
-                ctx.CountCards<StrikeIronclad>(PileType.Exhaust));
-            ctx.AssertPower("overdraft armor payment", ctx.Self, "MagicArmorPower", 0);
-        }, 3);
+        CustomVariants<BlackVortex>(DesignSyncExhaustContract.Vortex, 20);
 
     private static void BurningDesireProbe() =>
         CustomVariants<BurningDesire>(async (ctx, card, upgraded) =>
@@ -3392,15 +3383,7 @@ internal static class CardEffectTestCatalog
         }, 4);
 
     private static void SuperRegenerationProbe() =>
-        CustomVariants<SuperRegeneration>(async (ctx, card, upgraded) =>
-        {
-            MaidenStrike replay = await ctx.Add<MaidenStrike>(PileType.Exhaust, upgraded);
-            int hp = ctx.PrimaryEnemy.CurrentHp;
-            await ctx.Play(card, selectedCards: [replay]);
-            ctx.AssertDamage("selected exhausted card replayed", ctx.PrimaryEnemy, hp,
-                upgraded ? 9 : 6);
-            ctx.AssertTrue("replayed card left exhaust pile", replay.Pile?.Type != PileType.Exhaust);
-        }, 2);
+        CustomVariants<SuperRegeneration>(DesignSyncExhaustContract.Regeneration, 19);
 
     private static void SelectedEnchant<T>(string enchantment, int baseAmount, int upgradedAmount,
         PileType fromPile) where T : CardModel => CustomVariants<T>(async (ctx, card, upgraded) =>

@@ -10,5 +10,6 @@
     <Compile Include="../../src/Core/Routes/RouteRewardProbabilityBonus.cs" Link="Production/RouteRewardProbabilityBonus.cs" />
     <Compile Include="../../src/Core/Relics/OrbRules.cs" Link="Production/OrbRules.cs" />
     <Compile Include="../../src/Core/Relics/RetentionOrbRules.cs" Link="Production/RetentionOrbRules.cs" />
+    <Compile Include="../../src/Util/WeakInstanceScope.cs" Link="Production/WeakInstanceScope.cs" />
   </ItemGroup>
 </Project>

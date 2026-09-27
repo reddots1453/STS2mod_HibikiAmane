@@ -240,6 +240,17 @@ public sealed class MagicAmplificationPower : MaidenSuccubusPowerTemplate
 
     internal bool TryReserveForOverdraft(CardModel? card)
     {
+        if (card == null || AmplificationConsumptionScope.IsExempt(card)) return false;
+        // Vortex can gain its first amplification from a child after its own
+        // BeforeCardPlayed already ran. Reserve that newly available resource
+        // for the outer Vortex, never for its exempt auto-played children.
+        if (_cardToAmplify == null && Amount > 0
+            && card is MaidenSuccubus.Cards.BlackVortex
+            && card.Pile?.Type == PileType.Play && card.Owner?.Creature == Owner)
+        {
+            _cardToAmplify = card;
+            _reservedForOverdraft = 0;
+        }
         if (card == null
             || !ReferenceEquals(card, _cardToAmplify)
             || _reservedForOverdraft >= Amount)
@@ -255,6 +266,7 @@ public sealed class MagicAmplificationPower : MaidenSuccubusPowerTemplate
     {
         if (_cardToAmplify == null
             && Amount > 0
+            && !AmplificationConsumptionScope.IsExempt(cardPlay.Card)
             && cardPlay.IsFirstInSeries
             && cardPlay.Card.Owner?.Creature == Owner
             && cardPlay.Card.Type is CardType.Attack or CardType.Skill)

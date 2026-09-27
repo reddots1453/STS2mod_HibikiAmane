@@ -180,16 +180,42 @@ public sealed class ReflectiveBarrier : MSCorruptCard
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class SuperRegeneration : MSCorruptCard
 {
+    private bool _returnAfterExhaust;
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
+    protected override IEnumerable<MegaCrit.Sts2.Core.HoverTips.IHoverTip> CardSpecificHoverTips =>
+        [CardHoverTipSupport.Static("MAIDENSUCCUBUS_OVERDRAFT")];
     public SuperRegeneration() : base(2, CardType.Skill, CardRarity.Rare, TargetType.Self) { }
+    internal static bool CanSelect(CardModel card) =>
+        card is not SuperRegeneration && !card.Keywords.Contains(CardKeyword.Unplayable);
+
+    public override Task BeforeCardPlayed(CardPlay cardPlay)
+    {
+        if (cardPlay.Card == this && cardPlay.IsFirstInSeries) _returnAfterExhaust = false;
+        return Task.CompletedTask;
+    }
+
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         CardPile pile = PileType.Exhaust.GetPile(Owner);
         CardModel? selected = (await CardSelectCmd.FromCombatPile(context, pile, Owner,
             new CardSelectorPrefs(new MegaCrit.Sts2.Core.Localization.LocString(
                 "card_selection", "MAIDEN_SUCCUBUS_TO_PLAY_FROM_EXHAUST"), 1),
-            card => card != this && !card.Keywords.Contains(CardKeyword.Unplayable))).FirstOrDefault();
+            CanSelect)).FirstOrDefault();
         if (selected != null) await CardCmd.AutoPlay(context, selected, null);
+        if (await OverdraftCmd.Offer(context, this, 1)) _returnAfterExhaust = true;
+    }
+
+    public override async Task AfterCardExhausted(PlayerChoiceContext context, CardModel card, bool causedByEthereal)
+    {
+        if (card != this || !_returnAfterExhaust) return;
+        _returnAfterExhaust = false;
+        if (Pile?.Type == PileType.Exhaust) await CardPileCmd.Add(this, PileType.Hand);
+    }
+
+    protected override void DeepCloneFields()
+    {
+        base.DeepCloneFields();
+        _returnAfterExhaust = false; // A new copy did not pay this play's release.
     }
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }

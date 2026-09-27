@@ -1,5 +1,6 @@
 using MaidenSuccubus.Core.Routes;
 using MaidenSuccubus.Core.Relics;
+using MaidenSuccubus.Util;
 
 // Compiles and executes production pure rules, not copied implementations.
 // Independent literal expectations: SYS-COR-003 and RELIC-EVENT-005, 2026-09-27.
@@ -75,3 +76,45 @@ for (int corruption = -5; corruption <= 5; corruption++)
     Equal(true, eternal.Enchant, "eternal enchant in every band");
 }
 Console.WriteLine($"PASS DS27 production retention contracts: {checks - beforeRetention} assertions; {checks} total.");
+
+int beforeScopes = checks;
+var scopes = new WeakInstanceScope<Tuple<int>>();
+var a = Tuple.Create(1);
+var b = Tuple.Create(1); // Same value, distinct instance must remain unaffected.
+Equal(true, a.Equals(b), "fixture is value-equal");
+Equal(false, scopes.Contains(a), "initially inactive");
+var outer = scopes.Enter(a);
+Equal(true, scopes.Contains(a), "outer enters");
+Equal(false, scopes.Contains(b), "scope uses identity not Equals");
+var inner = scopes.Enter(a);
+inner.Dispose();
+inner.Dispose();
+Equal(true, scopes.Contains(a), "double dispose does not remove outer");
+outer.Dispose();
+Equal(false, scopes.Contains(a), "outer exits");
+outer.Dispose();
+using (scopes.Enter(a))
+{
+    Equal(true, scopes.Contains(a), "reentry after repeated dispose");
+    using (scopes.Enter(b))
+    {
+        await Task.Yield();
+        Equal(true, scopes.Contains(a), "await retains original instance state");
+        Equal(true, scopes.Contains(b), "independent scope across await");
+    }
+    Equal(false, scopes.Contains(b), "other scope exits separately");
+    Equal(true, scopes.Contains(a), "original remains active");
+}
+Equal(false, scopes.Contains(a), "awaited scope cleaned up");
+try
+{
+    using var failure = scopes.Enter(a);
+    Equal(true, scopes.Contains(a), "failure path entered");
+    throw new InvalidOperationException("scope cleanup fixture");
+}
+catch (InvalidOperationException ex) when (ex.Message == "scope cleanup fixture") { }
+Equal(false, scopes.Contains(a), "exception releases scope");
+var independentRegistry = new WeakInstanceScope<Tuple<int>>();
+using (scopes.Enter(a))
+    Equal(false, independentRegistry.Contains(a), "independent registries isolated");
+Console.WriteLine($"PASS DS27 production instance scopes: {checks - beforeScopes} assertions; {checks} total.");
