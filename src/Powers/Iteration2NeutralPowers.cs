@@ -38,7 +38,9 @@ public sealed class TakemikazuchiTrackerPower : MaidenSuccubusPowerTemplate
 [RegisterPower]
 public sealed class WindGodCloakPower : MaidenSuccubusPowerTemplate
 {
-    private CardModel? _activationCardToIgnore;
+    private CardModel? _pendingCopyCard;
+    private int _pendingCopyCount;
+    private int _pendingSeriesDepth;
 
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
@@ -46,19 +48,42 @@ public sealed class WindGodCloakPower : MaidenSuccubusPowerTemplate
     [SavedProperty]
     public bool CopiedThisTurn { get; set; }
 
-    public void IgnoreActivationCard(CardModel card) =>
-        _activationCardToIgnore = card;
-
     public override Task BeforeSideTurnStart(
         PlayerChoiceContext choiceContext,
         CombatSide side,
         IReadOnlyList<MegaCrit.Sts2.Core.Entities.Creatures.Creature> creatures,
         ICombatState combatState)
     {
-        if (side == CombatSide.Player)
+        if (side == CombatSide.Player && creatures.Contains(Owner))
         {
             CopiedThisTurn = false;
+            ClearPendingCopy();
         }
+        return Task.CompletedTask;
+    }
+
+    public override Task BeforeCardPlayed(CardPlay cardPlay)
+    {
+        if (!cardPlay.IsFirstInSeries || cardPlay.Card.Owner.Creature != Owner
+            || Owner.Player == null || Owner.CombatState == null)
+            return Task.CompletedTask;
+
+        // Track reentrant plays of this SAME instance separately from native
+        // replay iterations. Their completion must not consume the outer copy.
+        if (ReferenceEquals(cardPlay.Card, _pendingCopyCard))
+        {
+            _pendingSeriesDepth++;
+            return Task.CompletedTask;
+        }
+        if (CopiedThisTurn || cardPlay.Resources.EnergySpent != 0 || Amount <= 0)
+            return Task.CompletedTask;
+
+        // Capture before OnPlay: nested auto-plays cannot steal "first", and a
+        // new Cloak power created by OnPlay cannot retroactively copy itself.
+        CopiedThisTurn = true;
+        _pendingCopyCard = cardPlay.Card;
+        _pendingCopyCount = Amount;
+        _pendingSeriesDepth = 1;
         return Task.CompletedTask;
     }
 
@@ -66,26 +91,32 @@ public sealed class WindGodCloakPower : MaidenSuccubusPowerTemplate
         PlayerChoiceContext context,
         CardPlay cardPlay)
     {
-        if (ReferenceEquals(cardPlay.Card, _activationCardToIgnore))
-        {
-            _activationCardToIgnore = null;
+        if (!cardPlay.IsLastInSeries || !ReferenceEquals(cardPlay.Card, _pendingCopyCard))
             return;
-        }
+        if (--_pendingSeriesDepth > 0) return;
 
-        if (CopiedThisTurn
-            || !cardPlay.IsLastInSeries
-            || cardPlay.Card.Owner.Creature != Owner
-            || cardPlay.Resources.EnergyValue != 0
-            || Owner.Player == null
-            || Owner.CombatState == null)
+        int copies = _pendingCopyCount;
+        ClearPendingCopy(); // Release before yielding or dispatching generation hooks.
+        if (Owner.Player is not { } player || Owner.CombatState is not { } combat) return;
+        for (int i = 0; i < copies; i++)
         {
-            return;
+            if (Owner.CombatState != combat || CombatManager.Instance.IsOverOrEnding) break;
+            CardModel copy = combat.CloneCard(cardPlay.Card);
+            copy.DeckVersion = null;
+            await CardPileCmd.AddGeneratedCardToCombat(copy, PileType.Hand, player);
         }
+    }
 
-        CopiedThisTurn = true;
-        CardModel copy = Owner.CombatState.CloneCard(cardPlay.Card);
-        copy.DeckVersion = null;
-        await CardPileCmd.AddGeneratedCardToCombat(
-            copy, PileType.Hand, Owner.Player);
+    private void ClearPendingCopy()
+    {
+        _pendingCopyCard = null;
+        _pendingCopyCount = 0;
+        _pendingSeriesDepth = 0;
+    }
+
+    protected override void DeepCloneFields()
+    {
+        base.DeepCloneFields();
+        ClearPendingCopy();
     }
 }

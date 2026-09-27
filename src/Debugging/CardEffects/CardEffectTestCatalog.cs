@@ -563,20 +563,7 @@ internal static class CardEffectTestCatalog
         CustomVariants<FlameSword>(DesignSyncFlameSwordContract.Run, 35);
 
     private static void WindGodCloakProbe() =>
-        CustomVariants<WindGodCloak>(async (ctx, card, upgraded) =>
-        {
-            await ctx.Play(card);
-            ctx.AssertPower<WindGodCloakPower>("power applied", ctx.Self, 1);
-            ctx.AssertEqual("activation card is not retrospectively copied", 0,
-                ctx.CountCards<WindGodCloak>(PileType.Hand));
-            LightningRecoil zeroCost = ctx.Create<LightningRecoil>();
-            int before = ctx.CountCards<LightningRecoil>(PileType.Hand);
-            await ctx.Play(zeroCost, ctx.PrimaryEnemy);
-            ctx.AssertPileDelta<LightningRecoil>(
-                "first zero-cost card copied to hand", PileType.Hand, before, 1);
-            ctx.AssertEqual("upgrade makes power cost zero", upgraded ? 0 : 1,
-                card.EnergyCost.GetWithModifiers(CostModifiers.All), effect: false);
-        }, 3);
+        CustomVariants<WindGodCloak>(DesignSyncWindGodCloakContract.Run, 25);
 
     private static void HolyFlameProbe() =>
         CustomVariants<HolyFlame>(async (ctx, card, upgraded) =>

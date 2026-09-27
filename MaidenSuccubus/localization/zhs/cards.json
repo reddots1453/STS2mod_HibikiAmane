@@ -441,7 +441,7 @@
   "MAIDEN_SUCCUBUS_CARD_TAKEMIKAZUCHI.title": "建御雷神",
   "MAIDEN_SUCCUBUS_CARD_TAKEMIKAZUCHI.description": "造成{Damage:diff()}点伤害2次。\n本场战斗中每打出过一张[gold]附魔牌[/gold]，这张牌额外造成一次伤害。\n{InCombat:\n（造成{Hits:diff()}次伤害）|}",
   "MAIDEN_SUCCUBUS_CARD_WIND_GOD_CLOAK.title": "风神披风",
-  "MAIDEN_SUCCUBUS_CARD_WIND_GOD_CLOAK.description": "将你在每回合打出的第一张0费牌的复制加入你的[gold]手牌[/gold]。",
+  "MAIDEN_SUCCUBUS_CARD_WIND_GOD_CLOAK.description": "将你在每回合打出的第一张耗能为0的牌的复制加入你的[gold]手牌[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_SOUL_FUENIKA.title": "魂弗妮卡",
   "MAIDEN_SUCCUBUS_CARD_SOUL_FUENIKA.description": "从3张[gold]圣洁[/gold]牌中选择一张加入[gold]手牌[/gold]。\n战斗结束后，将那张牌的复制加入牌组。",
   "MAIDEN_SUCCUBUS_CARD_FAMILIAR_CONTRACT.title": "使魔契约",
