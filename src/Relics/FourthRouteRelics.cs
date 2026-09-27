@@ -334,38 +334,55 @@ public sealed class TemperanceRouteRelic : FourthRouteRelic
     public override FourthRouteQuest Quest => FourthRouteQuest.Temperance;
     public override async Task BeforeCombatStart()
     {
-        if (Stage == 0) return;
+        if (Stage == 0 || Owner.Creature.CombatState is not { } combat) return;
         CardPile pile = PileType.Draw.GetPile(Owner);
-        int count = Math.Min(Stage, 2);
+        int maximum = VirtueCombatRules.TemperanceMaximum(Stage);
+        if (maximum == 0 || pile.Cards.Count == 0) return;
         IEnumerable<CardModel> selected = await CardSelectCmd.FromCombatPile(new BlockingPlayerChoiceContext(), pile, Owner,
-            new CardSelectorPrefs(CardSelectorPrefs.ExhaustSelectionPrompt, count));
+            SelectionPrefs(Stage));
+        // The selector does not move cards: only annotate surviving combat instances.
+        if (Owner.Creature.CombatState != combat) return;
         foreach (CardModel card in selected)
         {
+            if (card.Owner != Owner || card.Pile != pile) continue;
             card.AddKeyword(CardKeyword.Exhaust);
-            if (Stage >= 3 && LayeredEnchantments.HasOpenSlot(card) && ModelDb.Enchantment<Swift>().CanEnchant(card))
-                CombatEnchantmentCmd.ApplyVanilla<Swift>(card, 2);
         }
     }
+
+    internal static CardSelectorPrefs SelectionPrefs(int stage) => new(
+        new LocString("card_selection", "MAIDEN_SUCCUBUS_TEMPERANCE_ADD_EXHAUST"),
+        0, VirtueCombatRules.TemperanceMaximum(stage));
 }
 
 [RegisterRelic(typeof(MSRelicPool))]
 public sealed class PatienceRouteRelic : FourthRouteRelic
 {
     public override FourthRouteQuest Quest => FourthRouteQuest.Patience;
-    public override Task BeforeCombatStart() => Stage is 1 or 2 ? CreateHoly() : Task.CompletedTask;
+    public override Task BeforeCombatStart() =>
+        VirtueCombatRules.PatienceAtCombatStart(Stage) ? CreateHoly() : Task.CompletedTask;
     public override Task AfterPlayerTurnStart(PlayerChoiceContext context, Player player) =>
-        player == Owner && Stage >= 3 ? CreateHoly() : Task.CompletedTask;
+        VirtueCombatRules.PatienceAtTurnStart(Stage, player == Owner) ? CreateHoly() : Task.CompletedTask;
     private async Task CreateHoly()
     {
+        if (Owner.Creature.CombatState is not { } combat || Owner.PlayerCombatState == null) return;
         List<CardModel> pool = ModelDb.CardPool<MSHolyCardPool>()
             .GetUnlockedCards(Owner.UnlockState, Owner.RunState.CardMultiplayerConstraint)
             .Where(card => (card.Rarity is CardRarity.Common or CardRarity.Uncommon or CardRarity.Rare)
                 && card.CanBeGeneratedInCombat)
             .ToList();
+        if (pool.Count == 0) return;
         CardModel canonical = pool[Owner.RunState.Rng.CombatCardGeneration.NextInt(pool.Count)];
-        CardModel card = Owner.Creature.CombatState!.CreateCard(canonical, Owner);
-        if (Stage >= 2) CardCmd.Upgrade(card);
+        CardModel card = combat.CreateCard(canonical, Owner);
+        PrepareGeneratedCard(card, Stage);
         await CardPileCmd.AddGeneratedCardToCombat(card, PileType.Hand, Owner);
+    }
+
+    internal static void PrepareGeneratedCard(CardModel card, int stage)
+    {
+        if (!VirtueCombatRules.PatienceDiscount(stage)) return;
+        // Relative, energy-only, persists across turns until this instance is played.
+        card.EnergyCost.AddUntilPlayed(-1);
+        card.InvokeEnergyCostChanged();
     }
 }
 

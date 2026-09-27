@@ -52,7 +52,9 @@ class ThreeTrialContracts(unittest.TestCase):
                      "Generosity", "Chastity", "Benevolence", "Temperance", "Diligence"):
             section = code.split(f"public sealed class {name}RouteRelic", 1)[1].split("[RegisterRelic", 1)[0]
             self.assertTrue("Stage == 0" in section or "Stage is 0" in section, name)
-        self.assertIn("Stage is 1 or 2 ? CreateHoly()", code)
+        self.assertIn("VirtueCombatRules.PatienceAtCombatStart(Stage) ? CreateHoly()", code)
+        self.assertIn("PatienceAtCombatStart(int stage) => stage is 1 or 2",
+                      read("src/Core/Relics/VirtueCombatRules.cs"))
         self.assertIn("relic.Stage = 0", read("src/Acts/FourthRouteProgress.cs"))
 
     def test_counts_use_current_trial_and_qualified_sources(self):

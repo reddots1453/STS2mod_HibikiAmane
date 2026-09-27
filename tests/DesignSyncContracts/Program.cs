@@ -300,3 +300,27 @@ foreach (var range in enchantmentRanges)
     }
 }
 Console.WriteLine($"PASS DS27 production virtue pickups: {checks - beforeVirtues} assertions; {checks} total.");
+
+int beforeCombatVirtues = checks;
+(int Stage, int Max, bool AtCombat, bool AtTurn, bool Discount)[] combatVirtues =
+[
+    (0, 0, false, false, false), (1, 2, true, false, false), (2, 3, true, false, true),
+    (3, 3, false, true, true), (4, 3, false, true, true),
+    (-1, 0, false, false, false), (5, 0, false, false, false)
+];
+foreach (var row in combatVirtues)
+{
+    Equal(row.Max, VirtueCombatRules.TemperanceMaximum(row.Stage), "temperance optional maximum");
+    Equal(row.AtCombat, VirtueCombatRules.PatienceAtCombatStart(row.Stage), "patience combat timing");
+    Equal(row.AtTurn, VirtueCombatRules.PatienceAtTurnStart(row.Stage, true), "patience own turn timing");
+    Equal(false, VirtueCombatRules.PatienceAtTurnStart(row.Stage, false), "other player's turn ignored");
+    Equal(row.Discount, VirtueCombatRules.PatienceDiscount(row.Stage), "patience discount stage");
+    // First-turn flow calls both hooks. Awakened receives one card, not two.
+    int generated = VirtueCombatRules.PatienceAtCombatStart(row.Stage) ? 1 : 0;
+    generated += VirtueCombatRules.PatienceAtTurnStart(row.Stage, true) ? 1 : 0;
+    Equal(row.Stage is >= 1 and <= 4 ? 1 : 0, generated, "first turn no double generation");
+    for (int turn = 2; turn <= 4; turn++)
+        generated += VirtueCombatRules.PatienceAtTurnStart(row.Stage, true) ? 1 : 0;
+    Equal(row.AtTurn ? 4 : row.AtCombat ? 1 : 0, generated, "four-turn cumulative generation");
+}
+Console.WriteLine($"PASS DS27 production combat virtues: {checks - beforeCombatVirtues} assertions; {checks} total.");
