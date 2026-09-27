@@ -2,10 +2,6 @@ using MegaCrit.Sts2.Core.Entities.Players;
 
 namespace MaidenSuccubus.Core.Routes;
 
-public readonly record struct RouteRewardProbabilityBonus(
-    decimal Holy,
-    decimal Corrupt);
-
 public interface IRouteRewardProbabilityModifier
 {
     RouteRewardProbabilityBonus GetRouteRewardProbabilityBonus(Player player);

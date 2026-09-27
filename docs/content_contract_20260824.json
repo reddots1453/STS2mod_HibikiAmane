@@ -82,7 +82,7 @@
     "LightBlessingPlaceholder", "LustRouteRelic", "PatienceRouteRelic",
     "PrideRouteRelic", "SlothRouteRelic", "TemperanceRouteRelic",
     "ClearHeartNecklace", "MurkyHeartNecklace", "TwinSoulChalice", "Vibrator",
-    "WitheredTreeSoul", "WrathRouteRelic"
+    "WitheredTreeSoul", "WrathRouteRelic", "SoulCompass"
   ],
   "enchantments": [
     "ChargeEnchantment", "EnergyOverloadEnchantment", "InfectionEnchantment",
