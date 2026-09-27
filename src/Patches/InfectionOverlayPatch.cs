@@ -16,7 +16,7 @@ public static class InfectionHasOverlayPatch
         bool result = __result;
         Safe.Run(() =>
         {
-            if (__instance.Enchantment is InfectionEnchantment)
+            if (LayeredEnchantments.Has<InfectionEnchantment>(__instance))
             {
                 result = true;
             }
@@ -36,7 +36,7 @@ public static class InfectionCreateOverlayPatch
         Safe.Run(() =>
         {
             if (__instance is not Infection
-                && __instance.Enchantment is InfectionEnchantment)
+                && LayeredEnchantments.Has<InfectionEnchantment>(__instance))
             {
                 result = ModelDb.Card<Infection>().CreateOverlay();
                 runOriginal = false;

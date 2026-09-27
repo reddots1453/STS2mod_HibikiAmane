@@ -766,18 +766,7 @@ internal static class CardEffectTestCatalog
         CustomVariants<DarkStorm>(DesignSyncDarkStormContract.Run, 26);
 
     private static void LightWingsProbe() =>
-        CustomVariants<LightWings>(async (ctx, card, upgraded) =>
-        {
-            await ctx.Add<StrikeIronclad>(PileType.Draw);
-            MaidenStrike enchanted = await ctx.Add<MaidenStrike>(PileType.Draw);
-            CombatEnchantmentCmd.ApplyVanilla<Sharp>(enchanted, 1);
-            int hp = ctx.PrimaryEnemy.CurrentHp;
-            await ctx.Play(card, ctx.PrimaryEnemy);
-            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp,
-                upgraded ? 16 : 12);
-            ctx.AssertEqual("draws the enchanted card instead of draw-pile top",
-                PileType.Hand, enchanted.Pile?.Type);
-        }, 2);
+        CustomVariants<LightWings>(DesignSyncLightWingsContract.Run, 35);
 
     private static void OpeningPrayerProbe() =>
         CustomVariants<OpeningPrayer>(async (ctx, card, upgraded) =>

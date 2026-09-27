@@ -129,7 +129,8 @@ public sealed class ForgeNimble : MSHolyCard
             context,
             Owner,
             new CardSelectorPrefs(CardSelectorPrefs.EnchantSelectionPrompt, 1),
-            card => card != this && card.Enchantment == null && ModelDb.Enchantment<Adroit>().CanEnchant(card),
+            card => card != this && MaidenSuccubus.Enchantments.LayeredEnchantments.HasOpenSlot(card)
+                && ModelDb.Enchantment<Adroit>().CanEnchant(card),
             this)).FirstOrDefault();
         if (selected != null)
             CombatEnchantmentCmd.ApplyVanilla<Adroit>(selected, 3);

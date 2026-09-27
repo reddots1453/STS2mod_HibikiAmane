@@ -1,4 +1,7 @@
 {
+  "MAIDEN_SUCCUBUS_ENCHANTMENT_LAYERED_ENCHANTMENT.title": "多重附魔",
+  "MAIDEN_SUCCUBUS_ENCHANTMENT_LAYERED_ENCHANTMENT.description": "各个[gold]附魔[/gold]分别生效：{LayerSummary}。具体效果见下方说明。",
+  "MAIDEN_SUCCUBUS_ENCHANTMENT_LAYERED_ENCHANTMENT.extraCardText": "{Layers}",
   "MAIDEN_SUCCUBUS_ENCHANTMENT_ENERGY_OVERLOAD_ENCHANTMENT.title": "能量过载",
   "MAIDEN_SUCCUBUS_ENCHANTMENT_ENERGY_OVERLOAD_ENCHANTMENT.description": "耗能为0{energyPrefix:maidenEnergyIcons(1)}。使用后从牌组永久移除。",
   "MAIDEN_SUCCUBUS_ENCHANTMENT_ENERGY_OVERLOAD_ENCHANTMENT.extraCardText": "耗能为0{energyPrefix:maidenEnergyIcons(1)}。使用后从牌组永久移除。",

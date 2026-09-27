@@ -204,7 +204,7 @@ public sealed class WrathRouteRelic : FourthRouteRelic
         if (Stage > 2) return;
         CardSelectorPrefs prefs = new(CardSelectorPrefs.EnchantSelectionPrompt, 1) { Cancelable = false };
         CardModel? selected = (await CardSelectCmd.FromDeckGeneric(Owner, prefs,
-            card => card.Type == CardType.Attack && card.Enchantment == null)).FirstOrDefault();
+            card => card.Type == CardType.Attack && LayeredEnchantments.HasOpenSlot(card))).FirstOrDefault();
         if (selected != null) CardCmd.Enchant(ModelDb.Enchantment<WrathEnchantment>().ToMutable(), selected, 1);
     }
 }
@@ -333,7 +333,7 @@ public sealed class TemperanceRouteRelic : FourthRouteRelic
         foreach (CardModel card in selected)
         {
             card.AddKeyword(CardKeyword.Exhaust);
-            if (Stage >= 3 && card.Enchantment == null && ModelDb.Enchantment<Swift>().CanEnchant(card))
+            if (Stage >= 3 && LayeredEnchantments.HasOpenSlot(card) && ModelDb.Enchantment<Swift>().CanEnchant(card))
                 CombatEnchantmentCmd.ApplyVanilla<Swift>(card, 2);
         }
     }

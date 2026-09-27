@@ -123,7 +123,7 @@ public sealed class ForgeCharge : MSHolyCard
         CardPile discard = PileType.Discard.GetPile(Owner);
         CardModel? selected = (await CardSelectCmd.FromCombatPile(context, discard, Owner,
             new CardSelectorPrefs(new LocString("card_selection", "MAIDEN_SUCCUBUS_TO_DRAW_TOP"), 1),
-            card => card.Enchantment == null && ModelDb.Enchantment<ChargeEnchantment>().CanEnchant(card)))
+            card => LayeredEnchantments.HasOpenSlot(card) && ModelDb.Enchantment<ChargeEnchantment>().CanEnchant(card)))
             .FirstOrDefault();
         if (selected == null) return;
         await CardPileCmd.Add(selected, PileType.Draw, CardPilePosition.Top);
@@ -157,7 +157,8 @@ public sealed class YarusMemory : MSHolyCard
             RequireManualConfirmation = true
         };
         IEnumerable<CardModel> selected = await CardSelectCmd.FromDeckGeneric(
-            Owner, prefs, candidate => candidate != this && candidate.Enchantment == null);
+            Owner, prefs, candidate => candidate != this && LayeredEnchantments.HasOpenSlot(candidate)
+                && canonical.CanEnchant(candidate));
         foreach (CardModel target in selected)
             PickupEnchantmentCmd.EnchantAndPreview(
                 canonical.ToMutable(), target, 1);
@@ -212,7 +213,7 @@ public sealed class BeyondReasonForge : MSNeutralCard
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         CardModel[] hand = PileType.Hand.GetPile(Owner).Cards
-            .Where(card => card != this && card.Enchantment == null).ToArray();
+            .Where(card => card != this && LayeredEnchantments.HasOpenSlot(card)).ToArray();
         List<Option> legal = CreateOptions().Where(option => hand.Any(option.CanApply))
             .ToList().UnstableShuffle(Owner.RunState.Rng.CombatCardSelection).Take(3).ToList();
         if (legal.Count == 0) return;
@@ -231,7 +232,7 @@ public sealed class BeyondReasonForge : MSNeutralCard
 
         CardModel? target = (await CardSelectCmd.FromHand(context, Owner,
             new CardSelectorPrefs(CardSelectorPrefs.EnchantSelectionPrompt, 1),
-            card => card != this && card.Enchantment == null && optionDef.CanApply(card), this))
+            card => card != this && LayeredEnchantments.HasOpenSlot(card) && optionDef.CanApply(card), this))
             .FirstOrDefault();
         if (target != null) Apply(optionDef.Id, target);
     }

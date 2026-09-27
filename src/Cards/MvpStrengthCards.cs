@@ -109,7 +109,7 @@ public sealed class SharpForge : MSCorruptCard
 
         List<CardModel> candidates = PileType.Draw.GetPile(Owner).Cards
             .Where(card => card.Type == CardType.Attack
-                && card.Enchantment == null
+                && MaidenSuccubus.Enchantments.LayeredEnchantments.HasOpenSlot(card)
                 && ModelDb.Enchantment<Sharp>().CanEnchant(card))
             .ToList()
             .StableShuffle(Owner.RunState.Rng.CombatCardSelection)

@@ -14,7 +14,7 @@ public static class InfectionHandSnapshot
 
     public static void Capture(CardModel card)
     {
-        if (card.Enchantment is not InfectionEnchantment
+        if (!LayeredEnchantments.Has<InfectionEnchantment>(card)
             || card.Pile?.Type != PileType.Hand)
         {
             Snapshots.Remove(card);
@@ -57,7 +57,7 @@ public static class InfectionHandSnapshot
         }
 
         return adjacent
-            .Where(candidate => candidate.Pile?.Type == PileType.Hand)
+            .Where(candidate => candidate.Pile?.Type == PileType.Hand && candidate.Enchantment == null)
             .ToArray();
     }
 }

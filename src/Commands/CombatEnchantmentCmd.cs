@@ -89,9 +89,16 @@ public static class CombatEnchantmentCmd
             // instance. Read and mutate the original enchantment slot while
             // the projection getters are suppressed; otherwise EnchantInternal
             // receives a card whose visible Enchantment was deliberately null.
-            // A permanent enchantment is deep-cloned together with its deck
-            // card and still cannot coexist with another combat enchantment.
-            if (card.Enchantment != null)
+            // Permanent layers are deep-cloned with their deck card. Only
+            // LightWings may add another layer; other cards keep one slot.
+            if (LayeredEnchantments.Supports(card))
+            {
+                applied = (T)LayeredEnchantments.Apply(enchantment, card, amount);
+                foreach (ICombatEnchantmentAppliedListener listener in card.CombatState!
+                    .IterateHookListeners().OfType<ICombatEnchantmentAppliedListener>())
+                    listener.AfterCombatEnchantmentApplied(card);
+            }
+            else if (card.Enchantment != null)
             {
                 if (card.Enchantment is T existing
                     && card.DeckVersion?.Enchantment?.GetType() != typeof(T)

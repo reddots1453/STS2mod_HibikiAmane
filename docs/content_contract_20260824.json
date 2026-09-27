@@ -86,7 +86,7 @@
   ],
   "enchantments": [
     "ChargeEnchantment", "EnergyOverloadEnchantment", "InfectionEnchantment",
-    "FamiliarEnchantment", "IronWallEnchantment", "NecromancyEnchantment",
+    "FamiliarEnchantment", "IronWallEnchantment", "LayeredEnchantment", "NecromancyEnchantment",
     "ProliferationEnchantment", "SoulLinkEnchantment", "WrathEnchantment"
   ]
 }

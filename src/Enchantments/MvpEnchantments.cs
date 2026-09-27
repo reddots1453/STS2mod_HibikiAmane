@@ -65,7 +65,7 @@ public sealed class SoulLinkEnchantment : ModEnchantmentTemplate
     {
         if (cardPlay?.Card != Card) return;
         CardModel[] linked = PileType.Draw.GetPile(Card.Owner).Cards
-            .Where(card => card.Enchantment is SoulLinkEnchantment)
+            .Where(LayeredEnchantments.Has<SoulLinkEnchantment>)
             .ToArray();
         foreach (CardModel card in linked)
             await CardPileCmd.Add(card, PileType.Hand);
@@ -117,7 +117,7 @@ public sealed class WrathEnchantment : ModEnchantmentTemplate
     public override decimal EnchantDamageAdditive(decimal originalDamage, ValueProp props)
     {
         if (!props.IsPoweredAttack()) return 0;
-        WrathRouteRelic? relic = Card.Owner.Relics.OfType<WrathRouteRelic>().FirstOrDefault();
+        WrathRouteRelic? relic = Card.Owner?.Relics.OfType<WrathRouteRelic>().FirstOrDefault();
         return (_used ? 0 : 6) + (relic?.Stage >= 3 ? 6 : 0);
     }
 

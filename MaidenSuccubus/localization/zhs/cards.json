@@ -447,7 +447,7 @@
   "MAIDEN_SUCCUBUS_CARD_FAMILIAR_CONTRACT.title": "使魔契约",
   "MAIDEN_SUCCUBUS_CARD_FAMILIAR_CONTRACT.description": "将X张{IfUpgraded:show:升级过的|}随机[gold]圣洁[/gold]牌加入[gold]手牌[/gold]。\n为这些牌[gold]附魔[/gold]：[purple]使魔[/purple]。",
   "MAIDEN_SUCCUBUS_CARD_LIGHT_WINGS.title": "光之翼",
-  "MAIDEN_SUCCUBUS_CARD_LIGHT_WINGS.description": "造成{Damage:diff()}点伤害。\n抽1张[gold]附魔牌[/gold]。",
+  "MAIDEN_SUCCUBUS_CARD_LIGHT_WINGS.description": "造成{Damage:diff()}点伤害。\n抽1张[gold]附魔牌[/gold]。\n可以被多重[gold]附魔[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_OPENING_PRAYER.title": "开祷",
   "MAIDEN_SUCCUBUS_CARD_OPENING_PRAYER.description": "接下来{OpeningPrayerPower:diff()}个回合开始时，获得1层[gold]魔力增幅[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_GALE_SWORD.title": "疾风之剑",
