@@ -101,6 +101,10 @@ public sealed class FourthRouteFragmentRelic : ModRelicTemplate
 public sealed class PrideRouteRelic : FourthRouteRelic
 {
     public override FourthRouteQuest Quest => FourthRouteQuest.Pride;
+    protected override IEnumerable<IHoverTip> AdditionalHoverTips => Stage == 0
+        ? base.AdditionalHoverTips
+        : base.AdditionalHoverTips.Concat([
+            HoverTipFactory.FromPower<StrengthPower>(), HoverTipFactory.FromPower<SelfImportantPower>()]);
     public override async Task BeforeCombatStart()
     {
         if (Stage == 0) return;
