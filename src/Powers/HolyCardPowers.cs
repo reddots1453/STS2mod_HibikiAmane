@@ -55,7 +55,7 @@ public sealed class PreventNextDesireGainPower :
         SecondaryResourceContext context,
         decimal amount)
     {
-        if (amount <= 0
+        if (Amount <= 0 || amount <= 0
             || context.Definition.Id != DesireResource.Id
             || context.Player.Creature != Owner)
         {

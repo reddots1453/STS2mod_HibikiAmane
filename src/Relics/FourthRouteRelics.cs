@@ -175,17 +175,18 @@ public sealed class LustRouteRelic : FourthRouteRelic, ISecondaryResourceHookLis
     public override FourthRouteQuest Quest => FourthRouteQuest.Lust;
     public async Task AfterSecondaryResourceChanged(SecondaryResourceChangeContext context)
     {
-        if (Stage == 0 || _used || context.Definition.Id != DesireResource.Id || context.Player != Owner || context.Delta <= 0) return;
+        if (Stage == 0 || _used || context.Definition.Id != DesireResource.Id || context.Player != Owner
+            || context.Delta <= 0 || context.Reason != SecondaryResourceChangeReason.Gain
+            || context.CombatState != Owner.Creature.CombatState
+            || !CombatManager.Instance.IsInProgress || CombatManager.Instance.IsEnding) return;
         _used = true;
         Flash();
-        for (int i = 0; i < Math.Min(Stage, 2); i++)
-        {
-            HashSet<CardModel> before = PileType.Hand.GetPile(Owner).Cards.ToHashSet();
-            await CardPileCmd.Draw(new BlockingPlayerChoiceContext(), Owner);
-            CardModel? card = PileType.Hand.GetPile(Owner).Cards.FirstOrDefault(candidate => !before.Contains(candidate));
-            if (Stage >= 3) card?.EnergyCost.SetThisTurnOrUntilPlayed(0);
-        }
+        IEnumerable<CardModel> drawn = await CardPileCmd.Draw(new BlockingPlayerChoiceContext(), Stage == 1 ? 2 : 3, Owner);
+        if (Stage >= 3)
+            foreach (CardModel card in drawn.Where(card => card.Owner == Owner))
+                GeneratedCardCostCmd.SetFreeUntilPlayed(card);
     }
+    public override Task BeforeCombatStart() { _used = false; return Task.CompletedTask; }
     public override Task AfterCombatEnd(CombatRoom room) { _used = false; return Task.CompletedTask; }
 }
 
@@ -360,10 +361,14 @@ public sealed class GenerosityRouteRelic : FourthRouteRelic
 public sealed class ChastityRouteRelic : FourthRouteRelic
 {
     public override FourthRouteQuest Quest => FourthRouteQuest.Chastity;
+    protected override IEnumerable<IHoverTip> AdditionalHoverTips => Stage == 0
+        ? base.AdditionalHoverTips
+        : base.AdditionalHoverTips.Concat([HoverTipFactory.FromPower<PreventNextDesireGainPower>()]);
     public override Task BeforeCombatStart() => Stage == 0 ? Task.CompletedTask : PowerCmd.Apply<PreventNextDesireGainPower>(
         new BlockingPlayerChoiceContext(), Owner.Creature, Math.Min(Stage, 2), Owner.Creature, null);
     public override Task AfterPlayerTurnStart(PlayerChoiceContext context, Player player) =>
-        player == Owner && Stage >= 3 && Data.Desire.Get(Owner) <= 2
+        player == Owner && Stage >= 3 && Owner.Creature.CombatState != null
+            && CombatManager.Instance.IsInProgress && !CombatManager.Instance.IsEnding && Data.Desire.Get(Owner) <= 2
             ? PlayerCmd.GainEnergy(1, Owner) : Task.CompletedTask;
 }
 
