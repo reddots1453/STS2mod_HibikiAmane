@@ -18,7 +18,7 @@ class FourthActEndingContracts(unittest.TestCase):
         self.assertNotIn("FourthActRunAdapter", victory)
         self.assertIn("AddProgress", victory)
         self.assertNotIn("FourthRouteThirdBossDefeated", read("src/Acts/FourthRouteProgress.cs").split(
-            "public static async Task AdvanceStage", 1)[1].split("public static bool HasFourthActQualification", 1)[0])
+            "public static async Task ClaimInitialReward", 1)[1].split("public static bool HasFourthActQualification", 1)[0])
 
     def test_creation_and_load_only_normalize(self):
         patch = read("src/Patches/FourthActPatch.cs")

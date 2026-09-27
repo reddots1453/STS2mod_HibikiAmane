@@ -19,6 +19,7 @@ public sealed partial class FourthRouteSelectionScreen : Control, IScreenContext
     private enum ScreenMode { QuestChoice, Reward }
 
     private readonly ScreenMode _mode;
+    private readonly int _rewardStage;
     private readonly TaskCompletionSource<FourthRouteQuest?> _questCompletion =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly TaskCompletionSource<bool> _rewardCompletion =
@@ -32,9 +33,10 @@ public sealed partial class FourthRouteSelectionScreen : Control, IScreenContext
     private FourthRouteSelectionScreen(
         ScreenMode mode,
         FourthRouteQuest first,
-        FourthRouteQuest? second = null)
+        FourthRouteQuest? second = null, int rewardStage = 1)
     {
         _mode = mode;
+        _rewardStage = rewardStage;
         Name = mode == ScreenMode.QuestChoice
             ? "FourthRouteQuestSelection"
             : "FourthRouteReward";
@@ -53,9 +55,9 @@ public sealed partial class FourthRouteSelectionScreen : Control, IScreenContext
         return await screen._questCompletion.Task;
     }
 
-    public static async Task<bool> ShowReward(FourthRouteQuest quest)
+    public static async Task<bool> ShowReward(FourthRouteQuest quest, int stage = 1)
     {
-        FourthRouteSelectionScreen screen = new(ScreenMode.Reward, quest);
+        FourthRouteSelectionScreen screen = new(ScreenMode.Reward, quest, rewardStage: stage);
         AddToModalContainer(screen, "Route reward");
         return await screen._rewardCompletion.Task;
     }
@@ -113,7 +115,7 @@ public sealed partial class FourthRouteSelectionScreen : Control, IScreenContext
 
         content.AddChild(CreateTitle(_mode == ScreenMode.QuestChoice
             ? "选择女神试炼"
-            : "试炼完成"));
+            : "试炼的奖赏"));
 
         if (_mode == ScreenMode.QuestChoice && second is FourthRouteQuest other)
         {
@@ -133,7 +135,7 @@ public sealed partial class FourthRouteSelectionScreen : Control, IScreenContext
         else
         {
             content.AddChild(CreateSubtitle(
-                $"{FourthRouteProgressService.QuestName(first)}试炼已经达成。确认后获得始源遗物并结算路线效果。"));
+                $"{FourthRouteProgressService.QuestName(first)}试炼已经达成。确认后获得奖励并结算路线效果。"));
             content.AddChild(CreateRewardCard(first));
             Button claim = CreateActionButton("领取奖励", new Color(0.82f, 0.66f, 0.28f));
             claim.Pressed += ResolveReward;
@@ -222,14 +224,14 @@ public sealed partial class FourthRouteSelectionScreen : Control, IScreenContext
         body.AddThemeConstantOverride("separation", 18);
         margin.AddChild(body);
         body.AddChild(CreateSectionLabel(
-            FourthRouteProgressService.QuestName(quest) + "·始源", accent, 34));
-        body.AddChild(CreateRewardPreview(quest, includeCorruption: true));
+            FourthRouteProgressService.CreateRelicPreview(quest, _rewardStage).Title.GetFormattedText(), accent, 34));
+        body.AddChild(CreateRewardPreview(quest, includeCorruption: true, _rewardStage));
         return card;
     }
 
-    private static Control CreateRewardPreview(FourthRouteQuest quest, bool includeCorruption)
+    private static Control CreateRewardPreview(FourthRouteQuest quest, bool includeCorruption, int stage = 1)
     {
-        FourthRouteRelic relic = FourthRouteProgressService.CreateRelicPreview(quest);
+        FourthRouteRelic relic = FourthRouteProgressService.CreateRelicPreview(quest, stage);
         HBoxContainer row = new()
         {
             Alignment = BoxContainer.AlignmentMode.Center,

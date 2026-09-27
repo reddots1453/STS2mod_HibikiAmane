@@ -39,13 +39,17 @@ public static class FourthRouteMerchantPatch
             if (RelicEntriesField == null
                 || PurchaseCompletedEvent == null
                 || UpdateEntriesMethod == null
+                || !FourthRouteLifecycle.IsEligible(__result.Player)
                 || __result.Player.RunState is not RunState runState) return;
             __result.Player.Relics.OfType<GreedRouteRelic>().FirstOrDefault()?.OnMerchantCreated();
             M5ProgressState state = M5Progress.Handle.Get(runState);
             if (!state.FourthRouteFragmentPending || state.FourthRouteFragmentOffered
-                || state.FourthRouteRelicStage != 1) return;
+                || FourthRouteProgressService.Trial(runState).Phase != FourthTrialPhase.Fragment) return;
             var entries = (List<MerchantRelicEntry>)RelicEntriesField.GetValue(__result)!;
-            MerchantRelicEntry fragment = new(ModelDb.Relic<FourthRouteFragmentRelic>().ToMutable(), __result.Player);
+            if (!FourthRouteProgressService.TryGetQuest(runState, out FourthRouteQuest quest)) return;
+            var model = (FourthRouteFragmentRelic)ModelDb.Relic<FourthRouteFragmentRelic>().ToMutable();
+            model.RouteTitleKey = FourthRouteProgressService.CreateRelicPreview(quest).Id.Entry + ".title";
+            MerchantRelicEntry fragment = new(model, __result.Player);
             Delegate handler = Delegate.CreateDelegate(
                 PurchaseCompletedEvent.EventHandlerType!,
                 __result,

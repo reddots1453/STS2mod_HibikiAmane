@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Relics;
+using MaidenSuccubus.Acts;
 using MaidenSuccubus.Util;
 
 namespace MaidenSuccubus.Patches;
@@ -25,9 +26,20 @@ public static class TwinSoulChaliceDescriptionPatch
             {
                 if (__instance is FourthRouteRelic routeRelic)
                 {
-                    result = new LocString(
-                        "relics",
-                        routeRelic.Id.Entry + $".descriptionStage{routeRelic.Stage}");
+                    LocString effect = new("relics", routeRelic.Stage == 0
+                        ? "MAIDEN_SUCCUBUS_RELIC_FOURTH_ROUTE_STAGE_0.description"
+                        : routeRelic.Id.Entry + $".descriptionStage{Math.Min(routeRelic.Stage, 3)}");
+                    result = effect;
+                    // Ownerless reward previews intentionally reveal effects only,
+                    // never the next trial/fragment/sacrifice hint.
+                    if (routeRelic.IsMutable && routeRelic.Owner is { } owner)
+                    {
+                        result = new LocString("relics", routeRelic.Stage == 0
+                            ? "MAIDEN_SUCCUBUS_RELIC_FOURTH_ROUTE_PROGRESS.descriptionDormant"
+                            : "MAIDEN_SUCCUBUS_RELIC_FOURTH_ROUTE_PROGRESS.description");
+                        result.Add("Effect", effect);
+                        result.Add("Progress", FourthRouteProgressService.ProgressText(owner, routeRelic.Quest));
+                    }
                     return;
                 }
 

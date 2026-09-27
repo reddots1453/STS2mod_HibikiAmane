@@ -93,20 +93,20 @@ public static class FrameworkSelfTests
         IReadOnlyDictionary<FourthRouteQuest, int> targets =
             new Dictionary<FourthRouteQuest, int>
             {
-                [FourthRouteQuest.Pride] = 3,
-                [FourthRouteQuest.Greed] = 1,
-                [FourthRouteQuest.Lust] = 3,
-                [FourthRouteQuest.Envy] = 2,
-                [FourthRouteQuest.Gluttony] = 3,
-                [FourthRouteQuest.Wrath] = 4,
-                [FourthRouteQuest.Sloth] = 2,
-                [FourthRouteQuest.Humility] = 2,
+                [FourthRouteQuest.Pride] = 2,
+                [FourthRouteQuest.Greed] = 200,
+                [FourthRouteQuest.Lust] = 2,
+                [FourthRouteQuest.Envy] = 1,
+                [FourthRouteQuest.Gluttony] = 2,
+                [FourthRouteQuest.Wrath] = 2,
+                [FourthRouteQuest.Sloth] = 1,
+                [FourthRouteQuest.Humility] = 1,
                 [FourthRouteQuest.Generosity] = 1,
-                [FourthRouteQuest.Chastity] = 3,
-                [FourthRouteQuest.Benevolence] = 5,
-                [FourthRouteQuest.Temperance] = 2,
-                [FourthRouteQuest.Patience] = 5,
-                [FourthRouteQuest.Diligence] = 3,
+                [FourthRouteQuest.Chastity] = 2,
+                [FourthRouteQuest.Benevolence] = 4,
+                [FourthRouteQuest.Temperance] = 1,
+                [FourthRouteQuest.Patience] = 4,
+                [FourthRouteQuest.Diligence] = 2,
             };
         foreach ((FourthRouteQuest quest, int target) in targets)
         {

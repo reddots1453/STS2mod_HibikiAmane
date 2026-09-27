@@ -64,9 +64,10 @@ public sealed class SacrificeRestSiteOption : ModRestSiteOptionTemplate
         bool completesFourthRouteSacrifice =
             CompletesFourthRouteSacrifice(confirmed);
         await CardPileCmd.RemoveFromDeck(confirmed);
-        if (completesFourthRouteSacrifice)
+        int removedCount = confirmed.Count(card => !Owner.Deck.Cards.Contains(card));
+        if (completesFourthRouteSacrifice && removedCount > 0)
         {
-            await FourthRouteProgressService.AdvanceStage(Owner, 2);
+            await FourthRouteProgressService.UnlockThirdTrial(Owner, removedCount, true);
         }
 
         RestSiteActionPolicy.PreserveRemainingOptionsOnce(Owner);
@@ -77,7 +78,7 @@ public sealed class SacrificeRestSiteOption : ModRestSiteOptionTemplate
         IReadOnlyCollection<CardModel> sacrificedCards)
     {
         if (Owner.RunState is not RunState runState
-            || M5Progress.Handle.Get(runState).FourthRouteRelicStage != 2
+            || FourthRouteProgressService.Trial(runState).Phase != FourthTrialPhase.Sacrifice
             || !FourthRouteProgressService.TryGetQuest(
                 runState,
                 out FourthRouteQuest quest))
@@ -87,7 +88,7 @@ public sealed class SacrificeRestSiteOption : ModRestSiteOptionTemplate
 
         bool dark = FourthRouteProgressService.AlignmentOf(quest)
             == FourthRouteAlignment.Dark;
-        return sacrificedCards.Any(card => dark
+        return sacrificedCards.Count > 0 && sacrificedCards.All(card => dark
             ? RouteCardQuery.IsHoly(card)
             : RouteCardQuery.IsCorrupt(card));
     }

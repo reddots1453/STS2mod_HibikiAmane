@@ -351,7 +351,8 @@ $twinSoulChalice = Read-Text "src\Relics\TwinSoulChalice.cs"
 Assert-Contains "unified sacrifice option registration" $restSiteSealPatch 'new\s+SacrificeRestSiteOption\(__0\)'
 Assert-Contains "unified sacrifice sealed-card source" $sacrificeOption 'CombatSealQuery\.GetSealedDeckCards\(Owner\)'
 Assert-Contains "unified sacrifice removes all confirmed sealed cards" $sacrificeOption 'CardPileCmd\.RemoveFromDeck\(confirmed\)'
-Assert-Contains "unified sacrifice advances fourth route" $sacrificeOption 'FourthRouteProgressService\.AdvanceStage\(Owner,\s*2\)'
+Assert-Contains "sacrifice only unlocks third trial after actual removal" $sacrificeOption 'FourthRouteProgressService\.UnlockThirdTrial\(Owner,\s*removedCount,\s*true\)'
+Assert-NotContains "sacrifice must not directly upgrade route relic" $sacrificeOption 'AdvanceStage|RelicCmd\.Obtain'
 Assert-NotContains "fourth-route relic must not add a second sacrifice option" $twinSoulChalice 'TryModifyRestSiteOptions|FourthRouteSacrificeOption'
 foreach ($legacyRestSiteOption in @(
     "src\RestSite\FourthRouteSacrificeOption.cs",

@@ -47,7 +47,7 @@ public abstract class FourthRouteRelic : ModRelicTemplate
         set
         {
             AssertMutable();
-            _stage = Math.Clamp(value, 1, 4);
+            _stage = Math.Clamp(value, 0, 4);
             if (DynamicVars.TryGetValue("Stage", out DynamicVar? stageVar)) stageVar.BaseValue = _stage;
         }
     }
@@ -73,17 +73,25 @@ public abstract class FourthRouteRelic : ModRelicTemplate
 [RegisterRelic(typeof(MSRelicPool))]
 public sealed class FourthRouteFragmentRelic : ModRelicTemplate
 {
+    private string _routeTitleKey = "";
+    [SavedProperty] public string RouteTitleKey { get => _routeTitleKey; set { AssertMutable(); _routeTitleKey = value; } }
+    public override LocString Title
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(_routeTitleKey)) return base.Title;
+            LocString title = new("relics", "MAIDEN_SUCCUBUS_RELIC_FOURTH_ROUTE_FRAGMENT_RELIC.routeTitle");
+            title.Add("Relic", new LocString("relics", _routeTitleKey));
+            return title;
+        }
+    }
     public override RelicRarity Rarity => RelicRarity.Event;
     public override RelicAssetProfile AssetProfile => new(
         IconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres",
         IconOutlinePath: "res://images/atlases/relic_outline_atlas.sprites/circlet.tres",
         BigIconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres");
     public override bool IsAllowed(MegaCrit.Sts2.Core.Runs.IRunState runState) => false;
-    public override async Task AfterObtained()
-    {
-        await FourthRouteProgressService.AdvanceStage(Owner, 1);
-        await RelicCmd.Remove(this);
-    }
+    public override Task AfterObtained() => FourthRouteProgressService.UnlockSecondTrial(Owner);
 }
 
 [RegisterRelic(typeof(MSRelicPool))]
@@ -92,6 +100,7 @@ public sealed class PrideRouteRelic : FourthRouteRelic
     public override FourthRouteQuest Quest => FourthRouteQuest.Pride;
     public override async Task BeforeCombatStart()
     {
+        if (Stage == 0) return;
         int amount = Math.Min(Stage, 3);
         await PowerCmd.Apply<StrengthPower>(new BlockingPlayerChoiceContext(), Owner.Creature, amount, Owner.Creature, null);
         await PowerCmd.Apply<SelfImportantPower>(new BlockingPlayerChoiceContext(), Owner.Creature, amount, Owner.Creature, null);
@@ -109,8 +118,9 @@ public sealed class GreedRouteRelic : FourthRouteRelic
     public override bool HasUponPickupEffect => true;
     public override async Task AfterObtained()
     {
+        if (Stage == 0) return;
         if (Stage <= 2) await PlayerCmd.GainGold(100, Owner);
-        if (Stage == 3)
+        if (Stage >= 3)
         {
             await CardPileCmd.AddCurseToDeck<Greed>(Owner);
             FreeShopPending = true;
@@ -134,7 +144,7 @@ public sealed class LustRouteRelic : FourthRouteRelic, ISecondaryResourceHookLis
     public override FourthRouteQuest Quest => FourthRouteQuest.Lust;
     public async Task AfterSecondaryResourceChanged(SecondaryResourceChangeContext context)
     {
-        if (_used || context.Definition.Id != DesireResource.Id || context.Player != Owner || context.Delta <= 0) return;
+        if (Stage == 0 || _used || context.Definition.Id != DesireResource.Id || context.Player != Owner || context.Delta <= 0) return;
         _used = true;
         Flash();
         for (int i = 0; i < Math.Min(Stage, 2); i++)
@@ -157,7 +167,7 @@ public sealed class EnvyRouteRelic : FourthRouteRelic
     public override FourthRouteQuest Quest => FourthRouteQuest.Envy;
     public override async Task AfterPowerAmountChanged(PlayerChoiceContext context, PowerModel power, decimal amount, Creature? applier, CardModel? cardSource)
     {
-        if (_used || amount <= 0 || power.Type != PowerType.Debuff || applier != Owner.Creature || power.Owner.Side == Owner.Creature.Side) return;
+        if (Stage == 0 || _used || amount <= 0 || power.Type != PowerType.Debuff || applier != Owner.Creature || power.Owner.Side == Owner.Creature.Side) return;
         _used = true;
         Flash();
         await PlayerCmd.GainEnergy(1, Owner);
@@ -178,12 +188,13 @@ public sealed class GluttonyRouteRelic : FourthRouteRelic
     public override bool HasUponPickupEffect => true;
     public override async Task AfterObtained()
     {
+        if (Stage == 0) return;
         if (Stage <= 2)
         {
             await CreatureCmd.GainMaxHp(Owner.Creature, 5);
             await PlayerCmd.GainMaxPotionCount(1, Owner);
         }
-        else if (Stage == 3)
+        else if (Stage >= 3)
         {
             int empty = Owner.MaxPotionCount - Owner.Potions.Count();
             IEnumerable<PotionModel> potions = PotionFactory.CreateRandomPotionsOutOfCombat(Owner, empty, Owner.RunState.Rng.CombatPotionGeneration);
@@ -201,7 +212,7 @@ public sealed class WrathRouteRelic : FourthRouteRelic
     public override bool HasUponPickupEffect => true;
     public override async Task AfterObtained()
     {
-        if (Stage > 2) return;
+        if (Stage == 0 || Stage > 2) return;
         CardSelectorPrefs prefs = new(CardSelectorPrefs.EnchantSelectionPrompt, 1) { Cancelable = false };
         CardModel? selected = (await CardSelectCmd.FromDeckGeneric(Owner, prefs,
             card => card.Type == CardType.Attack && LayeredEnchantments.HasOpenSlot(card))).FirstOrDefault();
@@ -221,19 +232,19 @@ public sealed class SlothRouteRelic : FourthRouteRelic
     public override FourthRouteQuest Quest => FourthRouteQuest.Sloth;
     public override Task AfterCardPlayed(PlayerChoiceContext context, CardPlay cardPlay)
     {
-        if (cardPlay.Card.Owner == Owner) _energySpent += cardPlay.Resources.EnergyValue;
+        if (Stage > 0 && cardPlay.Card.Owner == Owner) _energySpent += cardPlay.Resources.EnergyValue;
         return Task.CompletedTask;
     }
     public override async Task AfterSideTurnEnd(PlayerChoiceContext context, CombatSide side, IEnumerable<Creature> participants)
     {
-        if (side != Owner.Creature.Side) return;
+        if (Stage == 0 || side != Owner.Creature.Side) return;
         _triggered = _energySpent <= 2;
         _energySpent = 0;
         if (_triggered && Stage >= 3) await CreatureCmd.GainBlock(Owner.Creature, 12, ValueProp.Unpowered, null);
     }
     public override async Task AfterEnergyReset(Player player)
     {
-        if (player == Owner && _triggered && Owner.Creature.CombatState?.RoundNumber > 1)
+        if (Stage > 0 && player == Owner && _triggered && Owner.Creature.CombatState?.RoundNumber > 1)
             await PlayerCmd.GainEnergy(Math.Min(Stage, 3), Owner);
         _triggered = false;
     }
@@ -245,6 +256,7 @@ public sealed class HumilityRouteRelic : FourthRouteRelic
     public override FourthRouteQuest Quest => FourthRouteQuest.Humility;
     public override async Task BeforeCombatStart()
     {
+        if (Stage == 0) return;
         HumilityLesson card = Owner.RunState.CreateCard<HumilityLesson>(Owner);
         if (Stage >= 2) CardCmd.Upgrade(card);
         await CardPileCmd.Add(card, PileType.Hand);
@@ -264,7 +276,7 @@ public sealed class GenerosityRouteRelic : FourthRouteRelic
     public override bool HasUponPickupEffect => true;
     public override async Task AfterObtained()
     {
-        if (Stage > 2) return;
+        if (Stage == 0 || Stage > 2) return;
         List<CardModel> cards = (await CardSelectCmd.FromDeckForRemoval(
             Owner, new CardSelectorPrefs(CardSelectorPrefs.RemoveSelectionPrompt, 1))).ToList();
         await CardPileCmd.RemoveFromDeck(cards);
@@ -275,7 +287,7 @@ public sealed class GenerosityRouteRelic : FourthRouteRelic
 public sealed class ChastityRouteRelic : FourthRouteRelic
 {
     public override FourthRouteQuest Quest => FourthRouteQuest.Chastity;
-    public override Task BeforeCombatStart() => PowerCmd.Apply<PreventNextDesireGainPower>(
+    public override Task BeforeCombatStart() => Stage == 0 ? Task.CompletedTask : PowerCmd.Apply<PreventNextDesireGainPower>(
         new BlockingPlayerChoiceContext(), Owner.Creature, Math.Min(Stage, 2), Owner.Creature, null);
     public override Task AfterPlayerTurnStart(PlayerChoiceContext context, Player player) =>
         player == Owner && Stage >= 3 && Data.Desire.Get(Owner) <= 2
@@ -289,7 +301,7 @@ public sealed class BenevolenceRouteRelic : FourthRouteRelic
     public override bool HasUponPickupEffect => true;
     public override async Task AfterObtained()
     {
-        if (Stage == 4) return;
+        if (Stage is 0 or 4) return;
         int count = Stage >= 3 ? 3 : 2;
         CardCreationOptions options = new(AllMaidenSuccubusCards.Pools, CardCreationSource.Other, CardRarityOddsType.RegularEncounter);
         List<Reward> rewards = [];
@@ -326,6 +338,7 @@ public sealed class TemperanceRouteRelic : FourthRouteRelic
     public override FourthRouteQuest Quest => FourthRouteQuest.Temperance;
     public override async Task BeforeCombatStart()
     {
+        if (Stage == 0) return;
         CardPile pile = PileType.Draw.GetPile(Owner);
         int count = Math.Min(Stage, 2);
         IEnumerable<CardModel> selected = await CardSelectCmd.FromCombatPile(new BlockingPlayerChoiceContext(), pile, Owner,
@@ -343,7 +356,7 @@ public sealed class TemperanceRouteRelic : FourthRouteRelic
 public sealed class PatienceRouteRelic : FourthRouteRelic
 {
     public override FourthRouteQuest Quest => FourthRouteQuest.Patience;
-    public override Task BeforeCombatStart() => Stage < 3 ? CreateHoly() : Task.CompletedTask;
+    public override Task BeforeCombatStart() => Stage is 1 or 2 ? CreateHoly() : Task.CompletedTask;
     public override Task AfterPlayerTurnStart(PlayerChoiceContext context, Player player) =>
         player == Owner && Stage >= 3 ? CreateHoly() : Task.CompletedTask;
     private async Task CreateHoly()
@@ -367,7 +380,7 @@ public sealed class DiligenceRouteRelic : FourthRouteRelic
     public override bool HasUponPickupEffect => true;
     public override Task AfterObtained()
     {
-        if (Stage >= 3) return Task.CompletedTask;
+        if (Stage == 0 || Stage >= 3) return Task.CompletedTask;
         UpgradeRandom(Stage == 1 ? 2 : 3);
         return Task.CompletedTask;
     }

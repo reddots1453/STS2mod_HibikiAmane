@@ -1,17 +1,14 @@
-using System.Reflection;
+using System.Runtime.CompilerServices;
+using MegaCrit.Sts2.Core.Entities.Cards;
 using HarmonyLib;
-using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Rewards;
 using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Acts;
-using MaidenSuccubus.Bootstrap;
 using MaidenSuccubus.Cards;
-using MaidenSuccubus.Relics;
 using MaidenSuccubus.Util;
 
 namespace MaidenSuccubus.Patches;
@@ -19,6 +16,7 @@ namespace MaidenSuccubus.Patches;
 [HarmonyPatch(typeof(CardReward), nameof(CardReward.OnSkipped))]
 public static class FourthRouteCardRewardSkippedPatch
 {
+    private static readonly ConditionalWeakTable<CardReward, object> Counted = new();
     [HarmonyPostfix]
     public static void Postfix(CardReward __instance)
     {
@@ -28,31 +26,10 @@ public static class FourthRouteCardRewardSkippedPatch
                 || !FourthRouteProgressService.TryGetQuest(runState, out FourthRouteQuest quest)
                 || quest != FourthRouteQuest.Temperance)
                 return;
+            if (Counted.TryGetValue(__instance, out _)) return;
+            Counted.Add(__instance, new object());
             TaskHelper.RunSafely(FourthRouteProgressService.AddProgress(__instance.Player, quest));
         }, "FourthRoute.CardRewardSkipped");
-    }
-}
-
-[HarmonyPatch(typeof(RelicReward), nameof(RelicReward.OnSkipped))]
-public static class FourthRouteGenerosityRewardPatch
-{
-    [HarmonyPostfix]
-    public static void Postfix(RelicReward __instance)
-    {
-        Safe.Run(() =>
-        {
-            GenerosityRouteRelic? relic = __instance.Player.Relics.OfType<GenerosityRouteRelic>()
-                .FirstOrDefault(candidate => candidate.Stage >= 3);
-            if (relic == null || __instance.Player.Deck.Cards.Count == 0) return;
-            TaskHelper.RunSafely(RemoveOne(__instance.Player));
-        }, "FourthRoute.GenerosityRelicSkip");
-    }
-
-    private static async Task RemoveOne(MegaCrit.Sts2.Core.Entities.Players.Player player)
-    {
-        List<CardModel> cards = (await CardSelectCmd.FromDeckForRemoval(
-            player, new CardSelectorPrefs(CardSelectorPrefs.RemoveSelectionPrompt, 1))).ToList();
-        await CardPileCmd.RemoveFromDeck(cards);
     }
 }
 
@@ -73,6 +50,7 @@ public static class FourthRouteStarterUpgradePatch
         Safe.Run(() =>
         {
             if (!__state || !card.IsUpgraded
+                || card.Pile?.Type != PileType.Deck
                 || card is not (MaidenStrike or MaidenDefend or Transform or DarkElement)
                 || card.Owner.RunState is not RunState runState
                 || !FourthRouteProgressService.TryGetQuest(runState, out FourthRouteQuest quest)
@@ -83,30 +61,5 @@ public static class FourthRouteStarterUpgradePatch
     }
 }
 
-[HarmonyPatch(typeof(NTreasureRoom), "OnProceedButtonReleased")]
-public static class FourthRouteTreasureSkippedPatch
-{
-    private static readonly FieldInfo? ClaimedField =
-        ModCompatibility.FindField(
-            typeof(NTreasureRoom), "_hasRelicBeenClaimed", typeof(bool));
-    private static readonly FieldInfo? RunStateField =
-        ModCompatibility.FindField(
-            typeof(NTreasureRoom), "_runState", typeof(IRunState));
-
-    [HarmonyPrefix]
-    public static void Prefix(NTreasureRoom __instance)
-    {
-        Safe.Run(() =>
-        {
-            if (ClaimedField == null
-                || RunStateField == null
-                || (bool)ClaimedField.GetValue(__instance)!
-                || RunStateField.GetValue(__instance) is not RunState runState
-                || runState.Players.Count != 1
-                || !FourthRouteProgressService.TryGetQuest(runState, out FourthRouteQuest quest)
-                || quest != FourthRouteQuest.Generosity)
-                return;
-            TaskHelper.RunSafely(FourthRouteProgressService.AddProgress(runState.Players[0], quest));
-        }, "FourthRoute.TreasureSkipped");
-    }
-}
+// Generosity must be an explicit mutually exclusive offering choice. Merely
+// leaving a chest/reward screen is NOT an offering and no longer grants credit.

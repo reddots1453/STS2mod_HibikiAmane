@@ -77,14 +77,19 @@ public sealed class M6RouteConsoleCmd : AbstractConsoleCmd
         if (!FourthRouteProgressService.TryGetQuest(runState, out FourthRouteQuest active))
             return new CmdResult(false, "No route quest has been selected.");
         if (args[0].Equals("complete", StringComparison.OrdinalIgnoreCase))
-            return new CmdResult(FourthRouteProgressService.AddProgress(
-                issuingPlayer, active, FourthRouteProgressService.TargetFor(active)), true, $"Completing {active}.");
+        {
+            if (active == FourthRouteQuest.Greed)
+                return new CmdResult(FourthRouteProgressService.CheckThresholdQuest(issuingPlayer), true,
+                    "Gold trial checks actual held gold; use the game's gold command to reach its target.");
+            int trial = FourthRouteTrialRules.Number(FourthRouteProgressService.Trial(runState).Phase);
+            return new CmdResult(FourthRouteProgressService.AddProgress(issuingPlayer, active,
+                FourthRouteProgressService.TargetFor(active, trial)), true, $"Completing trial {trial} of {active}.");
+        }
         if (args[0].Equals("advance", StringComparison.OrdinalIgnoreCase))
         {
-            int stage = M5Progress.Handle.Get(runState).FourthRouteRelicStage;
-            if (stage is < 1 or >= 4) return new CmdResult(false, $"Cannot advance from stage {stage}.");
-            return new CmdResult(FourthRouteProgressService.AdvanceStage(issuingPlayer, stage), true,
-                $"Advancing {active} from stage {stage}.");
+            if (!FourthRouteProgressService.HasPendingInitialReward(runState))
+                return new CmdResult(false, "Complete the current trial before claiming its reward.");
+            return new CmdResult(FourthRouteProgressService.ClaimInitialReward(issuingPlayer), true, $"Claiming {active} reward.");
         }
         return new CmdResult(false, "Expected state, set, complete, or advance.");
     }
@@ -92,6 +97,8 @@ public sealed class M6RouteConsoleCmd : AbstractConsoleCmd
     private static async Task SetQuest(Player player, RunState runState, FourthRouteQuest quest)
     {
         foreach (FourthRouteRelic relic in player.Relics.OfType<FourthRouteRelic>().ToList())
+            await RelicCmd.Remove(relic);
+        foreach (FourthRouteFragmentRelic relic in player.Relics.OfType<FourthRouteFragmentRelic>().ToList())
             await RelicCmd.Remove(relic);
         M5Progress.Handle.Modify(runState, state =>
         {
@@ -110,14 +117,16 @@ public sealed class M6RouteConsoleCmd : AbstractConsoleCmd
             state.FourthRouteThirdBossDefeated = false;
             state.FourthRouteEndingChecked = false;
             state.FourthRouteEndingEligible = false;
+            state.FourthRouteTrial = null;
         });
         FourthRouteProgressService.SelectQuest(runState, quest);
+        await FourthRouteProgressService.EnsureDormantRelic(player);
     }
 
     private static string Describe(RunState runState)
     {
         M5ProgressState state = M5Progress.Handle.Get(runState);
-        return $"quest={state.FourthRouteQuestId}; alignment={state.FourthRouteAlignment}; "
+        return $"quest={state.FourthRouteQuestId}; alignment={state.FourthRouteAlignment}; phase={state.FourthRouteTrial?.Phase}; "
             + $"progress={state.FourthRouteQuestProgress}; complete={state.FourthRouteQuestCompleted}; "
             + $"stage={state.FourthRouteRelicStage}; fragmentPending={state.FourthRouteFragmentPending}; "
             + $"fragmentOffered={state.FourthRouteFragmentOffered}; sacrificed={state.FourthRouteSacrificeCompleted}; "

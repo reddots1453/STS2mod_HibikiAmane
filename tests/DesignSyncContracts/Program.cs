@@ -257,3 +257,6 @@ IReadOnlyList<object> emptyActs = Array.Empty<object>();
 Equal(true, ReferenceEquals(emptyActs,
     FourthActEntryRules.WithoutPendingPlaceholder(emptyActs, 0, IsPlaceholder)), "empty list safe no-op");
 Console.WriteLine($"PASS DS27 production fourth-act boundaries: {checks - beforeFourthAct} assertions; {checks} total.");
+int trialChecks = FourthRouteTrialContracts.Run();
+checks += trialChecks;
+Console.WriteLine($"PASS DS27 production three-trial flow: {trialChecks} assertions; {checks} total.");

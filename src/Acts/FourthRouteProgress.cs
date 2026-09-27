@@ -6,11 +6,14 @@ using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.Relics;
 using MaidenSuccubus.Characters;
+using System.Runtime.CompilerServices;
 
 namespace MaidenSuccubus.Acts;
 
 public static class FourthRouteProgressService
 {
+    private static readonly ConditionalWeakTable<RunState, ClaimGate> Claims = new();
+    private sealed class ClaimGate { public bool Busy; }
     public static readonly FourthRouteQuest[] DarkQuests =
         [FourthRouteQuest.Pride, FourthRouteQuest.Greed, FourthRouteQuest.Lust,
          FourthRouteQuest.Envy, FourthRouteQuest.Gluttony, FourthRouteQuest.Wrath,
@@ -24,7 +27,43 @@ public static class FourthRouteProgressService
         FourthActEntryRules.AlignmentOf(quest) ?? throw new ArgumentOutOfRangeException(nameof(quest));
 
     public static bool TryGetQuest(RunState runState, out FourthRouteQuest quest) =>
-        Enum.TryParse(M5Progress.Handle.Get(runState).FourthRouteQuestId, out quest);
+        Enum.TryParse(M5Progress.Handle.Get(runState).FourthRouteQuestId, out quest) && Enum.IsDefined(quest);
+
+    public static FourthRouteTrialState Trial(RunState run)
+    {
+        M5ProgressState state = M5Progress.Handle.Get(run);
+        if (state.FourthRouteTrial is null)
+            M5Progress.Handle.Modify(run, data =>
+            {
+                var migrated = FourthRouteTrialRules.FromLegacy(
+                    data.FourthRouteRelicStage, data.FourthRouteQuestProgress, data.FourthRouteRewardPending);
+                if (migrated.Phase == FourthTrialPhase.First && TryGetQuest(run, out var quest)
+                    && quest != FourthRouteQuest.Greed)
+                {
+                    int recorded = migrated.Progress;
+                    migrated.Progress = 0;
+                    FourthRouteTrialRules.Add(migrated, quest, recorded);
+                }
+                if (FourthRouteTrialRules.Pending(migrated.Phase) && TryGetQuest(run, out var pendingQuest))
+                    migrated.Progress = TargetFor(pendingQuest, FourthRouteTrialRules.Number(migrated.Phase));
+                data.FourthRouteTrial = migrated;
+            });
+        return M5Progress.Handle.Get(run).FourthRouteTrial!;
+    }
+
+    private static void ChangeTrial(RunState run, Action<FourthRouteTrialState> change)
+    {
+        Trial(run);
+        M5Progress.Handle.Modify(run, state =>
+        {
+            change(state.FourthRouteTrial!);
+            FourthTrialPhase phase = state.FourthRouteTrial!.Phase;
+            state.FourthRouteQuestProgress = state.FourthRouteTrial.Progress;
+            state.FourthRouteQuestCompleted = !FourthRouteTrialRules.Active(phase);
+            state.FourthRouteRewardPending = FourthRouteTrialRules.Pending(phase);
+            state.FourthRouteRewardClaimed = phase is FourthTrialPhase.Fragment or FourthTrialPhase.Sacrifice or FourthTrialPhase.Complete;
+        });
+    }
 
     public static void SelectQuest(RunState runState, FourthRouteQuest quest)
     {
@@ -34,106 +73,113 @@ public static class FourthRouteProgressService
             state.FourthRouteQuestId = quest.ToString();
             state.FourthRouteAlignment = AlignmentOf(quest).ToString();
             state.FourthRouteQuestProgress = 0;
+            state.FourthRouteTrial = new();
         });
+    }
+
+    public static async Task EnsureDormantRelic(Player player)
+    {
+        if (player.Character is not MaidenSuccubusCharacter || player.RunState is not RunState run
+            || !TryGetQuest(run, out FourthRouteQuest quest) || M5Progress.Handle.Get(run).FourthRouteRelicStage != 0
+            || player.Relics.OfType<FourthRouteRelic>().Any(relic => relic.Quest == quest)) return;
+        FourthRouteRelic relic = CreateRelic(quest);
+        relic.Stage = 0;
+        await RelicCmd.Obtain(relic, player);
+        await CheckThresholdQuest(player);
     }
 
     public static Task AddProgress(Player player, FourthRouteQuest quest, int amount = 1)
     {
-        if (player.RunState is not RunState runState || !TryGetQuest(runState, out FourthRouteQuest active)
-            || active != quest || M5Progress.Handle.Get(runState).FourthRouteQuestCompleted)
+        if (player.Character is not MaidenSuccubusCharacter || player.RunState is not RunState runState
+            || !TryGetQuest(runState, out FourthRouteQuest active) || active != quest)
             return Task.CompletedTask;
-        int target = TargetFor(quest);
-        M5Progress.Handle.Modify(runState, state =>
-        {
-            state.FourthRouteQuestProgress = Math.Min(target, state.FourthRouteQuestProgress + amount);
-            if (state.FourthRouteQuestProgress >= target)
-            {
-                state.FourthRouteQuestCompleted = true;
-                state.FourthRouteRewardPending = true;
-            }
-        });
+        ChangeTrial(runState, state => FourthRouteTrialRules.Add(state, quest, amount));
         return Task.CompletedTask;
     }
 
     public static bool HasPendingInitialReward(RunState runState)
     {
-        M5ProgressState state = M5Progress.Handle.Get(runState);
-        // Legacy saves have no pending flag and therefore do not replay their
-        // already-granted stage-one reward. New rewards retain the pending flag
-        // until acquisition finishes, so a failed grant can be retried safely.
-        return state.FourthRouteQuestCompleted
-            && !state.FourthRouteRewardClaimed
-            && state.FourthRouteRewardPending
-            && TryGetQuest(runState, out _);
+        return TryGetQuest(runState, out _) && FourthRouteTrialRules.Pending(Trial(runState).Phase);
     }
 
     public static async Task ClaimInitialReward(Player player)
     {
-        if (player.RunState is not RunState runState
+        if (player.Character is not MaidenSuccubusCharacter || player.RunState is not RunState runState
             || !HasPendingInitialReward(runState)
             || !TryGetQuest(runState, out FourthRouteQuest quest))
             return;
 
-        M5ProgressState before = M5Progress.Handle.Get(runState);
-        if (!before.FourthRouteRewardCorruptionApplied)
+        ClaimGate gate = Claims.GetValue(runState, _ => new ClaimGate());
+        if (gate.Busy) return;
+        gate.Busy = true;
+        try
         {
-            M5Progress.Handle.Modify(runState,
-                state => state.FourthRouteRewardCorruptionApplied = true);
-            CorruptionCmd.Modify(runState,
-                AlignmentOf(quest) == FourthRouteAlignment.Dark ? 1 : -1,
-                new CorruptionChangeSource($"fourth_route.{quest.ToString().ToLowerInvariant()}"));
+            int targetStage = FourthRouteTrialRules.RewardStage(Trial(runState).Phase);
+            M5ProgressState before = M5Progress.Handle.Get(runState);
+            if (!before.FourthRouteRewardCorruptionApplied)
+            {
+                M5Progress.Handle.Modify(runState,
+                    state => state.FourthRouteRewardCorruptionApplied = true);
+                CorruptionCmd.Modify(runState,
+                    AlignmentOf(quest) == FourthRouteAlignment.Dark ? 1 : -1,
+                    new CorruptionChangeSource($"fourth_route.{quest.ToString().ToLowerInvariant()}"));
+            }
+
+            M5Progress.Handle.Modify(runState, state => state.FourthRouteRelicStage = targetStage);
+            foreach (FourthRouteRelic old in player.Relics.OfType<FourthRouteRelic>()
+                .Where(relic => relic.Quest == quest && relic.Stage != targetStage).ToList())
+                await RelicCmd.Remove(old);
+            if (targetStage == 2)
+                foreach (FourthRouteFragmentRelic fragment in player.Relics.OfType<FourthRouteFragmentRelic>().ToList())
+                    await RelicCmd.Remove(fragment);
+            if (!player.Relics.OfType<FourthRouteRelic>().Any(relic => relic.Quest == quest && relic.Stage == targetStage))
+            {
+                FourthRouteRelic relic = CreateRelic(quest);
+                relic.Stage = targetStage;
+                await RelicCmd.Obtain(relic, player);
+            }
+
+            ChangeTrial(runState, state => FourthRouteTrialRules.Claim(state));
+            M5Progress.Handle.Modify(runState, state => state.FourthRouteFragmentPending = targetStage == 1);
         }
-
-        M5Progress.Handle.Modify(runState, state =>
-        {
-            state.FourthRouteRelicStage = Math.Max(1, state.FourthRouteRelicStage);
-            state.FourthRouteFragmentPending = true;
-        });
-
-        if (!player.Relics.OfType<FourthRouteRelic>().Any(relic => relic.Quest == quest))
-        {
-            FourthRouteRelic relic = CreateRelic(quest);
-            relic.Stage = 1;
-            await RelicCmd.Obtain(relic, player);
-        }
-
-        M5Progress.Handle.Modify(runState, state =>
-        {
-            state.FourthRouteRewardPending = false;
-            state.FourthRouteRewardClaimed = true;
-        });
+        finally { gate.Busy = false; }
     }
 
-    public static async Task CheckThresholdQuest(Player player)
+    public static Task CheckThresholdQuest(Player player)
     {
-        if (player.RunState is not RunState runState || !TryGetQuest(runState, out FourthRouteQuest quest)) return;
-        if (quest == FourthRouteQuest.Greed && player.Gold >= 300)
-            await AddProgress(player, quest, TargetFor(quest));
+        if (player.Character is not MaidenSuccubusCharacter || player.RunState is not RunState runState
+            || !TryGetQuest(runState, out FourthRouteQuest quest)) return Task.CompletedTask;
+        if (quest == FourthRouteQuest.Greed)
+            ChangeTrial(runState, state => FourthRouteTrialRules.SetGold(state, player.Gold));
+        return Task.CompletedTask;
     }
 
-    public static async Task AdvanceStage(Player player, int expectedCurrentStage)
+    public static async Task UnlockSecondTrial(Player player)
     {
-        if (player.RunState is not RunState runState || !TryGetQuest(runState, out FourthRouteQuest quest)) return;
-        M5ProgressState state = M5Progress.Handle.Get(runState);
-        if (!state.FourthRouteQuestCompleted || state.FourthRouteRelicStage != expectedCurrentStage) return;
-        FourthRouteRelic? relic = player.Relics.OfType<FourthRouteRelic>().FirstOrDefault(r => r.Quest == quest);
-        if (relic == null) return;
-        int next = Math.Min(4, expectedCurrentStage + 1);
-        FourthRouteRelic replacement = CreateRelic(quest);
-        replacement.Stage = next;
-        if (relic is GreedRouteRelic oldGreed && replacement is GreedRouteRelic newGreed)
+        if (player.Character is not MaidenSuccubusCharacter || player.RunState is not RunState runState
+            || !TryGetQuest(runState, out _) || Trial(runState).Phase != FourthTrialPhase.Fragment) return;
+        ChangeTrial(runState, state => FourthRouteTrialRules.UnlockSecond(state));
+        M5Progress.Handle.Modify(runState, state =>
         {
-            newGreed.FreeShopPending = oldGreed.FreeShopPending;
-            newGreed.FreeShopActive = oldGreed.FreeShopActive;
-        }
-        await RelicCmd.Remove(relic);
-        await RelicCmd.Obtain(replacement, player);
-        M5Progress.Handle.Modify(runState, data =>
-        {
-            data.FourthRouteRelicStage = next;
-            if (next >= 2) { data.FourthRouteFragmentPending = false; data.FourthRouteFragmentPurchased = true; }
-            if (next >= 3) data.FourthRouteSacrificeCompleted = true;
+            state.FourthRouteFragmentPending = false;
+            state.FourthRouteFragmentPurchased = true;
+            state.FourthRouteRewardCorruptionApplied = false;
         });
+        await CheckThresholdQuest(player);
+    }
+
+    public static async Task UnlockThirdTrial(Player player, int removedCount, bool matchingDirection)
+    {
+        if (player.Character is not MaidenSuccubusCharacter || player.RunState is not RunState runState
+            || !TryGetQuest(runState, out _) || Trial(runState).Phase != FourthTrialPhase.Sacrifice
+            || removedCount <= 0 || !matchingDirection) return;
+        ChangeTrial(runState, state => FourthRouteTrialRules.UnlockThird(state, removedCount, matchingDirection));
+        M5Progress.Handle.Modify(runState, state =>
+        {
+            state.FourthRouteSacrificeCompleted = true;
+            state.FourthRouteRewardCorruptionApplied = false;
+        });
+        await CheckThresholdQuest(player);
     }
 
     public static bool HasFourthActQualification(RunState runState)
@@ -143,7 +189,8 @@ public static class FourthRouteProgressService
             && Enum.IsDefined(quest) ? AlignmentOf(quest) : null;
         return FourthActEntryRules.Qualifies(
             runState.Players.Any(player => player.Character is MaidenSuccubusCharacter),
-            state.FourthRouteRelicStage >= 4, alignment, CorruptionQuery.Get(runState));
+            state.FourthRouteRelicStage >= 4 && Trial(runState).Phase == FourthTrialPhase.Complete,
+            alignment, CorruptionQuery.Get(runState));
     }
 
     // Qualification is deliberately NOT an enable switch for the unfinished act.
@@ -165,16 +212,7 @@ public static class FourthRouteProgressService
         });
     }
 
-    public static int TargetFor(FourthRouteQuest quest) => quest switch
-    {
-        FourthRouteQuest.Greed => 1,
-        FourthRouteQuest.Generosity => 1,
-        FourthRouteQuest.Envy or FourthRouteQuest.Humility
-            or FourthRouteQuest.Temperance or FourthRouteQuest.Sloth => 2,
-        FourthRouteQuest.Benevolence or FourthRouteQuest.Patience => 5,
-        FourthRouteQuest.Wrath => 4,
-        _ => 3
-    };
+    public static int TargetFor(FourthRouteQuest quest, int trial = 1) => FourthRouteTrialRules.Target(quest, trial);
 
     public static string QuestName(FourthRouteQuest quest) => quest switch
     {
@@ -187,28 +225,27 @@ public static class FourthRouteProgressService
         FourthRouteQuest.Patience => "耐心", _ => "勤勉"
     };
 
-    public static string QuestText(FourthRouteQuest quest) => quest switch
-    {
-        FourthRouteQuest.Pride => "进行3场精英战斗。",
-        FourthRouteQuest.Greed => "持有至少300金币。",
-        FourthRouteQuest.Lust => "在欲望不低于5的状态下结束3场战斗。",
-        FourthRouteQuest.Envy => "移除2张牌。",
-        FourthRouteQuest.Gluttony => "使用3瓶药水。",
-        FourthRouteQuest.Wrath => "在第3回合结束前赢得4场战斗。",
-        FourthRouteQuest.Sloth => "在火堆休息2次。",
-        FourthRouteQuest.Humility => "升级2张初始牌。",
-        FourthRouteQuest.Generosity => "跳过1个宝箱。",
-        FourthRouteQuest.Chastity => "以不高于2点欲望的状态结束3场战斗。",
-        FourthRouteQuest.Benevolence => "向牌组中加入5张牌。",
-        FourthRouteQuest.Temperance => "跳过2次卡牌奖励。",
-        FourthRouteQuest.Patience => "进行5场普通战斗。",
-        _ => "在火堆锻造3次。"
-    };
+    public static string QuestText(FourthRouteQuest quest, int trial = 1) => FourthRouteTrialRules.Text(quest, trial);
 
-    public static FourthRouteRelic CreateRelicPreview(FourthRouteQuest quest)
+    public static string ProgressText(Player player, FourthRouteQuest quest)
+    {
+        if (player.RunState is not RunState run || !TryGetQuest(run, out var active) || active != quest) return "";
+        FourthRouteTrialState state = Trial(run);
+        if (state.Phase == FourthTrialPhase.Fragment) return "取得这件遗物的碎片，以推进试炼。";
+        if (state.Phase == FourthTrialPhase.Sacrifice) return "在女神献上祭品，以推进试炼。";
+        if (state.Phase == FourthTrialPhase.Complete) return "试炼完成了。允许进入第四层，但因为还没做完，所以进不去XD";
+        int trial = FourthRouteTrialRules.Number(state.Phase);
+        int target = TargetFor(quest, trial);
+        int progress = quest == FourthRouteQuest.Greed && FourthRouteTrialRules.Active(state.Phase)
+            ? Math.Clamp(player.Gold, 0, target) : Math.Min(state.Progress, target);
+        return $"{QuestText(quest, trial)}\n{progress}/{target}"
+            + (FourthRouteTrialRules.Pending(state.Phase) ? "（待领取试炼的奖赏）" : "");
+    }
+
+    public static FourthRouteRelic CreateRelicPreview(FourthRouteQuest quest, int stage = 1)
     {
         FourthRouteRelic relic = CreateRelic(quest);
-        relic.Stage = 1;
+        relic.Stage = stage;
         return relic;
     }
 

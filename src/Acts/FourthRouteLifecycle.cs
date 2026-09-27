@@ -16,8 +16,7 @@ namespace MaidenSuccubus.Acts;
 
 /// <summary>
 /// Trial listeners belong to the character, not to a removable starter relic.
-/// M5Progress remains the saved source of truth. This extraction does not replace
-/// the pending DS27 trial rewrite.
+/// M5Progress owns the saved three-trial phase and counters.
 /// </summary>
 [RegisterSingleton]
 public sealed class FourthRouteLifecycle : SingletonModel
@@ -44,17 +43,22 @@ public sealed class FourthRouteLifecycle : SingletonModel
         run.Players.Where(player => player.IsActiveForHooks && IsEligible(player)).Select(For);
 
     public override Task BeforeCombatStart() => CheckThresholdQuest();
-    public override Task AfterRoomEntered(AbstractRoom room) => CheckThresholdQuest();
+    public override async Task AfterRoomEntered(AbstractRoom room)
+    {
+        if (IsEligible(_owner)) await FourthRouteProgressService.EnsureDormantRelic(_owner);
+        await CheckThresholdQuest();
+    }
+    public override Task AfterGoldGained(Player player) => player == _owner ? CheckThresholdQuest() : Task.CompletedTask;
 
     public override decimal ModifyMerchantPrice(Player player, MerchantEntry entry, decimal cost) =>
         player == _owner && IsEligible(player) && entry is MerchantRelicEntry { Model: FourthRouteFragmentRelic }
-            ? 199m : cost;
+            ? 100m : cost;
 
     public override Task AfterPotionUsed(PotionModel potion, Creature? target) =>
         potion.Owner == _owner ? TrackSimple(FourthRouteQuest.Gluttony) : Task.CompletedTask;
 
     public override Task AfterRestSiteHeal(Player player, bool isMimicked) =>
-        player == _owner ? TrackSimple(FourthRouteQuest.Sloth) : Task.CompletedTask;
+        player == _owner && !isMimicked ? TrackSimple(FourthRouteQuest.Sloth) : Task.CompletedTask;
 
     public override Task AfterRestSiteSmith(Player player) =>
         player == _owner ? TrackSimple(FourthRouteQuest.Diligence) : Task.CompletedTask;
@@ -74,7 +78,10 @@ public sealed class FourthRouteLifecycle : SingletonModel
             FourthRouteQuest light = FourthRouteProgressService.LightQuests[rng.NextInt(7)];
             FourthRouteQuest? selected = await FourthRouteSelectionScreen.ChooseQuest(dark, light);
             if (selected is FourthRouteQuest quest)
+            {
                 FourthRouteProgressService.SelectQuest(runState, quest);
+                await FourthRouteProgressService.EnsureDormantRelic(_owner);
+            }
         }
         finally { _showingFourthRouteFlow = false; }
     }
@@ -87,7 +94,8 @@ public sealed class FourthRouteLifecycle : SingletonModel
         _showingFourthRouteFlow = true;
         try
         {
-            if (await FourthRouteSelectionScreen.ShowReward(quest))
+            if (await FourthRouteSelectionScreen.ShowReward(quest,
+                FourthRouteTrialRules.RewardStage(FourthRouteProgressService.Trial(runState).Phase)))
                 await FourthRouteProgressService.ClaimInitialReward(_owner);
         }
         finally { _showingFourthRouteFlow = false; }
@@ -97,15 +105,9 @@ public sealed class FourthRouteLifecycle : SingletonModel
     {
         if (!IsEligible(_owner) || _owner.Creature.IsDead || _owner.RunState is not RunState runState
             || !FourthRouteProgressService.TryGetQuest(runState, out FourthRouteQuest quest)) return;
-        if (quest == FourthRouteQuest.Pride && room.RoomType == RoomType.Elite)
-            await FourthRouteProgressService.AddProgress(_owner, quest);
-        else if (quest == FourthRouteQuest.Lust && Desire.Get(_owner) >= 5)
-            await FourthRouteProgressService.AddProgress(_owner, quest);
-        else if (quest == FourthRouteQuest.Chastity && Desire.Get(_owner) <= 2)
-            await FourthRouteProgressService.AddProgress(_owner, quest);
-        else if (quest == FourthRouteQuest.Wrath && room.CombatState.RoundNumber <= 3)
-            await FourthRouteProgressService.AddProgress(_owner, quest);
-        else if (quest == FourthRouteQuest.Patience && room.RoomType == RoomType.Monster)
+        int trial = FourthRouteTrialRules.Number(FourthRouteProgressService.Trial(runState).Phase);
+        if (FourthRouteTrialRules.CountsCombat(quest, trial, room.RoomType == RoomType.Elite,
+            room.RoomType == RoomType.Monster, room.CombatState.RoundNumber, Desire.Get(_owner)))
             await FourthRouteProgressService.AddProgress(_owner, quest);
         await CheckThresholdQuest();
 
