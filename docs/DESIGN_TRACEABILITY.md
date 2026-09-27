@@ -14,7 +14,7 @@
 | 基线日期 | 2026-07-26 |
 | 基线用途 | 保存加入索引和治理协议前的908行DesignDoc |
 | 本次变更前DesignDoc基线 | `d067a56` |
-| 当前同步状态 | 2026-09-14：第二轮迭代DesignDoc范围与规则初稿已建立；待形成第二轮技术Plan |
+| 当前同步状态 | 2026-09-27：全量设计差异已审阅；Plan §25登记范围与Q1～Q11，等待澄清后实施；本表历史IMPLEMENTED不代表新规则已经实现 |
 
 后续每次同步完成后，应将“当前同步状态”更新为对应提交ID和涉及的需求ID。
 
@@ -191,3 +191,22 @@
 | AUDIT | `UI-FORMAL-ASSET-AUDIT-001` | `完成版卡图/manifest.json`的130张正式卡图及默认图、火堆/商店正式素材、CG/音频清单均与运行时逐项哈希一致 | IMPLEMENTED（静态复验通过） |
 
 本节不改变DesignDoc机制含义，也不把素材候选、V1选角背景或V3路线翼饰重新纳入运行时。
+
+## 8. 2026-09-27 全面变更审阅与重新验收
+
+本节覆盖之前与新规则冲突的交付状态。完整证据见[审阅报告](DESIGN_SYNC_20260927_REVIEW.md)和[原始差异](DESIGN_SYNC_20260927_RAW_DIFF.md)。当前仅完成审阅，不标记任何本轮实现为IMPLEMENTED或VERIFIED。
+
+| 需求范围 | 变化与结论 | Plan任务 | 当前状态 | 验收组 |
+|---|---|---|---|---|
+| `DOC-ITER2-001` | 以指定历史交付为保守基线，纳入所有文本和行为差异；保留并行修改 | DS27-00 | 审阅完成；语义确认OPEN | DS27-DOC |
+| `SYS-TRF-001/002/004`、`KW-OVERDRAFT-001` | 上限5、减损33%、零层退出边界、异形态切换；旧完成结论回退 | DS27-01 | OPEN：Q1 | DS27-CARD-EFFECT/COMPAT |
+| `SYS-SEA-001`、`KW-VARIATION-001` | 封印卡视觉/说明；基础牌变奏实际路线 | DS27-01/02 | READY，需重验 | DS27-CARD-META/TEXT/EFFECT |
+| 全部`CARD-*`、`STATUS-*`、`CURSE-*`、`ENCH-*` | 所有卡面标点/排版/等级与行为；新增、移动和删除条目，旧存档兼容 | DS27-02 | 已明确项READY；Q2～Q5项OPEN；逐卡不继承旧通过 | DS27-CARD-META/TEXT/EFFECT |
+| `SYS-DES-INTENT-*`、`MON-ERO-CATALOG-001`、`SYS-CTL-*`、`SYS-INV-*` | 逐怪物数值表、冷却与连续上限、阶段保护、意图恢复 | DS27-03 | OPEN：Q1、Q6；明确表项READY | DS27-MON/COMPAT |
+| `RELIC-*`、`START-002` | 新/改遗物、先古入口、事件来源、奖励与选择交互 | DS27-04 | OPEN：Q9～Q11；DRAFT待正式确认 | DS27-EVENT/ACT4/COMPAT |
+| `ACT4-001` | 14路线×3试炼与4显示形态，单次碎片、每段堕落、献祭只解锁；第四层空注册 | DS27-05 | 流程/完整试炼READY；Q7/Q8边界OPEN；旧四阶段IMPLEMENTED撤回 | DS27-ACT4/COMPAT |
+| `EVENT-001～003` | 原版事件集成不回归 | DS27-06 | 待回归 | DS27-EVENT |
+| `EVENT-NEW-001～007` | 七新事件及所有页面、文本、门槛、强制替换 | DS27-06 | DRAFT待Q10确认，其他歧义Q8/Q9 | DS27-EVENT/COMPAT |
+| 测试基础设施 | 原文/渲染/行为分层，不忽略标点、不依赖固定行号；静态与运行时分开报告 | DS27-07 | 方案完成，脚本未实现 | DS27-GATES |
+
+未完成的新敌人、第三层替换Boss、第四层战斗及多人设计不因本轮审阅自动转为READY。澄清前不在程序中固化候选规则。
