@@ -52,6 +52,13 @@ public sealed class DesignDesireRelicTestConsoleCmd : AbstractConsoleCmd
         var choice = new BlockingPlayerChoiceContext();
         int Hand() => PileType.Hand.GetPile(player).Cards.Count;
         int Energy() => player.PlayerCombatState!.Energy;
+        async Task PayAndPlay(CardModel card)
+        {
+            (int energy, int stars) = await card.SpendResources();
+            await card.OnPlayWrapper(choice, ctx.PrimaryEnemy, isAutoPlay: false,
+                new ResourceInfo { EnergySpent = energy, EnergyValue = energy, StarsSpent = stars, StarValue = stars },
+                skipCardPileVisuals: true);
+        }
         async Task ClearRelics()
         {
             foreach (var relic in player.Relics.ToArray()) await RelicCmd.Remove(relic);
@@ -118,13 +125,13 @@ public sealed class DesignDesireRelicTestConsoleCmd : AbstractConsoleCmd
                 {
                     CardModel card = drawn[0];
                     int energy = Energy(), resource = Data.Desire.Get(player);
-                    await ctx.Play(card, ctx.PrimaryEnemy);
+                    await PayAndPlay(card);
                     Check(Energy() == energy && Data.Desire.Get(player) == resource, "actual play spends neither fixed resource");
                     Check(card.EnergyCost.GetWithModifiers(CostModifiers.All) == 1
                         && card.SecondaryCosts().Get(DesireResource.Id).Amount == 2
                         && card.GetStarCostWithModifiers() == 0, "playing consumes free layers including temporary stars");
                     await CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);
-                    await ctx.Play(card, ctx.PrimaryEnemy);
+                    await PayAndPlay(card);
                     Check(Energy() == energy - 1 && Data.Desire.Get(player) == resource - 2, "second play pays original costs");
                 }
 
@@ -145,6 +152,10 @@ public sealed class DesignDesireRelicTestConsoleCmd : AbstractConsoleCmd
                 await Data.Desire.Modify(player, 1);
                 Check(Hand() == 0 && lust.UsedThisCombat == (stage > 0), "empty piles safe and consume first trigger");
             }
+
+            await ClearRelics();
+            await ctx.Reset();
+            await DesignSyncFreeUntilPlayedContract.Run(ctx, Check);
 
             foreach (int stage in new[] { 0, 1, 2, 3, 4 })
             {

@@ -66,7 +66,7 @@ class ResourceRelicContracts(unittest.TestCase):
 
     def test_real_commands_cover_trigger_and_cost_boundaries(self):
         code = read("src/ConsoleCommands/DesignDesireRelicTestConsoleCmd.cs")
-        for text in ("Data.Desire.Modify", "Data.Desire.Set", "ctx.Play", "card.EndOfTurnCleanup()", "card.GetStarCostWithModifiers()",
+        for text in ("Data.Desire.Modify", "Data.Desire.Set", "await PayAndPlay(card)", "card.EndOfTurnCleanup()", "card.GetStarCostWithModifiers()",
                      "SavedProperties.From(lust)!.Fill(saved)", "actual gain draws two three three by stage", "undrawn cards not discounted",
                      "actual play spends neither fixed resource", "second play pays original costs", "full hand consumes first gain without extra cards",
                      "NoDrawPower", "empty piles safe and consume first trigger", "prevented increase does not trigger lust",
