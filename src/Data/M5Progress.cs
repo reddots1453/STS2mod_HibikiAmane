@@ -23,6 +23,7 @@ public sealed class M5ProgressState
     public bool FourthRouteEndingChecked { get; set; }
     public bool FourthRouteEndingEligible { get; set; }
     public MaidenSuccubus.Acts.FourthRouteTrialState? FourthRouteTrial { get; set; }
+    public MaidenSuccubus.Acts.FourthRouteOpeningState? FourthRouteOpening { get; set; }
 }
 
 public static class M5Progress

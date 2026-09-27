@@ -118,6 +118,7 @@ public sealed class M6RouteConsoleCmd : AbstractConsoleCmd
             state.FourthRouteEndingChecked = false;
             state.FourthRouteEndingEligible = false;
             state.FourthRouteTrial = null;
+            state.FourthRouteOpening = null;
         });
         FourthRouteProgressService.SelectQuest(runState, quest);
         await FourthRouteProgressService.EnsureDormantRelic(player);

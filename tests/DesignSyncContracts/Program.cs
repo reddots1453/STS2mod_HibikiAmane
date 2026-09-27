@@ -514,3 +514,43 @@ Equal(true, orderedGreed.Commit(4, "0:7", true), "deferred next unknown commits"
 orderedGreed.Leave();
 Equal(false, orderedGreed.CanSelect(4, "0:8", true, false), "one entitlement never creates two shops");
 Console.WriteLine($"PASS DS27 production greed shop: {checks - beforeGreed} assertions; {checks} total.");
+
+int beforeOpening = checks;
+Equal(true, FourthRouteOpeningState.NeedsOpening(false, null), "fresh run needs opening");
+Equal(false, FourthRouteOpeningState.NeedsOpening(true, null), "legacy selected route not replayed");
+foreach (var dark in new[] { FourthRouteQuest.Pride, FourthRouteQuest.Greed, FourthRouteQuest.Lust, FourthRouteQuest.Envy,
+    FourthRouteQuest.Gluttony, FourthRouteQuest.Wrath, FourthRouteQuest.Sloth })
+foreach (var light in new[] { FourthRouteQuest.Humility, FourthRouteQuest.Generosity, FourthRouteQuest.Chastity,
+    FourthRouteQuest.Benevolence, FourthRouteQuest.Temperance, FourthRouteQuest.Patience, FourthRouteQuest.Diligence })
+foreach (bool pickDark in new[] { true, false })
+{
+    var opening = new FourthRouteOpeningState();
+    Equal(false, opening.Finish(), "cannot continue before selection");
+    Equal(false, opening.Choose(dark), "cannot select before offers");
+    Equal(false, opening.Offer(light, dark), "reject reversed alignments");
+    Equal(true, opening.Offer(dark, light), "one dark one light offered");
+    Equal(false, opening.Offer(FourthRouteQuest.Pride, FourthRouteQuest.Diligence), "cannot reroll saved offers");
+    var restored = System.Text.Json.JsonSerializer.Deserialize<FourthRouteOpeningState>(System.Text.Json.JsonSerializer.Serialize(opening))!;
+    Equal(opening.Dark, restored.Dark, "saved dark offer retained");
+    Equal(opening.Light, restored.Light, "saved light offer retained");
+    Equal(false, restored.Choose((FourthRouteQuest)1000), "unknown quest rejected");
+    foreach (var other in Enum.GetValues<FourthRouteQuest>().Where(q => q != dark && q != light))
+        Equal(false, restored.Choose(other), "unoffered quest rejected");
+    var chosen = pickDark ? dark : light;
+    Equal(true, restored.Choose(chosen), "offered choice locks immediately");
+    Equal(false, restored.Completed, "choice is not narrative completion");
+    Equal(false, restored.Choose(pickDark ? light : dark), "cannot switch choice");
+    Equal(false, restored.Choose(chosen), "cannot confirm twice");
+    Equal(true, FourthRouteOpeningState.NeedsOpening(true, restored), "chosen unfinished narrative resumes");
+    restored = System.Text.Json.JsonSerializer.Deserialize<FourthRouteOpeningState>(System.Text.Json.JsonSerializer.Serialize(restored))!;
+    Equal((FourthRouteQuest?)chosen, restored.Chosen, "saved chosen route retained");
+    Equal(true, restored.Finish(), "narrative completion succeeds once");
+    Equal(false, restored.Finish(), "double continue idempotent");
+    Equal(false, FourthRouteOpeningState.NeedsOpening(true, restored), "completed opening not replayed");
+    Equal(false, opening.Completed, "saved copy independent");
+}
+var corruptOpening = new FourthRouteOpeningState { Dark = (FourthRouteQuest)1000, Light = FourthRouteQuest.Humility,
+    Chosen = (FourthRouteQuest)1000 };
+Equal(false, corruptOpening.HasOffers, "invalid saved enum not legal offer");
+Equal(false, corruptOpening.Finish(), "invalid saved offer cannot finish");
+Console.WriteLine($"PASS DS27 production opening flow: {checks - beforeOpening} assertions; {checks} total.");
