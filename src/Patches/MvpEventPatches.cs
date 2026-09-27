@@ -22,6 +22,8 @@ using MaidenSuccubus.Bootstrap;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Core.Desire;
+using MaidenSuccubus.Core.Events;
+using MaidenSuccubus.Commands;
 using MaidenSuccubus.Relics;
 using MaidenSuccubus.Util;
 
@@ -55,18 +57,10 @@ internal static class MvpEventRules
             ["WHISPERING_HOLLOW.pages.INITIAL.options.HUG"] = 1,
         };
 
-    internal static bool TryGetRun(out RunState runState)
+    internal static Task ApplyAfterSuccessfulOption(EventModel model, string optionKey)
     {
-        runState = RunManager.Instance.DebugOnlyGetState()!;
-        return runState is not null
-            && runState.Players.Any(player =>
-                player.Character is MaidenSuccubusCharacter);
-    }
-
-    internal static Task ApplyAfterSuccessfulOption(string optionKey)
-    {
-        if (CorruptionByOption.TryGetValue(optionKey, out int delta)
-            && TryGetRun(out RunState runState))
+        if (Applies(model) && CorruptionByOption.TryGetValue(optionKey, out int delta)
+            && model.Owner!.RunState is RunState runState)
         {
             CorruptionCmd.Modify(
                 runState,
@@ -124,7 +118,7 @@ internal static class MvpEventRules
     internal static async Task AcceptReflection(Reflections model)
     {
         List<CardModel> cards = model.Owner!.Deck.Cards.Where(c => c.IsUpgradable).ToList();
-        cards.StableShuffle(model.Owner.RunState.Rng.Niche);
+        cards.StableShuffle(model.Rng);
         foreach (CardModel card in cards.Take(4))
         {
             CardCmd.Upgrade(card, CardPreviewStyle.MessyLayout);
@@ -185,7 +179,10 @@ internal static class MvpEventRules
             prefs: new CardSelectorPrefs(CardSelectorPrefs.EnchantSelectionPrompt, 2),
             player: model.Owner!, enchantment: enchantment, amount: 1)).ToList();
         foreach (CardModel card in cards)
+        {
             CardCmd.Enchant<Corrupted>(card, 1);
+            EnchantmentVfxCmd.Preview(card);
+        }
         Finish(model, "SYMBIOTE.pages.MS_SYMBIOSE.description");
     }
 
@@ -339,16 +336,32 @@ public static class SymbioteMvpPatch
     {
         if (!MvpEventRules.Applies(__instance)) return original;
         int c = MvpEventRules.Corruption(__instance);
-        bool canEnchantTwo = __instance.Owner!.Deck.Cards.Count(card =>
+        bool canEnchant = __instance.Owner!.Deck.Cards.Any(card =>
             MaidenSuccubus.Enchantments.LayeredEnchantments.HasOpenSlot(card)
-                && ModelDb.Enchantment<Corrupted>().CanEnchant(card)) >= 2;
+                && ModelDb.Enchantment<Corrupted>().CanEnchant(card));
         List<EventOption> options = original.ToList();
         options.Add(ThresholdEventOptionFactory.LockedOr(__instance, c <= -3,
             () => MvpEventRules.PurifySymbiote(__instance), "SYMBIOTE.pages.INITIAL.options.MS_PURIFY"));
-        options.Add(ThresholdEventOptionFactory.LockedOr(__instance, c >= 3 && canEnchantTwo,
-            () => MvpEventRules.FullySymbiose(__instance), "SYMBIOTE.pages.INITIAL.options.MS_SYMBIOSE"));
+        const string symbiose = "SYMBIOTE.pages.INITIAL.options.MS_SYMBIOSE";
+        options.Add(new EventOption(__instance, c >= 3 && canEnchant
+            ? () => MvpEventRules.FullySymbiose(__instance) : null,
+            c < 3 ? symbiose + "_LOCKED" : canEnchant ? symbiose : symbiose + "_NO_CARDS"));
         return options;
     }
+}
+
+[HarmonyPatch]
+internal static class EventOptionOwnerPatch
+{
+    private static readonly ConditionalWeakTable<EventOption, EventModel> Owners = new();
+    private static IEnumerable<MethodBase> TargetMethods() => typeof(EventOption).GetConstructors()
+        .Where(ctor => ctor.GetParameters().FirstOrDefault()?.ParameterType == typeof(EventModel));
+
+    private static void Postfix(EventOption __instance, EventModel __0) => Safe.Run(
+        () => Owners.GetValue(__instance, _ => __0), "EventOption.Owner");
+
+    internal static EventModel? OwnerOf(EventOption option) =>
+        Owners.TryGetValue(option, out var model) ? model : null;
 }
 
 [HarmonyPatch(typeof(EventOption), nameof(EventOption.Chosen))]
@@ -360,6 +373,7 @@ public static class VanillaEventCorruptionCompletionPatch
             "<OnChosen>k__BackingField",
             typeof(Func<Task>));
     private static readonly ConditionalWeakTable<EventOption, object> Wrapped = new();
+    private static readonly EventCompletionLedger<EventModel> Completed = new();
 
     [HarmonyPrefix]
     public static void Prefix(EventOption __instance) => Safe.Run(
@@ -368,7 +382,10 @@ public static class VanillaEventCorruptionCompletionPatch
 
     private static void Wrap(EventOption option)
     {
-        if (OnChosenField == null
+        EventModel? model = EventOptionOwnerPatch.OwnerOf(option);
+        if (model == null || !MvpEventRules.Applies(model)
+            || !MvpEventRules.TryGetCorruptionDelta(option.TextKey, out _)
+            || OnChosenField == null
             || Wrapped.TryGetValue(option, out _)
             || OnChosenField.GetValue(option) is not Func<Task> original)
         {
@@ -378,8 +395,16 @@ public static class VanillaEventCorruptionCompletionPatch
         string optionKey = option.TextKey;
         Func<Task> wrapped = async () =>
         {
+            bool wasFinished = model.IsFinished;
+            LocString? previousPage = model.Description;
             await original();
-            await MvpEventRules.ApplyAfterSuccessfulOption(optionKey);
+            // Canceled/faulted tasks never reach this point. A no-op return must
+            // not look like a completed interaction either. Bath's first step
+            // advances its page without finishing, and is intentionally valid.
+            if (Completed.TryCommit(model, optionKey, MvpEventRules.Applies(model), wasFinished,
+                    model.IsFinished, optionKey == "ABYSSAL_BATHS.pages.INITIAL.options.IMMERSE"
+                        && !ReferenceEquals(previousPage, model.Description)))
+                await MvpEventRules.ApplyAfterSuccessfulOption(model, optionKey);
         };
         OnChosenField.SetValue(option, wrapped);
         Wrapped.Add(option, new object());

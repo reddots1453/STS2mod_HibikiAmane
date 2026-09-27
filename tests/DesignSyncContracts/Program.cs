@@ -1,6 +1,7 @@
 using MaidenSuccubus.Core.Routes;
 using MaidenSuccubus.Core.Relics;
 using MaidenSuccubus.Util;
+using MaidenSuccubus.Core.Events;
 
 // Compiles and executes production pure rules, not copied implementations.
 // Independent literal expectations: SYS-COR-003 and RELIC-EVENT-005, 2026-09-27.
@@ -160,3 +161,29 @@ using (snapshots.Enter(b, 3))
 }
 Equal(false, snapshots.TryGet(b, out _), "second event cleaned");
 Console.WriteLine($"PASS DS27 production snapshot scopes: {checks - beforeSnapshots} assertions; {checks} total.");
+
+int beforeEvents = checks;
+// Exhaust the boolean completion table using a fresh event for each row.
+var ledger = new EventCompletionLedger<Tuple<int>>();
+foreach (bool applicable in new[] { false, true })
+foreach (bool wasFinished in new[] { false, true })
+foreach (bool isFinished in new[] { false, true })
+foreach (bool pageChanged in new[] { false, true })
+{
+    var instance = Tuple.Create(1);
+    bool expectedCommit = applicable && !wasFinished && (isFinished || pageChanged);
+    Equal(expectedCommit, ledger.TryCommit(instance, "choice", applicable, wasFinished, isFinished, pageChanged),
+        $"event completion {applicable}/{wasFinished}/{isFinished}/{pageChanged}");
+}
+var firstEvent = Tuple.Create(1);
+var nextEvent = Tuple.Create(1);
+Equal(false, ledger.TryCommit(firstEvent, "choice", true, false, false, false), "no-op does not consume receipt");
+await Task.Yield();
+Equal(true, ledger.TryCommit(firstEvent, "choice", true, false, true, false), "later success can commit");
+Equal(false, ledger.TryCommit(firstEvent, "choice", true, false, true, true), "rebuilt same-key option cannot duplicate");
+Equal(true, ledger.TryCommit(nextEvent, "choice", true, false, true, false), "equal-valued independent event can commit");
+Equal(true, ledger.TryCommit(firstEvent, "other choice", true, false, false, true), "different option key isolated");
+Equal(false, ledger.TryCommit(firstEvent, "other choice", true, false, false, true), "page advance also exactly once");
+Equal(false, ledger.TryCommit(firstEvent, "foreign", false, false, true, true), "foreign owner rejected");
+Equal(true, ledger.TryCommit(firstEvent, "foreign", true, false, true, false), "rejection does not consume receipt");
+Console.WriteLine($"PASS DS27 production event completion: {checks - beforeEvents} assertions; {checks} total.");
