@@ -1,3 +1,4 @@
+import argparse
 import json
 import re
 import sys
@@ -89,13 +90,11 @@ ENCHANTMENT_TEXT_CONTRACTS = {
     "FlameSword": ("FromEnchantment<TezcatarasEmber>", "[gold]附魔[/gold]：[purple]特兹卡塔拉的余烬[/purple]"),
 }
 
-DESIGN_CARD_START = 614
-DESIGN_CARD_END = 1842
-
 # These are implementation-only selector/proxy cards.  They are registered so
 # the engine can render a real card choice, but DesignDoc intentionally defines
 # the owning mechanic rather than a collectible card entry for each proxy.
 TECHNICAL_CARD_TYPES = {
+    "LibraryPileChoice",
     "EnchantmentChoiceCard",
     "FourthRouteQuestChoice",
     "OverdraftAcceptChoice",
@@ -242,45 +241,69 @@ def screaming_snake(name: str) -> str:
 
 
 def class_block(text: str, class_match: re.Match[str]) -> str:
-    brace = text.find("{", class_match.end())
+    code = mask_csharp_literals(text)
+    brace = code.find("{", class_match.end())
+    terminator = code.find(";", class_match.end())
+    if terminator >= 0 and (brace < 0 or terminator < brace):
+        return ""
     if brace < 0:
         return ""
     depth = 0
     for index in range(brace, len(text)):
-        if text[index] == "{":
+        if code[index] == "{":
             depth += 1
-        elif text[index] == "}":
+        elif code[index] == "}":
             depth -= 1
             if depth == 0:
                 return text[brace : index + 1]
     return text[brace:]
 
 
+def mask_csharp_literals(text: str) -> str:
+    """Preserve offsets while excluding comments/strings from brace matching.
+
+    This is a deliberately bounded source reader, not a C# compiler. Metadata
+    expressions it cannot resolve are reported as unknown rather than guessed.
+    """
+    pattern = r'//[^\n]*|/\*[\s\S]*?\*/|"""[\s\S]*?"""|@"(?:""|[^"])*"|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\''
+    return re.sub(pattern, lambda m: re.sub(r"[^\n]", " ", m.group()), text)
+
+
 def registered_cards() -> tuple[
     dict[str, tuple[str, Path]],
     dict[str, tuple[str, str | None, Path]],
 ]:
-    result: dict[str, str] = {}
-    all_classes: dict[str, tuple[str, str | None]] = {}
+    result: dict[str, tuple[str, Path]] = {}
+    all_classes: dict[str, tuple[str, str | None, Path]] = {}
     class_pattern = re.compile(
         r"(?:public|internal|protected|private)?\s*(?:abstract\s+|sealed\s+)?"
-        r"class\s+(?P<name>\w+)(?:<[^>{}]+>)?"
-        r"(?:\s*:\s*(?P<base>[\w<>]+))?"
+        r"class\s+(?P<name>\w+)(?P<generic><[^>{}]+>)?"
+        r"(?:\s*:\s*(?P<base>\w+(?:<[^>{}]+>)?))?"
     )
     registered_pattern = re.compile(
         r"\[RegisterCard\([^\]]+\)\]\s*"
+        r"(?:\[[^\]]+\]\s*)*"
         r"(?:public\s+)?sealed\s+class\s+(?P<name>\w+)"
     )
     for path in CARDS_ROOT.rglob("*.cs"):
         text = path.read_text(encoding="utf-8-sig")
-        for match in class_pattern.finditer(text):
+        code = mask_csharp_literals(text)
+        for match in class_pattern.finditer(code):
             base = match.group("base")
             if base:
-                base = base.split("<", 1)[0]
-            all_classes[match.group("name")] = (class_block(text, match), base, path)
-        for match in registered_pattern.finditer(text):
+                base = generic_key(base)
+            name = generic_key(match.group("name") + (match.group("generic") or ""))
+            all_classes[name] = (class_block(text, match), base, path)
+        for match in registered_pattern.finditer(code):
             result[match.group("name")] = (class_block(text, match), path)
     return result, all_classes
+
+
+def generic_key(name: str) -> str:
+    if "<" not in name:
+        return name
+    stem, args = name.split("<", 1)
+    return f"{stem}`{len(args.split(','))}"
 
 
 def declared_vars(block: str) -> set[str]:
@@ -330,12 +353,33 @@ def has_uncolored_term(text: str, term: str, color: str) -> bool:
 
 
 def normalize_design_title(text: str) -> str:
-    value = text.strip().strip("*`")
+    value = re.sub(r"^\s*#+\s*", "", text).strip()
+    value = re.sub(r"\s*`\[[^\]]+\]`\s*$", "", value).strip().strip("*`")
     value = re.sub(r"^\d+[.、]\s*", "", value)
-    value = re.sub(r"^(?:衍生卡|衍生牌)(?:\s*[：:]\s*|\s+)", "", value)
-    value = re.sub(r"[（(]\s*(?:是)?(?:打击|防御)\s*[）)]\s*$", "", value)
     value = re.sub(r"^[（(]\s*", "", value)
+    value = re.sub(r"^(?:衍生卡|衍生牌)(?:\s*[：:]\s*|\s+)", "", value)
+    value = re.sub(r"[（(]\s*(?:(?:是)?(?:打击|防御)|事件衍生卡)\s*[）)]\s*$", "", value)
     return value.strip()
+
+
+CARD_TYPE_LINE = re.compile(r"^(?:攻击|技能|能力|状态|诅咒)牌(?:\s|$)")
+
+
+def next_content(lines: list[str], index: int) -> int | None:
+    return next((i for i in range(index + 1, len(lines)) if lines[i].strip()), None)
+
+
+def is_card_title(lines: list[str], index: int) -> bool:
+    following = next_content(lines, index)
+    return following is not None and bool(CARD_TYPE_LINE.match(lines[following].strip()))
+
+
+def catalogue_bounds(lines: list[str]) -> tuple[int, int]:
+    start = next((i for i, line in enumerate(lines)
+                  if line.startswith("## ") and "CARD-POOL-001" in line), 0)
+    end = next((i for i in range(start + 1, len(lines))
+                if re.match(r"##\s+三、遗物", lines[i])), len(lines))
+    return start, end
 
 
 def design_index(title: str, lines: list[str]) -> int | None:
@@ -348,96 +392,108 @@ def design_index(title: str, lines: list[str]) -> int | None:
     if not matches:
         return None
     # Prefer the actual card catalogue, then the event-derived-card section.
-    in_catalogue = [i for i in matches if DESIGN_CARD_START <= i < DESIGN_CARD_END]
+    start, end = catalogue_bounds(lines)
+    # Real typed entries outrank prose and same-name route/relic headings.
+    typed = [i for i in matches if is_card_title(lines, i)]
+    in_catalogue = [i for i in typed if start <= i < end]
     if in_catalogue:
         return in_catalogue[0]
-
-    # Generated cards can be specified inline under a relic or event.  Prefer a
-    # same-name heading that is immediately followed by card type/cost metadata
-    # over the owning route/relic heading (for example the nested 谦逊 card).
-    card_type_pattern = re.compile(r"(?:攻击|技能|能力|状态|诅咒)牌")
+    if typed:
+        return typed[0]
+    # Status/curse entries omit their type row. Require an immediate rules row,
+    # not a distant cost in the next card or prose elsewhere in the document.
     for index in matches:
-        nearby = " ".join(line.strip() for line in lines[index + 1 : index + 4])
-        if card_type_pattern.search(nearby) and re.search(r"(?:X|\d+)(?:/\d+)?费", nearby):
+        following = next_content(lines, index)
+        if following is not None and re.match(
+            r"^(?:(?:X|\d+)(?:/\d+)?费|无费用|不能被打出|无法被打出)",
+            lines[following].strip(),
+        ):
             return index
-    return matches[0]
+    return None
+
+
+def design_body(title: str, lines: list[str]) -> list[str]:
+    index = design_index(title, lines)
+    if index is None:
+        return []
+    result: list[str] = []
+    for i in range(index + 1, len(lines)):
+        value = lines[i].strip()
+        if not value:
+            if result:
+                break
+            continue
+        if value.startswith(("#", "**", "<a ")) or value in ("）", ")"):
+            break
+        if is_card_title(lines, i):
+            break
+        # Numbered Scriptures have no blank separator, and a closing wrapper
+        # can be on the last rules line of an inline generated card.
+        result.append(value)
+        if value.endswith("。）"):
+            break
+    return result
+
+
+def typed_design_entries(lines: list[str]) -> dict[str, int]:
+    """Reverse coverage: named typed designs without a registered model.
+
+    Untyped statuses and prose-only designs still require review; this is not
+    advertised as a complete natural-language requirements extractor.
+    """
+    result: dict[str, int] = {}
+    for i, line in enumerate(lines):
+        if not CARD_TYPE_LINE.match(line.strip()):
+            continue
+        previous = next((j for j in range(i - 1, -1, -1) if lines[j].strip()), None)
+        if previous is None:
+            continue
+        title = normalize_design_title(lines[previous])
+        if not title or title.endswith(("：", ":")) or lines[previous].startswith("**"):
+            continue
+        result.setdefault(title, previous)
+    return result
 
 
 def design_context(title: str, lines: list[str]) -> str | None:
     index = design_index(title, lines)
     if index is None:
         return None
-    context: list[str] = []
-    for line in lines[index : min(index + 7, len(lines))]:
-        if context and not line.strip():
-            break
-        context.append(line.strip())
-    return " / ".join(context)
+    return "\n".join([lines[index].strip(), *design_body(title, lines)])
 
 
 def normalize_for_comparison(text: str) -> str:
+    """Informational template similarity ONLY; preserve punctuation and lines.
+
+    Numeric substitution cannot prove values, SmartFormat branches or rendered
+    typography. Those remain explicitly pending independent/runtime contracts.
+    """
     text = re.sub(r"\[[^\]]+\]", "", text)
     text = re.sub(r"\{[^{}]+\}", "数值", text)
     text = re.sub(r"\d+(?:/\d+)?", "数值", text)
     text = re.sub(r"^(?:X|数值)(?:/数值)?费(?:数值欲望)?\s*", "", text)
-    text = re.sub(r"升级后(?:获得|移除|变化为)[^。；]+[。；]?", "", text)
-    text = re.sub(r"(?:不能被打出|无法被打出|消耗|保留|虚无|固有|沉底|随身)[。；]?", "", text)
-    return re.sub(r"[\s，。；：、（）()“”\-＋+]", "", text)
+    return re.sub(r"[^\S\n]+", "", text).strip()
 
 
 def design_effect(title: str, lines: list[str]) -> str | None:
     index = design_index(title, lines)
     if index is None:
         return None
-    candidates = []
-    for line in lines[index + 1 : min(index + 8, len(lines))]:
-        stripped = line.strip()
-        if not stripped:
-            if candidates:
-                break
-            continue
-        if stripped.startswith(("#", "**", "（", "(")):
-            continue
-        candidates.append(stripped)
-    if not candidates:
-        return None
-    # Most entries are: title / card type+rarity / cost+effect.  Return the
-    # first effect-looking line in document order.  Searching for a later line
-    # containing "费" first incorrectly paired numbered Scripture entries
-    # with the following Scripture's effect.
-    for candidate in candidates:
-        if re.search(r"(?:攻击牌|技能牌|能力牌|状态牌|诅咒牌)\s+(?:基础|普通|罕见|稀有|先古)$", candidate):
-            continue
-        if candidate.startswith(("**", "卡图：")) or candidate == "power":
-            continue
-        if any(word in candidate for word in (
-            "造成", "获得", "抽", "失去", "选择", "回合", "打出", "将", "进入",
-            "持续", "挣脱", "移除", "变化", "给予", "恢复", "不能", "无法",
-        )):
-            return candidate
-    return candidates[-1]
+    candidates = [line for line in design_body(title, lines)
+                  if not CARD_TYPE_LINE.match(line)
+                  and line != "power" and not line.startswith("卡图：")]
+    return "\n".join(candidates) or None
 
 
 def design_metadata(title: str, lines: list[str]) -> dict[str, object] | None:
     index = design_index(title, lines)
     if index is None:
         return None
-    window: list[str] = []
-    for raw in lines[index + 1 : min(index + 14, len(lines))]:
-        value = raw.strip()
-        if not value and window:
-            break
-        if value.startswith("#"):
-            break
-        if value:
-            window.append(value)
-        if len(window) >= 8:
-            break
+    window = design_body(title, lines)
     context = " ".join(window)
     type_line = next(
         (line for line in window
-         if re.search(r"(?:攻击牌|技能牌|能力牌|状态牌|诅咒牌)", line)
-         and not re.search(r"(?:打出|获得|选择|变化为|消耗)", line)),
+         if CARD_TYPE_LINE.match(line)),
         "",
     )
     card_type = next(
@@ -450,7 +506,8 @@ def design_metadata(title: str, lines: list[str]) -> dict[str, object] | None:
          if name in type_line),
         None,
     )
-    cost_match = re.search(r"(?P<base>X|\d+)(?:/(?P<upgraded>\d+))?费", context)
+    effect = design_effect(title, lines) or ""
+    cost_match = re.match(r"(?P<base>X|\d+)(?:/(?P<upgraded>\d+))?费", effect)
     base_keyword_context = re.sub(r"升级后[^。；]+[。；]?", "", context)
     base_keyword_context = re.split(r"[（(]衍生(?:卡|牌)", base_keyword_context, 1)[0]
     base_keywords: list[str] = []
@@ -499,6 +556,7 @@ def source_metadata(
     all_classes: dict[str, tuple[str, str | None, Path]],
 ) -> dict[str, object]:
     blocks: list[str] = []
+    names: list[str] = []
     paths: list[str] = []
     current: str | None = type_name
     visited: set[str] = set()
@@ -506,20 +564,55 @@ def source_metadata(
         visited.add(current)
         block, base, path = all_classes[current]
         blocks.append(block)
+        names.append(current)
         paths.append(str(path.relative_to(ROOT)).replace("\\", "/"))
         current = base
-    combined = "\n".join(blocks)
-    constructor = re.search(
-        r":\s*base\(\s*(?P<cost>-?\d+)\s*,\s*"
-        r"CardType\.(?P<type>\w+)\s*,\s*"
-        r"CardRarity\.(?P<rarity>\w+)\s*,\s*"
-        r"TargetType\.(?P<target>\w+)",
-        combined,
-    )
-    cost_upgrade = re.search(r"EnergyCost\.UpgradeBy\(\s*(-?\d+)\s*\)", blocks[0])
+    # Resolve only constant/enum forwarding through constructor parameters.
+    # Never take a convenient literal from an unrelated method or base class.
+    arguments: list[str] = []
+    bindings: dict[str, str] = {}
+    for name, block in zip(names, blocks):
+        constructor = re.search(
+            rf"\b{re.escape(name.split('`')[0])}\s*\((?P<params>[^()]*)\)\s*"
+            r":\s*base\((?P<args>[^()]*)\)", mask_csharp_literals(block),
+        )
+        if not constructor:
+            # No constructor means the language's implicit parameterless base
+            # call. An explicit but unsupported constructor must stay unknown.
+            if re.search(rf"\b{re.escape(name.split('`')[0])}\s*\(", mask_csharp_literals(block)):
+                arguments = []
+                break
+            arguments = []
+            continue
+        parameters = [p.strip() for p in constructor.group("params").split(",") if p.strip()]
+        bindings = {}
+        for position, parameter in enumerate(parameters):
+            declaration, _, default = parameter.partition("=")
+            parameter_name = declaration.split()[-1]
+            if position < len(arguments):
+                bindings[parameter_name] = arguments[position]
+            elif default:
+                bindings[parameter_name] = default.strip()
+        arguments = [bindings.get(arg.strip(), arg.strip())
+                     for arg in constructor.group("args").split(",")]
+        if len(arguments) >= 4 and arguments[1].startswith("CardType."):
+            break
+    resolved = dict.fromkeys(("cost", "type", "rarity", "target"))
+    if len(arguments) >= 4:
+        resolved["cost"] = int(arguments[0]) if re.fullmatch(r"-?\d+", arguments[0]) else None
+        for position, field, enum in ((1, "type", "CardType"), (2, "rarity", "CardRarity"),
+                                     (3, "target", "TargetType")):
+            match = re.fullmatch(rf"{enum}\.(\w+)", arguments[position])
+            resolved[field] = match.group(1) if match else None
+    upgrade = inherited_method(blocks, "OnUpgrade")
+    cost_upgrades = re.findall(r"EnergyCost\.UpgradeBy\(\s*(-?\d+)\s*\)", upgrade)
+    # Conditional or other forms of mutation cannot be certified by a sum.
+    unknown_cost_upgrade = "EnergyCost" in upgrade and (
+        not cost_upgrades or bool(re.search(r"\b(?:if|switch)\b|\?", mask_csharp_literals(upgrade))))
+    keyword_source = next((block for block in blocks if "CanonicalKeywords" in block), "")
     canonical_keyword_match = re.search(
         r"CanonicalKeywords\s*=>\s*\[(?P<body>.*?)\]\s*;",
-        blocks[0],
+        keyword_source,
         re.S,
     )
     canonical_keyword_source = (
@@ -532,22 +625,47 @@ def source_metadata(
     flat_keywords = sorted({first or second for first, second in keywords})
     return {
         "source": paths[0] if paths else None,
-        "cost": int(constructor.group("cost")) if constructor else None,
+        **resolved,
         "upgradedCost": (
-            int(constructor.group("cost")) + int(cost_upgrade.group(1))
-            if constructor and cost_upgrade else
-            int(constructor.group("cost")) if constructor else None
+            None if unknown_cost_upgrade else
+            resolved["cost"] + sum(map(int, cost_upgrades))
+            if resolved["cost"] is not None else None
         ),
-        "type": constructor.group("type") if constructor else None,
-        "rarity": constructor.group("rarity") if constructor else None,
-        "target": constructor.group("target") if constructor else None,
+        "unresolvedFields": [key for key, value in resolved.items() if value is None]
+            + (["keywords"] if keyword_source and not canonical_keyword_match else [])
+            + (["upgradedCost"] if unknown_cost_upgrade else []),
         "keywords": flat_keywords,
-        "addsKeywords": sorted(set(re.findall(r"AddKeyword\(([^)]+)\)", blocks[0]))),
-        "removesKeywords": sorted(set(re.findall(r"RemoveKeyword\(([^)]+)\)", blocks[0]))),
+        "addsKeywords": sorted(set(re.findall(r"AddKeyword\(([^)]+)\)", upgrade))),
+        "removesKeywords": sorted(set(re.findall(r"RemoveKeyword\(([^)]+)\)", upgrade))),
     }
 
 
-def main() -> int:
+def inherited_method(blocks: list[str], name: str) -> str:
+    for i, block in enumerate(blocks):
+        match = re.search(rf"\boverride\s+void\s+{name}\(\)\s*(=>|\{{)",
+                          mask_csharp_literals(block))
+        if not match:
+            continue
+        if match.group(1) == "=>":
+            result = block[match.end():block.index(";", match.end())]
+        else:
+            # class_block accepts a match ending before the opening brace.
+            prefix = re.search(rf"\boverride\s+void\s+{name}\(\)", block)
+            result = class_block(block, prefix)
+        if f"base.{name}()" in result:
+            result += "\n" + inherited_method(blocks[i + 1:], name)
+        return result
+    return ""
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Static card audit; not a gameplay/rendering certification.")
+    output = parser.add_mutually_exclusive_group()
+    output.add_argument("--output", type=Path, help="Explicit independent JSON report path")
+    output.add_argument("--no-write", action="store_true", help="Read-only audit; preserve all existing reports")
+    parser.add_argument("--strict-review", action="store_true",
+                        help="Fail on unresolved metadata or unverified full-text/rendering contracts")
+    args = parser.parse_args(argv)
     loc = load_json_with_review_comments(LOC_PATH)
     power_loc = load_json_with_review_comments(POWER_LOC_PATH)
     static_hover_loc = load_json_with_review_comments(STATIC_HOVER_LOC_PATH)
@@ -592,6 +710,7 @@ def main() -> int:
     registered_prefixes: set[str] = set()
     referenced_power_types: set[str] = set()
     for type_name, (block, source_path) in sorted(cards.items()):
+        failure_start = len(failures)
         prefix = f"MAIDEN_SUCCUBUS_CARD_{screaming_snake(type_name)}"
         registered_prefixes.add(prefix)
         title_key = f"{prefix}.title"
@@ -657,28 +776,28 @@ def main() -> int:
         effect = design_effect(title, design_lines)
         design_data = design_metadata(title, design_lines)
         source_data = source_metadata(type_name, all_classes)
-        if design_data and source_data["cost"] is not None:
+        if design_data:
             expected_type = DESIGN_TYPES.get(design_data["type"])
-            if expected_type and expected_type != source_data["type"]:
+            if expected_type and source_data["type"] is not None and expected_type != source_data["type"]:
                 failures.append(
                     f"DesignDoc type mismatch: {type_name}: "
                     f"expected {expected_type}, source {source_data['type']}"
                 )
             expected_rarity = DESIGN_RARITIES.get(design_data["rarity"])
-            if expected_rarity and expected_rarity != source_data["rarity"]:
+            if expected_rarity and source_data["rarity"] is not None and expected_rarity != source_data["rarity"]:
                 failures.append(
                     f"DesignDoc rarity mismatch: {type_name}: "
                     f"expected {expected_rarity}, source {source_data['rarity']}"
                 )
             expected_cost = design_data["baseCost"]
-            if expected_cost and expected_cost != "X" \
+            if expected_cost and expected_cost != "X" and source_data["cost"] is not None \
                     and int(expected_cost) != source_data["cost"]:
                 failures.append(
                     f"DesignDoc cost mismatch: {type_name}: "
                     f"expected {expected_cost}, source {source_data['cost']}"
                 )
             expected_upgraded_cost = design_data["upgradedCost"]
-            if expected_upgraded_cost \
+            if expected_upgraded_cost and source_data["upgradedCost"] is not None \
                     and int(expected_upgraded_cost) != source_data["upgradedCost"]:
                 failures.append(
                     f"DesignDoc upgraded cost mismatch: {type_name}: "
@@ -705,7 +824,7 @@ def main() -> int:
                 normalize_for_comparison(description),
                 normalize_for_comparison(effect),
             ).ratio()
-        if context is None and type_name in TECHNICAL_CARD_TYPES:
+        if type_name in TECHNICAL_CARD_TYPES:
             status = "TECHNICAL"
         elif context is None:
             status = "NO-DESIGN"
@@ -725,8 +844,20 @@ def main() -> int:
             "design": design_data,
             "source": source_data,
             "similarity": similarity,
+            "textReview": "NOT_APPLICABLE" if status == "TECHNICAL" else "PENDING_EXACT_RENDERED_CONTRACT",
+            "numericReview": "PENDING_RUNTIME_VARIABLES",
+            "findings": failures[failure_start:],
             "hoverReferences": hover_references,
         })
+
+    mapped_titles = {row.get("title") for row in report if row.get("status") == "DESIGN"}
+    for title, index in typed_design_entries(design_lines).items():
+        if title not in mapped_titles:
+            report.append({
+                "status": "DESIGN-ONLY", "title": title, "line": index + 1,
+                "designEffect": design_effect(title, design_lines),
+                "review": "PENDING_MODEL_OR_EXPLICIT_SCOPE_DECISION",
+            })
 
     for key in sorted(loc):
         match = re.match(r"(?P<prefix>MAIDEN_SUCCUBUS_CARD_.+)\.(title|description)$", key)
@@ -774,16 +905,27 @@ def main() -> int:
             f"found {scripture_preview.group(0)}"
         )
 
-    report_path = ROOT / ".review" / "card_localization_audit.json"
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(
-        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    report_path = None if args.no_write else (
+        args.output or ROOT / ".review" / "card_localization_audit.json")
+    if report_path is not None:
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(
+            json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+    pending_text = sum(row.get("textReview") == "PENDING_EXACT_RENDERED_CONTRACT" for row in report)
+    unresolved = sum(bool(row.get("source", {}).get("unresolvedFields")) for row in report)
+    design_only = sum(row.get("status") == "DESIGN-ONLY" for row in report)
+    if args.strict_review and (pending_text or unresolved or design_only):
+        failures.append(f"full review incomplete: pendingText={pending_text} unresolvedMetadata={unresolved} "
+                        f"designOnly={design_only}")
 
     for failure in failures:
         print(failure)
-    print(f"audited={len(cards)} failures={len(failures)} report={report_path}")
+    print(f"audited={len(cards)} failures={len(failures)} unresolvedMetadata={unresolved} "
+          f"pendingText={pending_text} designOnly={design_only} report={report_path}")
+    print("Static findings only: similarity does not verify numbers, punctuation, layout, or gameplay.")
     return 1 if failures else 0
 
 
