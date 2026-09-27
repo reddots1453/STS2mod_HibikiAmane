@@ -72,7 +72,7 @@ internal static class CardEffectTestCatalog
         Block<DoubleDefense>(8, 12);
         DreamMistProbe();
         DamageTargetPower<ExplosiveImpact>(6, 10, "ShatterPower", 2, 2);
-        DamageTargetPower<FlameBloom>(7, 10, "BurningPower", 2, 2);
+        FlameBloomProbe();
         FlameSwordProbe();
         DamageGenerate<FlashStab, FlashStab>(5, 7, PileType.Draw);
         ForgeStrikeProbe();
@@ -81,8 +81,7 @@ internal static class CardEffectTestCatalog
         GaleSwordProbe();
         GoddessOfIceProbe();
         HealingArtProbe();
-        DamageGenerate<IceBreakingSlash, IceShard>(7, 9, PileType.Hand,
-            generatedUpgradedWithSource: true);
+        IceBreakingSlashProbe();
         Generate<IceShield, IceShard>(PileType.Hand, 3, 3,
             generatedUpgradedWithSource: true);
         JudgmentBladeProbe();
@@ -311,67 +310,121 @@ internal static class CardEffectTestCatalog
     // Generic executable probes -------------------------------------------------
 
     private static void CounterBarrierProbe() =>
-        CustomVariants<CounterBarrier>(async (ctx, card, _) =>
+        CustomVariants<CounterBarrier>(async (ctx, card, upgraded) =>
         {
+            AssertNeutralMetadata(ctx, card, CardRarity.Rare, upgraded ? 0 : 1);
+            ctx.AssertTrue("first barrier retains sinking", card.Keywords.Contains(MaidenSuccubus.Keywords.SinkingKeyword.Value), effect: false);
             await ctx.Play(card);
             ctx.AssertPower<ThornsPower>("first stage thorns", ctx.Self, 2);
+            ctx.AssertPower<PlatingPower>("first stage plating", ctx.Self, 2);
             CounterBarrierII second = PileType.Discard.GetPile(ctx.Player).Cards
                 .OfType<CounterBarrierII>().Single();
+            ctx.AssertTrue("next stage is base as described", !second.IsUpgraded, effect: false);
             await ctx.Play(second);
             ctx.AssertPower<ThornsPower>("second stage cumulative thorns", ctx.Self, 5);
+            ctx.AssertPower<PlatingPower>("second stage cumulative plating", ctx.Self, 5);
             CounterBarrierIII third = PileType.Discard.GetPile(ctx.Player).Cards
                 .OfType<CounterBarrierIII>().Single();
             await ctx.Play(third);
             ctx.AssertPower<ThornsPower>("third stage cumulative thorns", ctx.Self, 10);
+            ctx.AssertPower<PlatingPower>("third stage cumulative plating", ctx.Self, 10);
             CounterBarrierIV fourth = PileType.Discard.GetPile(ctx.Player).Cards
                 .OfType<CounterBarrierIV>().Single();
             await ctx.Play(fourth);
-            ctx.AssertPower<ThornsPower>("fourth stage cumulative thorns", ctx.Self, 60);
-        }, 4);
+            ctx.AssertPower<ThornsPower>("fourth stage cumulative thorns", ctx.Self, 40);
+            ctx.AssertPower<PlatingPower>("fourth stage cumulative plating", ctx.Self, 40);
+        }, 8);
 
     private static void CounterBarrierTokenProbe<TCard, TNext>(int thorns)
         where TCard : CardModel
         where TNext : CardModel =>
-        BaseOnly<TCard>(async (ctx, card) =>
+        CustomVariants<TCard>(async (ctx, card, upgraded) =>
         {
+            AssertNeutralMetadata(ctx, card, CardRarity.Rare, upgraded ? 0 : 1);
             int before = ctx.CountCards<TNext>(PileType.Discard);
             await ctx.Play(card);
             ctx.AssertPower<ThornsPower>("thorns", ctx.Self, thorns);
+            ctx.AssertPower<PlatingPower>("plating equals thorns", ctx.Self, thorns);
             ctx.AssertPileDelta<TNext>(
                 "next counter-barrier stage generated", PileType.Discard, before, 1);
-        }, 2);
+        }, 3);
 
     private static void CounterBarrierFinalProbe() =>
-        BaseOnly<CounterBarrierIV>(async (ctx, card) =>
+        CustomVariants<CounterBarrierIV>(async (ctx, card, upgraded) =>
         {
+            AssertNeutralMetadata(ctx, card, CardRarity.Rare, upgraded ? 1 : 2);
             await ctx.Play(card);
-            ctx.AssertPower<ThornsPower>("final-stage thorns", ctx.Self, 50);
-            ctx.AssertEqual("final-stage energy cost", 2,
-                card.EnergyCost.GetWithModifiers(CostModifiers.All), effect: false);
-        });
+            ctx.AssertPower<ThornsPower>("final-stage thorns", ctx.Self, 30);
+            ctx.AssertPower<PlatingPower>("final-stage plating", ctx.Self, 30);
+        }, 2);
 
     private static void DreamMistProbe() =>
         CustomVariants<DreamMist>(async (ctx, card, upgraded) =>
         {
             int amount = upgraded ? 3 : 2;
+            AssertNeutralMetadata(ctx, card, CardRarity.Common, 0);
             await ctx.Play(card);
             foreach (Creature creature in ctx.Combat.Creatures)
             {
                 ctx.AssertPower<WeakPower>("all-creature weak", creature, amount);
-                ctx.AssertPower<VulnerablePower>("all-creature vulnerable", creature, amount);
+                ctx.AssertPower<VulnerablePower>("does not apply vulnerable", creature, 0);
             }
         }, 2);
 
     private static void ForgeStrikeProbe() =>
         CustomVariants<ForgeStrike>(async (ctx, card, upgraded) =>
         {
+            AssertNeutralMetadata(ctx, card, CardRarity.Uncommon, 1);
             MaidenStrike selected = await ctx.Add<MaidenStrike>(PileType.Hand);
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(card, ctx.PrimaryEnemy, selectedCards: [selected]);
             ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, upgraded ? 9 : 6);
-            ctx.AssertEqual("selected strike receives Glam", "Glam",
+            ctx.AssertEqual("selected strike receives Instinct", "Instinct",
                 selected.Enchantment?.GetType().Name ?? "none");
-        }, 2);
+            ctx.AssertEqual("Instinct reduces selected strike cost", 0,
+                selected.EnergyCost.GetWithModifiers(CostModifiers.All));
+
+            await ctx.Reset();
+            MaidenStrike zeroCost = await ctx.Add<MaidenStrike>(PileType.Hand);
+            zeroCost.EnergyCost.UpgradeBy(-1);
+            ctx.AssertTrue("zero-cost strike is not enchantable by Instinct",
+                !ModelDb.Enchantment<Instinct>().CanEnchant(zeroCost), effect: false);
+            await ctx.Play(ctx.Create<ForgeStrike>(upgraded), ctx.PrimaryEnemy);
+            ctx.AssertTrue("no legal strike finishes without applying enchantment", zeroCost.Enchantment == null);
+        }, 4);
+
+    private static void AssertNeutralMetadata(CardEffectTestContext ctx, CardModel card, CardRarity rarity, int cost)
+    {
+        ctx.AssertEqual("DesignDoc rarity", rarity, card.Rarity, effect: false);
+        ctx.AssertEqual("DesignDoc energy cost", cost,
+            card.EnergyCost.GetWithModifiers(CostModifiers.All), effect: false);
+    }
+
+    private static void IceBreakingSlashProbe() =>
+        CustomVariants<IceBreakingSlash>(async (ctx, card, upgraded) =>
+        {
+            AssertNeutralMetadata(ctx, card, CardRarity.Common, 1);
+            int hp = ctx.PrimaryEnemy.CurrentHp;
+            await ctx.Play(card, ctx.PrimaryEnemy);
+            ctx.AssertDamage("fixed seven damage", ctx.PrimaryEnemy, hp, 7);
+            IceShard[] shards = PileType.Hand.GetPile(ctx.Player).Cards.OfType<IceShard>().ToArray();
+            ctx.AssertEqual("one or two shards", upgraded ? 2 : 1, shards.Length);
+            ctx.AssertTrue("generated shards are not upgraded", shards.All(shard => !shard.IsUpgraded));
+        }, 3);
+
+    private static void FlameBloomProbe() =>
+        CustomVariants<FlameBloom>(async (ctx, card, upgraded) =>
+        {
+            AssertNeutralMetadata(ctx, card, CardRarity.Common, 1);
+            int hp = ctx.PrimaryEnemy.CurrentHp;
+            await ctx.Play(card, ctx.PrimaryEnemy);
+            ctx.AssertDamage("damage without release", ctx.PrimaryEnemy, hp, upgraded ? 11 : 8);
+            ctx.AssertPower<BurningPower>("one base burning", ctx.PrimaryEnemy, 1);
+            await ctx.Reset();
+            await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 1);
+            await ctx.Play(ctx.Create<FlameBloom>(upgraded), ctx.PrimaryEnemy, selectedIndices: [0]);
+            ctx.AssertPower<BurningPower>("release adds one more burning", ctx.PrimaryEnemy, 2);
+        }, 3);
 
     private static void MagicStarBombProbe() =>
         CustomVariants<MagicStarBomb>(async (ctx, card, upgraded) =>
@@ -390,7 +443,8 @@ internal static class CardEffectTestCatalog
     private static void SummonThunderProbe() =>
         CustomVariants<SummonThunder>(async (ctx, card, upgraded) =>
         {
-            int damage = upgraded ? 10 : 7;
+            int damage = upgraded ? 9 : 7;
+            AssertNeutralMetadata(ctx, card, CardRarity.Common, 1);
             await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 1);
             Creature releaseTarget = await CreatureCmd.Add<Byrdonis>(ctx.Combat);
             try
@@ -1231,8 +1285,9 @@ internal static class CardEffectTestCatalog
         }, 3);
 
     private static void LullabyProbe() =>
-        CustomVariants<Lullaby>(async (ctx, card, _) =>
+        CustomVariants<Lullaby>(async (ctx, card, upgraded) =>
         {
+            AssertNeutralMetadata(ctx, card, CardRarity.Rare, upgraded ? 1 : 2);
             await ctx.Play(card);
             await ctx.AddFillerCards(PileType.Hand, 2);
             int block = ctx.Self.Block;
@@ -2290,6 +2345,7 @@ internal static class CardEffectTestCatalog
     private static void BathProbe() =>
         CustomVariants<Bath>(async (ctx, card, upgraded) =>
         {
+            AssertNeutralMetadata(ctx, card, CardRarity.Uncommon, 1);
             SemenCurse firstCurse = ctx.Player.RunState.CreateCard<SemenCurse>(ctx.Player);
             FoulSlimeCurse secondCurse = ctx.Player.RunState.CreateCard<FoulSlimeCurse>(ctx.Player);
             await CardPileCmd.Add(firstCurse, PileType.Deck, skipVisuals: true);
@@ -2321,12 +2377,13 @@ internal static class CardEffectTestCatalog
     private static void BorrowedForceStrikeProbe() =>
         CustomVariants<BorrowedForceStrike>(async (ctx, card, upgraded) =>
         {
+            AssertNeutralMetadata(ctx, card, CardRarity.Common, 1);
             bool attacking = ctx.PrimaryEnemy.Monster?.IntendsToAttack == true;
             int hp = ctx.PrimaryEnemy.CurrentHp;
             int energy = ctx.Player.PlayerCombatState!.Energy;
             await ctx.Play(card, ctx.PrimaryEnemy);
-            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, upgraded ? 12 : 9);
-            ctx.AssertEqual("energy follows attack intent", attacking ? 1 : 0,
+            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, upgraded ? 10 : 9);
+            ctx.AssertEqual("energy follows attack intent", attacking ? (upgraded ? 2 : 1) : 0,
                 ctx.Player.PlayerCombatState.Energy - energy);
         }, 2);
 
@@ -2430,10 +2487,11 @@ internal static class CardEffectTestCatalog
     private static void ObstructingShotProbe() =>
         CustomVariants<ObstructingShot>(async (ctx, card, upgraded) =>
         {
+            AssertNeutralMetadata(ctx, card, CardRarity.Rare, upgraded ? 1 : 2);
             bool shouldStun = ctx.PrimaryEnemy.Monster?.IntendsToAttack == false;
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(card, ctx.PrimaryEnemy);
-            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, upgraded ? 6 : 3);
+            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, 3);
             ctx.AssertEqual("stun follows non-attack intent", shouldStun,
                 ctx.PrimaryEnemy.IsStunned);
         }, 2);
@@ -2441,6 +2499,7 @@ internal static class CardEffectTestCatalog
     private static void ProcrastinateProbe() =>
         CustomVariants<Procrastinate>(async (ctx, card, upgraded) =>
         {
+            AssertNeutralMetadata(ctx, card, CardRarity.Common, 0);
             StrikeIronclad selected = await ctx.Add<StrikeIronclad>(PileType.Hand);
             await ctx.AddFillerCards(PileType.Draw, 6);
             int hand = ctx.CountCards<StrikeIronclad>(PileType.Hand);

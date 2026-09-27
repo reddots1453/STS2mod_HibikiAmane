@@ -63,7 +63,7 @@ public sealed class ScorchingMagic : MSCorruptCard
 public sealed class FlameBloom : MSNeutralCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(7, ValueProp.Move), new PowerVar<BurningPower>(2)];
+        [new DamageVar(8, ValueProp.Move), new PowerVar<BurningPower>(1)];
     public FlameBloom() : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
@@ -71,7 +71,7 @@ public sealed class FlameBloom : MSNeutralCard
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         await PowerCmd.Apply<BurningPower>(
-            context, play.Target, 2, Owner.Creature, this);
+            context, play.Target, DynamicVars["BurningPower"].BaseValue, Owner.Creature, this);
         if (await Core.Transformation.TransformationCmd.PayOverdraft(
                 context, Owner.Creature, this))
         {

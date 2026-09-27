@@ -86,7 +86,11 @@ public sealed class BorrowedForceStrike : MSNeutralCard
         }
     }
 
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
+    protected override void OnUpgrade()
+    {
+        DynamicVars.Damage.UpgradeValueBy(1);
+        DynamicVars.Energy.UpgradeValueBy(1);
+    }
 }
 
 public sealed class SteadyGuard : MSNeutralCard

@@ -82,7 +82,7 @@ ENCHANTMENT_TEXT_CONTRACTS = {
     "MagicSword": ("FromEnchantment<ChargeEnchantment>", "[gold]附魔[/gold]：[purple]充能：2[/purple]"),
     "ForgeCharge": ("FromEnchantment<ChargeEnchantment>", "[gold]附魔[/gold]：[purple]充能："),
     "YarusMemory": ("FromEnchantment<SoulLinkEnchantment>", "[gold]附魔[/gold]：[purple]灵魂联结[/purple]"),
-    "ForgeStrike": ("FromEnchantment<Glam>", "[gold]附魔[/gold]：[purple]华彩[/purple]"),
+    "ForgeStrike": ("FromEnchantment<Instinct>", "[gold]附魔[/gold]：[purple]本能[/purple]"),
     "FamiliarContract": ("FromEnchantment<FamiliarEnchantment>", "[gold]附魔[/gold]：[purple]使魔[/purple]"),
     "GaleSword": ("FromEnchantment<Swift>", "[gold]附魔[/gold]：[purple]迅捷：2[/purple]"),
     "ShiningSword": ("FromEnchantment<Vigorous>", "[gold]附魔[/gold]：[purple]活力：3[/purple]"),

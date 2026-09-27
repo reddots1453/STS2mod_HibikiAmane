@@ -147,7 +147,7 @@ public sealed class CounterBarrier : MSNeutralCard
     protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
         [HoverTipFactory.FromCard<CounterBarrierII>()];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<ThornsPower>(2)];
+        [new PowerVar<ThornsPower>(2), new PowerVar<PlatingPower>(2)];
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [SinkingKeyword.Value];
 
@@ -163,12 +163,14 @@ public sealed class CounterBarrier : MSNeutralCard
     {
         await PowerCmd.Apply<ThornsPower>(context, Owner.Creature,
             DynamicVars["ThornsPower"].BaseValue, Owner.Creature, this);
+        await PowerCmd.Apply<PlatingPower>(context, Owner.Creature,
+            DynamicVars["PlatingPower"].BaseValue, Owner.Creature, this);
         CardModel next = CombatState!.CreateCard(
             ModelDb.Card<CounterBarrierII>(), Owner);
         await CardPileCmd.AddGeneratedCardToCombat(next, PileType.Discard, Owner);
     }
 
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
 
 public abstract class CounterBarrierToken<TNext> : MSGeneratedCard
@@ -178,7 +180,7 @@ public abstract class CounterBarrierToken<TNext> : MSGeneratedCard
         [HoverTipFactory.FromCard<TNext>()];
     protected abstract int BaseThorns { get; }
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<ThornsPower>(BaseThorns)];
+        [new PowerVar<ThornsPower>(BaseThorns), new PowerVar<PlatingPower>(BaseThorns)];
 
     protected CounterBarrierToken(int cost)
         : base(cost, CardType.Power, CardRarity.Rare, TargetType.Self) { }
@@ -187,11 +189,13 @@ public abstract class CounterBarrierToken<TNext> : MSGeneratedCard
     {
         await PowerCmd.Apply<ThornsPower>(context, Owner.Creature,
             DynamicVars["ThornsPower"].BaseValue, Owner.Creature, this);
+        await PowerCmd.Apply<PlatingPower>(context, Owner.Creature,
+            DynamicVars["PlatingPower"].BaseValue, Owner.Creature, this);
         CardModel next = CombatState!.CreateCard(ModelDb.Card<TNext>(), Owner);
         await CardPileCmd.AddGeneratedCardToCombat(next, PileType.Discard, Owner);
     }
 
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
 
 [RegisterCard(typeof(MSGeneratedCardPool))]
@@ -212,16 +216,20 @@ public sealed class CounterBarrierIII : CounterBarrierToken<CounterBarrierIV>
 public sealed class CounterBarrierIV : MSGeneratedCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<ThornsPower>(50)];
+        [new PowerVar<ThornsPower>(30), new PowerVar<PlatingPower>(30)];
 
     public CounterBarrierIV()
         : base(2, CardType.Power, CardRarity.Rare, TargetType.Self) { }
 
-    protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
-        PowerCmd.Apply<ThornsPower>(context, Owner.Creature,
+    protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
+    {
+        await PowerCmd.Apply<ThornsPower>(context, Owner.Creature,
             DynamicVars["ThornsPower"].BaseValue, Owner.Creature, this);
+        await PowerCmd.Apply<PlatingPower>(context, Owner.Creature,
+            DynamicVars["PlatingPower"].BaseValue, Owner.Creature, this);
+    }
 
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]
@@ -252,7 +260,7 @@ public sealed class Procrastinate : MSNeutralCard
         [CardKeyword.Exhaust];
 
     public Procrastinate()
-        : base(0, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
+        : base(0, CardType.Skill, CardRarity.Common, TargetType.Self) { }
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
@@ -280,7 +288,7 @@ public sealed class Bath : MSNeutralCard
         [new EnergyVar(2), new EnergyVar("NextEnergy", 2)];
 
     public Bath()
-        : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
+        : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {

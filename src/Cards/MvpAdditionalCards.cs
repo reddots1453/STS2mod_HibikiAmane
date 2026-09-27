@@ -169,28 +169,20 @@ public sealed class DreamMist : MSNeutralCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<WeakPower>(2), new PowerVar<VulnerablePower>(2)];
-    public DreamMist() : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.AllEnemies) { }
+        [new PowerVar<WeakPower>(2)];
+    public DreamMist() : base(0, CardType.Skill, CardRarity.Common, TargetType.AllEnemies) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
-        await PowerCmd.Apply<WeakPower>(context, Owner.Creature,
-            DynamicVars["WeakPower"].BaseValue, Owner.Creature, this);
-        await PowerCmd.Apply<VulnerablePower>(context, Owner.Creature,
-            DynamicVars["VulnerablePower"].BaseValue, Owner.Creature, this);
         if (CombatState != null)
         {
-            foreach (var enemy in CombatState.HittableEnemies.ToArray())
-                await PowerCmd.Apply<WeakPower>(context, enemy,
+            foreach (var creature in CombatState.Creatures.Where(creature => creature.IsAlive).ToArray())
+                await PowerCmd.Apply<WeakPower>(context, creature,
                     DynamicVars["WeakPower"].BaseValue, Owner.Creature, this);
-            foreach (var enemy in CombatState.HittableEnemies.ToArray())
-                await PowerCmd.Apply<VulnerablePower>(context, enemy,
-                    DynamicVars["VulnerablePower"].BaseValue, Owner.Creature, this);
         }
     }
     protected override void OnUpgrade()
     {
         DynamicVars["WeakPower"].UpgradeValueBy(1);
-        DynamicVars["VulnerablePower"].UpgradeValueBy(1);
     }
 }
 

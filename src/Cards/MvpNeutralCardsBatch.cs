@@ -86,19 +86,22 @@ public sealed class IceShard : MSGeneratedCard
 public sealed class IceBreakingSlash : MSNeutralCard
 {
     protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
-        [HoverTipFactory.FromCard<IceShard>(IsUpgraded)];
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(7, ValueProp.Move)];
+        [HoverTipFactory.FromCard<IceShard>()];
+    protected override IEnumerable<DynamicVar> CanonicalVars =>
+        [new DamageVar(7, ValueProp.Move), new CardsVar(1)];
     public IceBreakingSlash() : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this, play)
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
-        CardModel shard = CombatState!.CreateCard<IceShard>(Owner);
-        if (IsUpgraded) CardCmd.Upgrade(shard);
-        await CardPileCmd.AddGeneratedCardToCombat(shard, PileType.Hand, Owner);
+        for (int i = 0; i < DynamicVars.Cards.IntValue; i++)
+        {
+            CardModel shard = CombatState!.CreateCard<IceShard>(Owner);
+            await CardPileCmd.AddGeneratedCardToCombat(shard, PileType.Hand, Owner);
+        }
     }
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(2);
+    protected override void OnUpgrade() => DynamicVars.Cards.UpgradeValueBy(1);
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]

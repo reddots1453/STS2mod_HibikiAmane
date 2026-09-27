@@ -80,6 +80,7 @@ internal static class CardEffectTestRunner
                     {
                         await context.Reset();
                         CardModel card = context.Create(spec.CardType, scenario.Upgraded);
+                        DesignSyncNeutralContract.Validate(context, card, scenario.Upgraded);
                         await scenario.Execute(context, card);
 
                         if (scenarioResult.EffectAssertionCount < scenario.MinimumEffectAssertions)
@@ -149,6 +150,15 @@ internal static class CardEffectTestRunner
     {
         if (string.Equals(requestedCard, "all", StringComparison.OrdinalIgnoreCase))
             return CardEffectTestCatalog.All.ToArray();
+
+        if (string.Equals(requestedCard, "ds27-neutral", StringComparison.OrdinalIgnoreCase))
+        {
+            CardEffectSpec[] batch = CardEffectTestCatalog.All
+                .Where(spec => DesignSyncNeutralContract.Contains(spec.CardType)).ToArray();
+            if (batch.Length != DesignSyncNeutralContract.Entries.Length || batch.Length != 14)
+                throw new InvalidOperationException("DS27 neutral suite must cover all 14 design entries.");
+            return batch;
+        }
 
         if (string.Equals(requestedCard, "iteration2", StringComparison.OrdinalIgnoreCase)
             || string.Equals(requestedCard, "changed", StringComparison.OrdinalIgnoreCase))

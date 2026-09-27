@@ -6,7 +6,7 @@
     "MAIDEN_SUCCUBUS_CARD_MAGIC_SWORD.description": "造成{Damage:diff()}点伤害。\n拾起时，为这张牌[gold]附魔[/gold]：[purple]充能：2[/purple]。",
     "MAIDEN_SUCCUBUS_CARD_RESISTANCE_GLOVES.description": "[gold]挣脱[/gold]{Escape:diff()}。",
     "MAIDEN_SUCCUBUS_CARD_PLAYING_WITH_FIRE.description": "获得1层[gold]燃烧[/gold]。\n抽{Cards:diff()}张牌。",
-    "MAIDEN_SUCCUBUS_CARD_FLAME_BLOOM.description": "造成{Damage:diff()}点伤害。\n给予2层[gold]燃烧[/gold]。\n[gold]魔力解放[/gold]：给予1层[gold]燃烧[/gold]。",
+    "MAIDEN_SUCCUBUS_CARD_FLAME_BLOOM.description": "造成{Damage:diff()}点伤害。\n给予{BurningPower:diff()}层[gold]燃烧[/gold]。\n[gold]魔力解放[/gold]：给予1层[gold]燃烧[/gold]。",
     "MAIDEN_SUCCUBUS_CARD_TACTICAL_CORE.description": "获得{Block:diff()}点[gold]格挡[/gold]。\n{Turns:diff()}回合内，[gold]魔力增幅[/gold]对于[gold]附魔牌[/gold]的效果翻倍。",
     "MAIDEN_SUCCUBUS_CARD_SEMEN_APPETITE.title": "精液食粮"
   },

@@ -20,12 +20,12 @@ public sealed class ForgeStrike : MSNeutralCard
 {
     protected override HashSet<CardTag> CanonicalTags => [CardTag.Strike];
     protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
-        HoverTipFactory.FromEnchantment<Glam>();
+        HoverTipFactory.FromEnchantment<Instinct>();
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new DamageVar(6, ValueProp.Move)];
 
     public ForgeStrike()
-        : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
+        : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
@@ -37,11 +37,11 @@ public sealed class ForgeStrike : MSNeutralCard
             new CardSelectorPrefs(CardSelectorPrefs.EnchantSelectionPrompt, 1),
             card => card != this
                 && card.Tags.Contains(CardTag.Strike)
-                && card.Enchantment == null,
+                && ModelDb.Enchantment<Instinct>().CanEnchant(card),
             this)).FirstOrDefault();
         if (target != null)
         {
-            CombatEnchantmentCmd.ApplyVanilla<Glam>(target, 1);
+            CombatEnchantmentCmd.ApplyVanilla<Instinct>(target, 1);
         }
     }
 
@@ -96,7 +96,7 @@ public sealed class SummonThunder : MSNeutralCard
         }
     }
 
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
+    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(2);
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]

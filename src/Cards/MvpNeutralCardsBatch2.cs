@@ -64,7 +64,7 @@ public sealed class ObstructingShot : MSNeutralCard
     protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
         [StunIntent.GetStaticHoverTip()];
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(3, ValueProp.Move)];
-    public ObstructingShot() : base(1, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy) { }
+    public ObstructingShot() : base(2, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
@@ -73,7 +73,7 @@ public sealed class ObstructingShot : MSNeutralCard
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         if (shouldStun && play.Target.IsAlive) await IntentMoveFactory.Stun(play.Target);
     }
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
+    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
 
 public sealed class CounterDefense : MSNeutralCard
