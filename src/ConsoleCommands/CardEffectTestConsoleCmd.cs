@@ -7,13 +7,13 @@ using MaidenSuccubus.Debugging.CardEffects;
 namespace MaidenSuccubus.ConsoleCommands;
 
 /// <summary>
-/// ms_test_cards confirm [all|iteration2|ds27-neutral|ds27-holy|CardTypeName]
+/// ms_test_cards confirm [all|iteration2|ds27-neutral|ds27-holy|ds27-batch6|CardTypeName]
 /// Destructively normalizes the active combat, so the confirmation token is mandatory.
 /// </summary>
 public sealed class CardEffectTestConsoleCmd : AbstractConsoleCmd
 {
     public override string CmdName => "ms_test_cards";
-    public override string Args => "confirm [all|iteration2|ds27-neutral|ds27-holy|CardTypeName]";
+    public override string Args => "confirm [all|iteration2|ds27-neutral|ds27-holy|ds27-batch6|CardTypeName]";
     public override string Description =>
         "Run exact MaidenSuccubus card-effect tests in a disposable combat (destructive)";
     public override bool IsNetworked => false;
@@ -26,7 +26,7 @@ public sealed class CardEffectTestConsoleCmd : AbstractConsoleCmd
         {
             return new CmdResult(false,
                 "Destructive test: use a disposable run, then enter "
-                + "ms_test_cards confirm [all|iteration2|ds27-neutral|ds27-holy|CardTypeName].");
+                + "ms_test_cards confirm [all|iteration2|ds27-neutral|ds27-holy|ds27-batch6|CardTypeName].");
         }
 
         string requested = args.Length >= 2 ? args[1] : "all";

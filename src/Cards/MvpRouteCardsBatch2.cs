@@ -22,7 +22,7 @@ public sealed class PleasureDrowning : MSCorruptCard
         [HoverTipFactory.FromCard<ArousalStatus>()];
     public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(7, ValueProp.Move), new CardsVar(2)];
-    public PleasureDrowning() : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
+    public PleasureDrowning() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
@@ -30,7 +30,7 @@ public sealed class PleasureDrowning : MSCorruptCard
         for (int i = 0; i < 2; i++)
             await CardPileCmd.Add(CombatState!.CreateCard<ArousalStatus>(Owner), PileType.Draw, CardPilePosition.Random);
     }
-    protected override void OnUpgrade() => DynamicVars.Cards.UpgradeValueBy(1);
+    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(3);
 }
 
 public sealed class DesireLockdown : MSCorruptCard

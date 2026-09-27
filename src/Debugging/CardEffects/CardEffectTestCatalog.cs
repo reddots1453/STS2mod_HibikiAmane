@@ -71,6 +71,7 @@ internal static class CardEffectTestCatalog
         DamageTargetPower<CycloneRupture>(5, 5, "ShatterPower", 1, 2);
         Block<DoubleDefense>(8, 12);
         DreamMistProbe();
+        DreamPigmentProbe();
         DamageTargetPower<ExplosiveImpact>(6, 10, "ShatterPower", 2, 2);
         FlameBloomProbe();
         FlameSwordProbe();
@@ -130,7 +131,7 @@ internal static class CardEffectTestCatalog
         DarkFlameBarrierProbe();
         DarkPunishmentProbe();
         DamageAllTargetPower<DarkStorm>(8, 10, "VulnerablePower", 1, 2);
-        DamageDraw<DarkThrust>(8, 11, 2, 2);
+        DamageDraw<DarkThrust>(9, 12, 2, 2);
         DemonStaffProbe();
         DesireRecycleProbe();
         DesireWhipProbe();
@@ -139,7 +140,7 @@ internal static class CardEffectTestCatalog
         ExhibitionistProbe();
         ExposePlayProbe();
         FearAuraProbe();
-        DamageAndSelectedPileMove<FinalSlash>(11, 13, 1, 2, PileType.Draw, PileType.Discard);
+        DamageAndSelectedPileMove<FinalSlash>(9, 11, 1, 2, PileType.Draw, PileType.Discard);
         DrawEnergy<FleetingYears>(2, 3, 2, 2);
         FullOfOpeningsProbe();
         IgniteProbe();
@@ -157,10 +158,10 @@ internal static class CardEffectTestCatalog
         DrawSelected<MiasmaAffinity>(1, 2, PileType.Draw, PileType.Hand,
             extra: AssertSelectedCardsEthereal);
         ExhaustTypesForPower<MiasmaConversion>();
-        DamageAllTargetPower<MiasmaFlame>(8, 10, "BurningPower", 2, 2);
+        DamageAllTargetPower<MiasmaFlame>(7, 10, "BurningPower", 3, 3);
         MimicProliferationProbe();
         Draw<PlayingWithFire>(2, 3, extra: AssertSelfBurning);
-        BlockDrawGenerate<PleasureDrowning, ArousalStatus>(7, 7, 2, 3, 2,
+        BlockDrawGenerate<PleasureDrowning, ArousalStatus>(7, 10, 2, 2, 2,
             PileType.Draw);
         PleasureGardenProbe();
         SelfPowers<PriceOfStrength>(("StrengthPower", 4, 4), ("ShatterPower", 4, 4));
@@ -1344,6 +1345,60 @@ internal static class CardEffectTestCatalog
             ctx.AssertEqual("enchanted draw plus one extra card", 2,
                 ctx.CountCards<StrikeIronclad>(PileType.Hand));
         }, 2);
+
+    private static void DreamPigmentProbe() =>
+        CustomVariants<DreamPigment>(async (ctx, _, upgraded) =>
+        {
+            foreach (string mode in new[] { "normal", "missing-holy", "near-full", "no-draw", "empty" })
+            {
+                await ctx.Reset();
+                CardModel corrupt = await ctx.Add<DarkThrust>(PileType.Draw);
+                CardModel holy = await ctx.Add<PhotonVolt>(PileType.Draw);
+                CardModel neutral = await ctx.Add<MaidenDefend>(PileType.Draw);
+                CardModel secondCorrupt = await ctx.Add<MiasmaAbsorption>(PileType.Draw);
+                CardModel vanilla = await ctx.Add<StrikeIronclad>(PileType.Draw);
+                CardModel generated = await ctx.Add<IceShard>(PileType.Draw);
+                CardModel discarded = await ctx.Add<PhotonVolt>(PileType.Discard);
+                int notifications = 0;
+                foreach (CardModel drawn in new[] { corrupt, holy, neutral })
+                    drawn.Drawn += () => notifications++;
+                if (mode == "missing-holy")
+                    await CardPileCmd.Add(holy, PileType.Discard, skipVisuals: true);
+                if (mode == "near-full")
+                    await ctx.AddFillerCards(PileType.Hand, 9);
+                if (mode == "no-draw")
+                    await ctx.ApplyPower<YarusLibraryPower>(ctx.Self, 1);
+                if (mode == "empty")
+                    foreach (CardModel candidate in PileType.Draw.GetPile(ctx.Player).Cards.ToArray())
+                        await CardPileCmd.Add(candidate, PileType.Discard, skipVisuals: true);
+                await ctx.Play(ctx.Create<DreamPigment>(upgraded));
+                bool blocked = mode is "no-draw" or "empty";
+                ctx.AssertEqual(mode + ": corrupt first", !blocked, corrupt.Pile?.Type == PileType.Hand);
+                ctx.AssertEqual(mode + ": holy", mode == "normal", holy.Pile?.Type == PileType.Hand);
+                ctx.AssertEqual(mode + ": neutral", mode is "normal" or "missing-holy", neutral.Pile?.Type == PileType.Hand);
+                ctx.AssertEqual(mode + ": draw notifications", blocked ? 0 : mode == "near-full" ? 1 : mode == "missing-holy" ? 2 : 3,
+                    notifications);
+                ctx.AssertTrue(mode + ": one card per route", secondCorrupt.Pile?.Type != PileType.Hand);
+                ctx.AssertTrue(mode + ": no vanilla or generated-pool substitution",
+                    vanilla.Pile?.Type != PileType.Hand && generated.Pile?.Type != PileType.Hand);
+                ctx.AssertEqual(mode + ": no discard reshuffle", PileType.Discard, discarded.Pile?.Type);
+                ctx.AssertTrue(mode + ": hand limit", PileType.Hand.GetPile(ctx.Player).Cards.Count <= 10);
+            }
+            foreach (int corruption in new[] { -3, 3 })
+            {
+                await ctx.Reset();
+                CorruptionCmd.Set((MegaCrit.Sts2.Core.Runs.RunState)ctx.Player.RunState, corruption);
+                CardModel first = await ctx.Add<DarkElement>(PileType.Draw);
+                CardModel second = await ctx.Add<Transform>(PileType.Draw);
+                CardModel neutral = await ctx.Add<MaidenDefend>(PileType.Draw);
+                await ctx.Play(ctx.Create<DreamPigment>(upgraded));
+                // Both starter cards have the same live route at these extremes.
+                // Draw just the first; their registered pools are not the rule.
+                ctx.AssertEqual("variation uses current route " + corruption, PileType.Hand, first.Pile?.Type);
+                ctx.AssertEqual("variation does not use original pool " + corruption, PileType.Draw, second.Pile?.Type);
+                ctx.AssertEqual("variation still draws neutral " + corruption, PileType.Hand, neutral.Pile?.Type);
+            }
+        }, 46);
 
     private static void MagicResonanceProbe() =>
         CustomVariants<MagicResonance>(async (ctx, card, upgraded) =>
@@ -2800,13 +2855,27 @@ internal static class CardEffectTestCatalog
     private static void LastStandProbe() =>
         CustomVariants<LastStand>(async (ctx, card, upgraded) =>
         {
+            LastStand outsideCombat = ctx.Player.RunState.CreateCard<LastStand>(ctx.Player);
+            if (upgraded) CardCmd.Upgrade(outsideCombat);
+            string outsideText = outsideCombat.GetDescriptionForPile(PileType.Deck);
+            ctx.AssertTrue("deck description does not contain combat total", !outsideText.Contains("（造成"));
+            await CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);
+            card.UpdateDynamicVarPreview(CardPreviewMode.Normal, ctx.PrimaryEnemy, card.DynamicVars);
+            string initialText = System.Text.RegularExpressions.Regex.Replace(
+                card.GetDescriptionForPile(PileType.Hand, ctx.PrimaryEnemy), @"\[[^\]]+\]", "");
+            ctx.AssertTrue("zero debuffs preview base damage", initialText.Contains(upgraded ? "（造成4点伤害）" : "（造成3点伤害）"));
             await ctx.ApplyPower<FrailPower>(ctx.Self, 1);
             await ctx.ApplyPower<VulnerablePower>(ctx.Self, 2);
+            card.UpdateDynamicVarPreview(CardPreviewMode.Normal, ctx.PrimaryEnemy, card.DynamicVars);
+            string preview = System.Text.RegularExpressions.Regex.Replace(
+                card.GetDescriptionForPile(PileType.Hand, ctx.PrimaryEnemy), @"\[[^\]]+\]", "");
+            ctx.AssertTrue("base damage is not counted twice in description", preview.StartsWith(upgraded ? "造成4点伤害。" : "造成3点伤害。"));
+            ctx.AssertTrue("combat total updates to debuff layers", preview.Contains(upgraded ? "（造成16点伤害）" : "（造成12点伤害）"));
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(card, ctx.PrimaryEnemy);
             ctx.AssertDamage("damage with three self-debuff layers", ctx.PrimaryEnemy, hp,
                 upgraded ? 16 : 12);
-        }, 1);
+        }, 5);
 
     private static void LoversDaggerProbe() =>
         CustomVariants<LoversDagger>(async (ctx, card, upgraded) =>
@@ -2885,17 +2954,20 @@ internal static class CardEffectTestCatalog
         {
             int block = ctx.Self.Block;
             await ctx.Play(card);
-            ctx.AssertBlock("block when played", block, upgraded ? 18 : 9);
+            ctx.AssertBlock("block when played", block, 8);
+            ctx.AssertEqual("played barrier is discarded, not exhausted", PileType.Discard, card.Pile?.Type);
+            ctx.AssertEqual("upgrade grants ethereal", upgraded, card.Keywords.Contains(CardKeyword.Ethereal));
+            ctx.AssertEqual("upgrade does not grant exhaust", false, card.Keywords.Contains(CardKeyword.Exhaust));
 
             ReflectiveBarrier exhausted = ctx.Create<ReflectiveBarrier>(upgraded);
             await CardPileCmd.Add(exhausted, PileType.Hand, skipVisuals: true);
             block = ctx.Self.Block;
             int amplification = ctx.PowerAmount(ctx.Self, "MagicAmplificationPower");
             await CardCmd.Exhaust(new BlockingPlayerChoiceContext(), exhausted);
-            ctx.AssertBlock("block when exhausted", block, 9);
+            ctx.AssertBlock("block when exhausted", block, 8);
             ctx.AssertEqual("one amplification gained when exhausted", 1,
                 ctx.PowerAmount(ctx.Self, "MagicAmplificationPower") - amplification);
-        }, 3);
+        }, 6);
 
     private static void ThousandCurseScytheProbe() =>
         CustomVariants<ThousandCurseScythe>(async (ctx, card, upgraded) =>
@@ -2913,11 +2985,18 @@ internal static class CardEffectTestCatalog
                 int hp = ctx.PrimaryEnemy.CurrentHp;
                 await ctx.Play(card, ctx.PrimaryEnemy);
                 ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, 8);
-                int expected = upgraded ? 13 : 12;
+                int expected = upgraded ? 14 : 12;
                 ctx.AssertEqual("combat-card damage growth after exhaust",
                     expected, card.CurrentDamage);
                 ctx.AssertEqual("run-deck damage growth after exhaust",
                     expected, deckCard.CurrentDamage);
+                await CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);
+                await CardCmd.Exhaust(new BlockingPlayerChoiceContext(), card);
+                int secondExpected = upgraded ? 20 : 16;
+                ctx.AssertEqual("repeated exhaust compounds combat growth", secondExpected, card.CurrentDamage);
+                ctx.AssertEqual("repeated exhaust compounds permanent growth", secondExpected, deckCard.CurrentDamage);
+                ctx.AssertEqual("clone preserves permanent damage", secondExpected,
+                    ((ThousandCurseScythe)deckCard.MutableClone()).CurrentDamage);
             }
             finally
             {
@@ -2927,7 +3006,7 @@ internal static class CardEffectTestCatalog
                     await CardPileCmd.RemoveFromDeck(deckCard, showPreview: false);
                 }
             }
-        }, 3);
+        }, 6);
 
     private static void MimicProliferationProbe() =>
         CustomVariants<MimicProliferation>(async (ctx, card, upgraded) =>

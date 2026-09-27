@@ -137,7 +137,7 @@ public sealed class ThousandCurseScythe : MSCorruptCard, IPermanentGrowthCard
     }
 
     protected override void OnUpgrade() =>
-        DynamicVars["Growth"].UpgradeValueBy(1);
+        DynamicVars["Growth"].UpgradeValueBy(2);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]
@@ -153,7 +153,7 @@ public sealed class DesireRecycle : MSCorruptCard
 public sealed class ReflectiveBarrier : MSCorruptCard
 {
     public override bool GainsBlock => true;
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(9, ValueProp.Move)];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(8, ValueProp.Move)];
     public ReflectiveBarrier() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
         CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
@@ -174,7 +174,7 @@ public sealed class ReflectiveBarrier : MSCorruptCard
         await PowerCmd.Apply<MagicAmplificationPower>(
             context, Owner.Creature, 1, Owner.Creature, this);
     }
-    protected override void OnUpgrade() => AddKeyword(CardKeyword.Exhaust);
+    protected override void OnUpgrade() => AddKeyword(CardKeyword.Ethereal);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]

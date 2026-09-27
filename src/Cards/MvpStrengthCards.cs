@@ -138,7 +138,7 @@ public sealed class SharpForge : MSCorruptCard
 public sealed class FinalSlash : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(11, ValueProp.Move), new CardsVar(1)];
+        [new DamageVar(9, ValueProp.Move), new CardsVar(1)];
 
     public FinalSlash() : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
 

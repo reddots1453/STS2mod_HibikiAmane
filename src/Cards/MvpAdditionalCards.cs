@@ -43,7 +43,7 @@ public sealed class EcstasyDew : MSCorruptCard
 public sealed class MiasmaAbsorption : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars => [new EnergyVar(2)];
-    public MiasmaAbsorption() : base(0, CardType.Skill, CardRarity.Uncommon, TargetType.Self)
+    public MiasmaAbsorption() : base(0, CardType.Skill, CardRarity.Common, TargetType.Self)
         => this.SecondaryCosts().Set(DesireResource.Id, 2);
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
         PlayerCmd.GainEnergy(DynamicVars.Energy.IntValue, Owner);
@@ -60,7 +60,7 @@ public sealed class LastStand : MSCorruptCard
         new CalculatedDamageVar(ValueProp.Move).WithMultiplier(
             static (card, _) => PowerLayerQuery.CountDebuffLayers(card.Owner.Creature)),
     ];
-    public LastStand() : base(0, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
+    public LastStand() : base(0, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);

@@ -11,7 +11,7 @@ namespace MaidenSuccubus.Debugging.CardEffects;
 
 internal static class CardEffectTestRunner
 {
-    private const int ExpectedCardCount = 224;
+    private const int ExpectedCardCount = 225;
     private static readonly SemaphoreSlim Gate = new(1, 1);
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -82,6 +82,7 @@ internal static class CardEffectTestRunner
                         CardModel card = context.Create(spec.CardType, scenario.Upgraded);
                         DesignSyncNeutralContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncHolyContract.Validate(context, card, scenario.Upgraded);
+                        DesignSyncCardBatchSixContract.Validate(context, card, scenario.Upgraded);
                         await scenario.Execute(context, card);
 
                         if (scenarioResult.EffectAssertionCount < scenario.MinimumEffectAssertions)
@@ -151,6 +152,15 @@ internal static class CardEffectTestRunner
     {
         if (string.Equals(requestedCard, "all", StringComparison.OrdinalIgnoreCase))
             return CardEffectTestCatalog.All.ToArray();
+
+        if (string.Equals(requestedCard, "ds27-batch6", StringComparison.OrdinalIgnoreCase))
+        {
+            CardEffectSpec[] batch = CardEffectTestCatalog.All
+                .Where(spec => DesignSyncCardBatchSixContract.Contains(spec.CardType)).ToArray();
+            if (batch.Length != DesignSyncCardBatchSixContract.Entries.Length || batch.Length != 9)
+                throw new InvalidOperationException("DS27 batch6 suite must cover all 9 design entries.");
+            return batch;
+        }
 
         if (string.Equals(requestedCard, "ds27-holy", StringComparison.OrdinalIgnoreCase))
         {

@@ -137,7 +137,7 @@ class RepositoryTests(unittest.TestCase):
         self.assertNotIn("抽1张", audit.design_effect("惩戒圣言", self.lines))
 
     def test_actual_source_inheritance(self):
-        self.assertEqual(len(self.cards), 224)
+        self.assertEqual(len(self.cards), 225)
         for name, rarity, cost, upgrade in (("DarkOrigin", "Ancient", 0, 0),
                                             ("DarkElement", "Basic", 0, 0),
                                             ("CounterBarrierII", "Rare", 1, 0),
@@ -157,7 +157,7 @@ class RepositoryTests(unittest.TestCase):
                 contextlib.redirect_stdout(output):
             self.assertEqual(audit.main(["--no-write", "--strict-review"]), 1)
         self.assertIn("full review incomplete", output.getvalue())
-        self.assertIn("audited=224", output.getvalue())
+        self.assertIn("audited=225", output.getvalue())
 
 
 if __name__ == "__main__":

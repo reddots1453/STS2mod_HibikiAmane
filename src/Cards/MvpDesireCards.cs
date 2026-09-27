@@ -20,8 +20,8 @@ namespace MaidenSuccubus.Cards;
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class DarkThrust : MSCorruptCard
 {
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(8, ValueProp.Move), new CardsVar(2)];
-    public DarkThrust() : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) =>
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(9, ValueProp.Move), new CardsVar(2)];
+    public DarkThrust() : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) =>
         this.SecondaryCosts().Set(DesireResource.Id, 1);
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {

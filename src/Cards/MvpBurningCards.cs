@@ -17,7 +17,7 @@ namespace MaidenSuccubus.Cards;
 public sealed class MiasmaFlame : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(8, ValueProp.Move), new PowerVar<BurningPower>(2)];
+        [new DamageVar(7, ValueProp.Move), new PowerVar<BurningPower>(3)];
 
     public MiasmaFlame() : base(0, CardType.Attack, CardRarity.Common, TargetType.AllEnemies)
         => this.SecondaryCosts().Set(DesireResource.Id, 2);
@@ -32,7 +32,7 @@ public sealed class MiasmaFlame : MSCorruptCard
             await PowerCmd.Apply<BurningPower>(context, enemy, DynamicVars["BurningPower"].BaseValue, Owner.Creature, this);
     }
 
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(2);
+    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]
