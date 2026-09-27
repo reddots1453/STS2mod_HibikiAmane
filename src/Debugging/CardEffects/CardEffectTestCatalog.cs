@@ -3256,20 +3256,7 @@ internal static class CardEffectTestCatalog
         }, 4);
 
     private static void CurseInfectionProbe() =>
-        CustomVariants<CurseInfection>(async (ctx, card, _) =>
-        {
-            await MegaCrit.Sts2.Core.Commands.CardPileCmd.Add(
-                card, PileType.Hand, skipVisuals: true);
-            StrikeIronclad recipient = await ctx.Add<StrikeIronclad>(PileType.Hand);
-            await ctx.AddFillerCards(PileType.Draw, 4);
-            int hand = ctx.CountCards<StrikeIronclad>(PileType.Hand);
-            await MegaCrit.Sts2.Core.Commands.CardCmd.Exhaust(
-                new MegaCrit.Sts2.Core.GameActions.Multiplayer.BlockingPlayerChoiceContext(), card);
-            ctx.AssertPileDelta<StrikeIronclad>("draw two on exhaust", PileType.Hand, hand, 2);
-            ctx.AssertTrue("infection transferred to hand card",
-                CurseInfectionStatus.Has(recipient)
-                || PileType.Hand.GetPile(ctx.Player).Cards.Any(CurseInfectionStatus.Has));
-        }, 2);
+        CustomVariants<CurseInfection>(DesignSyncCurseInfectionContract.Run, 65);
 
     private static void PleasureGardenProbe() =>
         CustomVariants<PleasureGarden>(async (ctx, card, _) =>

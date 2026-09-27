@@ -55,7 +55,10 @@ public static class CurseInfectionExhaustPatch
     public static void Postfix(ref Task __result, PlayerChoiceContext __1, CardModel __2)
     {
         Task original = __result;
-        __result = ResolveAfterOriginal(original, __1, __2);
+        Task wrapped = original;
+        Safe.Run(() => wrapped = ResolveAfterOriginal(original, __1, __2),
+            nameof(CurseInfectionExhaustPatch));
+        __result = wrapped;
     }
 
     private static async Task ResolveAfterOriginal(
@@ -83,11 +86,16 @@ public static class CurseInfectionCardTextPatch
     [HarmonyPostfix]
     public static void Postfix(CardModel __instance, ref string __result)
     {
-        if (!CurseInfectionStatus.Has(__instance)) return;
-        string extra = new LocString(
-            "static_hover_tips",
-            "MAIDENSUCCUBUS_CURSE_INFECTION.extraCardText").GetFormattedText();
-        __result = string.Join('\n', __result, $"[purple]{extra}[/purple]");
+        string result = __result;
+        Safe.Run(() =>
+        {
+            if (!CurseInfectionStatus.Has(__instance)) return;
+            string extra = new LocString(
+                "static_hover_tips",
+                "MAIDENSUCCUBUS_CURSE_INFECTION.extraCardText").GetFormattedText();
+            result = string.Join('\n', result, $"[purple]{extra}[/purple]");
+        }, nameof(CurseInfectionCardTextPatch));
+        __result = result;
     }
 }
 
