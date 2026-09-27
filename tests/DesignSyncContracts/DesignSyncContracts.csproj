@@ -8,5 +8,6 @@
   <ItemGroup>
     <Compile Include="../../src/Core/Routes/RouteRewardProbabilities.cs" Link="Production/RouteRewardProbabilities.cs" />
     <Compile Include="../../src/Core/Routes/RouteRewardProbabilityBonus.cs" Link="Production/RouteRewardProbabilityBonus.cs" />
+    <Compile Include="../../src/Core/Relics/OrbRules.cs" Link="Production/OrbRules.cs" />
   </ItemGroup>
 </Project>

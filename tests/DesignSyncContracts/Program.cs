@@ -1,4 +1,5 @@
 using MaidenSuccubus.Core.Routes;
+using MaidenSuccubus.Core.Relics;
 
 // Compiles and executes production pure rules, not copied implementations.
 // Independent literal expectations: SYS-COR-003 and RELIC-EVENT-005, 2026-09-27.
@@ -35,3 +36,21 @@ for (int corruption = -5; corruption <= 5; corruption++)
 foreach (int outside in new[] { int.MinValue, -6, 6, int.MaxValue })
     Equal(default(RouteRewardProbabilityBonus), RouteRewardProbabilityBonus.ForSoulCompass(outside), "outside band inactive");
 Console.WriteLine($"PASS DS27 production probability contracts: {checks} assertions.");
+
+int probabilityChecks = checks;
+// Literal design oracle (corruption -5 through +5), not the production formula.
+bool[] maxHp = [false, false, false, false, false, false, false, false, false, true, true];
+bool[] multiPick = [true, true, false, false, false, false, false, false, false, false, false];
+for (int corruption = -5; corruption <= 5; corruption++)
+{
+    Equal(maxHp[corruption + 5], OrbRules.GrantsMaxHp(corruption, false), $"orb hp {corruption}");
+    Equal(true, OrbRules.GrantsMaxHp(corruption, true), $"sky hp {corruption}");
+    foreach (int offered in new[] { 0, 1, 2, 3, 5 })
+    {
+        bool hasAnother = offered is 2 or 3 or 5;
+        Equal(hasAnother && multiPick[corruption + 5], OrbRules.AllowsMoreCards(corruption, false, offered),
+            $"orb continue {corruption}/{offered}");
+        Equal(hasAnother, OrbRules.AllowsMoreCards(corruption, true, offered), $"sky continue {corruption}/{offered}");
+    }
+}
+Console.WriteLine($"PASS DS27 production orb contracts: {checks - probabilityChecks} assertions; {checks} total.");

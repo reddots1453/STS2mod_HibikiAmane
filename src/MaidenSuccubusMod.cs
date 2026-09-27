@@ -64,6 +64,9 @@ public static class MaidenSuccubusMod
                 .OfType<Characters.MaidenSuccubusCharacter>()
                 .Distinct());
         Logger.Info("Character combat hooks subscribed through ModHelper.");
+        // Run callbacks include combat callbacks where needed. This separate
+        // per-player tracker survives starter replacement without double hooks.
+        ModHelper.SubscribeForRunStateHooks(ModId + ".FourthRoute", Acts.FourthRouteLifecycle.Listeners);
         RunFrameworkSelfTestsWithoutBlockingInitialization();
 #if DEBUG
         CardEffectTestHotkey.Register();

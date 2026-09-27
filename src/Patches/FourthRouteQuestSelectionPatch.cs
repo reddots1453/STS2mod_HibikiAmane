@@ -8,7 +8,8 @@ using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Acts;
 using MaidenSuccubus.Bootstrap;
-using MaidenSuccubus.Relics;
+using MegaCrit.Sts2.Core.Context;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MaidenSuccubus.Util;
 
 namespace MaidenSuccubus.Patches;
@@ -39,14 +40,13 @@ public static class FourthRouteQuestSelectionPatch
             return;
         }
         RunState? runState = RunManager.Instance.DebugOnlyGetState();
-        TwinSoulChalice? chalice = runState?.Players
-            .Select(player => player.GetRelic<TwinSoulChalice>())
-            .FirstOrDefault(relic => relic != null);
+        Player? player = runState?.Players.FirstOrDefault(candidate =>
+            FourthRouteLifecycle.IsEligible(candidate) && LocalContext.IsMe(candidate));
         bool needsQuest = runState is not null
             && !FourthRouteProgressService.TryGetQuest(runState, out _);
         bool needsReward = runState is not null
             && FourthRouteProgressService.HasPendingInitialReward(runState);
-        if (runState is null || chalice is null || (!needsQuest && !needsReward))
+        if (runState is null || player is null || (!needsQuest && !needsReward))
         {
             return;
         }
@@ -94,9 +94,9 @@ public static class FourthRouteQuestSelectionPatch
             MaidenSuccubusMod.Logger.Info(
                 $"Fourth-route map modal ready: quest={needsQuest}, reward={needsReward}, mapOpen={map.IsOpen}.");
             if (!FourthRouteProgressService.TryGetQuest(runState, out _))
-                await chalice.EnsureFourthRouteQuestSelected();
+                await FourthRouteLifecycle.For(player).EnsureFourthRouteQuestSelected();
             if (FourthRouteProgressService.HasPendingInitialReward(runState))
-                await chalice.EnsureFourthRouteRewardClaimed();
+                await FourthRouteLifecycle.For(player).EnsureFourthRouteRewardClaimed();
         }
         finally
         {
