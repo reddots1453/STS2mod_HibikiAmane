@@ -117,15 +117,18 @@ public sealed class PrideRouteRelic : FourthRouteRelic
 [RegisterRelic(typeof(MSRelicPool))]
 public sealed class GreedRouteRelic : FourthRouteRelic
 {
-    private bool _freeShopPending;
-    private bool _freeShopActive;
-    [SavedProperty] public bool FreeShopPending { get => _freeShopPending; set { AssertMutable(); _freeShopPending = value; } }
-    [SavedProperty] public bool FreeShopActive { get => _freeShopActive; set { AssertMutable(); _freeShopActive = value; } }
+    private GreedShopState _shop;
+    private MerchantRoom? _freeShopRoom;
+    [SavedProperty] public bool FreeShopPending { get => _shop.Pending; set { AssertMutable(); _shop.Pending = value; } }
+    [SavedProperty] public bool FreeShopActive { get => _shop.Active; set { AssertMutable(); _shop.Active = value; } }
+    [SavedProperty] public string FreeShopLocation { get => _shop.Location ?? ""; set { AssertMutable(); _shop.Location = value; } }
+    [SavedProperty] public bool PickupEffectGranted { get; set; }
     public override FourthRouteQuest Quest => FourthRouteQuest.Greed;
-    public override bool HasUponPickupEffect => true;
+    public override bool HasUponPickupEffect => Stage > 0;
     public override async Task AfterObtained()
     {
-        if (Stage == 0) return;
+        if (Stage == 0 || PickupEffectGranted) return;
+        PickupEffectGranted = true;
         if (Stage <= 2) await PlayerCmd.GainGold(100, Owner);
         if (Stage >= 3)
         {
@@ -134,11 +137,32 @@ public sealed class GreedRouteRelic : FourthRouteRelic
         }
     }
     public override decimal ModifyMerchantPrice(Player player, MerchantEntry entry, decimal cost) =>
-        player == Owner && FreeShopActive ? 0m : cost;
-    internal void OnMerchantCreated()
+        IsFreeShopFor(player) ? 0m : cost;
+    internal bool CanReplaceUnknown(string location) => FourthRouteLifecycle.IsEligible(Owner)
+        && _shop.CanSelect(Stage, location, true, false);
+    internal void BindFreeShop(string location, MerchantRoom room)
     {
-        if (FreeShopActive) { FreeShopActive = false; Status = RelicStatus.Disabled; }
-        if (FreeShopPending) { FreeShopPending = false; FreeShopActive = true; Status = RelicStatus.Active; }
+        if (!_shop.Commit(Stage, location, true)) return;
+        _freeShopRoom = room;
+        Status = RelicStatus.Active;
+    }
+    internal bool IsFreeShopFor(Player player) => FourthRouteLifecycle.IsEligible(Owner)
+        && _shop.IsFree(Stage, GreedShopService.Location(Owner.RunState),
+            _freeShopRoom != null && ReferenceEquals(Owner.RunState.CurrentRoom, _freeShopRoom), player == Owner);
+    public override Task AfterRoomEntered(AbstractRoom room)
+    {
+        if (!ReferenceEquals(room, _freeShopRoom))
+        {
+            _shop.Leave();
+            _freeShopRoom = null;
+            Status = FreeShopPending ? RelicStatus.Normal : RelicStatus.Disabled;
+        }
+        return Task.CompletedTask;
+    }
+    protected override void DeepCloneFields()
+    {
+        base.DeepCloneFields();
+        _freeShopRoom = null;
     }
 }
 

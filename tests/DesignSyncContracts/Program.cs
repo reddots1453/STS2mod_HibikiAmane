@@ -462,3 +462,55 @@ envyClone.StartTurn(4, true);
 Equal(true, envyOriginal.Used, "clone reset cannot change original receipt");
 Equal(false, envyClone.Used, "clone owns independent receipt");
 Console.WriteLine($"PASS DS27 production envy: {checks - beforeEnvy} assertions; {checks} total.");
+
+int beforeGreed = checks;
+foreach (int stage in new[] { 0, 1, 2, 3, 4, 5 })
+foreach (bool pending in new[] { false, true })
+foreach (bool activeShop in new[] { false, true })
+foreach (bool unknown in new[] { false, true })
+foreach (bool reserved in new[] { false, true })
+{
+    var state = new GreedShopState { Pending = pending, Active = activeShop, Location = "1:7" };
+    bool eligible = stage is 3 or 4 && unknown && !reserved;
+    Equal(eligible && (pending || activeShop), state.CanSelect(stage, "1:7", unknown, reserved), "greed select same location");
+    Equal(eligible && pending, state.CanSelect(stage, "1:8", unknown, reserved), "greed later location needs unspent entitlement");
+    Equal(pending, state.Pending, "query/reservation never consumes pending");
+    Equal(activeShop, state.Active, "query does not expire current room");
+}
+foreach (int stage in new[] { 0, 1, 2, 3, 4, 5 })
+{
+    var state = new GreedShopState { Pending = true };
+    bool awake = stage is 3 or 4;
+    Equal(false, state.CanSelect(stage, "", true, false), "empty location cannot reserve");
+    Equal(false, state.Commit(stage, "0:4", false), "failed or nonmerchant creation preserves entitlement");
+    Equal(true, state.Pending, "failed creation keeps pending");
+    Equal(awake, state.Commit(stage, "0:4", true), "successful merchant creation consumes only awakened");
+    Equal(!awake, state.Pending, "consume at creation not selection");
+    Equal(awake, state.IsFree(stage, "0:4", true, true), "exact room and owner free");
+    Equal(false, state.IsFree(stage, "0:4", false, true), "other shop at same floor not free");
+    Equal(false, state.IsFree(stage, "0:4", true, false), "other player not free");
+    Equal(false, state.IsFree(stage, "1:4", true, true), "same floor other act not free");
+    Equal(false, state.IsFree(stage, "0:5", true, true), "next floor not free");
+    var restored = state;
+    Equal(awake, restored.CanSelect(stage, "0:4", true, false), "saved active can rebuild same appointed room");
+    Equal(awake, restored.Commit(stage, "0:4", true), "rebuild active location idempotent");
+    state.Leave();
+    Equal(false, state.Active, "leaving clears active");
+    Equal(!awake, state.Pending, "unconsumed entitlement survives other rooms");
+    Equal(awake, restored.Active, "value copies do not share mutable room state");
+}
+var legacyGreed = new GreedShopState { Active = true };
+Equal(false, legacyGreed.CanSelect(4, "1:2", true, false), "legacy active without location cannot grant arbitrary shop");
+Equal(false, legacyGreed.IsFree(4, "1:2", true, true), "legacy unbound active cannot change prices");
+legacyGreed.Pending = true;
+Equal(true, legacyGreed.CanSelect(4, "1:2", true, false), "legacy pending still grants next unknown");
+var orderedGreed = new GreedShopState { Pending = true };
+Equal(false, orderedGreed.CanSelect(4, "0:5", false, false), "ordinary shop does not spend queued unknown");
+orderedGreed.Leave();
+Equal(false, orderedGreed.CanSelect(4, "0:6", true, true), "reserved event wins");
+orderedGreed.Leave();
+Equal(true, orderedGreed.CanSelect(4, "0:7", true, false), "deferred next unknown still eligible");
+Equal(true, orderedGreed.Commit(4, "0:7", true), "deferred next unknown commits");
+orderedGreed.Leave();
+Equal(false, orderedGreed.CanSelect(4, "0:8", true, false), "one entitlement never creates two shops");
+Console.WriteLine($"PASS DS27 production greed shop: {checks - beforeGreed} assertions; {checks} total.");

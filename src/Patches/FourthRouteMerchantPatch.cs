@@ -41,7 +41,6 @@ public static class FourthRouteMerchantPatch
                 || UpdateEntriesMethod == null
                 || !FourthRouteLifecycle.IsEligible(__result.Player)
                 || __result.Player.RunState is not RunState runState) return;
-            __result.Player.Relics.OfType<GreedRouteRelic>().FirstOrDefault()?.OnMerchantCreated();
             M5ProgressState state = M5Progress.Handle.Get(runState);
             if (!state.FourthRouteFragmentPending || state.FourthRouteFragmentOffered
                 || FourthRouteProgressService.Trial(runState).Phase != FourthTrialPhase.Fragment) return;
