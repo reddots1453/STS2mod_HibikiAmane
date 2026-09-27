@@ -175,6 +175,15 @@ public static class MaidenSuccubusMod
                 }
             );
 
+            StarterRelicChoice.Handle = store.RegisterPerPlayer(
+                key: "starter_relic_choice",
+                defaultFactory: () => new StarterRelicChoiceState(),
+                options: new RunSavedDataOptions
+                {
+                    WritePolicy = RunSavedDataWritePolicy.WhenNonDefault,
+                    SyncLobbyOnChange = true,
+                });
+
             M5Progress.Handle = store.Register(
                 key: "m5_progress",
                 defaultFactory: () => new M5ProgressState(),
@@ -187,6 +196,6 @@ public static class MaidenSuccubusMod
         }
         Logger.Info(
             "RunSavedData registered: corruption, desire, desire_amount, "
-            + "m5_progress");
+            + "m5_progress, starter_relic_choice");
     }
 }

@@ -54,3 +54,24 @@ for (int corruption = -5; corruption <= 5; corruption++)
     }
 }
 Console.WriteLine($"PASS DS27 production orb contracts: {checks - probabilityChecks} assertions; {checks} total.");
+
+int beforeRetention = checks;
+RetentionOrbRule[] retention =
+[
+    new(true, false, false), new(true, false, false),
+    new(false, false, false), new(false, false, false), new(false, false, false),
+    new(false, false, false), new(false, false, false), new(false, false, false), new(false, false, false),
+    new(false, true, false), new(false, true, false),
+];
+for (int corruption = -5; corruption <= 5; corruption++)
+{
+    RetentionOrbRule actual = RetentionOrbRule.At(corruption, false);
+    Equal(retention[corruption + 5].PermanentRetain, actual.PermanentRetain, "hero retain keyword band");
+    Equal(retention[corruption + 5].Upgrade, actual.Upgrade, "hero upgrade band");
+    Equal(false, actual.Enchant, "hero never enchants");
+    var eternal = RetentionOrbRule.At(corruption, true);
+    Equal(true, eternal.PermanentRetain, "eternal keyword in every band");
+    Equal(true, eternal.Upgrade, "eternal upgrade in every band");
+    Equal(true, eternal.Enchant, "eternal enchant in every band");
+}
+Console.WriteLine($"PASS DS27 production retention contracts: {checks - beforeRetention} assertions; {checks} total.");

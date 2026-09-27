@@ -41,7 +41,8 @@ public static class CombatEnchantmentCmd
             && typeof(T) != typeof(TezcatarasEmber)
             && typeof(T) != typeof(Instinct)
             && typeof(T) != typeof(Clone)
-            && typeof(T) != typeof(Steady))
+            && typeof(T) != typeof(Steady)
+            && typeof(T) != typeof(SlumberingEssence))
         {
             throw new InvalidOperationException(
                 $"Vanilla enchantment {typeof(T).Name} has not been audited for combat-only use.");

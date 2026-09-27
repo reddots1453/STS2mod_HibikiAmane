@@ -1,4 +1,5 @@
 #if DEBUG
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.DevConsole;
@@ -16,6 +17,10 @@ using MaidenSuccubus.Characters;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.Relics;
+using MaidenSuccubus.Characters.Starts;
+using MegaCrit.Sts2.Core.Models.Characters;
+using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
+using MaidenSuccubus.Patches;
 
 namespace MaidenSuccubus.ConsoleCommands;
 
@@ -50,6 +55,25 @@ public sealed class DesignOrbTestConsoleCmd : AbstractConsoleCmd
         try
         {
             TestMode.IsOn = true;
+            // Inspect installed patches, not merely attributes in source code.
+            foreach (var (targetName, patchName, prefix) in new[]
+            {
+                ("SelectCharacter", "SelectPostfix", false),
+                ("OnEmbarkPressed", "EmbarkPostfix", false),
+                ("OnUnreadyPressed", "UnreadyPostfix", false),
+                ("PlayerChanged", "PlayerChangedPostfix", false),
+                ("BeginRun", "BeginPrefix", true),
+                ("OnSubmenuClosed", "ClosePrefix", true),
+            })
+            {
+                var info = Harmony.GetPatchInfo(AccessTools.Method(typeof(NCharacterSelectScreen), targetName));
+                var installed = prefix ? info?.Prefixes : info?.Postfixes;
+                Check(installed?.Any(p => p.PatchMethod == AccessTools.Method(typeof(StarterRelicSelectorUiPatch), patchName)) == true,
+                    "installed starter UI patch " + targetName);
+            }
+            var startup = Harmony.GetPatchInfo(AccessTools.Method(typeof(RunManager), nameof(RunManager.FinalizeStartingRelics)));
+            Check(startup?.Prefixes.Any(p => p.PatchMethod == AccessTools.Method(typeof(StarterRelicSelectionPatch), "Prefix")) == true,
+                "installed synchronous starter initialization prefix");
             var run = (RunState)player.RunState;
             foreach (RelicModel relic in player.Relics.ToArray()) await RelicCmd.Remove(relic);
             foreach (bool sky in new[] { false, true })
@@ -136,6 +160,35 @@ public sealed class DesignOrbTestConsoleCmd : AbstractConsoleCmd
             await Hook.AfterRestSiteSmith(run, player);
             Check(M5Progress.Handle.Get(run).FourthRouteQuestProgress == 2, "upgraded starter smith still counted once");
             Check(run.IterateHookListeners(null).OfType<FourthRouteLifecycle>().Count() == 1, "replacement adds no second listener");
+
+            foreach (StarterRelicKind kind in new[] { StarterRelicKind.Omnipotent, StarterRelicKind.Hero, (StarterRelicKind)99 })
+            {
+                foreach (RelicModel relic in player.Relics.ToArray()) await RelicCmd.Remove(relic);
+                await RelicCmd.Obtain<Circlet>(player);
+                await RelicCmd.Obtain<TwinSoulChalice>(player);
+                var original = player.GetRelic<TwinSoulChalice>()!;
+                int originalFloor = original.FloorAddedToDeck;
+                StarterRelicChoice.Handle.Set(run, player.NetId, new StarterRelicChoiceState { Kind = kind });
+                StarterRelicSelection.Apply(player);
+                var expectedId = StarterRelicSelection.Preview(kind).Id;
+                Check(player.Relics.Count == 2 && player.Relics[0] is Circlet && player.Relics[1].Id == expectedId,
+                    "new-run choice replaces exactly the default slot");
+                Check(player.Relics[1].FloorAddedToDeck == originalFloor, "starter floor preserved");
+                Check(StarterRelicChoice.Handle.Get(player).Applied, "selection persisted as applied");
+                var selectedInstance = player.Relics[1];
+                StarterRelicChoice.Handle.Modify(player, state => state.Kind = StarterRelicChoice.Next(kind));
+                StarterRelicSelection.Apply(player);
+                Check(ReferenceEquals(selectedInstance, player.Relics[1]), "repeated initialization cannot replace acquired relics");
+            }
+            foreach (RelicModel relic in player.Relics.ToArray()) await RelicCmd.Remove(relic);
+            await RelicCmd.Obtain<SkyOrb>(player);
+            StarterRelicChoice.Handle.Set(run, player.NetId, new StarterRelicChoiceState { Kind = StarterRelicKind.Hero });
+            StarterRelicSelection.Apply(player);
+            Check(player.Relics.Single() is SkyOrb, "missing original starter never overwrites an ancient replacement");
+            var foreign = Player.CreateForNewRun<Ironclad>(player.UnlockState, player.NetId + 1000);
+            var foreignRelics = foreign.Relics.ToArray();
+            StarterRelicSelection.Apply(foreign);
+            Check(foreign.Relics.SequenceEqual(foreignRelics), "other character remains unchanged");
             MaidenSuccubusMod.Logger.Info($"[DS27OrbTest] PASS {checks} assertions; disposable run modified.");
         }
         catch (Exception ex)

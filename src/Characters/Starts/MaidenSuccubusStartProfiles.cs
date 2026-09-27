@@ -37,10 +37,9 @@ public static class MaidenSuccubusStartRegistry
     public static IStartUnlockPolicy UnlockPolicy { get; set; } =
         new DebugAllStartsUnlockedPolicy();
 
-    // 已达到可实施状态的初始遗物候选。START-002 的最终选择界面仍属 OPEN；
-    // 在界面落地前，角色继续使用 TwinSoulChalice 作为默认遗物。
+    // START-002: 全能默认，英雄可选；BalancedLens只保留旧存档身份。
     public static IReadOnlyList<Type> StartingRelicOptions { get; } =
-        [typeof(TwinSoulChalice), typeof(BalancedLens)];
+        [typeof(TwinSoulChalice), typeof(HeroOrb)];
 }
 
 public sealed class HolyMaidenCharacter : MaidenSuccubusCharacter

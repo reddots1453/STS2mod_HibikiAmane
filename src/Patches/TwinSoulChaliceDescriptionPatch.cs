@@ -31,8 +31,8 @@ public static class TwinSoulChaliceDescriptionPatch
                     return;
                 }
 
-                if (__instance is not TwinSoulChalice chalice || !chalice.IsMutable
-                    || chalice.Owner.RunState is not RunState runState)
+                if (__instance is not (TwinSoulChalice or HeroOrb) || !__instance.IsMutable
+                    || __instance.Owner.RunState is not RunState runState)
                 {
                     return;
                 }
@@ -43,7 +43,7 @@ public static class TwinSoulChaliceDescriptionPatch
                     : corruption <= -4
                         ? ".descriptionHoly"
                         : ".description";
-                result = new LocString("relics", chalice.Id.Entry + suffix);
+                result = new LocString("relics", __instance.Id.Entry + suffix);
             },
             "TwinSoulChalice.DynamicDescription");
         __result = result;
