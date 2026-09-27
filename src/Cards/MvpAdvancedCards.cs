@@ -12,6 +12,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Saves.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Commands;
+using MaidenSuccubus.Core.Powers;
 using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Enchantments;
 using MaidenSuccubus.Pools;
@@ -63,28 +64,13 @@ public sealed class AllCurseBite : MSCorruptCard
         CardModel card,
         bool causedByEthereal)
     {
-        if (card.Owner != Owner || card.Type != CardType.Attack)
+        if (card.Owner != Owner || card.Type != CardType.Attack
+            || Pile?.IsCombatPile != true || CombatState == null
+            || card.CombatState != CombatState)
         {
             return Task.CompletedTask;
         }
-        int addedDamage;
-        try
-        {
-            addedDamage = Math.Max(0, card.DynamicVars.Damage.IntValue);
-        }
-        catch (KeyNotFoundException)
-        {
-            try
-            {
-                addedDamage = Math.Max(
-                    0, card.DynamicVars.CalculatedDamage.IntValue);
-            }
-            catch (KeyNotFoundException)
-            {
-                addedDamage = 0;
-            }
-        }
-        ExhaustedAttackDamage += addedDamage;
+        ExhaustedAttackDamage += ExhaustDamageSnapshot.Get(card);
         return Task.CompletedTask;
     }
 

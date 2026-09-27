@@ -2651,16 +2651,7 @@ internal static class CardEffectTestCatalog
         }, 2);
 
     private static void AllCurseBiteProbe() =>
-        CustomVariants<AllCurseBite>(async (ctx, card, _) =>
-        {
-            await CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);
-            MaidenStrike fuel = await ctx.Add<MaidenStrike>(PileType.Hand);
-            await CardCmd.Exhaust(new BlockingPlayerChoiceContext(), fuel);
-            int hp = ctx.PrimaryEnemy.CurrentHp;
-            await ctx.Play(card, ctx.PrimaryEnemy);
-            ctx.AssertDamage("one plus exhausted attack damage", ctx.PrimaryEnemy, hp, 7);
-            ctx.AssertEqual("stored exhausted attack damage", 6, card.ExhaustedAttackDamage);
-        }, 2);
+        CustomVariants<AllCurseBite>(DesignSyncAllCurseBiteContract.Run, 28);
 
     private static void AllHopeLostProbe() =>
         CustomVariants<AllHopeLost>(async (ctx, card, upgraded) =>

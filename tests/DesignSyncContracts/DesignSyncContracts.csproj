@@ -11,5 +11,6 @@
     <Compile Include="../../src/Core/Relics/OrbRules.cs" Link="Production/OrbRules.cs" />
     <Compile Include="../../src/Core/Relics/RetentionOrbRules.cs" Link="Production/RetentionOrbRules.cs" />
     <Compile Include="../../src/Util/WeakInstanceScope.cs" Link="Production/WeakInstanceScope.cs" />
+    <Compile Include="../../src/Util/WeakInstanceValueScope.cs" Link="Production/WeakInstanceValueScope.cs" />
   </ItemGroup>
 </Project>

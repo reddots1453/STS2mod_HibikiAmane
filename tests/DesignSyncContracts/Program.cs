@@ -118,3 +118,45 @@ var independentRegistry = new WeakInstanceScope<Tuple<int>>();
 using (scopes.Enter(a))
     Equal(false, independentRegistry.Contains(a), "independent registries isolated");
 Console.WriteLine($"PASS DS27 production instance scopes: {checks - beforeScopes} assertions; {checks} total.");
+
+int beforeSnapshots = checks;
+var snapshots = new WeakInstanceValueScope<Tuple<int>, int>();
+Equal(false, snapshots.TryGet(a, out _), "no snapshot before entry");
+var outerSnapshot = snapshots.Enter(a, 7);
+Equal(true, snapshots.TryGet(a, out int snapshot), "snapshot entered");
+Equal(7, snapshot, "outer value");
+Equal(false, snapshots.TryGet(b, out _), "equal-value keys remain isolated");
+using (snapshots.Enter(a, 14))
+{
+    await Task.Yield();
+    Equal(true, snapshots.TryGet(a, out snapshot), "nested survives await");
+    Equal(14, snapshot, "nested value");
+}
+Equal(true, snapshots.TryGet(a, out snapshot), "outer restored");
+Equal(7, snapshot, "outer value restored");
+var lastSnapshot = snapshots.Enter(a, 20);
+outerSnapshot.Dispose(); // Even non-LIFO cleanup cannot remove the active event.
+outerSnapshot.Dispose();
+Equal(true, snapshots.TryGet(a, out snapshot), "active child survives early parent cleanup");
+Equal(20, snapshot, "active child still correct");
+lastSnapshot.Dispose();
+lastSnapshot.Dispose();
+Equal(false, snapshots.TryGet(a, out _), "idempotent cleanup empties stack");
+try
+{
+    using var failedSnapshot = snapshots.Enter(a, 9);
+    await Task.Yield();
+    throw new InvalidOperationException("snapshot failure");
+}
+catch (InvalidOperationException ex) when (ex.Message == "snapshot failure") { }
+Equal(false, snapshots.TryGet(a, out _), "exception cleans value scope");
+using (snapshots.Enter(a, 2))
+using (snapshots.Enter(b, 3))
+{
+    snapshots.TryGet(a, out int first);
+    snapshots.TryGet(b, out int second);
+    Equal(2, first, "separate event first value");
+    Equal(3, second, "separate event second value");
+}
+Equal(false, snapshots.TryGet(b, out _), "second event cleaned");
+Console.WriteLine($"PASS DS27 production snapshot scopes: {checks - beforeSnapshots} assertions; {checks} total.");
