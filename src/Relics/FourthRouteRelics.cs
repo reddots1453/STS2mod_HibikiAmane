@@ -246,30 +246,41 @@ public sealed class WrathRouteRelic : FourthRouteRelic
 [RegisterRelic(typeof(MSRelicPool))]
 public sealed class SlothRouteRelic : FourthRouteRelic
 {
-    private decimal _energySpent;
-    private bool _triggered;
+    private SlothTurnState _turn;
     [SavedProperty]
-    public decimal EnergySpentThisTurn { get => _energySpent; set { AssertMutable(); _energySpent = Math.Max(0, value); } }
+    public int EnergySpentThisTurn { get => _turn.EnergySpent; set { AssertMutable(); _turn.EnergySpent = Math.Max(0, value); } }
     [SavedProperty]
-    public bool TriggeredForNextTurn { get => _triggered; set { AssertMutable(); _triggered = value; } }
+    public bool TriggeredForNextTurn { get => _turn.PendingEnergy; set { AssertMutable(); _turn.PendingEnergy = value; } }
+    [SavedProperty]
+    public bool TurnEndResolved { get => _turn.EndResolved; set { AssertMutable(); _turn.EndResolved = value; } }
     public override FourthRouteQuest Quest => FourthRouteQuest.Sloth;
-    public override Task AfterCardPlayed(PlayerChoiceContext context, CardPlay cardPlay)
+    protected override IEnumerable<IHoverTip> AdditionalHoverTips => Stage is 3 or 4
+        ? base.AdditionalHoverTips.Concat([HoverTipFactory.Static(StaticHoverTip.Block)])
+        : base.AdditionalHoverTips;
+    public override Task BeforeCombatStart() { _turn = default; return Task.CompletedTask; }
+    public override Task AfterCombatEnd(CombatRoom room) { _turn = default; return Task.CompletedTask; }
+    public override Task BeforeSideTurnStart(PlayerChoiceContext context, CombatSide side,
+        IReadOnlyList<Creature> participants, ICombatState combatState)
     {
-        if (Stage > 0 && cardPlay.Card.Owner == Owner) _energySpent += cardPlay.Resources.EnergyValue;
+        _turn.StartTurn(combatState == Owner.Creature.CombatState
+            && side == Owner.Creature.Side && participants.Contains(Owner.Creature));
+        return Task.CompletedTask;
+    }
+    public override Task AfterEnergySpent(CardModel card, int amount)
+    {
+        _turn.RecordPayment(amount, Stage > 0 && card.Owner == Owner && Owner.Creature.CombatState != null);
         return Task.CompletedTask;
     }
     public override async Task AfterSideTurnEnd(PlayerChoiceContext context, CombatSide side, IEnumerable<Creature> participants)
     {
-        if (Stage == 0 || side != Owner.Creature.Side) return;
-        _triggered = _energySpent <= 2;
-        _energySpent = 0;
-        if (_triggered && Stage >= 3) await CreatureCmd.GainBlock(Owner.Creature, 12, ValueProp.Unpowered, null);
+        int block = _turn.ResolveEnd(Stage, Owner.Creature.CombatState != null
+            && side == Owner.Creature.Side && participants.Contains(Owner.Creature));
+        if (block > 0) await CreatureCmd.GainBlock(Owner.Creature, block, ValueProp.Unpowered, null);
     }
     public override async Task AfterEnergyReset(Player player)
     {
-        if (Stage > 0 && player == Owner && _triggered && Owner.Creature.CombatState?.RoundNumber > 1)
-            await PlayerCmd.GainEnergy(Math.Min(Stage, 3), Owner);
-        _triggered = false;
+        int energy = _turn.TakeEnergy(Stage, player == Owner && Owner.Creature.CombatState != null);
+        if (energy > 0) await PlayerCmd.GainEnergy(energy, Owner);
     }
 }
 

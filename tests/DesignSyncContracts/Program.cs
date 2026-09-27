@@ -369,3 +369,62 @@ for (int layers = 1; layers <= 3; layers++)
         + WrathRules.AwakenedBonus(4, true, true, true, true), "later play retains only awakened bonus");
 }
 Console.WriteLine($"PASS DS27 production wrath: {checks - beforeWrath} assertions; {checks} total.");
+
+int beforeSloth = checks;
+foreach (int stage in new[] { 0, 1, 2, 3, 4 })
+foreach (int spent in new[] { 0, 1, 2, 3, 20 })
+{
+    SlothTurnState turn = new();
+    Equal(0, turn.TakeEnergy(stage, true), "sloth no free first-turn energy");
+    turn.StartTurn(true);
+    turn.RecordPayment(spent, true);
+    turn.RecordPayment(99, false);
+    turn.RecordPayment(0, true);
+    turn.RecordPayment(-99, true);
+    Equal(spent, turn.EnergySpent, "actual own positive payment only");
+    turn.StartTurn(false);
+    Equal(spent, turn.EnergySpent, "other player cannot reset spending");
+    Equal(0, turn.ResolveEnd(stage, false), "other turn gives no block");
+    Equal(false, turn.PendingEnergy, "other turn creates no pending reward");
+    bool eligible = stage > 0 && spent <= 2;
+    int block = eligible && stage >= 3 ? 12 : 0;
+    Equal(block, turn.ResolveEnd(stage, true), "sloth end block");
+    Equal(eligible, turn.PendingEnergy, "sloth threshold inclusive two");
+    Equal(0, turn.ResolveEnd(stage, true), "duplicate end never gives block twice");
+    Equal(0, turn.TakeEnergy(stage, false), "foreign reset cannot steal reward");
+    Equal(eligible, turn.PendingEnergy, "foreign reset preserves reward");
+    turn.StartTurn(true); // Includes an extra turn in the same global round.
+    Equal(0, turn.EnergySpent, "new own turn clears spending");
+    Equal(false, turn.EndResolved, "new own turn reopens end settlement");
+    Equal(eligible, turn.PendingEnergy, "new own turn preserves previous reward until energy reset");
+    int reward = eligible ? Math.Min(stage, 3) : 0;
+    Equal(reward, turn.TakeEnergy(stage, true), "sloth next own turn energy");
+    Equal(0, turn.TakeEnergy(stage, true), "duplicate energy reset cannot pay twice");
+    turn.RecordPayment(1, true);
+    turn.RecordPayment(1, true);
+    turn.RecordPayment(1, true);
+    Equal(0, turn.ResolveEnd(stage, true), "separate payments accumulate above threshold");
+    Equal(0, turn.TakeEnergy(stage, true), "over threshold no next reward");
+}
+var pendingSloth = new SlothTurnState { EnergySpent = 2 };
+Equal(12, pendingSloth.ResolveEnd(4, true), "awakened block at boundary");
+pendingSloth.RecordPayment(9, true);
+Equal(2, pendingSloth.EnergySpent, "closed turn cannot accrue later side's payments");
+var clonedSloth = pendingSloth;
+Equal(3, clonedSloth.TakeEnergy(4, true), "clone can consume its own reward");
+Equal(true, pendingSloth.PendingEnergy, "value clone leaves original pending");
+pendingSloth = default;
+Equal(0, pendingSloth.EnergySpent, "battle reset clears spending");
+Equal(false, pendingSloth.EndResolved, "battle reset clears settled flag");
+Equal(0, pendingSloth.TakeEnergy(4, true), "battle reset clears pending reward");
+pendingSloth.RecordPayment(int.MaxValue, true);
+pendingSloth.RecordPayment(int.MaxValue, true);
+Equal(int.MaxValue, pendingSloth.EnergySpent, "large spending cannot wrap into eligibility");
+Equal(0, pendingSloth.ResolveEnd(4, true), "overflow remains ineligible");
+foreach (int stage in new[] { -1, 5, int.MaxValue })
+{
+    var invalid = new SlothTurnState();
+    Equal(0, invalid.ResolveEnd(stage, true), "unknown stage no block");
+    Equal(false, invalid.PendingEnergy, "unknown stage no reward");
+}
+Console.WriteLine($"PASS DS27 production sloth: {checks - beforeSloth} assertions; {checks} total.");

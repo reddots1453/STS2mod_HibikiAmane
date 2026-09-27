@@ -48,13 +48,20 @@ class ThreeTrialContracts(unittest.TestCase):
     def test_dormant_forms_are_effectless_at_hook_boundaries(self):
         code = read("src/Relics/FourthRouteRelics.cs")
         self.assertIn("Math.Clamp(value, 0, 4)", code)
-        for name in ("Pride", "Greed", "Lust", "Envy", "Gluttony", "Wrath", "Sloth", "Humility",
+        for name in ("Pride", "Greed", "Lust", "Envy", "Gluttony", "Wrath", "Humility",
                      "Generosity", "Chastity", "Benevolence", "Temperance", "Diligence"):
             section = code.split(f"public sealed class {name}RouteRelic", 1)[1].split("[RegisterRelic", 1)[0]
             self.assertTrue("Stage == 0" in section or "Stage is 0" in section, name)
         self.assertIn("VirtueCombatRules.PatienceAtCombatStart(Stage) ? CreateHoly()", code)
         self.assertIn("PatienceAtCombatStart(int stage) => stage is 1 or 2",
                       read("src/Core/Relics/VirtueCombatRules.cs"))
+        sloth = code.split("public sealed class SlothRouteRelic", 1)[1].split("[RegisterRelic", 1)[0]
+        self.assertIn("_turn.RecordPayment(amount, Stage > 0", sloth)
+        self.assertIn("_turn.ResolveEnd(Stage,", sloth)
+        self.assertIn("_turn.TakeEnergy(Stage,", sloth)
+        state = read("src/Core/Relics/SlothTurnState.cs")
+        self.assertIn("stage is < 1 or > 4", state)
+        self.assertIn("1 => 1, 2 => 2, 3 or 4 => 3, _ => 0", state)
         self.assertIn("relic.Stage = 0", read("src/Acts/FourthRouteProgress.cs"))
 
     def test_counts_use_current_trial_and_qualified_sources(self):
