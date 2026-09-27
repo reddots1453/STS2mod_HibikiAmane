@@ -15,18 +15,46 @@ namespace MaidenSuccubus.Powers;
 [RegisterPower]
 public sealed class IgnitePower : MaidenSuccubusPowerTemplate
 {
+    private sealed class Data
+    {
+        internal CardModel? SelectedCard;
+        internal bool Resolved;
+    }
+
+    // Keep legacy metadata for compatibility, never use it to choose a different
+    // card. Like vanilla Nightmare, separate applications own separate targets.
     [SavedProperty] public string CardId { get; set; } = string.Empty;
     [SavedProperty] public bool WasUpgraded { get; set; }
     public override PowerType Type => PowerType.Buff;
+    public override PowerInstanceType InstanceType => PowerInstanceType.Instanced;
     public override PowerStackType StackType => PowerStackType.Counter;
+    protected override object InitInternalData() => new Data();
+    internal CardModel? SelectedCard => GetInternalData<Data>().SelectedCard;
+
+    public void SetSelectedCard(CardModel card)
+    {
+        AssertMutable();
+        GetInternalData<Data>().SelectedCard = card;
+        CardId = card.Id.Entry;
+        WasUpgraded = card.IsUpgraded;
+    }
 
     public override async Task AfterPlayerTurnStart(PlayerChoiceContext context, Player player)
     {
         if (player.Creature != Owner) return;
-        CardModel? card = PileType.Exhaust.GetPile(player).Cards.FirstOrDefault(
-            candidate => candidate.Id.Entry == CardId && candidate.IsUpgraded == WasUpgraded);
-        if (card != null) await CardCmd.AutoPlay(context, card, null);
+        Data data = GetInternalData<Data>();
+        if (data.Resolved) return;
+        data.Resolved = true;
+        CardModel? card = SelectedCard;
+        // Consume before awaiting: a replay can itself create another Ignite.
+        // Duplicate callbacks must not replay this reference a second time.
+        data.SelectedCard = null;
         await PowerCmd.Remove(this);
+        if (card == null || card.HasBeenRemovedFromState || card.Owner != player
+            || Owner.CombatState == null || card.CombatState != Owner.CombatState
+            || card.Pile?.IsCombatPile != true || CombatManager.Instance.IsOverOrEnding)
+            return;
+        await CardCmd.AutoPlay(context, card, null);
     }
 }
 

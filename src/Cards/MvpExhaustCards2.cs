@@ -26,11 +26,7 @@ public sealed class Ignite : MSCorruptCard
         if (selected == null) return;
         await CardCmd.Exhaust(context, selected);
         IgnitePower? power = await PowerCmd.Apply<IgnitePower>(context, Owner.Creature, 1, Owner.Creature, this);
-        if (power != null)
-        {
-            power.CardId = selected.Id.Entry;
-            power.WasUpgraded = selected.IsUpgraded;
-        }
+        power?.SetSelectedCard(selected);
     }
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }

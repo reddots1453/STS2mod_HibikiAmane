@@ -2115,20 +2115,7 @@ internal static class CardEffectTestCatalog
         }, 3);
 
     private static void IgniteProbe() =>
-        CustomVariants<Ignite>(async (ctx, card, upgraded) =>
-        {
-            MaidenStrike selected = await ctx.Add<MaidenStrike>(PileType.Hand, upgraded);
-            await ctx.Play(card, selectedCards: [selected]);
-            IgnitePower power = ctx.Self.Powers.OfType<IgnitePower>().Single();
-            ctx.AssertEqual("selected card id stored", selected.Id.Entry, power.CardId);
-            ctx.AssertEqual("selected upgrade state stored", upgraded, power.WasUpgraded);
-            ctx.AssertEqual("selected card exhausted", PileType.Exhaust, selected.Pile?.Type);
-            int hp = ctx.Enemies.Sum(enemy => enemy.CurrentHp);
-            await power.AfterPlayerTurnStart(new BlockingPlayerChoiceContext(), ctx.Player);
-            ctx.AssertEqual("exhausted card autoplay damage", upgraded ? 9 : 6,
-                hp - ctx.Enemies.Sum(enemy => enemy.CurrentHp));
-            ctx.AssertPower("ignite expires after replay", ctx.Self, "IgnitePower", 0);
-        }, 5);
+        CustomVariants<Ignite>(DesignSyncIgniteContract.Run, 35);
 
     private static void TentacleArmorProbe() =>
         CustomVariants<TentacleArmor>(async (ctx, card, upgraded) =>

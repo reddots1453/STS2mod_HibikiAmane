@@ -6,6 +6,10 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-02N：引燃延迟目标身份（IMPLEMENTED，游戏内待验）
+
+前置`d03fc8b7`；CARD-C-400～499引燃→DS27-02N→每次施放独立Power与实际牌引用、原生免费代打→DS27-CARD-EFFECT/COMPAT。修复同名误选和多次覆盖；8新静态（累计179）、344生产/33编码断言、Debug和四门通过，视觉门既有317失败。`ms_test_cards confirm Ignite`各版本至少35条测试已编译未运行，存档/自然回合待验。Q12/Q13连锁破坏/子守歌叠层已提问，仍OPEN子项，未固化规则。未部署，见`DESIGN_SYNC_20260927_BATCH20.md`。
+
 ## DS27-06C：原版事件追加结算与门槛（IMPLEMENTED，游戏内待验）
 
 前置`fe6a49f0`，EVENT-VANILLA-001/002→DS27-06C→15选项拥有者/完成/重复隔离，10门槛选项、共生体1合法牌、反射事件RNG、正式文本→DS27-EVENT/COMPAT。24新生产断言（累计344）、8新静态（累计171）、33编码断言、Debug和四门通过，视觉门既有317失败。`ms_test_vanilla_events confirm`真实路线选项与受控完成探针已编译未运行；不宣称15个原版叙事流程已实测。跨存档/真实联机和退出交互待验，不改共享资源架构，不部署。见`DESIGN_SYNC_20260927_BATCH19.md`。
