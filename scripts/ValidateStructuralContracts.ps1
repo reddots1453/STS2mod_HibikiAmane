@@ -161,7 +161,7 @@ Assert-Contains "Forge Nimble applies Kifuda Adroit" $holyCardsBatch3 'ForgeNimb
 Assert-NotContains "Forge Nimble must not use block-scaling Nimble" $holyCardsBatch3 'ForgeNimble[\s\S]*?(FromEnchantment|Enchantment|ApplyVanilla)<Nimble>'
 
 $holyCardsExpanded = Read-Text "src\Cards\HolyCardsExpanded.cs"
-Assert-Contains "Sun Dance costs zero" $holyCardsExpanded 'SunDance\(\)[\s\S]*?:\s*base\(0,\s*CardType\.Skill,\s*CardRarity\.Common,\s*TargetType\.Self\)'
+Assert-Contains "Sun Dance costs zero and is uncommon" $holyCardsExpanded 'SunDance\(\)[\s\S]*?:\s*base\(0,\s*CardType\.Skill,\s*CardRarity\.Uncommon,\s*TargetType\.Self\)'
 Assert-Contains "Sun Dance upgrades to retain without a cost change" $holyCardsExpanded 'SunDance[\s\S]*?OnUpgrade\(\)\s*=>\s*AddKeyword\(CardKeyword\.Retain\)'
 
 $intent = Read-Text "src\Core\Intents\IntentMoveFactory.cs"

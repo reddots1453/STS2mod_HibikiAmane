@@ -184,8 +184,8 @@ internal static class CardEffectTestCatalog
         DiscardAutoPlayDamageProbe();
         BattleTechniqueReplayProbe();
         BlizzardProbe();
-        TargetPowers<BurningRack>(("BurningPower", 2, 3), ("WeakPower", 2, 3));
-        DrawTargetPower<CalmingMist>(1, 2, "WeakPower", 2, 2);
+        BurningRackProbe();
+        CalmingMistProbe();
         ChantProbe();
         ChastityDefenseProbe();
         ConsecrationProbe();
@@ -607,6 +607,34 @@ internal static class CardEffectTestCatalog
                 ctx.PrimaryEnemy, upgraded ? 9 : 7);
         }, 3);
 
+    private static void BurningRackProbe() =>
+        CustomVariants<BurningRack>(async (ctx, card, upgraded) =>
+        {
+            int block = ctx.Self.Block;
+            await ctx.Play(card, ctx.PrimaryEnemy);
+            ctx.AssertPower<BurningPower>("rack burning", ctx.PrimaryEnemy, upgraded ? 3 : 2);
+            ctx.AssertPower<WeakPower>("rack no longer applies weak", ctx.PrimaryEnemy, 0);
+            ctx.AssertBlock("rack block", block, upgraded ? 3 : 2);
+            ctx.AssertEqual("rack is reusable", PileType.Discard, card.Pile?.Type);
+        }, 4);
+
+    private static void CalmingMistProbe() =>
+        CustomVariants<CalmingMist>(async (ctx, card, upgraded) =>
+        {
+            foreach (bool friendly in new[] { false, true })
+            {
+                await ctx.Reset();
+                CalmingMist current = ctx.Create<CalmingMist>(upgraded);
+                Creature target = friendly ? ctx.Self : ctx.PrimaryEnemy;
+                ctx.AssertTrue("mist permits selected living character", current.IsValidTarget(target), effect: false);
+                await ctx.AddFillerCards(PileType.Draw, 3);
+                await ctx.Play(current, target);
+                ctx.AssertEqual("mist draws before weak", upgraded ? 2 : 1, ctx.CountCards<StrikeIronclad>(PileType.Hand));
+                ctx.AssertPower<WeakPower>("selected character receives weak", target, 2);
+                ctx.AssertPower<WeakPower>("unselected side remains unchanged", friendly ? ctx.PrimaryEnemy : ctx.Self, 0);
+            }
+        }, 6);
+
     private static void ExorcismPerfumeProbe() =>
         CustomVariants<ExorcismPerfume>(async (ctx, card, upgraded) =>
         {
@@ -617,7 +645,7 @@ internal static class CardEffectTestCatalog
             int beforeTemptation = Temptation.Get(ctx.Player);
             int beforeHand = ctx.CountCards<StrikeIronclad>(PileType.Hand);
             await ctx.Play(card);
-            ctx.AssertEqual("temptation lost", upgraded ? 10 : 5,
+            ctx.AssertEqual("temptation lost", upgraded ? 15 : 10,
                 beforeTemptation - Temptation.Get(ctx.Player));
             ctx.AssertPileDelta<StrikeIronclad>("draw one", PileType.Hand,
                 beforeHand, 1);
@@ -760,7 +788,11 @@ internal static class CardEffectTestCatalog
             ctx.AssertEqual("one scheduled turn consumed",
                 upgraded ? 2 : 1,
                 ctx.Self.Powers.OfType<OpeningPrayerPower>().Single().Amount);
-        }, 3);
+            for (int i = 1; i < (upgraded ? 3 : 2); i++)
+                await power.AfterPlayerTurnStart(new BlockingPlayerChoiceContext(), ctx.Player);
+            ctx.AssertPower<MagicAmplificationPower>("all scheduled prayer turns granted", ctx.Self, upgraded ? 3 : 2);
+            ctx.AssertTrue("prayer removed after final scheduled turn", !ctx.Self.HasPower<OpeningPrayerPower>());
+        }, 5);
 
     // Reusable probe helpers -----------------------------------------------------
 
@@ -1929,11 +1961,19 @@ internal static class CardEffectTestCatalog
         CustomVariants<InwardDiscipline>(async (ctx, card, upgraded) =>
         {
             await ctx.Play(card);
-            int amount = upgraded ? 50 : 25;
+            int amount = upgraded ? 75 : 50;
             InwardDisciplinePower power =
                 ctx.Self.Powers.OfType<InwardDisciplinePower>().Single();
             await ctx.ApplyPower<WeakPower>(ctx.Self, 1);
+            int blockBefore = ctx.Self.Block;
+            await ctx.Play(ctx.Create<DefendIronclad>());
+            ctx.AssertBlock("real block while weak", blockBefore, upgraded ? 8 : 7);
+            await PowerCmd.Remove(ctx.Self.GetPower<WeakPower>()!);
             await ctx.ApplyPower<FrailPower>(ctx.Self, 1);
+            int hpBefore = ctx.PrimaryEnemy.CurrentHp;
+            await ctx.Play(ctx.Create<StrikeIronclad>(), ctx.PrimaryEnemy);
+            ctx.AssertDamage("real damage while frail", ctx.PrimaryEnemy, hpBefore, upgraded ? 10 : 9);
+            await ctx.ApplyPower<WeakPower>(ctx.Self, 1);
             ctx.AssertEqual("block multiplier while weak",
                 1m + amount / 100m,
                 power.ModifyBlockMultiplicative(ctx.Self, 10, ValueProp.Move,
@@ -1942,7 +1982,7 @@ internal static class CardEffectTestCatalog
                 1m + amount / 100m,
                 power.ModifyDamageMultiplicative(ctx.PrimaryEnemy, 10,
                     ValueProp.Move, ctx.Self, ctx.Create<MaidenStrike>(), null));
-        }, 2);
+        }, 4);
 
     private static void MemoryImprintProbe() =>
         CustomVariants<MemoryImprint>(async (ctx, card, upgraded) =>
@@ -1975,12 +2015,13 @@ internal static class CardEffectTestCatalog
     private static void PhotonVoltProbe() =>
         CustomVariants<PhotonVolt>(async (ctx, card, upgraded) =>
         {
-            int damage = upgraded ? 13 : 10;
+            int damage = upgraded ? 12 : 10;
+            await Desire.Set(ctx.Player, 2);
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(card, ctx.PrimaryEnemy);
             ctx.AssertDamage("low-desire damage", ctx.PrimaryEnemy, hp, damage);
             ctx.AssertPower("low-desire amplification", ctx.Self,
-                "MagicAmplificationPower", 1);
+                "MagicAmplificationPower", upgraded ? 2 : 1);
 
             await PowerCmd.Remove(ctx.Self.Powers.Single(power =>
                 power.GetType().Name == "MagicAmplificationPower"));
@@ -3242,9 +3283,27 @@ internal static class CardEffectTestCatalog
             ctx.AssertDamage("forced judgment damage for one layer", ctx.PrimaryEnemy, hp, 7);
             ctx.AssertPower("condemnation cleared after judgment", ctx.PrimaryEnemy,
                 "CondemnationPower", 0);
-            ctx.AssertEqual("upgrade grants retain", upgraded,
+            ctx.AssertEqual("judgment upgrade does not grant retain", false,
                 card.Keywords.Contains(CardKeyword.Retain));
-        }, 3);
+            await ctx.Reset();
+            Creature splashTarget = await CreatureCmd.Add<Byrdonis>(ctx.Combat);
+            try
+            {
+                await CreatureCmd.SetMaxAndCurrentHp(splashTarget, 20000);
+                await ctx.ApplyPower<CondemnationPower>(ctx.PrimaryEnemy, 6);
+                await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 1);
+                int primaryHp = ctx.PrimaryEnemy.CurrentHp;
+                int splashHp = splashTarget.CurrentHp;
+                await ctx.Play(ctx.Create<FinalJudgment>(upgraded), ctx.PrimaryEnemy, selectedIndices: [0]);
+                ctx.AssertDamage("seven-layer judgment fires only once", ctx.PrimaryEnemy, primaryHp, 49);
+                ctx.AssertDamage("release copies exact judgment damage to other enemy", splashTarget, splashHp, 49);
+                ctx.AssertPower<CondemnationPower>("threshold judgment clears layers", ctx.PrimaryEnemy, 0);
+            }
+            finally
+            {
+                if (!splashTarget.IsDead) await CreatureCmd.Escape(splashTarget);
+            }
+        }, 6);
 
     private static void SunDanceProbe() =>
         CustomVariants<SunDance>(async (ctx, card, upgraded) =>

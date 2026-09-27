@@ -104,7 +104,7 @@ public sealed class EternalDamnation : MSHolyCard
 {
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [MaidenSuccubus.Keywords.SinkingKeyword.Value];
-    public EternalDamnation() : base(3, CardType.Power, CardRarity.Rare, TargetType.Self) { }
+    public EternalDamnation() : base(2, CardType.Power, CardRarity.Rare, TargetType.Self) { }
     public override Task BeforeCombatStart() =>
         Pile?.Type == PileType.Draw
             ? CardPileCmd.Add(this, PileType.Discard)

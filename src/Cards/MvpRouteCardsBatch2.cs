@@ -112,7 +112,7 @@ public sealed class NoLewdness : MSHolyCard
 public sealed class PhotonVolt : MSHolyCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(10, ValueProp.Move)];
+        [new DamageVar(10, ValueProp.Move), new PowerVar<MagicAmplificationPower>(1)];
     public PhotonVolt() : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
@@ -121,7 +121,11 @@ public sealed class PhotonVolt : MSHolyCard
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
         if (Data.Desire.Get(Owner) <= 2)
             await PowerCmd.Apply<MagicAmplificationPower>(
-                context, Owner.Creature, 1, Owner.Creature, this);
+                context, Owner.Creature, DynamicVars["MagicAmplificationPower"].BaseValue, Owner.Creature, this);
     }
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
+    protected override void OnUpgrade()
+    {
+        DynamicVars.Damage.UpgradeValueBy(2);
+        DynamicVars["MagicAmplificationPower"].UpgradeValueBy(1);
+    }
 }

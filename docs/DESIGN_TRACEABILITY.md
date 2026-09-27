@@ -194,6 +194,8 @@
 
 ## 8. 2026-09-27 全面变更审阅与重新验收
 
+`DS27-02D`（IMPLEMENTED，前置`a404d031`）：10个圣洁模型核对，修正7牌、回归3牌；`DesignSyncHolyContract`及20基础/升级场景已编译，入口`ms_test_cards confirm ds27-holy`。新增6项静态检查及既有22项通过，Debug和四门通过；视觉门既有UI断言失败、运行时未执行、未部署。见`DESIGN_SYNC_20260927_BATCH4.md`。光之翼完整多重附魔另列待实现，不能宣告圣洁路线全量完成。
+
 `DS27-02C`（IMPLEMENTED，前置`f0680239`）：`CARD-N-150～299`中14个模型的数值/稀有度/附魔/衍生链/文案回修完成；`DesignSyncNeutralContract`及CardEffect场景覆盖，入口`ms_test_cards confirm ds27-neutral`。8项新增静态检查及14项既有静态检查通过；Debug和四个内容/结构门通过，视觉门仍受既有诱惑度UI契约阻断。运行时未执行、未部署，详见`DESIGN_SYNC_20260927_BATCH3.md`；不改无关素材或未写完整设计。
 
 ### 澄清后的当前增量

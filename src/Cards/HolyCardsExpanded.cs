@@ -219,7 +219,7 @@ public sealed class Worship : MSHolyCard
 public sealed class InwardDiscipline : MSHolyCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<InwardDisciplinePower>(25)];
+        [new PowerVar<InwardDisciplinePower>(50)];
 
     public InwardDiscipline()
         : base(1, CardType.Power, CardRarity.Rare, TargetType.Self)
@@ -247,7 +247,7 @@ public sealed class SunDance : MSHolyCard
         [CardKeyword.Exhaust];
 
     public SunDance()
-        : base(0, CardType.Skill, CardRarity.Common, TargetType.Self)
+        : base(0, CardType.Skill, CardRarity.Uncommon, TargetType.Self)
     {
     }
 

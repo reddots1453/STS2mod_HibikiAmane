@@ -18,6 +18,8 @@ namespace MaidenSuccubus.Patches;
 [HarmonyPatch(typeof(CardModel), nameof(CardModel.IsValidTarget))]
 public static class Iteration1CardTargetPatch
 {
+    internal static bool AllowsFriendlyTarget(CardModel? card) => card is Stigma or CalmingMist;
+
     [HarmonyPostfix]
     public static void Postfix(
         CardModel __instance,
@@ -27,7 +29,7 @@ public static class Iteration1CardTargetPatch
         bool updated = __result;
         Safe.Run(() =>
         {
-            if (__instance is Stigma)
+            if (AllowsFriendlyTarget(__instance))
             {
                 updated = target?.IsAlive == true;
                 return;
@@ -71,7 +73,8 @@ internal static class StigmaTargetingStartPatch
     [HarmonyPrefix]
     private static void Prefix(Control control)
     {
-        IsActive = control is NCard { Model: Stigma };
+        Safe.Run(() => IsActive = control is NCard card
+            && Iteration1CardTargetPatch.AllowsFriendlyTarget(card.Model), nameof(StigmaTargetingStartPatch));
     }
 
     internal static void Reset()
@@ -86,10 +89,13 @@ internal static class StigmaAllowedTargetPatch
     [HarmonyPostfix]
     private static void Postfix(Creature creature, ref bool __result)
     {
-        if (StigmaTargetingStartPatch.IsActive && creature.IsAlive)
+        bool updated = __result;
+        Safe.Run(() =>
         {
-            __result = true;
-        }
+            if (StigmaTargetingStartPatch.IsActive && creature.IsAlive)
+                updated = true;
+        }, nameof(StigmaAllowedTargetPatch));
+        __result = updated;
     }
 }
 
@@ -101,15 +107,14 @@ internal static class StigmaControllerTargetListPatch
         Creature creature,
         ref IReadOnlyList<Creature> __result)
     {
-        ICombatState? combatState = creature.CombatState;
-        if (StigmaTargetingStartPatch.IsActive
-            && creature.IsPlayer
-            && combatState != null)
+        IReadOnlyList<Creature> updated = __result;
+        Safe.Run(() =>
         {
-            __result = combatState.Creatures
-                .Where(candidate => candidate.IsAlive)
-                .ToArray();
-        }
+            ICombatState? combatState = creature.CombatState;
+            if (StigmaTargetingStartPatch.IsActive && creature.IsPlayer && combatState != null)
+                updated = combatState.Creatures.Where(candidate => candidate.IsAlive).ToArray();
+        }, nameof(StigmaControllerTargetListPatch));
+        __result = updated;
     }
 }
 
@@ -119,7 +124,7 @@ internal static class StigmaTargetingFinishedPatch
     [HarmonyPostfix]
     private static void Postfix()
     {
-        StigmaTargetingStartPatch.Reset();
+        Safe.Run(StigmaTargetingStartPatch.Reset, nameof(StigmaTargetingFinishedPatch));
     }
 }
 

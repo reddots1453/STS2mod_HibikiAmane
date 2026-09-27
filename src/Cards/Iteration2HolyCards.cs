@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
+using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Core.Temptation;
 using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Localization;
@@ -42,10 +43,9 @@ public sealed class HolyFlame : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class BurningRack : MSHolyCard
 {
-    public override IEnumerable<CardKeyword> CanonicalKeywords =>
-        [CardKeyword.Exhaust];
+    public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<BurningPower>(2), new PowerVar<WeakPower>(2)];
+        [new PowerVar<BurningPower>(2), new BlockVar(2, ValueProp.Move)];
 
     public BurningRack()
         : base(0, CardType.Skill, CardRarity.Common, TargetType.AnyEnemy) { }
@@ -55,14 +55,13 @@ public sealed class BurningRack : MSHolyCard
         ArgumentNullException.ThrowIfNull(play.Target);
         await PowerCmd.Apply<BurningPower>(context, play.Target,
             DynamicVars["BurningPower"].BaseValue, Owner.Creature, this);
-        await PowerCmd.Apply<WeakPower>(context, play.Target,
-            DynamicVars["WeakPower"].BaseValue, Owner.Creature, this);
+        await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
     }
 
     protected override void OnUpgrade()
     {
         DynamicVars["BurningPower"].UpgradeValueBy(1);
-        DynamicVars["WeakPower"].UpgradeValueBy(1);
+        DynamicVars.Block.UpgradeValueBy(1);
     }
 }
 
@@ -70,7 +69,7 @@ public sealed class BurningRack : MSHolyCard
 public sealed class ExorcismPerfume : MSHolyCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DynamicVar("Temptation", 5), new CardsVar(1)];
+        [new DynamicVar("Temptation", 10), new CardsVar(1)];
 
     public ExorcismPerfume()
         : base(0, CardType.Skill, CardRarity.Common, TargetType.Self) { }
