@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../src/Core/Relics/VirtuePickupRules.cs" Link="Production/VirtuePickupRules.cs" />
     <Compile Include="../../src/Acts/FourthRouteTrialRules.cs" Link="Production/FourthRouteTrialRules.cs" />
     <Compile Include="../../src/Acts/FourthActEntryRules.cs" Link="Production/FourthActEntryRules.cs" />
     <Compile Include="../../src/Acts/FourthRouteQuest.cs" Link="Production/FourthRouteQuest.cs" />

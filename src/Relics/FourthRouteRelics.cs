@@ -28,6 +28,8 @@ using MaidenSuccubus.Cards;
 using MaidenSuccubus.Commands;
 using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Core.Routes;
+using MaidenSuccubus.Core.Relics;
+using System.Runtime.CompilerServices;
 using MaidenSuccubus.Enchantments;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
@@ -298,37 +300,31 @@ public sealed class ChastityRouteRelic : FourthRouteRelic
 public sealed class BenevolenceRouteRelic : FourthRouteRelic
 {
     public override FourthRouteQuest Quest => FourthRouteQuest.Benevolence;
-    public override bool HasUponPickupEffect => true;
-    public override async Task AfterObtained()
+    public override bool HasUponPickupEffect => VirtuePickupRules.BenevolencePickupCount(Stage) > 0;
+    [SavedProperty] public bool PickupEffectGranted { get; set; }
+    public override Task AfterObtained()
     {
-        if (Stage is 0 or 4) return;
-        int count = Stage >= 3 ? 3 : 2;
-        CardCreationOptions options = new(AllMaidenSuccubusCards.Pools, CardCreationSource.Other, CardRarityOddsType.RegularEncounter);
-        List<Reward> rewards = [];
-        for (int i = 0; i < count; i++)
-        {
-            var reward = new CardReward(options, 3, Owner);
-            if (Stage >= 3)
-                reward.AfterGenerated += () => BlessRewardOptions(reward);
-            rewards.Add(reward);
-        }
-        await RewardsCmd.OfferCustom(Owner, rewards);
+        if (Stage == 0 || PickupEffectGranted) return Task.CompletedTask;
+        PickupEffectGranted = true;
+        UpgradeRandom(VirtuePickupRules.BenevolencePickupCount(Stage));
+        return Task.CompletedTask;
     }
 
-    private void BlessRewardOptions(CardReward reward)
+    public override Task AfterCardChangedPiles(CardModel card, PileType oldPileType, AbstractModel? source)
     {
-        foreach (CardModel card in reward.Cards)
-        {
-            if (card.IsUpgradable)
-                CardCmd.Upgrade(card);
-            List<EnchantmentModel> options = ModelDb.DebugEnchantments
-                .Where(enchantment => enchantment.GetType().Namespace?.StartsWith("MegaCrit.Sts2.Core.Models.Enchantments") == true)
-                .Select(enchantment => enchantment.ToMutable())
-                .Where(enchantment => enchantment.CanEnchant(card))
-                .ToList().StableShuffle(Owner.RunState.Rng.Niche);
-            if (options.FirstOrDefault() is { } enchantment)
-                CardCmd.Enchant(enchantment, card, 1);
-        }
+        if (VirtuePickupRules.BenevolenceOnAdded(Stage, card.Owner == Owner,
+            oldPileType == PileType.Deck, card.Pile?.Type == PileType.Deck)) UpgradeRandom(2);
+        return Task.CompletedTask;
+    }
+
+    private void UpgradeRandom(int count)
+    {
+        if (count == 0) return;
+        List<CardModel> candidates = Owner.Deck.Cards.Where(card => card.IsUpgradable).ToList();
+        if (candidates.Count == 0) return;
+        foreach (CardModel card in candidates.StableShuffle(Owner.RunState.Rng.Niche).Take(count))
+            if (card.Pile?.Type == PileType.Deck && card.IsUpgradable)
+                CardCmd.Upgrade(card, CardPreviewStyle.MessyLayout);
     }
 }
 
@@ -376,23 +372,65 @@ public sealed class PatienceRouteRelic : FourthRouteRelic
 [RegisterRelic(typeof(MSRelicPool))]
 public sealed class DiligenceRouteRelic : FourthRouteRelic
 {
+    private ConditionalWeakTable<CardModel, object> _prepared = new();
+    private ConditionalWeakTable<CardModel, object> _pendingReveal = new();
+    protected override void DeepCloneFields()
+    {
+        base.DeepCloneFields();
+        _prepared = new();
+        _pendingReveal = new();
+    }
     public override FourthRouteQuest Quest => FourthRouteQuest.Diligence;
-    public override bool HasUponPickupEffect => true;
-    public override Task AfterObtained()
+    public override bool HasUponPickupEffect => Stage > 0;
+    [SavedProperty] public bool PickupRewardsGranted { get; set; }
+    public override async Task AfterObtained()
     {
-        if (Stage == 0 || Stage >= 3) return Task.CompletedTask;
-        UpgradeRandom(Stage == 1 ? 2 : 3);
-        return Task.CompletedTask;
+        if (Stage == 0 || PickupRewardsGranted) return;
+        PickupRewardsGranted = true;
+        await RewardsCmd.OfferCustom(Owner, CreatePickupRewards());
     }
-    public override Task AfterCombatVictory(CombatRoom room)
+
+    internal List<Reward> CreatePickupRewards()
     {
-        if (Stage >= 3) UpgradeRandom(1);
-        return Task.CompletedTask;
+        DiligenceRewardRule rule = VirtuePickupRules.Diligence(Stage);
+        List<Reward> rewards = [];
+        for (int i = 0; i < rule.Count; i++)
+        {
+            CardReward reward = new(CardCreationOptions.ForRoom(Owner, RoomType.Monster), 3, Owner);
+            reward.AfterGenerated += () => PrepareRewardOptions(reward.Cards, rule);
+            rewards.Add(reward);
+        }
+        return rewards;
     }
-    private void UpgradeRandom(int count)
+
+    internal static IReadOnlyList<EnchantmentModel> EnchantmentOptions(CardModel card) =>
+        ModelDb.DebugEnchantments.Where(enchantment =>
+            enchantment.GetType().Assembly == typeof(EnchantmentModel).Assembly
+            && enchantment.GetType().Namespace == "MegaCrit.Sts2.Core.Models.Enchantments"
+            && enchantment is not DeprecatedEnchantment)
+            .Select(enchantment => enchantment.ToMutable()).Where(enchantment => enchantment.CanEnchant(card)).ToArray();
+
+    internal void PrepareRewardOptions(IEnumerable<CardModel> cards, DiligenceRewardRule rule)
     {
-        foreach (CardModel card in Owner.Deck.Cards.Where(card => card.IsUpgradable).ToList()
-            .StableShuffle(Owner.RunState.Rng.Niche).Take(count))
-            CardCmd.Upgrade(card, CardPreviewStyle.MessyLayout);
+        foreach (CardModel card in cards)
+        {
+            if (card.Owner != Owner || _prepared.TryGetValue(card, out _)) continue;
+            _prepared.Add(card, new object());
+            if (rule.Upgrade && card.IsUpgradable) CardCmd.Upgrade(card, CardPreviewStyle.None);
+            if (!rule.Enchant) continue;
+            IReadOnlyList<EnchantmentModel> options = EnchantmentOptions(card);
+            if (options.Count == 0) continue;
+            var rng = Owner.RunState.Rng.Niche;
+            EnchantmentModel enchantment = options[rng.NextInt(options.Count)];
+            int amount = VirtuePickupRules.RollEnchantmentAmount(enchantment.GetType().Name, rng.NextInt);
+            if (CardCmd.Enchant(enchantment, card, amount) != null) _pendingReveal.Add(card, new object());
+        }
+    }
+
+    public override Task AfterCardChangedPiles(CardModel card, PileType oldPileType, AbstractModel? source)
+    {
+        if (card.Owner == Owner && oldPileType != PileType.Deck && card.Pile?.Type == PileType.Deck
+            && _pendingReveal.Remove(card)) EnchantmentVfxCmd.PreviewAfterCardPickup(card);
+        return Task.CompletedTask;
     }
 }

@@ -260,3 +260,43 @@ Console.WriteLine($"PASS DS27 production fourth-act boundaries: {checks - before
 int trialChecks = FourthRouteTrialContracts.Run();
 checks += trialChecks;
 Console.WriteLine($"PASS DS27 production three-trial flow: {trialChecks} assertions; {checks} total.");
+
+int beforeVirtues = checks;
+int[] virtueStages = [0, 1, 2, 3, 4, -1, 5];
+int[] benevolencePickups = [0, 2, 2, 0, 0, 0, 0];
+DiligenceRewardRule[] diligenceRewards = [default, new(2, false, false), new(2, true, false),
+    new(3, true, true), new(3, true, true), default, default];
+for (int i = 0; i < virtueStages.Length; i++)
+{
+    int stage = virtueStages[i];
+    Equal(benevolencePickups[i], VirtuePickupRules.BenevolencePickupCount(stage), "benevolence pickup upgrades");
+    Equal(diligenceRewards[i], VirtuePickupRules.Diligence(stage), "diligence full reward spec");
+    foreach (bool sameOwner in new[] { false, true })
+    foreach (bool wasDeck in new[] { false, true })
+    foreach (bool isDeck in new[] { false, true })
+        Equal((stage == 3 || stage == 4) && sameOwner && !wasDeck && isDeck,
+            VirtuePickupRules.BenevolenceOnAdded(stage, sameOwner, wasDeck, isDeck), "permanent-card addition filter");
+}
+(string Name, int Min, int Max)[] enchantmentRanges =
+[
+    ("Sharp", 1, 5), ("Nimble", 1, 5), ("Adroit", 2, 4), ("Momentum", 3, 8),
+    ("Sown", 1, 2), ("Swift", 1, 2), ("Vigorous", 6, 12), ("Glam", 1, 1), ("Instinct", 1, 1)
+];
+foreach (var range in enchantmentRanges)
+{
+    Equal((range.Min, range.Max), VirtuePickupRules.EnchantmentRange(range.Name), "Chinese-name mapping " + range.Name);
+    for (int value = range.Min; value <= range.Max; value++)
+    {
+        int rngCalls = 0;
+        int Roll(int min, int exclusiveMax)
+        {
+            rngCalls++;
+            Equal(range.Min, min, "inclusive lower RNG bound");
+            Equal(range.Max + 1, exclusiveMax, "exclusive upper RNG bound includes design max");
+            return value;
+        }
+        Equal(value, VirtuePickupRules.RollEnchantmentAmount(range.Name, Roll), "each attainable enchantment amount");
+        Equal(range.Min == range.Max ? 0 : 1, rngCalls, "fixed amount does not consume RNG");
+    }
+}
+Console.WriteLine($"PASS DS27 production virtue pickups: {checks - beforeVirtues} assertions; {checks} total.");
