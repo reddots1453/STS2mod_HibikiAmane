@@ -1,6 +1,11 @@
 {
   "schemaVersion": 1,
   "baseline": "DesignDoc iteration 2 programming baseline 2026-09-16",
+  "retiredCompatibility": {
+    "reason": "DS27-02I: removed DesignDoc entries; retain saved model identities, prohibit new acquisition",
+    "cards": ["MagicResonance", "SemenAppetite"],
+    "enchantments": ["EnergyOverloadEnchantment"]
+  },
   "cards": {
     "MSNeutralCardPool": [
       "AcceleratedMotion", "BalanceBlade", "BalanceShield", "BasicTraining",

@@ -15,14 +15,13 @@ using MegaCrit.Sts2.Core.Saves.Runs;
 namespace MaidenSuccubus.Enchantments;
 
 /// <summary>
-/// Registered identity for the deferred event enchantment. DOC-MVP-001
-/// requires recognition but explicitly forbids a source or runtime effect
-/// until its permanent-removal lifecycle is specified.
+/// Retired identity kept for old saves. No new acquisition or runtime effect.
 /// </summary>
 [RegisterEnchantment]
 public sealed class EnergyOverloadEnchantment : ModEnchantmentTemplate
 {
     public override bool HasExtraCardText => true;
+    public override bool CanEnchant(CardModel card) => false;
 }
 
 [RegisterEnchantment]

@@ -1,4 +1,7 @@
 using Godot;
+using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Unlocks;
+using MaidenSuccubus.Core.Routes;
 using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Content;
 using STS2RitsuLib.Utils;
@@ -9,6 +12,10 @@ namespace MaidenSuccubus.Pools;
 [RegisterSharedCardPool]
 public class MSCorruptCardPool : TypeListCardPoolModel
 {
+    protected override IEnumerable<CardModel> FilterThroughEpochs(
+        UnlockState unlockState, IEnumerable<CardModel> cards) =>
+        RetiredCardCatalog.Obtainable(base.FilterThroughEpochs(unlockState, cards));
+
     public override string Title => "ms_corrupt";
     // 骨架阶段借用 Ironclad 能量图标
     public override string EnergyColorName => "ironclad";

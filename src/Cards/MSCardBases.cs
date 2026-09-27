@@ -27,14 +27,16 @@ public abstract class MSNeutralCardTemplate : ModCardTemplate, IMaidenSuccubusRo
         int cost,
         CardType type,
         CardRarity rarity,
-        TargetType target)
-        : base(cost, type, rarity, target, true) { }
+        TargetType target,
+        bool shouldShowInCardLibrary = true)
+        : base(cost, type, rarity, target, shouldShowInCardLibrary) { }
 }
 
 public abstract class MSNeutralCard : MSNeutralCardTemplate
 {
-    protected MSNeutralCard(int cost, CardType type, CardRarity rarity, TargetType target)
-        : base(cost, type, rarity, target) { }
+    protected MSNeutralCard(int cost, CardType type, CardRarity rarity, TargetType target,
+        bool shouldShowInCardLibrary = true)
+        : base(cost, type, rarity, target, shouldShowInCardLibrary) { }
 }
 
 public abstract class MSCorruptCardTemplate :
@@ -62,14 +64,16 @@ public abstract class MSCorruptCardTemplate :
         int cost,
         CardType type,
         CardRarity rarity,
-        TargetType target)
-        : base(cost, type, rarity, target, true) { }
+        TargetType target,
+        bool shouldShowInCardLibrary = true)
+        : base(cost, type, rarity, target, shouldShowInCardLibrary) { }
 }
 
 public abstract class MSCorruptCard : MSCorruptCardTemplate
 {
-    protected MSCorruptCard(int cost, CardType type, CardRarity rarity, TargetType target)
-        : base(cost, type, rarity, target) { }
+    protected MSCorruptCard(int cost, CardType type, CardRarity rarity, TargetType target,
+        bool shouldShowInCardLibrary = true)
+        : base(cost, type, rarity, target, shouldShowInCardLibrary) { }
 }
 
 public abstract class MSHolyCardTemplate :

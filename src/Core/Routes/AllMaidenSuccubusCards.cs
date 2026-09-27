@@ -16,6 +16,7 @@ public static class AllMaidenSuccubusCards
     public static IEnumerable<CardModel> GetCanonicalCards() =>
         Pools
             .SelectMany(pool => pool.AllCards)
+            .Where(card => !RetiredCardCatalog.IsRetired(card))
             .DistinctBy(card => card.Id)
             .OrderBy(card => card.Id.Entry, StringComparer.Ordinal);
 

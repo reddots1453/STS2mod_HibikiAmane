@@ -473,11 +473,16 @@ public sealed class PleasureGarden : MSCorruptCard
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class SemenAppetite : MSCorruptCard
 {
+    // Compatibility identity only; do not offer this retired card in new content.
+    public override bool CanBeGeneratedInCombat => false;
+    public override bool CanBeGeneratedByModifiers => false;
+
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new PowerVar<SemenAppetitePower>(2)];
 
     public SemenAppetite()
-        : base(1, CardType.Power, CardRarity.Uncommon, TargetType.Self) { }
+        : base(1, CardType.Power, CardRarity.Uncommon, TargetType.Self,
+            shouldShowInCardLibrary: false) { }
 
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
         PowerCmd.Apply<SemenAppetitePower>(

@@ -658,6 +658,49 @@ def inherited_method(blocks: list[str], name: str) -> str:
     return ""
 
 
+def retired_compatibility(cards, design_lines, loc, read_source=None):
+    """Check explicit retirement wiring; never infer retirement from missing design.
+
+    This proves only the source gates. Save compatibility still requires the
+    native ms_test_retired contract and UI verification in a running game.
+    """
+    read_source = read_source or (lambda path: (ROOT / path).read_text(encoding="utf-8-sig"))
+    manifest = json.loads(read_source("docs/content_contract_20260824.json"))
+    names = manifest.get("retiredCompatibility", {}).get("cards", [])
+    if not names:
+        return set(), ["retirement manifest missing explicit card identities"]
+    failures = []
+    code = lambda path: mask_csharp_literals(read_source(path))
+    policy = code("src/Core/Routes/RetiredCardCatalog.cs")
+    match = re.search(r"card\s+is\s+([\w\s]+);", policy)
+    actual = set(re.split(r"\s+or\s+", match[1].strip())) if match else set()
+    if set(names) != actual or len(names) != len(set(names)):
+        failures.append("retirement manifest and exact runtime identities differ")
+    if "cards.Where(card => !IsRetired(card))" not in policy:
+        failures.append("retirement policy missing exclusion predicate")
+    for pool in ("MSNeutralCardPool", "MSCorruptCardPool"):
+        if "RetiredCardCatalog.Obtainable(base.FilterThroughEpochs(unlockState, cards))" not in code(f"src/Pools/{pool}.cs"):
+            failures.append(f"retirement missing native acquisition filter: {pool}")
+    if ".Where(card => !RetiredCardCatalog.IsRetired(card))" not in code("src/Core/Routes/AllMaidenSuccubusCards.cs"):
+        failures.append("retirement missing direct canonical candidate filter")
+    bases = code("src/Cards/MSCardBases.cs")
+    if bases.count("base(cost, type, rarity, target, shouldShowInCardLibrary)") != 4:
+        failures.append("retirement library visibility not forwarded through both base chains")
+    for name in names:
+        if name not in cards:
+            failures.append(f"retired saved identity no longer registered: {name}")
+            continue
+        block = mask_csharp_literals(cards[name][0])
+        for gate in ("CanBeGeneratedInCombat => false", "CanBeGeneratedByModifiers => false",
+                     "shouldShowInCardLibrary: false"):
+            if gate not in block:
+                failures.append(f"retirement missing acquisition gate: {name}: {gate}")
+        title = loc.get(f"MAIDEN_SUCCUBUS_CARD_{screaming_snake(name)}.title", "")
+        if design_index(title, design_lines) is not None:
+            failures.append(f"retirement contradicts current DesignDoc entry: {name}")
+    return (set() if failures else set(names)), failures
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Static card audit; not a gameplay/rendering certification.")
     output = parser.add_mutually_exclusive_group()
@@ -673,6 +716,8 @@ def main(argv: list[str] | None = None) -> int:
     cards, all_classes = registered_cards()
     failures: list[str] = []
     report: list[dict[str, object]] = []
+    retired, retirement_failures = retired_compatibility(cards, design_lines, loc)
+    failures.extend(retirement_failures)
 
     hover_support = HOVER_SUPPORT_PATH.read_text(encoding="utf-8-sig")
     for term in sorted(REQUIRED_HOVER_TERMS):
@@ -826,6 +871,8 @@ def main(argv: list[str] | None = None) -> int:
             ).ratio()
         if type_name in TECHNICAL_CARD_TYPES:
             status = "TECHNICAL"
+        elif type_name in retired:
+            status = "RETIRED-COMPAT"
         elif context is None:
             status = "NO-DESIGN"
             if type_name not in ALLOWED_NON_CATALOGUE_TYPES:
@@ -844,7 +891,9 @@ def main(argv: list[str] | None = None) -> int:
             "design": design_data,
             "source": source_data,
             "similarity": similarity,
-            "textReview": "NOT_APPLICABLE" if status == "TECHNICAL" else "PENDING_EXACT_RENDERED_CONTRACT",
+            "textReview": ("NOT_APPLICABLE" if status == "TECHNICAL" else
+                           "LEGACY_PRESERVED_PENDING_RUNTIME" if status == "RETIRED-COMPAT" else
+                           "PENDING_EXACT_RENDERED_CONTRACT"),
             "numericReview": "PENDING_RUNTIME_VARIABLES",
             "findings": failures[failure_start:],
             "hoverReferences": hover_references,
@@ -917,6 +966,7 @@ def main(argv: list[str] | None = None) -> int:
     pending_text = sum(row.get("textReview") == "PENDING_EXACT_RENDERED_CONTRACT" for row in report)
     unresolved = sum(bool(row.get("source", {}).get("unresolvedFields")) for row in report)
     design_only = sum(row.get("status") == "DESIGN-ONLY" for row in report)
+    retired_count = sum(row.get("status") == "RETIRED-COMPAT" for row in report)
     if args.strict_review and (pending_text or unresolved or design_only):
         failures.append(f"full review incomplete: pendingText={pending_text} unresolvedMetadata={unresolved} "
                         f"designOnly={design_only}")
@@ -924,7 +974,7 @@ def main(argv: list[str] | None = None) -> int:
     for failure in failures:
         print(failure)
     print(f"audited={len(cards)} failures={len(failures)} unresolvedMetadata={unresolved} "
-          f"pendingText={pending_text} designOnly={design_only} report={report_path}")
+          f"pendingText={pending_text} designOnly={design_only} retiredCompat={retired_count} report={report_path}")
     print("Static findings only: similarity does not verify numbers, punctuation, layout, or gameplay.")
     return 1 if failures else 0
 
