@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../src/Acts/FourthActEntryRules.cs" Link="Production/FourthActEntryRules.cs" />
+    <Compile Include="../../src/Acts/FourthRouteQuest.cs" Link="Production/FourthRouteQuest.cs" />
     <Compile Include="../../src/Core/Events/EventCompletionLedger.cs" Link="Production/EventCompletionLedger.cs" />
     <Compile Include="../../src/Core/Routes/RouteRewardProbabilities.cs" Link="Production/RouteRewardProbabilities.cs" />
     <Compile Include="../../src/Core/Routes/RouteRewardProbabilityBonus.cs" Link="Production/RouteRewardProbabilityBonus.cs" />

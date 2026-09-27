@@ -5,16 +5,9 @@ using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.Relics;
+using MaidenSuccubus.Characters;
 
 namespace MaidenSuccubus.Acts;
-
-public enum FourthRouteAlignment { Dark, Light }
-
-public enum FourthRouteQuest
-{
-    Pride, Greed, Lust, Envy, Gluttony, Wrath, Sloth,
-    Humility, Generosity, Chastity, Benevolence, Temperance, Patience, Diligence
-}
 
 public static class FourthRouteProgressService
 {
@@ -28,7 +21,7 @@ public static class FourthRouteProgressService
          FourthRouteQuest.Diligence];
 
     public static FourthRouteAlignment AlignmentOf(FourthRouteQuest quest) =>
-        DarkQuests.Contains(quest) ? FourthRouteAlignment.Dark : FourthRouteAlignment.Light;
+        FourthActEntryRules.AlignmentOf(quest) ?? throw new ArgumentOutOfRangeException(nameof(quest));
 
     public static bool TryGetQuest(RunState runState, out FourthRouteQuest quest) =>
         Enum.TryParse(M5Progress.Handle.Get(runState).FourthRouteQuestId, out quest);
@@ -140,16 +133,36 @@ public static class FourthRouteProgressService
             data.FourthRouteRelicStage = next;
             if (next >= 2) { data.FourthRouteFragmentPending = false; data.FourthRouteFragmentPurchased = true; }
             if (next >= 3) data.FourthRouteSacrificeCompleted = true;
-            if (next >= 4) data.FourthRouteThirdBossDefeated = true;
         });
     }
 
-    public static bool CanEnterFourthAct(RunState runState)
+    public static bool HasFourthActQualification(RunState runState)
     {
         M5ProgressState state = M5Progress.Handle.Get(runState);
-        if (state.FourthRouteRelicStage < 4 || !TryGetQuest(runState, out FourthRouteQuest quest)) return false;
-        int corruption = CorruptionQuery.Get(runState);
-        return AlignmentOf(quest) == FourthRouteAlignment.Dark ? corruption > -3 : corruption < 3;
+        FourthRouteAlignment? alignment = TryGetQuest(runState, out FourthRouteQuest quest)
+            && Enum.IsDefined(quest) ? AlignmentOf(quest) : null;
+        return FourthActEntryRules.Qualifies(
+            runState.Players.Any(player => player.Character is MaidenSuccubusCharacter),
+            state.FourthRouteRelicStage >= 4, alignment, CorruptionQuery.Get(runState));
+    }
+
+    // Qualification is deliberately NOT an enable switch for the unfinished act.
+    public static bool CanEnterFourthAct(RunState runState) =>
+        FourthActEntryRules.NormalEntryEnabled && HasFourthActQualification(runState);
+
+    public static void RecordThirdActEnding(RunState runState)
+    {
+        M5ProgressState state = M5Progress.Handle.Get(runState);
+        if (!FourthActEntryRules.ShouldRecordEnding(
+            runState.Players.Any(player => player.Character is MaidenSuccubusCharacter),
+            runState.CurrentActIndex, state.FourthRouteEndingChecked)) return;
+        bool qualifies = HasFourthActQualification(runState);
+        M5Progress.Handle.Modify(runState, data =>
+        {
+            data.FourthRouteThirdBossDefeated = true;
+            data.FourthRouteEndingChecked = true;
+            data.FourthRouteEndingEligible = qualifies;
+        });
     }
 
     public static int TargetFor(FourthRouteQuest quest) => quest switch

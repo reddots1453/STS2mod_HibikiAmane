@@ -7,7 +7,6 @@ using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.UI;
-using MaidenSuccubus.Patches;
 using MaidenSuccubus.Relics;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Merchant;
@@ -110,13 +109,8 @@ public sealed class FourthRouteLifecycle : SingletonModel
             await FourthRouteProgressService.AddProgress(_owner, quest);
         await CheckThresholdQuest();
 
-        M5ProgressState progress = M5Progress.Handle.Get(runState);
-        if (room.RoomType == RoomType.Boss && runState.CurrentActIndex == 2
-            && progress.FourthRouteRelicStage == 3)
-        {
-            await FourthRouteProgressService.AdvanceStage(_owner, 3);
-            FourthActRunAdapter.EnsurePresent(runState);
-        }
+        // A boss victory is not a universal final trial. Only the route's own
+        // trial/reward flow may awaken its relic; ending is handled by vanilla.
     }
 
     public override async Task AfterCardChangedPiles(CardModel card, PileType oldPileType, AbstractModel? source)

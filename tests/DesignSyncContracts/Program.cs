@@ -2,6 +2,7 @@ using MaidenSuccubus.Core.Routes;
 using MaidenSuccubus.Core.Relics;
 using MaidenSuccubus.Util;
 using MaidenSuccubus.Core.Events;
+using MaidenSuccubus.Acts;
 
 // Compiles and executes production pure rules, not copied implementations.
 // Independent literal expectations: SYS-COR-003 and RELIC-EVENT-005, 2026-09-27.
@@ -187,3 +188,72 @@ Equal(false, ledger.TryCommit(firstEvent, "other choice", true, false, false, tr
 Equal(false, ledger.TryCommit(firstEvent, "foreign", false, false, true, true), "foreign owner rejected");
 Equal(true, ledger.TryCommit(firstEvent, "foreign", true, false, true, false), "rejection does not consume receipt");
 Console.WriteLine($"PASS DS27 production event completion: {checks - beforeEvents} assertions; {checks} total.");
+
+int beforeFourthAct = checks;
+// Independent literal boundary tables, indexed by corruption -5..5. Sin routes
+// challenge Light; Virtue routes challenge Dark. Qualification never opens Act4.
+bool[] sinEligible = [false, false, false, true, true, true, true, true, true, true, true];
+bool[] virtueEligible = [true, true, true, true, true, true, true, true, false, false, false];
+FourthRouteQuest[] sins = [FourthRouteQuest.Pride, FourthRouteQuest.Greed, FourthRouteQuest.Lust,
+    FourthRouteQuest.Envy, FourthRouteQuest.Gluttony, FourthRouteQuest.Wrath, FourthRouteQuest.Sloth];
+FourthRouteQuest[] virtues = [FourthRouteQuest.Humility, FourthRouteQuest.Generosity, FourthRouteQuest.Chastity,
+    FourthRouteQuest.Benevolence, FourthRouteQuest.Temperance, FourthRouteQuest.Patience, FourthRouteQuest.Diligence];
+Equal(14, sins.Concat(virtues).Distinct().Count(), "fourteen route oracle entries");
+foreach (FourthRouteQuest quest in sins.Concat(virtues))
+{
+    var alignment = FourthActEntryRules.AlignmentOf(quest);
+    bool isSin = sins.Contains(quest);
+    Equal<FourthRouteAlignment?>(isSin ? FourthRouteAlignment.Dark : FourthRouteAlignment.Light,
+        alignment, $"{quest} goddess mapping");
+    for (int corruption = -5; corruption <= 5; corruption++)
+    {
+        bool eligible = (isSin ? sinEligible : virtueEligible)[corruption + 5];
+        Equal(eligible, FourthActEntryRules.Qualifies(true, true, alignment, corruption), $"{quest}/{corruption}");
+        Equal(false, FourthActEntryRules.Qualifies(true, false, alignment, corruption), "unawakened rejected");
+        Equal(false, FourthActEntryRules.Qualifies(false, true, alignment, corruption), "foreign character rejected");
+        Equal(false, FourthActEntryRules.NormalEntryEnabled, "even qualified route cannot open unfinished act");
+    }
+}
+Equal<FourthRouteAlignment?>(null, FourthActEntryRules.AlignmentOf((FourthRouteQuest)999), "unknown quest not virtue");
+Equal(false, FourthActEntryRules.Qualifies(true, true, null, 0), "unselected rejected");
+Equal(false, FourthActEntryRules.Qualifies(true, true, (FourthRouteAlignment)999, 0), "unknown alignment rejected");
+foreach (bool maiden in new[] { false, true })
+foreach (bool checkedAlready in new[] { false, true })
+foreach (int act in new[] { -1, 0, 1, 2, 3, 4 })
+    Equal(maiden && !checkedAlready && act == 2,
+        FourthActEntryRules.ShouldRecordEnding(maiden, act, checkedAlready), "checkpoint only once at third-act end");
+
+// Actual production list transformation: same objects, order and current index.
+var actOne = new object(); var actTwo = new object(); var actThree = new object();
+var placeholder = new object(); var otherMod = new object();
+IReadOnlyList<object> vanillaActs = new[] { actOne, actTwo, actThree };
+IReadOnlyList<object> oldActs = new[] { actOne, actTwo, actThree, placeholder, otherMod, placeholder };
+bool IsPlaceholder(object act) => ReferenceEquals(act, placeholder);
+for (int act = 0; act < 3; act++)
+{
+    Equal(true, ReferenceEquals(vanillaActs,
+        FourthActEntryRules.WithoutPendingPlaceholder(vanillaActs, act, IsPlaceholder)), "vanilla list untouched");
+    var cleaned = FourthActEntryRules.WithoutPendingPlaceholder(oldActs, act, IsPlaceholder);
+    Equal(4, cleaned.Count, "remove only future placeholders, including duplicates");
+    Equal(true, cleaned.SequenceEqual(new[] { actOne, actTwo, actThree, otherMod }), "other mod/order/identity preserved");
+    Equal(true, ReferenceEquals(oldActs[act], cleaned[act]), "current act identity/index preserved");
+    Equal(true, ReferenceEquals(cleaned,
+        FourthActEntryRules.WithoutPendingPlaceholder(cleaned, act, IsPlaceholder)), "migration idempotent");
+    Equal(6, oldActs.Count, "source collection unmodified");
+}
+foreach (int current in new[] { 3, 4 })
+{
+    var cleaned = FourthActEntryRules.WithoutPendingPlaceholder(oldActs, current, IsPlaceholder);
+    Equal(5, cleaned.Count, "entered old debug act preserved, later duplicate removed");
+    Equal(true, ReferenceEquals(cleaned[current], oldActs[current]), "entered room never retargeted");
+    Equal(true, ReferenceEquals(cleaned[3], placeholder), "past/current placeholder remains");
+}
+Equal(true, ReferenceEquals(oldActs,
+    FourthActEntryRules.WithoutPendingPlaceholder(oldActs, 5, IsPlaceholder)), "no future entries unchanged");
+foreach (int invalidIndex in new[] { -1, 6, int.MaxValue })
+    Equal(true, ReferenceEquals(oldActs,
+        FourthActEntryRules.WithoutPendingPlaceholder(oldActs, invalidIndex, IsPlaceholder)), "invalid current index safe no-op");
+IReadOnlyList<object> emptyActs = Array.Empty<object>();
+Equal(true, ReferenceEquals(emptyActs,
+    FourthActEntryRules.WithoutPendingPlaceholder(emptyActs, 0, IsPlaceholder)), "empty list safe no-op");
+Console.WriteLine($"PASS DS27 production fourth-act boundaries: {checks - beforeFourthAct} assertions; {checks} total.");

@@ -36,15 +36,8 @@ public sealed class M6Act4ConsoleCmd : AbstractConsoleCmd
             return new CmdResult(false, "Expected holy, neutral, or corrupt.");
         }
 
-        FourthActRunAdapter.Enabled = true;
-        try
-        {
-            FourthActRunAdapter.EnsurePresent(runState);
-        }
-        finally
-        {
-            FourthActRunAdapter.Enabled = false;
-        }
+        if (!FourthActRunAdapter.EnsureDebugPresent(runState))
+            return new CmdResult(false, "Placeholder entry requires a single-player Debug build.");
         int index = runState.Acts
             .Select((act, i) => (act, i))
             .FirstOrDefault(pair => pair.act is MaidenSuccubusFourthAct).i;
@@ -115,6 +108,8 @@ public sealed class M6RouteConsoleCmd : AbstractConsoleCmd
             state.FourthRouteFragmentPurchased = false;
             state.FourthRouteSacrificeCompleted = false;
             state.FourthRouteThirdBossDefeated = false;
+            state.FourthRouteEndingChecked = false;
+            state.FourthRouteEndingEligible = false;
         });
         FourthRouteProgressService.SelectQuest(runState, quest);
     }
@@ -126,7 +121,9 @@ public sealed class M6RouteConsoleCmd : AbstractConsoleCmd
             + $"progress={state.FourthRouteQuestProgress}; complete={state.FourthRouteQuestCompleted}; "
             + $"stage={state.FourthRouteRelicStage}; fragmentPending={state.FourthRouteFragmentPending}; "
             + $"fragmentOffered={state.FourthRouteFragmentOffered}; sacrificed={state.FourthRouteSacrificeCompleted}; "
-            + $"bossDefeated={state.FourthRouteThirdBossDefeated}; canEnter={FourthRouteProgressService.CanEnterFourthAct(runState)}";
+            + $"bossDefeated={state.FourthRouteThirdBossDefeated}; endingChecked={state.FourthRouteEndingChecked}; "
+            + $"endingEligible={state.FourthRouteEndingEligible}; qualifiesNow={FourthRouteProgressService.HasFourthActQualification(runState)}; "
+            + $"canEnter={FourthRouteProgressService.CanEnterFourthAct(runState)}";
     }
 }
 

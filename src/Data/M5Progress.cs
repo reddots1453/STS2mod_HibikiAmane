@@ -20,6 +20,8 @@ public sealed class M5ProgressState
     public bool FourthRouteFragmentPurchased { get; set; }
     public bool FourthRouteSacrificeCompleted { get; set; }
     public bool FourthRouteThirdBossDefeated { get; set; }
+    public bool FourthRouteEndingChecked { get; set; }
+    public bool FourthRouteEndingEligible { get; set; }
 }
 
 public static class M5Progress
