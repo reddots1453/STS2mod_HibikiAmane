@@ -42,7 +42,7 @@ public sealed class SoulFuenika : MSHolyCard
             3,
             Owner.RunState.Rng.CombatCardGeneration).ToList();
         CardModel? selected = await CardSelectCmd.FromChooseACardScreen(
-            context, choices, Owner, canSkip: false);
+            context, choices, Owner, canSkip: true);
         if (selected != null)
         {
             SoulFuenika persistent = DeckVersion as SoulFuenika ?? this;
@@ -91,6 +91,10 @@ public sealed class FamiliarContract : MSHolyCard
             Owner.RunState.Rng.CombatCardGeneration);
         foreach (CardModel card in generated)
         {
+            if (IsUpgraded)
+            {
+                CardCmd.Upgrade(card);
+            }
             await CardPileCmd.AddGeneratedCardToCombat(
                 card, PileType.Hand, Owner);
             CombatEnchantmentCmd.Apply<FamiliarEnchantment>(card, 1);

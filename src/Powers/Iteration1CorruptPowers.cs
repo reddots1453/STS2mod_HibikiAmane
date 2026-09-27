@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Entities.Powers;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Helpers;
+using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Core.Invasion;
@@ -76,14 +77,22 @@ public sealed class RecollectionRoomPower : MaidenSuccubusPowerTemplate
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
 
-    public override decimal ModifyHandDraw(Player player, decimal count)
+    public override decimal ModifyHandDraw(Player player, decimal count) =>
+        player.Creature == Owner ? count + Amount : count;
+
+    public override decimal ModifyHandDrawLate(Player player, decimal count)
     {
         if (player.Creature != Owner)
         {
             return count;
         }
-        _pendingDraw = Math.Max(0, (int)count + (int)Amount);
-        return 0;
+        decimal total = Math.Max(0, count);
+        _pendingDraw = Math.Min((int)total, PileType.Exhaust.GetPile(player).Cards.Count);
+        // The early +Amount also registers this listener when one exhausted card
+        // exactly cancels the bonus: Hook only registers changed draw counts.
+        // CombatManager invokes AfterModifyingHandDraw before its normal Draw.
+        // Recover exhausted cards first, then let that Draw fill only the remainder.
+        return total - _pendingDraw;
     }
 
     public override async Task AfterModifyingHandDraw()
@@ -96,9 +105,30 @@ public sealed class RecollectionRoomPower : MaidenSuccubusPowerTemplate
             .Take(_pendingDraw)
             .ToArray();
         _pendingDraw = 0;
+        ICombatState? combat = Owner.CombatState;
+        if (combat == null || CombatManager.Instance.IsOverOrEnding
+            || !Hook.ShouldDraw(combat, Owner.Player, fromHandDraw: true, out _))
+        {
+            return;
+        }
+        BlockingPlayerChoiceContext context = new();
         foreach (CardModel card in cards)
         {
+            if (CombatManager.Instance.IsOverOrEnding
+                || PileType.Hand.GetPile(Owner.Player).Cards.Count >= 10)
+            {
+                break;
+            }
+            if (card.Pile?.Type != PileType.Exhaust)
+            {
+                continue;
+            }
             await CardPileCmd.Add(card, PileType.Hand);
+            // Match the draw lifecycle, not just a pile transfer: draw-triggered
+            // effects and history must see recovered cards as start-of-turn draws.
+            CombatManager.Instance.History.CardDrawn(combat, card, fromHandDraw: true);
+            await Hook.AfterCardDrawn(combat, context, card, fromHandDraw: true);
+            card.InvokeDrawn();
         }
     }
 }

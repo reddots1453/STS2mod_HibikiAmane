@@ -218,7 +218,7 @@ foreach ($cardKey in @("ECSTASY_DEW", "BLASPHEMOUS_DESIRE", "TRANQUILIZER", "PUR
         'MAIDEN_SUCCUBUS_CARD_' + $cardKey + '\.description"\s*:\s*"[^\"]*\{DesireIcons\}')
 }
 Assert-Contains "All Hope Lost has a symbolic non-combat description" $energyCardLocalization 'ALL_HOPE_LOST\.description"\s*:\s*"\u9020\u6210\{InCombat:\{Damage:diff\(\)\}\|6X\}\u70B9\u4F24\u5BB3\{InCombat:\{Hits:diff\(\)\}\|Y\}\u6B21'
-Assert-Contains "Soul Fuenika names the selected-card copy" $energyCardLocalization 'SOUL_FUENIKA\.description"\s*:\s*"[^"]*\u9009\u62E9\u7684\u724C\u7684\u590D\u5236'
+Assert-Contains "Soul Fuenika names the selected-card copy" $energyCardLocalization 'SOUL_FUENIKA\.description"\s*:\s*"[^"]*\u90A3\u5F20\u724C\u7684\u590D\u5236'
 $exhaustCards = Read-Text "src\Cards\MvpExhaustCards.cs"
 Assert-Contains "destruction reaction selects newly drawn cards from the hand UI" $exhaustCards 'class\s+DestructionReaction[\s\S]*?CardSelectCmd\.FromHand'
 Assert-NotContains "exhaust cards must not fall back to detached simple-grid selection" $exhaustCards 'CardSelectCmd\.FromSimpleGrid'

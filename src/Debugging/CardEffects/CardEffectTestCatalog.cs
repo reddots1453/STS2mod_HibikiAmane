@@ -617,6 +617,9 @@ internal static class CardEffectTestCatalog
                     added.Single().CurrentUpgradeLevel);
                 ctx.AssertEqual("copy schedule consumed", 0,
                     card.PendingPostCombatCards.Count);
+                await card.AfterCombatEnd(null!);
+                ctx.AssertEqual("repeated combat-end notification adds no duplicate",
+                    deckCountBefore + 1, ctx.Player.Deck.Cards.Count);
             }
             finally
             {
@@ -629,10 +632,22 @@ internal static class CardEffectTestCatalog
                     }
                 }
             }
-        }, 5);
+
+            SoulFuenika skipped = ctx.Create<SoulFuenika>(upgraded);
+            HashSet<CardModel> handBeforeSkip = PileType.Hand.GetPile(ctx.Player)
+                .Cards.ToHashSet();
+            int deckBeforeSkip = ctx.Player.Deck.Cards.Count;
+            await ctx.Play(skipped, selectedIndices: []);
+            ctx.AssertEqual("skip schedules no card", 0, skipped.PendingPostCombatCards.Count);
+            ctx.AssertTrue("skip generates no hand card",
+                handBeforeSkip.SetEquals(PileType.Hand.GetPile(ctx.Player).Cards));
+            await skipped.AfterCombatEnd(null!);
+            ctx.AssertEqual("skip produces no post-combat reward", deckBeforeSkip,
+                ctx.Player.Deck.Cards.Count);
+        }, 9);
 
     private static void FamiliarContractProbe() =>
-        CustomVariants<FamiliarContract>(async (ctx, card, _) =>
+        CustomVariants<FamiliarContract>(async (ctx, card, upgraded) =>
         {
             await PlayerCmd.SetEnergy(2, ctx.Player);
             int hand = PileType.Hand.GetPile(ctx.Player).Cards.Count;
@@ -644,6 +659,8 @@ internal static class CardEffectTestCatalog
                 PileType.Hand.GetPile(ctx.Player).Cards.Count);
             ctx.AssertEqual("all generated cards receive Familiar", 2,
                 familiars.Length);
+            ctx.AssertTrue("generated cards match contract upgrade",
+                familiars.All(generated => generated.IsUpgraded == upgraded));
 
             MaidenStrike trigger = await ctx.Add<MaidenStrike>(PileType.Hand);
             FamiliarEnchantment familiar =
@@ -657,7 +674,7 @@ internal static class CardEffectTestCatalog
                 ctx.PrimaryEnemy, hp, 6);
             ctx.AssertTrue("auto-play removes Familiar card from hand",
                 trigger.Pile?.Type != PileType.Hand);
-        }, 4);
+        }, 5);
 
     private static void LightWingsProbe() =>
         CustomVariants<LightWings>(async (ctx, card, upgraded) =>
@@ -1544,19 +1561,53 @@ internal static class CardEffectTestCatalog
         }, 1);
 
     private static void RecollectionRoomProbe() =>
-        CustomVariants<RecollectionRoom>(async (ctx, card, _) =>
+        CustomVariants<RecollectionRoom>(async (ctx, card, upgraded) =>
         {
-            await ctx.Play(card);
-            IReadOnlyList<CardModel> exhausted = await ctx.AddFillerCards(
-                PileType.Exhaust, 7);
-            RecollectionRoomPower power =
-                ctx.Self.Powers.OfType<RecollectionRoomPower>().Single();
-            ctx.AssertEqual("normal hand draw replaced", 0m,
-                power.ModifyHandDraw(ctx.Player, 5));
-            await power.AfterModifyingHandDraw();
-            ctx.AssertEqual("normal draw plus two recovered from exhaust", 7,
-                exhausted.Count(candidate => candidate.Pile?.Type == PileType.Hand));
-        }, 2);
+            ctx.AssertEqual("upgraded Recollection Room is innate", upgraded,
+                card.Keywords.Contains(CardKeyword.Innate), effect: false);
+            ctx.AssertEqual("upgrade does not give retain", false,
+                card.Keywords.Contains(CardKeyword.Retain), effect: false);
+            foreach (int available in new[] { 0, 1, 2, 6, 7 })
+            {
+                await ctx.Reset();
+                await ctx.Play(ctx.Create<RecollectionRoom>(upgraded));
+                IReadOnlyList<CardModel> exhausted = await ctx.AddFillerCards(
+                    PileType.Exhaust, available);
+                int drawNotifications = 0;
+                foreach (CardModel recoveredCard in exhausted)
+                    recoveredCard.Drawn += () => drawNotifications++;
+                IReadOnlyList<CardModel> normal = await ctx.AddFillerCards(PileType.Draw, 8);
+                decimal remainder = MegaCrit.Sts2.Core.Hooks.Hook.ModifyHandDraw(
+                    ctx.Combat, ctx.Player, 5, out IEnumerable<AbstractModel> modifiers);
+                await MegaCrit.Sts2.Core.Hooks.Hook.AfterModifyingHandDraw(ctx.Combat, modifiers);
+                await CardPileCmd.Draw(new BlockingPlayerChoiceContext(), remainder,
+                    ctx.Player, fromHandDraw: true);
+                int recovered = Math.Min(6, available);
+                ctx.AssertEqual($"exhaust={available}: remainder", 6m - recovered, remainder);
+                ctx.AssertEqual($"exhaust={available}: recover first", recovered,
+                    exhausted.Count(candidate => candidate.Pile?.Type == PileType.Hand));
+                ctx.AssertEqual($"exhaust={available}: draw notifications", recovered, drawNotifications);
+                ctx.AssertEqual($"exhaust={available}: normal draw fills only remainder", 6 - recovered,
+                    normal.Count(candidate => candidate.Pile?.Type == PileType.Hand));
+                int exhaustLeft = PileType.Exhaust.GetPile(ctx.Player).Cards.Count;
+                await CardPileCmd.Draw(new BlockingPlayerChoiceContext(), 1, ctx.Player);
+                ctx.AssertEqual($"exhaust={available}: manual draw leaves exhaust alone", exhaustLeft,
+                    PileType.Exhaust.GetPile(ctx.Player).Cards.Count);
+            }
+            await ctx.Reset();
+            await ctx.Play(ctx.Create<RecollectionRoom>(upgraded));
+            await ctx.AddFillerCards(PileType.Hand, 9);
+            await ctx.AddFillerCards(PileType.Exhaust, 6);
+            decimal overflow = MegaCrit.Sts2.Core.Hooks.Hook.ModifyHandDraw(
+                ctx.Combat, ctx.Player, 5, out IEnumerable<AbstractModel> fullHandModifiers);
+            await MegaCrit.Sts2.Core.Hooks.Hook.AfterModifyingHandDraw(ctx.Combat, fullHandModifiers);
+            await CardPileCmd.Draw(new BlockingPlayerChoiceContext(), overflow,
+                ctx.Player, fromHandDraw: true);
+            ctx.AssertEqual("recovery respects ten-card hand limit", 10,
+                PileType.Hand.GetPile(ctx.Player).Cards.Count);
+            ctx.AssertEqual("hand overflow remains exhausted", 5,
+                PileType.Exhaust.GetPile(ctx.Player).Cards.Count);
+        }, 27);
 
     private static void SemenAppetiteProbe() =>
         CustomVariants<SemenAppetite>(async (ctx, card, upgraded) =>
@@ -3219,8 +3270,10 @@ internal static class CardEffectTestCatalog
         }, 2);
 
     private static void ExhaustTypesForPower<T>() where T : CardModel =>
-        CustomVariants<T>(async (ctx, card, _) =>
+        CustomVariants<T>(async (ctx, card, upgraded) =>
         {
+            ctx.AssertEqual("conversion costs 1/0", upgraded ? 0 : 1,
+                card.EnergyCost.GetWithModifiers(CostModifiers.All), effect: false);
             await ctx.Add<StrikeIronclad>(PileType.Hand);
             await ctx.Add<SemenCurse>(PileType.Hand);
             await ctx.Add<DefendIronclad>(PileType.Hand);
@@ -3230,7 +3283,8 @@ internal static class CardEffectTestCatalog
                     candidate is StrikeIronclad or SemenCurse));
             ctx.AssertPower("amplification per exhausted card", ctx.Self,
                 "MagicAmplificationPower", 2);
-        }, 2);
+            ctx.AssertEqual("conversion does not exhaust itself", PileType.Discard, card.Pile?.Type);
+        }, 3);
 
     private static void DamageAndTransformDraw<T>(int baseDamage, int upgradedDamage)
         where T : CardModel => CustomVariants<T>(async (ctx, card, upgraded) =>
