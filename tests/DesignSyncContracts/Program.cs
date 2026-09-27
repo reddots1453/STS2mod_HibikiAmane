@@ -346,3 +346,26 @@ Equal(0, GluttonyRules.EmptySlots(int.MinValue, int.MaxValue), "invalid negative
 Equal(3, GluttonyRules.EmptySlots(3, -1), "invalid occupancy bounded at zero");
 Equal(int.MaxValue, GluttonyRules.EmptySlots(int.MaxValue, int.MinValue), "no subtraction overflow");
 Console.WriteLine($"PASS DS27 production gluttony: {checks - beforeGluttony} assertions; {checks} total.");
+
+int beforeWrath = checks;
+foreach (bool used in new[] { false, true })
+foreach (bool powered in new[] { false, true })
+    Equal(!used && powered ? 6 : 0, WrathRules.FirstPlayBonus(used, powered), "wrath initial bonus only");
+foreach (int stage in new[] { -1, 0, 1, 2, 3, 4, 5 })
+{
+    Equal(stage is 1 or 2, WrathRules.EnchantOnPickup(stage), "wrath two independent pickup stages");
+    foreach (bool powered in new[] { false, true })
+    foreach (bool own in new[] { false, true })
+    foreach (bool attack in new[] { false, true })
+    foreach (bool wrath in new[] { false, true })
+        Equal((stage is 3 or 4) && powered && own && attack && wrath ? 6 : 0,
+            WrathRules.AwakenedBonus(stage, powered, own, attack, wrath), "wrath awakened source filters");
+}
+for (int layers = 1; layers <= 3; layers++)
+{
+    Equal(layers * 6 + 6, layers * WrathRules.FirstPlayBonus(false, true)
+        + WrathRules.AwakenedBonus(4, true, true, true, true), "awakened flat bonus not per enchantment layer");
+    Equal(6, layers * WrathRules.FirstPlayBonus(true, true)
+        + WrathRules.AwakenedBonus(4, true, true, true, true), "later play retains only awakened bonus");
+}
+Console.WriteLine($"PASS DS27 production wrath: {checks - beforeWrath} assertions; {checks} total.");

@@ -11,6 +11,7 @@ using MegaCrit.Sts2.Core.Entities.Relics;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
@@ -218,15 +219,28 @@ public sealed class GluttonyRouteRelic : FourthRouteRelic
 public sealed class WrathRouteRelic : FourthRouteRelic
 {
     public override FourthRouteQuest Quest => FourthRouteQuest.Wrath;
-    public override bool HasUponPickupEffect => true;
+    protected override IEnumerable<IHoverTip> AdditionalHoverTips => Stage == 0
+        ? base.AdditionalHoverTips
+        : base.AdditionalHoverTips.Concat(HoverTipFactory.FromEnchantment<WrathEnchantment>());
+    public override bool HasUponPickupEffect => WrathRules.EnchantOnPickup(Stage);
+    [SavedProperty] public bool PickupEffectGranted { get; set; }
     public override async Task AfterObtained()
     {
-        if (Stage == 0 || Stage > 2) return;
+        if (Stage == 0 || !WrathRules.EnchantOnPickup(Stage) || PickupEffectGranted) return;
+        PickupEffectGranted = true;
+        var enchantment = ModelDb.Enchantment<WrathEnchantment>().ToMutable();
         CardSelectorPrefs prefs = new(CardSelectorPrefs.EnchantSelectionPrompt, 1) { Cancelable = false };
         CardModel? selected = (await CardSelectCmd.FromDeckGeneric(Owner, prefs,
-            card => card.Type == CardType.Attack && LayeredEnchantments.HasOpenSlot(card))).FirstOrDefault();
-        if (selected != null) CardCmd.Enchant(ModelDb.Enchantment<WrathEnchantment>().ToMutable(), selected, 1);
+            card => card.Type == CardType.Attack && LayeredEnchantments.HasOpenSlot(card)
+                && enchantment.CanEnchant(card))).FirstOrDefault();
+        if (selected != null && selected.Owner == Owner && selected.Pile?.Type == PileType.Deck)
+            CardCmd.Enchant(enchantment, selected, 1);
     }
+
+    public override decimal ModifyDamageAdditive(Creature? target, decimal amount, ValueProp props,
+        Creature? dealer, CardModel? cardSource, CardPlay? cardPlay) =>
+        WrathRules.AwakenedBonus(Stage, props.IsPoweredAttack(), cardSource?.Owner == Owner,
+            cardSource?.Type == CardType.Attack, cardSource != null && LayeredEnchantments.Has<WrathEnchantment>(cardSource));
 }
 
 [RegisterRelic(typeof(MSRelicPool))]

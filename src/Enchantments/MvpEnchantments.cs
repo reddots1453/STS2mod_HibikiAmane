@@ -9,7 +9,7 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.ValueProps;
 using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Content;
-using MaidenSuccubus.Relics;
+using MaidenSuccubus.Core.Relics;
 using MegaCrit.Sts2.Core.Saves.Runs;
 
 namespace MaidenSuccubus.Enchantments;
@@ -114,18 +114,24 @@ public sealed class WrathEnchantment : ModEnchantmentTemplate
     public override bool CanEnchantCardType(CardType cardType) => cardType == CardType.Attack;
 
     public override decimal EnchantDamageAdditive(decimal originalDamage, ValueProp props)
-    {
-        if (!props.IsPoweredAttack()) return 0;
-        WrathRouteRelic? relic = Card.Owner?.Relics.OfType<WrathRouteRelic>().FirstOrDefault();
-        return (_used ? 0 : 6) + (relic?.Stage >= 3 ? 6 : 0);
-    }
+        => WrathRules.FirstPlayBonus(_used, props.IsPoweredAttack());
 
     public override async Task OnPlay(PlayerChoiceContext context, CardPlay? cardPlay)
     {
-        if (_used || cardPlay?.Card != Card) return;
+        if (_used || cardPlay?.Card != Card || Card.CombatState == null) return;
         _used = true;
         CardModel copy = Card.CreateClone();
+        ResetGeneratedCopy(copy);
         await CardPileCmd.AddGeneratedCardToCombat(copy, PileType.Discard, Card.Owner);
+    }
+
+    // Only copies produced by Wrath get a fresh Wrath trigger. General clones,
+    // save/load, and the spent states of unrelated enchantments remain intact.
+    internal static void ResetGeneratedCopy(CardModel copy)
+    {
+        if (copy.Enchantment is WrathEnchantment single) single.UsedThisCombat = false;
+        if (copy.Enchantment is LayeredEnchantment layers)
+            foreach (var wrath in layers.Layers.OfType<WrathEnchantment>()) wrath.UsedThisCombat = false;
     }
 }
 
