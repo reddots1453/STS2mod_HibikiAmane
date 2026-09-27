@@ -131,7 +131,7 @@ internal static class CardEffectTestCatalog
         DarkOriginProbe();
         DarkFlameBarrierProbe();
         DarkPunishmentProbe();
-        DamageAllTargetPower<DarkStorm>(8, 10, "VulnerablePower", 1, 2);
+        DarkStormProbe();
         DamageDraw<DarkThrust>(9, 12, 2, 2);
         DemonStaffProbe();
         DesireRecycleProbe();
@@ -761,6 +761,9 @@ internal static class CardEffectTestCatalog
             ctx.AssertTrue("auto-play removes Familiar card from hand",
                 trigger.Pile?.Type != PileType.Hand);
         }, 5);
+
+    private static void DarkStormProbe() =>
+        CustomVariants<DarkStorm>(DesignSyncDarkStormContract.Run, 26);
 
     private static void LightWingsProbe() =>
         CustomVariants<LightWings>(async (ctx, card, upgraded) =>

@@ -12,6 +12,7 @@ using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Saves.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Commands;
+using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Pools;
 using MaidenSuccubus.Powers;
 using STS2RitsuLib.Interop.AutoRegistration;
@@ -21,6 +22,8 @@ namespace MaidenSuccubus.Cards;
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class DarkStorm : MSCorruptCard
 {
+    // Legacy save field only: pre-DS27 versions granted Glam on pickup.
+    // Do not replay that behavior or erase enchantments from existing saves.
     [SavedProperty]
     public bool EnchantedOnPickup { get; set; }
 
@@ -28,26 +31,9 @@ public sealed class DarkStorm : MSCorruptCard
         HoverTipFactory.FromEnchantment<Glam>();
 
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(8, ValueProp.Move), new PowerVar<VulnerablePower>(1)];
+        [new DamageVar(8, ValueProp.Move), new PowerVar<VulnerablePower>(2)];
 
     public DarkStorm() : base(2, CardType.Attack, CardRarity.Uncommon, TargetType.AllEnemies) { }
-
-    public override Task AfterCardChangedPiles(
-        CardModel card,
-        PileType oldPileType,
-        AbstractModel? source)
-    {
-        if (card == this
-            && !EnchantedOnPickup
-            && oldPileType == PileType.None
-            && card.Pile?.Type == PileType.Deck)
-        {
-            EnchantedOnPickup = true;
-            if (Enchantment == null)
-                PickupEnchantmentCmd.EnchantAndPreview<Glam>(this, 1);
-        }
-        return Task.CompletedTask;
-    }
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
@@ -69,8 +55,15 @@ public sealed class DarkStorm : MSCorruptCard
 
     protected override void OnUpgrade()
     {
-        DynamicVars.Damage.UpgradeValueBy(2);
-        DynamicVars["VulnerablePower"].UpgradeValueBy(1);
+        // This also runs on ownerless upgrade previews and during load. Keep
+        // it instance-local and deterministic: no history, VFX or DeckVersion.
+        using (ControlQuery.SuppressPresentation())
+        {
+            if (Enchantment != null) return;
+            var glam = ModelDb.Enchantment<Glam>().ToMutable();
+            EnchantInternal(glam, 1);
+            glam.ModifyCard();
+        }
     }
 }
 

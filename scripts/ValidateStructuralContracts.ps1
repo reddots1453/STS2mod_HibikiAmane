@@ -93,7 +93,11 @@ Assert-Contains "pickup enchantment waits for ordinary card preview" $enchantmen
 Assert-Contains "combat enchantment accesses original projected state" $combatEnchantment 'using\s*\(ControlQuery\.SuppressPresentation\(\)\)'
 Assert-Contains "combat enchantment shared preview" $combatEnchantment 'AfterCombatEnchantmentApplied\(card\);[\s\S]*?EnchantmentVfxCmd\.Preview\(card\)[\s\S]*?return applied'
 Assert-Contains "Kifuda Adroit is audited for temporary combat use" $combatEnchantment 'typeof\(T\)\s*!=\s*typeof\(Adroit\)'
-Assert-Contains "dark storm pickup enchantment preview" $strengthCards 'PickupEnchantmentCmd\.EnchantAndPreview<Glam>'
+$darkStorm = [regex]::Match($strengthCards, '(?s)public sealed class DarkStorm\b.*?(?=\[RegisterCard)').Value
+Assert-Contains "dark storm upgrade enchantment" $darkStorm 'OnUpgrade\(\)[\s\S]*?if \(Enchantment != null\) return[\s\S]*?ModelDb\.Enchantment<Glam>\(\)\.ToMutable\(\)[\s\S]*?EnchantInternal\(glam, 1\)[\s\S]*?glam\.ModifyCard\(\)'
+Assert-NotContains "dark storm no longer enchants on pickup" $darkStorm 'AfterCardChangedPiles|EnchantAndPreview'
+Assert-Contains "dark storm fixed vulnerable" $darkStorm 'new PowerVar<VulnerablePower>\(2\)'
+Assert-NotContains "dark storm upgrade does not change damage or vulnerable" $darkStorm 'UpgradeValueBy'
 Assert-Contains "magic sword pickup enchantment preview" $neutralCardsBatch3 'PickupEnchantmentCmd\.EnchantAndPreview<ChargeEnchantment>'
 Assert-Contains "surf uses final displayed energy cost" $neutralCardsBatch3 'Surf[\s\S]*?GetWithModifiers\(CostModifiers\.All\)'
 Assert-NotContains "surf avoids patched resource-payment cost" $neutralCardsBatch3 'Surf[\s\S]*?GetAmountToSpend\(\)[\s\S]*?public sealed class PressBack'
