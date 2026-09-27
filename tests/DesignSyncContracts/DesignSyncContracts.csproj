@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../src/Core/Relics/EnvyTriggerState.cs" Link="Production/EnvyTriggerState.cs" />
     <Compile Include="../../src/Core/Relics/SlothTurnState.cs" Link="Production/SlothTurnState.cs" />
     <Compile Include="../../src/Core/Relics/WrathRules.cs" Link="Production/WrathRules.cs" />
     <Compile Include="../../src/Core/Relics/GluttonyRules.cs" Link="Production/GluttonyRules.cs" />

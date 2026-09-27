@@ -164,24 +164,29 @@ public sealed class LustRouteRelic : FourthRouteRelic, ISecondaryResourceHookLis
 [RegisterRelic(typeof(MSRelicPool))]
 public sealed class EnvyRouteRelic : FourthRouteRelic
 {
-    private bool _used;
+    private EnvyTriggerState _trigger;
     [SavedProperty]
-    public bool UsedThisWindow { get => _used; set { AssertMutable(); _used = value; } }
+    public bool UsedThisWindow { get => _trigger.Used; set { AssertMutable(); _trigger.Used = value; } }
     public override FourthRouteQuest Quest => FourthRouteQuest.Envy;
     public override async Task AfterPowerAmountChanged(PlayerChoiceContext context, PowerModel power, decimal amount, Creature? applier, CardModel? cardSource)
     {
-        if (Stage == 0 || _used || amount <= 0 || power.Type != PowerType.Debuff || applier != Owner.Creature || power.Owner.Side == Owner.Creature.Side) return;
-        _used = true;
+        bool ownApplication = applier == Owner.Creature && Owner.Creature.CombatState != null
+            && power.Owner.CombatState == Owner.Creature.CombatState;
+        if (!_trigger.TryUse(Stage, ownApplication, amount != 0 && power.GetTypeForAmount(amount) == PowerType.Debuff)) return;
         Flash();
         await PlayerCmd.GainEnergy(1, Owner);
-        if (Stage >= 2) await CardPileCmd.Draw(context, Owner);
+        int draw = EnvyTriggerState.CardsToDraw(Stage);
+        if (draw > 0) await CardPileCmd.Draw(context, draw, Owner);
     }
-    public override Task AfterSideTurnEnd(PlayerChoiceContext context, CombatSide side, IEnumerable<Creature> participants)
+    public override Task BeforeSideTurnStart(PlayerChoiceContext context, CombatSide side,
+        IReadOnlyList<Creature> participants, ICombatState combatState)
     {
-        if (side == Owner.Creature.Side && Stage >= 3) _used = false;
+        _trigger.StartTurn(Stage, combatState == Owner.Creature.CombatState
+            && side == Owner.Creature.Side && participants.Contains(Owner.Creature));
         return Task.CompletedTask;
     }
-    public override Task AfterCombatEnd(CombatRoom room) { _used = false; return Task.CompletedTask; }
+    public override Task BeforeCombatStart() { _trigger = default; return Task.CompletedTask; }
+    public override Task AfterCombatEnd(CombatRoom room) { _trigger = default; return Task.CompletedTask; }
 }
 
 [RegisterRelic(typeof(MSRelicPool))]

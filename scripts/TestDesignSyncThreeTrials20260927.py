@@ -48,7 +48,7 @@ class ThreeTrialContracts(unittest.TestCase):
     def test_dormant_forms_are_effectless_at_hook_boundaries(self):
         code = read("src/Relics/FourthRouteRelics.cs")
         self.assertIn("Math.Clamp(value, 0, 4)", code)
-        for name in ("Pride", "Greed", "Lust", "Envy", "Gluttony", "Wrath", "Humility",
+        for name in ("Pride", "Greed", "Lust", "Gluttony", "Wrath", "Humility",
                      "Generosity", "Chastity", "Benevolence", "Temperance", "Diligence"):
             section = code.split(f"public sealed class {name}RouteRelic", 1)[1].split("[RegisterRelic", 1)[0]
             self.assertTrue("Stage == 0" in section or "Stage is 0" in section, name)
@@ -62,6 +62,9 @@ class ThreeTrialContracts(unittest.TestCase):
         state = read("src/Core/Relics/SlothTurnState.cs")
         self.assertIn("stage is < 1 or > 4", state)
         self.assertIn("1 => 1, 2 => 2, 3 or 4 => 3, _ => 0", state)
+        envy = code.split("public sealed class EnvyRouteRelic", 1)[1].split("[RegisterRelic", 1)[0]
+        self.assertIn("_trigger.TryUse(Stage, ownApplication", envy)
+        self.assertIn("stage is < 1 or > 4", read("src/Core/Relics/EnvyTriggerState.cs"))
         self.assertIn("relic.Stage = 0", read("src/Acts/FourthRouteProgress.cs"))
 
     def test_counts_use_current_trial_and_qualified_sources(self):

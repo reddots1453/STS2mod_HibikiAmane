@@ -96,7 +96,7 @@
   "MAIDEN_SUCCUBUS_RELIC_ENVY_ROUTE_RELIC.descriptionStage1": "每场战斗第一次给予负面效果时，获得{energyPrefix:maidenEnergyIcons(1)}。",
   "MAIDEN_SUCCUBUS_RELIC_ENVY_ROUTE_RELIC.descriptionStage2": "每场战斗第一次给予负面效果时，获得{energyPrefix:maidenEnergyIcons(1)}并抽1张牌。",
   "MAIDEN_SUCCUBUS_RELIC_ENVY_ROUTE_RELIC.descriptionStage3": "每回合第一次给予负面效果时，获得{energyPrefix:maidenEnergyIcons(1)}并抽1张牌。",
-  "MAIDEN_SUCCUBUS_RELIC_ENVY_ROUTE_RELIC.descriptionStage4": "延续繁荣。",
+  "MAIDEN_SUCCUBUS_RELIC_ENVY_ROUTE_RELIC.descriptionStage4": "每回合第一次给予负面效果时，获得{energyPrefix:maidenEnergyIcons(1)}并抽1张牌。",
   "MAIDEN_SUCCUBUS_RELIC_GLUTTONY_ROUTE_RELIC.description": "拾起时，获得4点最大生命值和1个药水栏位。",
   "MAIDEN_SUCCUBUS_RELIC_GLUTTONY_ROUTE_RELIC.descriptionStage1": "拾起时，获得4点最大生命值和1个药水栏位。",
   "MAIDEN_SUCCUBUS_RELIC_GLUTTONY_ROUTE_RELIC.descriptionStage2": "拾起时，获得4点最大生命值和1个药水栏位。",

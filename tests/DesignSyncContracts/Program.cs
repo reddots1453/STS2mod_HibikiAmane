@@ -428,3 +428,37 @@ foreach (int stage in new[] { -1, 5, int.MaxValue })
     Equal(false, invalid.PendingEnergy, "unknown stage no reward");
 }
 Console.WriteLine($"PASS DS27 production sloth: {checks - beforeSloth} assertions; {checks} total.");
+
+int beforeEnvy = checks;
+foreach (int stage in new[] { -1, 0, 1, 2, 3, 4, 5 })
+{
+    bool active = stage is >= 1 and <= 4;
+    bool perTurn = stage is 3 or 4;
+    Equal(stage is >= 2 and <= 4 ? 1 : 0, EnvyTriggerState.CardsToDraw(stage), "envy stage draw");
+    foreach (bool own in new[] { false, true })
+    foreach (bool harmful in new[] { false, true })
+    foreach (bool used in new[] { false, true })
+    {
+        var state = new EnvyTriggerState { Used = used };
+        bool fires = active && own && harmful && !used;
+        Equal(fires, state.TryUse(stage, own, harmful), "envy stage/owner/type/receipt predicate");
+        Equal(used || fires, state.Used, "nonqualifying change cannot consume first use");
+    }
+    var sequence = new EnvyTriggerState();
+    Equal(false, sequence.TryUse(stage, true, false), "purification or buff does not spend trigger");
+    Equal(false, sequence.TryUse(stage, false, true), "foreign caster does not spend trigger");
+    Equal(active, sequence.TryUse(stage, true, true), "first actual harmful change");
+    Equal(false, sequence.TryUse(stage, true, true), "multiple targets or layers trigger once");
+    sequence.StartTurn(stage, false);
+    Equal(false, sequence.TryUse(stage, true, true), "enemy/foreign turn cannot refresh window");
+    sequence.StartTurn(stage, true);
+    Equal(perTurn, sequence.TryUse(stage, true, true), "only awakened refreshes on own next turn");
+    sequence = default;
+    Equal(active, sequence.TryUse(stage, true, true), "new battle resets per-combat trigger");
+}
+var envyOriginal = new EnvyTriggerState { Used = true };
+var envyClone = envyOriginal;
+envyClone.StartTurn(4, true);
+Equal(true, envyOriginal.Used, "clone reset cannot change original receipt");
+Equal(false, envyClone.Used, "clone owns independent receipt");
+Console.WriteLine($"PASS DS27 production envy: {checks - beforeEnvy} assertions; {checks} total.");
