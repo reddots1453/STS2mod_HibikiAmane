@@ -1,10 +1,12 @@
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
+using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Rooms;
@@ -250,56 +252,76 @@ public sealed class ShiningSword : MSNeutralCard
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class FlameSword : MSNeutralCard
 {
-    private const int RequiredPlays = 6;
-    private int _timesPlayed;
+    private const int RequiredCombats = 5;
+    private int _completedCombats;
+    private WeakReference<CombatRoom>? _lastCountedRoom;
+
+    // Preserve the old serialized property, but plays are not completed combats.
+    // Existing Ember enchantments also remain intact during native save loading.
+    [SavedProperty]
+    public int TimesPlayed { get; set; }
 
     [SavedProperty]
-    public int TimesPlayed
+    public int CompletedCombats
     {
-        get => _timesPlayed;
+        get => _completedCombats;
         set
         {
             AssertMutable();
-            _timesPlayed = Math.Clamp(value, 0, RequiredPlays);
-            DynamicVars["Remaining"].BaseValue = RequiredPlays - _timesPlayed;
+            _completedCombats = Math.Clamp(value, 0, RequiredCombats);
+            DynamicVars["Remaining"].BaseValue = RequiredCombats - _completedCombats;
         }
     }
 
     protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
         HoverTipFactory.FromEnchantment<TezcatarasEmber>();
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(9, ValueProp.Move), new DynamicVar("Remaining", RequiredPlays)];
+        [new DamageVar(9, ValueProp.Move), new DynamicVar("Remaining", RequiredCombats)];
 
     public FlameSword()
         : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
 
-    protected override async Task OnPlay(
+    protected override Task OnPlay(
         PlayerChoiceContext context,
         CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
-        await DamageCmd.Attack(DynamicVars.Damage.BaseValue)
+        return DamageCmd.Attack(DynamicVars.Damage.BaseValue)
             .FromCard(this, play)
             .Targeting(play.Target)
             .WithHitFx("vfx/vfx_attack_slash")
             .Execute(context);
+    }
 
-        if (Enchantment is TezcatarasEmber)
-            return;
+    public override Task AfterCombatVictory(CombatRoom room)
+    {
+        // Run hooks enumerate deck cards AND combat clones. Only the permanent
+        // instance earns progress, even when its combat copy is sealed/unplayed.
+        if (Pile?.Type != PileType.Deck || HasBeenRemovedFromState
+            || !Owner.Deck.Cards.Contains(this)
+            || (_lastCountedRoom?.TryGetTarget(out var previousRoom) == true && ReferenceEquals(room, previousRoom))
+            || Enchantment is TezcatarasEmber)
+            return Task.CompletedTask;
 
-        FlameSword persistent = DeckVersion as FlameSword ?? this;
-        persistent.TimesPlayed++;
-        TimesPlayed = persistent.TimesPlayed;
-        if (persistent.TimesPlayed < RequiredPlays)
-            return;
-
-        if (persistent != this && persistent.Enchantment == null)
-            CardCmd.Enchant<TezcatarasEmber>(persistent, 1);
-
-        if (Enchantment == null && CombatEnchantmentCmd.IsCombatClone(this))
-            CombatEnchantmentCmd.ApplyVanilla<TezcatarasEmber>(this, 1);
-        else if (persistent == this && Enchantment == null)
+        _lastCountedRoom = new(room);
+        CompletedCombats++;
+        // A normal card still has one enchantment slot. Do not destroy another
+        // enchantment to grant this one, or throw at combat end when it is full.
+        if (CompletedCombats == RequiredCombats && Enchantment == null)
+        {
             CardCmd.Enchant<TezcatarasEmber>(this, 1);
+            if (LocalContext.IsMine(this)) EnchantmentVfxCmd.Preview(this);
+        }
+        return Task.CompletedTask;
+    }
+
+    protected override void AddExtraArgsToDescription(LocString description) =>
+        description.Add("ShowRemaining", Enchantment is not TezcatarasEmber);
+
+    protected override void DeepCloneFields()
+    {
+        base.DeepCloneFields();
+        _lastCountedRoom = null;
     }
 
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);

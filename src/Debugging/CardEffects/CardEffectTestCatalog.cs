@@ -560,25 +560,7 @@ internal static class CardEffectTestCatalog
         }, 3);
 
     private static void FlameSwordProbe() =>
-        CustomVariants<FlameSword>(async (ctx, card, upgraded) =>
-        {
-            int hp = ctx.PrimaryEnemy.CurrentHp;
-            for (int i = 0; i < 6; i++)
-                await ctx.Play(card, ctx.PrimaryEnemy);
-
-            ctx.AssertDamage("six cross-combat-counted plays", ctx.PrimaryEnemy, hp,
-                (upgraded ? 12 : 9) * 6);
-            ctx.AssertEqual("play counter reaches six", 6, card.TimesPlayed);
-            ctx.AssertEqual("remaining counter reaches zero", 0,
-                card.DynamicVars["Remaining"].IntValue);
-            ctx.AssertEqual("sixth play applies Tezcatara's Ember",
-                nameof(TezcatarasEmber),
-                card.Enchantment?.GetType().Name ?? "none");
-            ctx.AssertEqual("Ember makes the card cost zero", 0,
-                card.EnergyCost.GetWithModifiers(CostModifiers.All));
-            ctx.AssertTrue("Ember makes the card eternal",
-                card.Keywords.Contains(CardKeyword.Eternal));
-        }, 6);
+        CustomVariants<FlameSword>(DesignSyncFlameSwordContract.Run, 35);
 
     private static void WindGodCloakProbe() =>
         CustomVariants<WindGodCloak>(async (ctx, card, upgraded) =>
