@@ -153,6 +153,11 @@ internal static class CardEffectTestRunner
         if (string.Equals(requestedCard, "all", StringComparison.OrdinalIgnoreCase))
             return CardEffectTestCatalog.All.ToArray();
 
+        if (string.Equals(requestedCard, "ds27-transformation", StringComparison.OrdinalIgnoreCase))
+            return CardEffectTestCatalog.All.Where(spec =>
+                spec.CardType == typeof(Cards.Transform)
+                || spec.CardType == typeof(Cards.LightPowerRelease)).ToArray();
+
         if (string.Equals(requestedCard, "ds27-batch6", StringComparison.OrdinalIgnoreCase))
         {
             CardEffectSpec[] batch = CardEffectTestCatalog.All

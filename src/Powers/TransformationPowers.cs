@@ -40,13 +40,12 @@ public sealed class ImmaculateRobePower : MaidenSuccubusPowerTemplate
         PlayerChoiceContext choiceContext,
         MegaCrit.Sts2.Core.Entities.Players.Player player)
     {
-        if (!ReferenceEquals(player.Creature, Owner))
+        if (!ReferenceEquals(player.Creature, Owner) || Owner.HasPower<EternalRobePower>())
         {
             return;
         }
-        decimal amount = Owner.GetPower<EternalRobePower>()?.Amount ?? 1m;
         await PowerCmd.Apply<MagicAmplificationPower>(
-            choiceContext, Owner, amount, Owner, null);
+            choiceContext, Owner, 1, Owner, null);
     }
 }
 
@@ -82,8 +81,6 @@ public sealed class CorruptRobePower : MaidenSuccubusPowerTemplate
 [RegisterPower]
 public sealed class MagicArmorPower : MaidenSuccubusPowerTemplate
 {
-    private bool _pendingDecrement;
-
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
     public override PowerAssetProfile AssetProfile => CommonPowerAssets.Generic;
@@ -139,7 +136,6 @@ public sealed class MagicArmorPower : MaidenSuccubusPowerTemplate
         if (side == CombatSide.Player)
         {
             UsedThisTurn = false;
-            _pendingDecrement = false;
         }
         return Task.CompletedTask;
     }
@@ -163,20 +159,34 @@ public sealed class MagicArmorPower : MaidenSuccubusPowerTemplate
             return amount;
         }
 
-        UsedThisTurn = true;
-        _pendingDecrement = true;
-        return amount * 0.5m;
+        // Preview hooks must be pure. Commit the use only in the actual
+        // damage callback, never while the UI calculates a forecast.
+        return amount * 0.67m;
     }
 
     public override async Task AfterModifyingHpLostAfterOsty()
     {
-        if (!_pendingDecrement)
+        if (UsedThisTurn || Amount <= 0)
         {
             return;
         }
-        _pendingDecrement = false;
+        UsedThisTurn = true;
         Flash();
-        await PowerCmd.Decrement(this);
+        await TransformationCmd.LoseArmor(
+            new BlockingPlayerChoiceContext(), Owner, 1, null);
+    }
+
+    public override async Task AfterDamageReceived(
+        PlayerChoiceContext context, Creature target, DamageResult result,
+        ValueProp props, Creature? dealer, CardModel? cardSource)
+    {
+        // At zero the HP modifier is unchanged, so the engine does not call
+        // AfterModifyingHpLostAfterOsty. Use the real damage result instead.
+        if (target != Owner || UsedThisTurn || result.UnblockedDamage <= 0
+            || dealer?.Side != CombatSide.Enemy || !props.HasFlag(ValueProp.Move)
+            || props.HasFlag(ValueProp.Unpowered)) return;
+        UsedThisTurn = true;
+        await TransformationCmd.LoseArmor(context, Owner, 1, cardSource);
     }
 
     public override async Task AfterRemoved(Creature oldOwner)
@@ -188,7 +198,7 @@ public sealed class MagicArmorPower : MaidenSuccubusPowerTemplate
             return;
         }
         foreach (PowerModel form in oldOwner.Powers
-            .Where(power => power is ImmaculateRobePower or CorruptRobePower)
+            .Where(power => power is ImmaculateRobePower or CorruptRobePower or EternalRobePower)
             .ToArray())
         {
             await PowerCmd.Remove(form);

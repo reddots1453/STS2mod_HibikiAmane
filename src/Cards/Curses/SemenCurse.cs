@@ -215,11 +215,7 @@ public sealed class DeepSeaSlimeCurse : MSInvasionCurseTemplate
 {
     protected override async Task ResolveEffect(PlayerChoiceContext context)
     {
-        MagicArmorPower? armor = TransformationCmd.GetArmor(Owner.Creature);
-        if (armor != null)
-        {
-            await PowerCmd.Decrement(armor);
-        }
+        await TransformationCmd.LoseArmor(context, Owner.Creature, 1, this);
     }
 }
 

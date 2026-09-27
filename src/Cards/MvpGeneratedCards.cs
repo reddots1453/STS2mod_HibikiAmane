@@ -55,9 +55,7 @@ public sealed class NakedDesireStatus : MSGeneratedCard
     public NakedDesireStatus() : base(-1, CardType.Status, CardRarity.Status, TargetType.None) { }
     protected override async Task OnTurnEndInHand(PlayerChoiceContext context)
     {
-        MagicArmorPower? armor = TransformationCmd.GetArmor(Owner.Creature);
-        if (armor != null)
-            await PowerCmd.Decrement(armor);
+        await TransformationCmd.LoseArmor(context, Owner.Creature, 1, this);
     }
 }
 

@@ -191,14 +191,12 @@ public sealed class LightPowerRelease : MSHolyCard
         : base(3, CardType.Power, CardRarity.Rare, TargetType.Self) { }
 
     public override bool ShouldPlay(CardModel card, AutoPlayType autoPlayType) =>
-        card != this || !TransformationCmd.IsTransformed(Owner.Creature);
+        card != this || !Owner.Creature.HasPower<EternalRobePower>();
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
-        await TransformationCmd.EnterImmaculateRobe(
+        await TransformationCmd.EnterEternalRobe(
             context, Owner.Creature, this);
-        await PowerCmd.Apply<EternalRobePower>(
-            context, Owner.Creature, 9, Owner.Creature, this);
     }
 
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);

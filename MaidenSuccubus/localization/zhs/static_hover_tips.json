@@ -31,7 +31,7 @@
   "MAIDENSUCCUBUS_TEMPTATION_REFERENCE.title": "诱惑度",
   "MAIDENSUCCUBUS_TEMPTATION_REFERENCE.description": "[gold]诱惑度[/gold]决定敌人是否会使用以及会使用哪种[pink]色情攻击[/pink]。[gold]诱惑度[/gold]主要由基础诱惑度、[gold]魔装耐久[/gold]和其他卡牌、遗物效果决定。",
   "MAIDENSUCCUBUS_TRANSFORMATION.title": "变身",
-  "MAIDENSUCCUBUS_TRANSFORMATION.description": "进入任何[gold]变身[/gold]时，将[gold]魔装耐久[/gold]重置为3层。[gold]魔装耐久[/gold]降至0时立即解除[gold]变身[/gold]。",
+  "MAIDENSUCCUBUS_TRANSFORMATION.description": "进入任何[gold]变身[/gold]时，将[gold]魔装耐久[/gold]重置为3层，上限5层。正数降至0时保持[gold]变身[/gold]；0层时再次失去[gold]魔装耐久[/gold]才解除[gold]变身[/gold]。普通形态不能获得[gold]魔装耐久[/gold]。",
   "MAIDENSUCCUBUS_INVASION_REFERENCE.title": "侵犯",
   "MAIDENSUCCUBUS_INVASION_REFERENCE.description": "[gold]侵犯[/gold]会造成伤害，同时向玩家牌组塞入诅咒。只有处于[gold]拘束[/gold]状态且[gold]魔装耐久[/gold]为全损状态时，才会成为合法意图。",
   "MAIDENSUCCUBUS_EROTIC_ATTACK_REFERENCE.title": "色情攻击",

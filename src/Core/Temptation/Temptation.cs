@@ -86,8 +86,8 @@ public static class Temptation
             return 0;
         }
         int armor = (int)(TransformationCmd.GetArmor(creature)?.Amount ?? 0);
-        return Math.Max(0, TransformationCmd.MaxArmor - Math.Min(
-            TransformationCmd.MaxArmor,
+        return Math.Max(0, TransformationCmd.InitialArmor - Math.Min(
+            TransformationCmd.InitialArmor,
             armor)) * PerMissingArmor;
     }
 

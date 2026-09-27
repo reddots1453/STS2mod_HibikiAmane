@@ -95,11 +95,17 @@ public sealed class EternalRobePower : MaidenSuccubusPowerTemplate
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
 
+    public override Task AfterPlayerTurnStart(PlayerChoiceContext context, Player player) =>
+        player.Creature == Owner
+            ? PowerCmd.Apply<MagicAmplificationPower>(context, Owner, 9, Owner, null)
+            : Task.CompletedTask;
+
     public override Task AfterApplied(
         MegaCrit.Sts2.Core.Entities.Creatures.Creature? applier,
         CardModel? cardSource)
     {
         TransformationEvents.Publish(Owner);
+        MaidenSuccubus.Core.Temptation.TemptationEvents.Publish(Owner);
         return Task.CompletedTask;
     }
 
@@ -107,6 +113,7 @@ public sealed class EternalRobePower : MaidenSuccubusPowerTemplate
         MegaCrit.Sts2.Core.Entities.Creatures.Creature oldOwner)
     {
         TransformationEvents.Publish(oldOwner);
+        MaidenSuccubus.Core.Temptation.TemptationEvents.Publish(oldOwner);
         return Task.CompletedTask;
     }
 }

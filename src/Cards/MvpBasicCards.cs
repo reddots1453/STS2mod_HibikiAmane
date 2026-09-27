@@ -83,7 +83,9 @@ public sealed class Transform : MSHolyCard
     public Transform() : base(1, CardType.Skill, CardRarity.Basic, TargetType.Self) { }
 
     public override bool ShouldPlay(CardModel card, AutoPlayType autoPlayType) =>
-        card != this || !TransformationCmd.IsTransformed(Owner.Creature);
+        card != this || (RouteKind == RouteCardKind.Corrupt
+            ? !Owner.Creature.HasPower<CorruptRobePower>()
+            : !Owner.Creature.HasPower<ImmaculateRobePower>());
 
     protected override void AddExtraArgsToDescription(LocString description) =>
         description.Add(

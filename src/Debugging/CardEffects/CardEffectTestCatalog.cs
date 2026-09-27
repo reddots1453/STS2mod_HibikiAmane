@@ -53,6 +53,7 @@ internal static class CardEffectTestCatalog
         RegisterHoly();
         RegisterInvasionCurses();
         RegisterGenerated();
+        DesignSyncTransformationContract.Extend(_specs);
         return _specs.OrderBy(spec => spec.CardId, StringComparer.Ordinal).ToArray();
     }
 
@@ -422,7 +423,7 @@ internal static class CardEffectTestCatalog
             ctx.AssertDamage("damage without release", ctx.PrimaryEnemy, hp, upgraded ? 11 : 8);
             ctx.AssertPower<BurningPower>("one base burning", ctx.PrimaryEnemy, 1);
             await ctx.Reset();
-            await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 1);
+            await ctx.SetUpArmour(1);
             await ctx.Play(ctx.Create<FlameBloom>(upgraded), ctx.PrimaryEnemy, selectedIndices: [0]);
             ctx.AssertPower<BurningPower>("release adds one more burning", ctx.PrimaryEnemy, 2);
         }, 3);
@@ -446,7 +447,7 @@ internal static class CardEffectTestCatalog
         {
             int damage = upgraded ? 9 : 7;
             AssertNeutralMetadata(ctx, card, CardRarity.Common, 1);
-            await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 1);
+            await ctx.SetUpArmour(1);
             Creature releaseTarget = await CreatureCmd.Add<Byrdonis>(ctx.Combat);
             try
             {
@@ -2183,12 +2184,12 @@ internal static class CardEffectTestCatalog
         CustomVariants<LightPowerRelease>(async (ctx, card, _) =>
         {
             await ctx.Play(card);
-            ctx.AssertPower("enters immaculate robe", ctx.Self,
-                "ImmaculateRobePower", 1);
+            ctx.AssertPower("no underlying immaculate robe", ctx.Self,
+                "ImmaculateRobePower", 0);
             ctx.AssertPower("transformation armor", ctx.Self, "MagicArmorPower", 3);
             ctx.AssertPower("eternal robe amplification amount", ctx.Self,
                 "EternalRobePower", 9);
-            ImmaculateRobePower robe = ctx.Self.Powers.OfType<ImmaculateRobePower>().Single();
+            EternalRobePower robe = ctx.Self.Powers.OfType<EternalRobePower>().Single();
             await robe.AfterPlayerTurnStart(new BlockingPlayerChoiceContext(), ctx.Player);
             ctx.AssertPower("nine amplification each turn", ctx.Self,
                 "MagicAmplificationPower", 9);
@@ -2448,7 +2449,7 @@ internal static class CardEffectTestCatalog
             await CardPileCmd.Add(secondCurse, PileType.Deck, skipVisuals: true);
             try
             {
-                await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 1);
+                await ctx.SetUpArmour(1);
                 int energy = ctx.Player.PlayerCombatState!.Energy;
                 await ctx.Play(card, selectedIndices: [0]);
                 ctx.AssertEqual("immediate energy", 2,
@@ -2555,7 +2556,7 @@ internal static class CardEffectTestCatalog
     private static void LightningRecoilProbe() =>
         CustomVariants<LightningRecoil>(async (ctx, card, upgraded) =>
         {
-            await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 1);
+            await ctx.SetUpArmour(1);
             await ctx.AddFillerCards(PileType.Draw, 2);
             int hp = ctx.PrimaryEnemy.CurrentHp;
             int hand = ctx.CountCards<StrikeIronclad>(PileType.Hand);
@@ -2716,7 +2717,7 @@ internal static class CardEffectTestCatalog
     private static void BlackVortexProbe() =>
         CustomVariants<BlackVortex>(async (ctx, card, _) =>
         {
-            await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 1);
+            await ctx.SetUpArmour(1);
             await ctx.AddFillerCards(PileType.Draw, 2);
             int totalHp = ctx.Enemies.Sum(enemy => enemy.CurrentHp);
             await ctx.Play(card, selectedIndices: [0]);
@@ -3126,11 +3127,11 @@ internal static class CardEffectTestCatalog
             ctx.AssertEqual("one energy cost", 1,
                 card.EnergyCost.GetWithModifiers(CostModifiers.Local));
             await ctx.ApplyPower<DexterityPower>(ctx.Self, 2);
-            await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 1);
+            await ctx.SetUpArmour(1);
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(card, ctx.PrimaryEnemy, selectedIndices: [0]);
             ctx.AssertDamage("overdraft damage scales with buff layers",
-                ctx.PrimaryEnemy, hp, upgraded ? 13 : 11);
+                ctx.PrimaryEnemy, hp, upgraded ? 16 : 13);
             ctx.AssertPower("overdraft armor payment", ctx.Self, "MagicArmorPower", 0);
         }, 3);
 
@@ -3155,7 +3156,7 @@ internal static class CardEffectTestCatalog
                 delayed.Title.GetFormattedText());
 
             await PowerCmd.Remove(delayed);
-            await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 1);
+            await ctx.SetUpArmour(1);
             MultipleReproduction immediateCard = ctx.Create<MultipleReproduction>();
             await ctx.Play(immediateCard, selectedIndices: [0]);
             MultipleReproductionPower immediate = ctx.Self.Powers
@@ -3370,7 +3371,7 @@ internal static class CardEffectTestCatalog
             {
                 await CreatureCmd.SetMaxAndCurrentHp(splashTarget, 20000);
                 await ctx.ApplyPower<CondemnationPower>(ctx.PrimaryEnemy, 6);
-                await ctx.ApplyPower<MagicArmorPower>(ctx.Self, 1);
+                await ctx.SetUpArmour(1);
                 int primaryHp = ctx.PrimaryEnemy.CurrentHp;
                 int splashHp = splashTarget.CurrentHp;
                 await ctx.Play(ctx.Create<FinalJudgment>(upgraded), ctx.PrimaryEnemy, selectedIndices: [0]);

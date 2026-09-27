@@ -194,6 +194,18 @@ internal sealed class CardEffectTestContext
         await PowerCmd.Apply<T>(
             new BlockingPlayerChoiceContext(), target, amount, Self, null);
 
+    public async Task SetUpArmour(int amount)
+    {
+        if (amount is < 0 or > 5) throw new ArgumentOutOfRangeException(nameof(amount));
+        var choice = new BlockingPlayerChoiceContext();
+        await Core.Transformation.TransformationCmd.EnterImmaculateRobe(choice, Self, null);
+        int current = Core.Transformation.TransformationCmd.GetArmor(Self)?.Amount ?? 0;
+        if (amount < current)
+            await Core.Transformation.TransformationCmd.LoseArmor(choice, Self, current - amount, null);
+        else if (amount > current)
+            await Core.Transformation.TransformationCmd.GainArmor(choice, Self, amount - current, null);
+    }
+
     public async Task InvokeTurnEndInHand(CardModel card)
     {
         System.Reflection.MethodInfo method = typeof(CardModel).GetMethod(

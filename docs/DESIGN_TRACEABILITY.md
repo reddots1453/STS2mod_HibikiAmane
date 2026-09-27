@@ -204,6 +204,8 @@
 
 ### 澄清后的当前增量
 
+`DS27-01A`（IMPLEMENTED，前置`fac99db7`）：SYS-TRF-001/002/004与KW-OVERDRAFT-001的统一耐久生命周期及形态互斥。初始3/上限5、33%减损、正数到0保留/0再损失退出、支付前检查、所有既有直接减层入口和正常形态增长限制；零层立绘与同形态提示同步。新增7静态检查通过，累计60项；8个游戏内真实命令场景已编译未运行，入口`ms_test_cards confirm ds27-transformation`。Debug及四门通过；VisualAssets既有断言失败，未部署。存档/跨战斗/实际UI仍待实机验收，详见`DESIGN_SYNC_20260927_BATCH7.md`；不将编译等同实机验收，不将DS27-01整体标完成。
+
 最新确认（前置`46801cba`）：无名先古牌命名“娅露丝的书库”；黑暗之源采用先古稀有度；亡灵集会代价扣当前生命并显示实际整数。三项OPEN关闭，分别进入`DS27-02B`、`DS27-06A`（IMPLEMENTED，游戏内待验），不再等待设计。旧段落保留审阅历史，不代表仍待确认。
 
 本批追踪：先古卡章节→`InsatiableGreed`/`YarusLibraryPower`/`DarkOrigin`与尘封魔典/古老牙齿注册→CardEffect三个探针；`EVENT-NEW-003`→`UndeadGathering`→`ms_test_events confirm`。累计14项静态测试、Debug无部署构建及四个内容/结构门通过；完整视觉门既有UI断言失败；真实游戏测试尚未执行。详见`DESIGN_SYNC_20260927_BATCH2.md`，不据此将全部DS27标为完成。

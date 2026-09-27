@@ -549,7 +549,8 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
             return;
         }
 
-        int armor = TransformationCmd.IsTransformed(node.Entity)
+        bool transformed = TransformationCmd.IsTransformed(node.Entity);
+        int armor = transformed
             ? TransformationCmd.GetArmor(node.Entity)?.Amount ?? 0
             : 0;
         string prefix = node.Entity.HasPower<EternalRobePower>()
@@ -561,7 +562,7 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         {
             >= 3 => prefix + "3.png",
             2 => prefix + "2.png",
-            1 => prefix + "1.png",
+            0 or 1 when transformed => prefix + "1.png",
             _ => "character_normal.png",
         };
         if (file == _shownAppearance)

@@ -12,13 +12,14 @@ namespace MaidenSuccubus.Core.Transformation;
 
 public static class TransformationCmd
 {
-    public const int MaxArmor = 3;
+    public const int InitialArmor = 3;
+    public const int MaxArmor = 5;
 
     public static bool IsTransformed(Creature creature)
     {
         foreach (var power in creature.Powers)
         {
-            if (power is ImmaculateRobePower or CorruptRobePower)
+            if (power is ImmaculateRobePower or CorruptRobePower or EternalRobePower)
             {
                 return true;
             }
@@ -67,64 +68,44 @@ public static class TransformationCmd
         return value * multiplier;
     }
 
-    public static async Task EnterImmaculateRobe(
+    public static Task EnterImmaculateRobe(
         PlayerChoiceContext choiceContext,
         Creature creature,
-        CardModel? source)
+        CardModel? source) =>
+        Enter<ImmaculateRobePower>(choiceContext, creature, source, 1);
+
+    public static Task EnterCorruptRobe(
+        PlayerChoiceContext choiceContext,
+        Creature creature,
+        CardModel? source) =>
+        Enter<CorruptRobePower>(choiceContext, creature, source, 1);
+
+    public static Task EnterEternalRobe(
+        PlayerChoiceContext choiceContext,
+        Creature creature,
+        CardModel? source) =>
+        Enter<EternalRobePower>(choiceContext, creature, source, 9);
+
+    private static async Task Enter<T>(
+        PlayerChoiceContext choiceContext,
+        Creature creature,
+        CardModel? source,
+        int formAmount) where T : PowerModel
     {
+        // Entering the same form must not refresh its armour.
+        if (creature.HasPower<T>()) return;
         if (PerformanceAudience.IsLocalMaiden(creature.Player))
         {
             PerformanceAudioService.PlayOneShot(PerformanceAudioCue.TransformationStart);
         }
-        ImmaculateRobePower? form = creature.Powers
-            .OfType<ImmaculateRobePower>()
-            .FirstOrDefault();
-        if (form == null)
-        {
-            await PowerCmd.Apply<ImmaculateRobePower>(
-                choiceContext, creature, 1m, creature, source);
-        }
-
-        MagicArmorPower? oldArmor = GetArmor(creature);
-        if (oldArmor != null)
-        {
-            oldArmor.SuppressFormRemoval = true;
-            await PowerCmd.Remove(oldArmor);
-        }
+        bool alreadyUsedThisTurn = GetArmor(creature)?.UsedThisTurn == true;
+        await Exit(choiceContext, creature);
+        await PowerCmd.Apply<T>(
+            choiceContext, creature, formAmount, creature, source);
         await PowerCmd.Apply<MagicArmorPower>(
-            choiceContext, creature, MaxArmor, creature, source);
-        if (PerformanceAudience.IsLocalMaiden(creature.Player))
-        {
-            PerformanceAudioService.PlayOneShot(PerformanceAudioCue.TransformationComplete);
-        }
-    }
-
-    public static async Task EnterCorruptRobe(
-        PlayerChoiceContext choiceContext,
-        Creature creature,
-        CardModel? source)
-    {
-        if (PerformanceAudience.IsLocalMaiden(creature.Player))
-        {
-            PerformanceAudioService.PlayOneShot(PerformanceAudioCue.TransformationStart);
-        }
-        foreach (var form in creature.Powers
-            .Where(power => power is ImmaculateRobePower or CorruptRobePower)
-            .ToArray())
-        {
-            await PowerCmd.Remove(form);
-        }
-        await PowerCmd.Apply<CorruptRobePower>(
-            choiceContext, creature, 1m, creature, source);
-
-        MagicArmorPower? oldArmor = GetArmor(creature);
-        if (oldArmor != null)
-        {
-            oldArmor.SuppressFormRemoval = true;
-            await PowerCmd.Remove(oldArmor);
-        }
-        await PowerCmd.Apply<MagicArmorPower>(
-            choiceContext, creature, MaxArmor, creature, source);
+            choiceContext, creature, InitialArmor, creature, source);
+        if (GetArmor(creature) is { } newArmor)
+            newArmor.UsedThisTurn = alreadyUsedThisTurn;
         if (PerformanceAudience.IsLocalMaiden(creature.Player))
         {
             PerformanceAudioService.PlayOneShot(PerformanceAudioCue.TransformationComplete);
@@ -143,6 +124,8 @@ public static class TransformationCmd
         }
 
         MagicArmorPower? armor = GetArmor(creature);
+        amount = Math.Min(amount, Math.Max(0, MaxArmor - (int)(armor?.Amount ?? 0)));
+        if (amount == 0) return false;
         if (armor == null)
         {
             await PowerCmd.Apply<MagicArmorPower>(
@@ -168,9 +151,16 @@ public static class TransformationCmd
     {
         MagicArmorPower? armor = GetArmor(creature);
         if (amount <= 0
-            || !IsTransformed(creature)
-            || armor is not { Amount: > 0 })
+            || !IsTransformed(creature))
         {
+            return false;
+        }
+
+        // An oversized loss is one settlement: stop at zero. Only a later
+        // loss attempt at zero exits; it does not produce an amount-change reward.
+        if (armor is not { Amount: > 0 })
+        {
+            await Exit(choiceContext, creature);
             return false;
         }
 
@@ -194,7 +184,7 @@ public static class TransformationCmd
             await PowerCmd.Remove(armor);
         }
         foreach (var form in creature.Powers
-            .Where(power => power is ImmaculateRobePower or CorruptRobePower)
+            .Where(power => power is ImmaculateRobePower or CorruptRobePower or EternalRobePower)
             .ToArray())
         {
             await PowerCmd.Remove(form);
@@ -243,7 +233,8 @@ public static class TransformationCmd
         {
             return false;
         }
-        await PowerCmd.Decrement(armor);
-        return true;
+        // Recheck after an asynchronous choice; zero is not a payable resource.
+        return GetArmor(creature) is { Amount: > 0 }
+            && await LoseArmor(choiceContext, creature, 1, source);
     }
 }
