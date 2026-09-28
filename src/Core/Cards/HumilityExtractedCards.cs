@@ -24,6 +24,9 @@ internal static class HumilityExtractedCards
 
     internal static HumilityRewriteCapability Apply(CardModel card)
     {
+        // A saved/duplicated rewritten instance already carries its complete program.
+        if (HumilityRewriteCapability.Find(card) is { } rewrite)
+            return HumilityRewriteCapability.Apply(card, rewrite.Program);
         var entry = Get(card);
         if (entry.Program == null) throw new NotSupportedException(entry.Error);
         return HumilityRewriteCapability.Apply(card, entry.Program);

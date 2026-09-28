@@ -26,7 +26,7 @@ using STS2RitsuLib.Models.Capabilities;
 namespace MaidenSuccubus.ConsoleCommands;
 
 // Generated-catalog cases plus legacy runtime regressions pending migration.
-// This does not claim that the formal HumilityLesson selector is connected yet.
+// Formal selector cases exercise the same card selection and play pipeline as gameplay.
 public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
 {
     private static bool _running;
@@ -70,6 +70,49 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
             TestMode.IsOn = true;
             await ctx.PrepareSuite();
             await ctx.Reset();
+            foreach (bool upgraded in new[] { false, true })
+            {
+                await ctx.Reset();
+                var lesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var selected = await ctx.Add<PommelStrike>(PileType.Hand, upgraded);
+                var untouched = await ctx.Add<PommelStrike>(PileType.Hand, upgraded);
+                decimal damage = selected.DynamicVars.Damage.BaseValue;
+                string originalText = Text(untouched);
+                await ctx.AddFillerCards(PileType.Draw, 4);
+                await ctx.Play(lesson, selectedCards: [selected]);
+                Check(HumilityRewriteCapability.Find(selected) != null
+                    && HumilityRewriteCapability.Find(untouched) == null
+                    && Text(selected) == $"造成{damage * 2}点伤害。" && Text(untouched) == originalText,
+                    "formal selector changes only selected combat instance and refreshes damage-only description");
+                Check(lesson.Pile?.Type == PileType.Exhaust && selected.DynamicVars.Damage.BaseValue == damage,
+                    "lesson exhausts normally; rewrite is not a fake stat upgrade");
+                var again = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                await ctx.Play(again, selectedCards: [selected]);
+                CardCmd.Enchant<Swift>(selected, 1);
+                int hp = ctx.PrimaryEnemy.CurrentHp;
+                await ctx.Play(selected, ctx.PrimaryEnemy);
+                Check(hp - ctx.PrimaryEnemy.CurrentHp == damage * 4 && PileType.Draw.GetPile(player).Cards.Count == 3,
+                    "repeated formal selection doubles again, intrinsic draw removed but Swift draw retained");
+
+                await ctx.Reset();
+                lesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var skill = await ctx.Add<CloakAndDagger>(PileType.Hand, upgraded);
+                decimal block = skill.DynamicVars.Block.BaseValue;
+                await ctx.Play(lesson, selectedCards: [skill]);
+                Check(Text(skill) == $"获得{block * 2}点格挡。", "formal skill selection replaces generation text with block only");
+                await ctx.Play(skill);
+                Check(ctx.Self.Block == block * 2 && PileType.Hand.GetPile(player).Cards.Count == 0,
+                    "formal rewritten skill gains block but creates no token");
+
+                await ctx.Reset();
+                lesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var scripture = await ctx.Add<MaidenSuccubus.Cards.Scriptures.GuardianScripture>(PileType.Hand);
+                await ctx.Play(lesson, selectedCards: [scripture]);
+                Check(HumilityRewriteCapability.Find(scripture)?.Program.Effects.Count == 0 && Text(scripture) == "",
+                    "inherited scripture selected normally and rewritten to explicit empty effect");
+                await ctx.Play(scripture);
+                Check(!ctx.Self.Powers.Any(), "rewritten inherited card does not invoke original power command");
+            }
             foreach (bool upgraded in new[] { false, true })
             {
                 await ctx.Reset();

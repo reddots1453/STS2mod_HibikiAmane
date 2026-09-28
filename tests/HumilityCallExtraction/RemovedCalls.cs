@@ -14,10 +14,11 @@ internal static class RemovedCalls
         string receiver = member.Expression.ToString();
         string name = member.Name.Identifier.Text;
         if (receiver is "CardCmd" or "CardPileCmd" or "CardSelectCmd" or "PowerCmd" or "PlayerCmd" or "OrbCmd"
-            or "CombatEnchantmentCmd" or "GeneratedCardCostCmd" or "CondemnationCmd" or "TransformationCmd") return true;
+            or "CombatEnchantmentCmd" or "GeneratedCardCostCmd" or "CondemnationCmd" or "TransformationCmd" or "ScriptureCmd") return true;
         return (receiver, name) is ("ControlCmd", "Escape") or ("IntentMoveFactory", "Stun")
             or ("Temptation", "Modify") or ("Data.Desire", "Modify") or ("TemperancePileCmd", "Play")
             or ("Hook", "AfterPreventingDraw") or ("Array", "Empty")
+            or ("HumilityExtractedCards", "Apply")
             || name == "GetPile" && receiver.StartsWith("PileType.", StringComparison.Ordinal);
     }
 
@@ -27,7 +28,8 @@ internal static class RemovedCalls
         if (call.Expression is not MemberAccessExpressionSyntax member) return false;
         string name = member.Name.Identifier.Text;
         string receiver = member.Expression.ToString();
-        if (receiver is "PotionCmd" or "Log") return true;
+        if (receiver is "PotionCmd" or "Log" || receiver == "Godot.GD" && name == "PushWarning"
+            || receiver == "ThinkCmd" && name == "Play") return true;
         if (member.Expression is MemberAccessExpressionSyntax cost && cost.Name.Identifier.Text == "EnergyCost"
             && name is "SetThisCombat" or "AddThisCombat" or "SetThisTurn" or "AddThisTurn" or "SetThisTurnOrUntilPlayed") return true;
         string? type = LocalType(member.Expression, method);

@@ -3058,8 +3058,11 @@ internal static class CardEffectTestCatalog
             MaidenStrike fixture = await ctx.Add<MaidenStrike>(PileType.Hand);
             decimal before = fixture.DynamicVars.Damage.BaseValue;
             await ctx.Play(card, selectedCards: [fixture]);
-            ctx.AssertEqual("selected damage doubled", before * 2, fixture.DynamicVars.Damage.BaseValue);
-        }, 1);
+            ctx.AssertTrue("selected instance has rewrite", Core.Cards.HumilityRewriteCapability.Find(fixture) != null);
+            int hp = ctx.PrimaryEnemy.CurrentHp;
+            await ctx.Play(fixture, ctx.PrimaryEnemy);
+            ctx.AssertEqual("selected attack deals doubled damage", before * 2, hp - ctx.PrimaryEnemy.CurrentHp);
+        }, 2);
 
     private static void EmptyDescription<T>() where T : CardModel =>
         BaseOnly<T>((ctx, card) =>

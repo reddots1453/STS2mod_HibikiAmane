@@ -10,7 +10,7 @@ internal sealed record Extraction(string Card, HumilityEffectProgram? Program, s
 /// <summary>Static call slicing only: never invokes card methods or removed effects.</summary>
 internal static class CallExtractor
 {
-    internal static IReadOnlyList<Extraction> Extract(string source, IReadOnlyList<MethodDeclarationSyntax>? methods = null)
+    internal static IReadOnlyList<Extraction> Extract(string source, IReadOnlyList<MethodDeclarationSyntax>? methods = null, SourceHierarchy? hierarchy = null)
     {
         var tree = CSharpSyntaxTree.ParseText(source);
         var root = tree.GetRoot();
@@ -18,25 +18,32 @@ internal static class CallExtractor
         if (syntaxErrors.Length != 0)
             return [new("<source>", null, string.Join("; ", syntaxErrors.Select(d => d.ToString())), 1)];
         List<Extraction> results = [];
+        methods ??= HelperExpansion.Index([source]);
+        hierarchy ??= new SourceHierarchy(methods.Select(m => m.SyntaxTree).Distinct()
+            .SelectMany(t => t.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>())
+            .Concat(root.DescendantNodes().OfType<ClassDeclarationSyntax>()));
         foreach (var type in root.DescendantNodes().OfType<ClassDeclarationSyntax>())
         {
-            var method = type.Members.OfType<MethodDeclarationSyntax>().SingleOrDefault(m => m.Identifier.Text == "OnPlay");
-            if (method == null) continue;
+            if (type.Modifiers.Any(SyntaxKind.AbstractKeyword) || type.TypeParameterList != null) continue;
             string ns = string.Join(".", type.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().Reverse().Select(n => n.Name.ToString()));
             string name = string.IsNullOrEmpty(ns) ? type.Identifier.Text : ns + "." + type.Identifier.Text;
-            int line = tree.GetLineSpan(method.Span).StartLinePosition.Line + 1;
+            int line = tree.GetLineSpan(type.Span).StartLinePosition.Line + 1;
             try
             {
-                var expansion = new HelperExpansion(methods ?? HelperExpansion.Index([source]), method);
+                var chain = hierarchy.Chain(type);
+                var method = chain.SelectMany(t => t.Members.OfType<MethodDeclarationSyntax>())
+                    .FirstOrDefault(m => m.Identifier.Text == "OnPlay");
+                if (method == null) continue;
+                var expansion = new HelperExpansion(methods, method, chain);
                 var expanded = (MethodDeclarationSyntax)expansion.Visit(method)!;
                 // Expression-bodied OnPlay must also be exposed to statement expansion.
                 if (expanded.ExpressionBody != null)
                     expanded = expanded.WithBody(SyntaxFactory.Block(SyntaxFactory.ExpressionStatement(expanded.ExpressionBody.Expression))).WithExpressionBody(null);
-                var secondExpansion = new HelperExpansion(methods ?? HelperExpansion.Index([source]), method);
+                var secondExpansion = new HelperExpansion(methods, method, chain);
                 expanded = (MethodDeclarationSyntax)secondExpansion.Visit(expanded)!;
                 var program = Slice(expanded);
                 bool pure = program.HasDamageOrBlock && !expansion.DeletedOtherEffect && !secondExpansion.DeletedOtherEffect
-                    && PurityClassifier.IsPure(type, expanded);
+                    && chain.All(t => PurityClassifier.IsPure(t, expanded));
                 results.Add(new(name, program, null, line, pure));
             }
             catch (NotSupportedException error) { results.Add(new(name, null, error.Message, line)); }

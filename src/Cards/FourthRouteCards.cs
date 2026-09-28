@@ -2,8 +2,9 @@ using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
-using MegaCrit.Sts2.Core.Localization.DynamicVars;
+using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
+using MaidenSuccubus.Core.Cards;
 using MaidenSuccubus.Pools;
 using STS2RitsuLib.Interop.AutoRegistration;
 
@@ -20,9 +21,16 @@ public sealed class HumilityLesson : MSGeneratedCard
             new CardSelectorPrefs(CardSelectorPrefs.EnchantSelectionPrompt, 1),
             card => card != this && card.Type is CardType.Attack or CardType.Skill, this)).FirstOrDefault();
         if (selected == null) return;
-        if (selected.DynamicVars.TryGetValue("Damage", out DynamicVar? damage)) damage.BaseValue *= 2;
-        if (selected.DynamicVars.TryGetValue("Block", out DynamicVar? block)) block.BaseValue *= 2;
-        selected.FinalizeUpgradeInternal();
+        // Keep the full design selection range; unresolved extraction is an explicit
+        // development gap, never a guessed Damage/Block rewrite or an unhandled fault.
+        var entry = HumilityExtractedCards.Get(selected);
+        if (entry.Program == null && HumilityRewriteCapability.Find(selected) == null)
+        {
+            Godot.GD.PushWarning($"[Humility] {selected.GetType().FullName}: {entry.Error}");
+            ThinkCmd.Play(new LocString("cards", "MAIDEN_HUMILITY_REWRITE.unsupported"), Owner.Creature);
+            return;
+        }
+        HumilityExtractedCards.Apply(selected);
     }
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }

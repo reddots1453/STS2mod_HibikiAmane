@@ -1,5 +1,6 @@
 {
   "MAIDEN_HUMILITY_REWRITE.description": "{Effects}",
+  "MAIDEN_HUMILITY_REWRITE.unsupported": "这张牌的谦逊改写尚未实现，原效果未改变。",
   "MAIDEN_HUMILITY_REWRITE.damage": "{Target}造成{Amount}点伤害{Repeats}。",
   "MAIDEN_HUMILITY_REWRITE.block": "{Target}获得{Amount}点[gold]格挡[/gold]{Repeats}。",
   "MAIDEN_HUMILITY_REWRITE.times": "{Times}次",

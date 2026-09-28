@@ -262,6 +262,40 @@ if (args.SequenceEqual(new[] { "--self-test" }))
     rejected = false;
     try { _ = new HumilityExtractedCatalog(pureDocument.ToJsonString()); } catch (FormatException) { rejected = true; }
     Check(rejected, "empty effect cannot qualify for awakening");
+    const string inherited = """
+        namespace Fixture;
+        abstract class BaseCard {
+            protected Task OnPlay(Context context, Play play) => Apply(context, play);
+            protected abstract Task Apply(Context context, Play play);
+        }
+        abstract class Generic<T> : BaseCard {
+            protected override Task Apply(Context context, Play play) => ScriptureCmd.Apply<T>(context);
+        }
+        class EmptyDerived : Generic<Power> { }
+        class DamageDerived : BaseCard {
+            protected override Task Apply(Context context, Play play) =>
+                DamageCmd.Attack(5).FromCard(this, play).Targeting(play.Target).Execute(context);
+        }
+        class FurtherDerived : DamageDerived {
+            protected override Task Apply(Context context, Play play) {
+                base.Apply(context, play);
+                return CreatureCmd.GainBlock(Owner.Creature, 3, play);
+            }
+        }
+        """;
+    var inheritedCards = CallExtractor.Extract(inherited).ToDictionary(c => c.Card);
+    Check(inheritedCards.Count == 3 && inheritedCards["Fixture.EmptyDerived"].Program?.Effects.Count == 0,
+        "concrete inherited cards indexed; generic and abstract templates are not cards");
+    Check(inheritedCards["Fixture.DamageDerived"].Program?.Effects.Single().Amount.Evaluate(default, _ => 0) == 5,
+        "inherited OnPlay dispatches abstract helper to concrete override");
+    Check(inheritedCards["Fixture.FurtherDerived"].Program?.Effects.Select(e => e.Kind)
+        .SequenceEqual(new[] { HumilityEffectKind.Damage, HumilityEffectKind.Block }) == true,
+        "most derived virtual helper selected, explicit base call remains lexical");
+    var inheritedHook = CallExtractor.Extract(inherited.Replace("class DamageDerived : BaseCard {",
+        "class DamageDerived : BaseCard { public override Task AfterCardDrawn() => Task.CompletedTask;"));
+    Check(inheritedHook.Single(c => c.Card == "Fixture.FurtherDerived").Program != null
+        && !inheritedHook.Single(c => c.Card == "Fixture.FurtherDerived").OnlyDamageAndBlock,
+        "inherited original hooks prevent false pure-effect classification");
     return 0;
 }
 if (args.Length == 2 && args[0] == "--verify-assembly")
@@ -305,12 +339,14 @@ var hashes = new JsonArray();
 bool unsupported = false;
 var sourceTexts = sources.ToDictionary(path => path, File.ReadAllText, StringComparer.Ordinal);
 var methodIndex = HelperExpansion.Index(sourceTexts.Values);
+var hierarchy = new SourceHierarchy(methodIndex.Select(m => m.SyntaxTree).Distinct()
+    .SelectMany(t => t.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.ClassDeclarationSyntax>()));
 foreach (string path in sources)
 {
     string source = sourceTexts[path];
     string hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(source)));
     hashes.Add(new JsonObject { ["file"] = Path.GetFileName(path), ["sha256"] = hash });
-    foreach (var card in CallExtractor.Extract(source, methodIndex))
+    foreach (var card in CallExtractor.Extract(source, methodIndex, hierarchy))
     {
         unsupported |= card.Program == null;
         cards.Add(new JsonObject { ["source"] = Path.GetFileName(path), ["sourceHash"] = hash, ["card"] = card.Card, ["line"] = card.Line,

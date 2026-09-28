@@ -12,16 +12,19 @@ internal sealed class HelperExpansion : CSharpSyntaxRewriter
     private readonly MethodDeclarationSyntax _method;
     private readonly HashSet<string> _active;
     private readonly Counter _counter;
+    private readonly IReadOnlyList<ClassDeclarationSyntax> _chain;
     private sealed class Counter { internal int Value; internal bool DeletedOtherEffect; }
     internal bool DeletedOtherEffect => _counter.DeletedOtherEffect;
 
     internal static IReadOnlyList<MethodDeclarationSyntax> Index(IEnumerable<string> sources) => sources
         .SelectMany(source => CSharpSyntaxTree.ParseText(source).GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>()).ToArray();
 
-    internal HelperExpansion(IReadOnlyList<MethodDeclarationSyntax> methods, MethodDeclarationSyntax owner)
-        : this(methods, owner, [], new Counter()) { }
-    private HelperExpansion(IReadOnlyList<MethodDeclarationSyntax> methods, MethodDeclarationSyntax owner, HashSet<string> active, Counter counter)
-        => (_methods, _owner, _method, _active, _counter) = (methods, ClassName(owner), owner, active, counter);
+    internal HelperExpansion(IReadOnlyList<MethodDeclarationSyntax> methods, MethodDeclarationSyntax owner,
+        IReadOnlyList<ClassDeclarationSyntax> chain)
+        : this(methods, owner, [], new Counter(), chain) { }
+    private HelperExpansion(IReadOnlyList<MethodDeclarationSyntax> methods, MethodDeclarationSyntax owner, HashSet<string> active,
+        Counter counter, IReadOnlyList<ClassDeclarationSyntax> chain)
+        => (_methods, _owner, _method, _active, _counter, _chain) = (methods, ClassName(owner), owner, active, counter, chain);
 
     private static string ClassName(MethodDeclarationSyntax method)
     {
@@ -64,12 +67,14 @@ internal sealed class HelperExpansion : CSharpSyntaxRewriter
             return Expand(collection.Expression);
         string name, receiver;
         bool instance;
+        bool baseCall = false;
         switch (call.Expression)
         {
             case SimpleNameSyntax simple: name = simple.Identifier.Text; receiver = _owner; instance = true; break;
             case MemberAccessExpressionSyntax member:
                 name = member.Name.Identifier.Text;
-                instance = member.Expression is ThisExpressionSyntax;
+                baseCall = member.Expression is BaseExpressionSyntax;
+                instance = member.Expression is ThisExpressionSyntax || baseCall;
                 receiver = instance ? _owner : member.Expression.ToString();
                 break;
             default: return null;
@@ -77,6 +82,23 @@ internal sealed class HelperExpansion : CSharpSyntaxRewriter
         var matches = _methods.Where(m => m.Identifier.Text == name &&
             (ClassName(m) == receiver || !instance && ClassName(m).EndsWith("." + receiver, StringComparison.Ordinal)) &&
             (instance || m.Modifiers.Any(SyntaxKind.StaticKeyword))).ToArray();
+        if (instance)
+        {
+            string declaring = SourceHierarchy.Key(_method.Ancestors().OfType<ClassDeclarationSyntax>().First());
+            var lexical = _chain.SkipWhile(t => SourceHierarchy.Key(t) != declaring).Skip(baseCall ? 1 : 0);
+            matches = lexical.Select(t => t.Members.OfType<MethodDeclarationSyntax>()
+                .Where(m => m.Identifier.Text == name).ToArray()).FirstOrDefault(m => m.Length > 0) ?? [];
+            // Resolve a virtual/abstract call against the actual concrete card, while
+            // an explicit base call keeps its lexical receiver.
+            if (!baseCall && matches.Any(m => m.Modifiers.Any(SyntaxKind.VirtualKeyword)
+                || m.Modifiers.Any(SyntaxKind.AbstractKeyword) || m.Modifiers.Any(SyntaxKind.OverrideKeyword)))
+            {
+                var overriding = _chain.Select(t => t.Members.OfType<MethodDeclarationSyntax>()
+                    .Where(m => m.Identifier.Text == name && m.Modifiers.Any(SyntaxKind.OverrideKeyword)
+                        && ArgumentsFit(m, call)).ToArray()).FirstOrDefault(m => m.Length > 0);
+                if (overriding != null) matches = overriding;
+            }
+        }
         if (matches.Length == 0) return null;
         if (matches.Length > 1)
             matches = matches.Where(m => ArgumentsFit(m, call)).ToArray();
@@ -95,7 +117,9 @@ internal sealed class HelperExpansion : CSharpSyntaxRewriter
                 ? SyntaxFactory.Block(SyntaxFactory.ExpressionStatement(helper.ExpressionBody.Expression))
                 : throw new NotSupportedException("Helper has no source body: " + identity));
             body = (BlockSyntax)new Substitute(values).Visit(body)!;
-            return (BlockSyntax)new HelperExpansion(_methods, helper, _active, _counter).Visit(body)!;
+            var helperChain = helper.Modifiers.Any(SyntaxKind.StaticKeyword)
+                ? new[] { helper.Ancestors().OfType<ClassDeclarationSyntax>().First() } : _chain;
+            return (BlockSyntax)new HelperExpansion(_methods, helper, _active, _counter, helperChain).Visit(body)!;
         }
         finally { _active.Remove(identity); }
     }

@@ -5,6 +5,18 @@ from TestDesignSyncNeutral20260927 import read
 
 
 class HumilityRuntime(unittest.TestCase):
+    def test_formal_selector_rewrites_effects_not_dynamic_vars(self):
+        code = read('src/Cards/FourthRouteCards.cs')
+        self.assertIn('HumilityExtractedCards.Apply(selected)', code)
+        self.assertIn('card.Type is CardType.Attack or CardType.Skill', code)
+        self.assertNotIn('BaseValue *=', code)
+        self.assertNotIn('FinalizeUpgradeInternal', code)
+        self.assertIn('MAIDEN_HUMILITY_REWRITE.unsupported', code)
+        game = read('src/ConsoleCommands/DesignHumilityRuntimeTestConsoleCmd.cs')
+        self.assertIn('await ctx.Play(lesson, selectedCards: [selected])', game)
+        self.assertIn('await ctx.Play(again, selectedCards: [selected])', game)
+        self.assertIn('await ctx.Play(lesson, selectedCards: [scripture])', game)
+
     def test_awakening_uses_structural_evidence_and_two_draws(self):
         relic = read('src/Relics/FourthRouteRelics.cs').split('public sealed class HumilityRouteRelic', 1)[1].split('[RegisterRelic', 1)[0]
         self.assertIn('HumilityAwakening.IsPure(cardPlay.Card)', relic)
