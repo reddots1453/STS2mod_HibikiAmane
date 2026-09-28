@@ -25,7 +25,7 @@ class CardTextInventoryTests(unittest.TestCase):
         providers = {item['provider'] for row in self.rows.values() for item in row['providers']}
         self.assertNotIn(coverage.PREFIX + 'DesignSyncNeutralContract.cs', providers)
         self.assertNotIn(coverage.PREFIX + 'DesignSyncHolyContract.cs', providers)
-        self.assertEqual(self.rows['Transform']['textEvidence'], coverage.MISSING)
+        self.assertEqual(self.rows['HumilityLesson']['textEvidence'], coverage.MISSING)
 
     def test_partial_and_same_combat_instance_none_are_not_double_scene_full_text(self):
         for model in ('DarkStorm', 'CurseInfection'):
@@ -41,7 +41,7 @@ class CardTextInventoryTests(unittest.TestCase):
         self.assertEqual(self.rows['LibraryPileChoice']['category'], 'technical')
         self.assertEqual(self.rows['MagicResonance']['category'], 'retired_compatibility')
         self.assertEqual(self.rows['MaidenStrike']['category'], 'current_card_or_derivative')
-        self.assertEqual(self.rows['MaidenStrike']['textEvidence'], coverage.MISSING)
+        self.assertEqual(self.rows['MaidenStrike']['textEvidence'], coverage.BOTH)
         self.assertEqual(self.report['summary']['current'], 215)
 
     def test_new_provider_disconnect_restores_partial_not_false_full_coverage(self):
@@ -52,6 +52,14 @@ class CardTextInventoryTests(unittest.TestCase):
             self.assertEqual(rows[model]['textEvidence'], coverage.PARTIAL)
         for model in ('FlameSword', 'WindGodCloak', 'BeyondReasonForge', 'SuperRegeneration', 'GagCurse'):
             self.assertEqual(rows[model]['textEvidence'], coverage.COMBAT)
+
+    def test_starter_provider_disconnect_does_not_use_old_effect_only_tests(self):
+        report = self.mutated(coverage.RUNNER, 'DesignSyncStarterTextContract.Validate(context, card, scenario.Upgraded);', '')
+        self.assertTrue(report['integrityErrors'])
+        rows = {row['model']: row for row in report['cards']}
+        for model in ('MaidenStrike', 'MaidenDefend', 'Transform', 'DrowsyStatus', 'BindingInsight'):
+            self.assertEqual(self.rows[model]['textEvidence'], coverage.BOTH)
+            self.assertEqual(rows[model]['textEvidence'], coverage.MISSING)
 
     def mutated(self, path, old, new):
         def read(file):

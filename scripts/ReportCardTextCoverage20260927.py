@@ -25,6 +25,7 @@ MISSING = 'not_identified'
 # These providers were read/reviewed, unlike metadata-only Entries collections.
 # (class, list form, independent assertion anchor, reviewed model count)
 GLOBAL = (
+    ('DesignSyncStarterTextContract', 'Entries', 'starter full run text', 5),
     ('DesignSyncRemainingTextContract', 'Entries', 'remaining exact run text', 7),
     ('DesignSyncNeutralTextContract', 'Entries', 'DS27 neutral full rendered text', 30),
     ('DesignSyncHolyTextContract', 'Entries', 'DS27 holy full rendered text', 48),
