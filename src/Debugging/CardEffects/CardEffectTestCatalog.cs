@@ -1265,19 +1265,7 @@ internal static class CardEffectTestCatalog
         }, 2);
 
     private static void GoddessOfIceProbe() =>
-        CustomVariants<GoddessOfIce>(async (ctx, card, upgraded) =>
-        {
-            await ctx.Play(card);
-            StrikeIronclad enchanted = await ctx.Add<StrikeIronclad>(PileType.Hand);
-            CombatEnchantmentCmd.ApplyVanilla<Sharp>(enchanted, 1);
-            await ctx.Play(enchanted, ctx.PrimaryEnemy);
-            IceShard shard = PileType.Hand.GetPile(ctx.Player).Cards.OfType<IceShard>().Single();
-            ctx.AssertPower("goddess amount", ctx.Self, "GoddessOfIcePower",
-                upgraded ? 2 : 1);
-            ctx.AssertEqual("one ice shard generated", 1,
-                ctx.CountCards<IceShard>(PileType.Hand));
-            ctx.AssertEqual("generated shard upgrade state", upgraded, shard.IsUpgraded);
-        }, 3);
+        CustomVariants<GoddessOfIce>(DesignSyncIceGoddessContract.Run, 20);
 
     private static void LullabyProbe() =>
         CustomVariants<Lullaby>(async (ctx, card, upgraded) =>

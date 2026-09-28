@@ -352,9 +352,15 @@ public sealed class GoddessOfIce : MSNeutralCard
     public GoddessOfIce()
         : base(1, CardType.Power, CardRarity.Rare, TargetType.Self) { }
 
-    protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
-        PowerCmd.Apply<GoddessOfIcePower>(
+    protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
+    {
+        bool enchanted = Enchantment != null;
+        GoddessOfIcePower? power = await PowerCmd.Apply<GoddessOfIcePower>(
             context, Owner.Creature, IsUpgraded ? 2 : 1, Owner.Creature, this);
+        // A newly created power missed BeforeCardPlayed. Its own enchanted
+        // card still completes while the power is active and must count once.
+        power?.CapturePlay(play, enchanted);
+    }
 
     protected override void OnUpgrade() { }
 }

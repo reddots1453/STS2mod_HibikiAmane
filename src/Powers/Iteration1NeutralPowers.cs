@@ -1,4 +1,8 @@
+using System.Runtime.CompilerServices;
 using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Powers;
 using MegaCrit.Sts2.Core.Entities.Players;
@@ -86,22 +90,60 @@ public sealed class MagicResonancePower : MaidenSuccubusPowerTemplate,
 [RegisterPower]
 public sealed class GoddessOfIcePower : MaidenSuccubusPowerTemplate
 {
+    private sealed class Receipt(bool eligible)
+    {
+        internal readonly bool Eligible = eligible;
+        internal bool Consumed;
+    }
+    private ConditionalWeakTable<CardPlay, Receipt> _plays = new();
+
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
+    public override LocString Description => new("powers", Id.Entry + (Amount >= 2 ? ".descriptionUpgraded" : ".description"));
+    protected override string SmartDescriptionLocKey => Id.Entry + (Amount >= 2 ? ".smartDescriptionUpgraded" : ".smartDescription");
+    protected override IEnumerable<IHoverTip> AdditionalHoverTips => [HoverTipFactory.FromCard<IceShard>(Amount >= 2)];
+
+    protected override void DeepCloneFields()
+    {
+        base.DeepCloneFields();
+        _plays = new();
+    }
+
+    public override Task AfterRemoved(Creature oldOwner)
+    {
+        _plays = new();
+        return Task.CompletedTask;
+    }
+
+    internal void CapturePlay(CardPlay play, bool enchanted)
+    {
+        if (IsMutable && Owner is { Player: not null, CombatState: not null, IsAlive: true }
+            && ReferenceEquals(Owner.GetPower<GoddessOfIcePower>(), this))
+            _plays.GetValue(play, p => new Receipt(enchanted && ReferenceEquals(p.Player, Owner.Player)
+                && ReferenceEquals(p.Card.CombatState, Owner.CombatState)));
+    }
+
+    public override Task BeforeCardPlayed(CardPlay cardPlay)
+    {
+        CapturePlay(cardPlay, cardPlay.Card.Enchantment != null);
+        return Task.CompletedTask;
+    }
 
     public override async Task AfterCardPlayed(
         PlayerChoiceContext context,
         CardPlay cardPlay)
     {
-        if (!cardPlay.IsLastInSeries
-            || cardPlay.Card.Owner.Creature != Owner
-            || cardPlay.Card.Enchantment == null
-            || Owner.Player == null)
+        if (Owner is not { Player: not null, CombatState: not null, IsAlive: true }
+            || !ReferenceEquals(Owner.GetPower<GoddessOfIcePower>(), this)
+            || !_plays.TryGetValue(cardPlay, out Receipt? receipt) || !receipt.Eligible || receipt.Consumed)
         {
             return;
         }
 
-        CardModel shard = Owner.CombatState!.CreateCard(
+        // Each actual replay has a separate receipt; removal of its enchantment
+        // during OnPlay does not retroactively invalidate that play.
+        receipt.Consumed = true;
+        CardModel shard = Owner.CombatState.CreateCard(
             ModelDb.Card<IceShard>(), Owner.Player);
         if (Amount >= 2)
         {

@@ -6,9 +6,9 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-02P：冰界的女神（READY）
+## DS27-02P：冰界的女神（IMPLEMENTED，游戏内待验）
 
-`CARD-N-150～299`完整条目→DS27-02P→逐CardPlay资格快照/原生生成命令、升级状态文本/衍生悬停→DS27效果/文本/COMPAT/GATES。前置`5bb83c8b`；不改Single堆叠及1张生成数值，待实现测试，未部署。
+`CARD-N-150～299`完整条目→DS27-02P→`GoddessOfIcePower/GoddessOfIce`逐CardPlay资格快照/原生生成命令、升级状态文本/衍生悬停→`DesignSyncIceGoddessContract`及7静态检查→DS27效果/文本/COMPAT/GATES。前置`5bb83c8b`、同步`83b1a202`；不改Single堆叠及1张生成数值。319同步+19审计、13540生产规则、33编码、Debug/Release及四门通过。`ms_test_cards confirm GoddessOfIce`脚本编译未运行；每个基础/升级场景至少20效果断言。自然时序/完整存读档/联网/视觉待验，旧失败保留，未部署；见`DESIGN_SYNC_20260927_BATCH40.md`。
 
 ## DS27-04G：东尼的咒符（OPEN）
 
