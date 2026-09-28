@@ -94,6 +94,15 @@ internal static class HumilityProfileDefinitions
         // FanOfKnives is an external power. Its live target change survives rewriting.
         Group("vanilla", new([D(HumilityTarget.CurrentCardTarget)]), "Shiv");
         Group("vanilla", new([]), "Acrobatics", "Adrenaline", "DeadlyPoison", "Expertise", "Outmaneuver", "Prepared", "PiercingWail");
+        Group("vanilla", new([D()]), "BeamCell", "BallLightning", "ColdSnap", "GoForTheEyes", "Claw",
+            "CompileDriver", "MeteorStrike", "Rebound", "Scrape");
+        Group("vanilla", new([D(HumilityTarget.AllEnemies)]), "SweepingBeam", "Hyperbeam");
+        Group("vanilla", new([B()]), "ChargeBattery", "Hologram", "Leap", "Equilibrium", "BootSequence", "Glacier");
+        // Orb count and discard count are live native CalculatedVars, not conditions
+        // or a snapshot of the card's preview when the rewrite was applied.
+        Group("vanilla", new([D(hits: V("CalculatedHits"))]), "Barrage");
+        Group("vanilla", new([new(HumilityEffectKind.Block, HumilityTarget.Self, V("CalculatedBlock"), N(1))]), "Stack");
+        Group("vanilla", new([D(HumilityTarget.RandomEnemy, N(2))]), "RipAndTear");
         return new ReadOnlyDictionary<string, HumilityEffectProgram>(profiles);
     }
 }

@@ -142,7 +142,7 @@ for (int i = 0; i < 40; i++) deep = new JsonObject { ["kind"] = "Add", ["left"] 
 Reject(() => HumilityValue.Load(deep), "corrupt/deep expression rejected");
 // Exercise the actual production card definitions, not a test-only reconstruction.
 var profiles = HumilityProfileDefinitions.All;
-Check(profiles.Count == 141, "reviewed groups have 101 Maiden and 40 native profiles");
+Check(profiles.Count == 161, "reviewed groups have 101 Maiden and 60 native profiles");
 Check(!profiles.ContainsKey("maiden:Surf") && !profiles.ContainsKey("foreign:PommelStrike"),
     "unsupported formulas and foreign names cannot silently become single-hit damage");
 foreach (var pair in profiles)
@@ -152,7 +152,7 @@ foreach (var pair in profiles)
     Check(pair.Value.AmountMultiplier == 1, "shared base definition starts undoubled: " + pair.Key);
     var sink = new Sink();
     await pair.Value.DoubleAmounts().Execute(new(3, 0, 4), name => name switch
-    { "Damage" or "CalculatedDamage" => 7, "Block" => 5, "Hits" or "Repeat" => 2, "$enemies" => 3, _ => throw new Exception("Unexpected variable " + name) }, sink);
+    { "Damage" or "CalculatedDamage" => 7, "Block" or "CalculatedBlock" => 5, "Hits" or "Repeat" or "CalculatedHits" => 2, "$enemies" => 3, _ => throw new Exception("Unexpected variable " + name) }, sink);
     Check(pair.Value.AmountMultiplier == 1, "execution cannot mutate shared catalog: " + pair.Key);
 }
 async Task Profile(string key, HumilityXValues x, Func<string, decimal> vars,
@@ -269,6 +269,32 @@ foreach (string name in new[] { "Acrobatics", "Adrenaline", "DeadlyPoison", "Exp
     var sink = new Sink();
     await profiles["vanilla:" + name].DoubleAmounts().Execute(default, Missing, sink);
     Check(!profiles["vanilla:" + name].HasDamageOrBlock && sink.Groups.Count == 0, "native non-damage effects removed: " + name);
+}
+foreach (bool upgraded in new[] { false, true })
+{
+    foreach (var (name, basic, upgrade) in new[] {
+        ("BeamCell", 3, 4), ("BallLightning", 7, 10), ("ColdSnap", 6, 9), ("GoForTheEyes", 3, 4),
+        ("Claw", 3, 4), ("CompileDriver", 7, 10), ("MeteorStrike", 24, 30), ("Rebound", 9, 12), ("Scrape", 7, 10) })
+        await Profile("vanilla:" + name, default, key => key == "Damage" ? upgraded ? upgrade : basic : throw new Exception(key),
+            2 * (upgraded ? upgrade : basic), 1, HumilityEffectKind.Damage, HumilityTarget.Selected);
+    foreach (var (name, basic, upgrade) in new[] {
+        ("ChargeBattery", 7, 10), ("Hologram", 3, 5), ("Leap", 9, 12), ("Equilibrium", 13, 16),
+        ("BootSequence", 10, 13), ("Glacier", 6, 9) })
+        await Profile("vanilla:" + name, default, key => key == "Block" ? upgraded ? upgrade : basic : throw new Exception(key),
+            2 * (upgraded ? upgrade : basic), 1, HumilityEffectKind.Block, HumilityTarget.Self);
+    await Profile("vanilla:SweepingBeam", default, _ => upgraded ? 9 : 6, upgraded ? 18 : 12, 1,
+        HumilityEffectKind.Damage, HumilityTarget.AllEnemies);
+    await Profile("vanilla:Hyperbeam", default, _ => upgraded ? 30 : 24, upgraded ? 60 : 48, 1,
+        HumilityEffectKind.Damage, HumilityTarget.AllEnemies);
+    await Profile("vanilla:RipAndTear", default, _ => upgraded ? 9 : 7, upgraded ? 18 : 14, 2,
+        HumilityEffectKind.Damage, HumilityTarget.RandomEnemy);
+    foreach (int count in new[] { 0, 1, 3, 10 })
+    {
+        await Profile("vanilla:Barrage", default, key => key == "CalculatedHits" ? count : upgraded ? 7 : 5,
+            upgraded ? 14 : 10, count, HumilityEffectKind.Damage, HumilityTarget.Selected);
+        await Profile("vanilla:Stack", default, key => key == "CalculatedBlock" ? count + (upgraded ? 3 : 0) : throw new Exception(key),
+            2 * (count + (upgraded ? 3 : 0)), 1, HumilityEffectKind.Block, HumilityTarget.Self);
+    }
 }
 Console.WriteLine($"PASS {checks} humility program/profile assertions (production source linked; no game integration claim).");
 

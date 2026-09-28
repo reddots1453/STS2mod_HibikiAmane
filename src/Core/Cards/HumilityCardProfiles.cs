@@ -46,7 +46,11 @@ internal static class HumilityCardProfiles
             typeof(DefendSilent), typeof(DefendDefect), typeof(DefendRegent), typeof(DefendNecrobinder),
             typeof(IronWave), typeof(Dash), typeof(TwinStrike), typeof(SwordBoomerang), typeof(Thunderclap),
             typeof(BodySlam), typeof(Shiv), typeof(Acrobatics), typeof(Adrenaline), typeof(DeadlyPoison),
-            typeof(Expertise), typeof(Outmaneuver), typeof(Prepared), typeof(PiercingWail)];
+            typeof(Expertise), typeof(Outmaneuver), typeof(Prepared), typeof(PiercingWail),
+            typeof(BeamCell), typeof(BallLightning), typeof(ColdSnap), typeof(GoForTheEyes), typeof(Claw),
+            typeof(CompileDriver), typeof(MeteorStrike), typeof(Rebound), typeof(Scrape), typeof(SweepingBeam),
+            typeof(Hyperbeam), typeof(ChargeBattery), typeof(Hologram), typeof(Leap), typeof(Equilibrium),
+            typeof(BootSequence), typeof(Glacier), typeof(Barrage), typeof(Stack), typeof(RipAndTear)];
         var bindings = maiden.ToDictionary(type => type, type => "maiden:" + type.Name);
         foreach (Type type in vanilla) bindings.Add(type, "vanilla:" + type.Name);
         if (bindings.Count != HumilityProfileDefinitions.All.Count

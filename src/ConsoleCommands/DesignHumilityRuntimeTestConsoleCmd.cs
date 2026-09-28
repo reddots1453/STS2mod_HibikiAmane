@@ -361,6 +361,99 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
             }
 
             await ctx.Reset();
+            foreach (bool upgraded in new[] { false, true })
+            {
+                foreach (Type type in new[] { typeof(BallLightning), typeof(ColdSnap), typeof(MeteorStrike), typeof(Glacier) })
+                {
+                    await ctx.Reset();
+                    var card = await ctx.Add(type, PileType.Hand, upgraded);
+                    HumilityCardProfiles.ApplyKnown(card);
+                    var orbsBefore = player.PlayerCombatState!.OrbQueue.Orbs.ToArray();
+                    int hpBefore = ctx.PrimaryEnemy.CurrentHp;
+                    await ctx.Play(card, card.Type == CardType.Attack ? ctx.PrimaryEnemy : null);
+                    Check(player.PlayerCombatState.OrbQueue.Orbs.SequenceEqual(orbsBefore), "rewritten card does not channel or evoke: " + type.Name);
+                    if (card.Type == CardType.Attack)
+                        Check(hpBefore - ctx.PrimaryEnemy.CurrentHp == card.DynamicVars.Damage.BaseValue * 2, "orb attack retains doubled damage: " + type.Name);
+                    else Check(ctx.Self.Block == (upgraded ? 18 : 12), "Glacier retains direct block only");
+                }
+
+                await ctx.Reset();
+                var hologram = await ctx.Add<Hologram>(PileType.Hand, upgraded);
+                HumilityCardProfiles.ApplyKnown(hologram);
+                await ctx.AddFillerCards(PileType.Discard, 3);
+                await ctx.Play(hologram);
+                Check(ctx.Self.Block == (upgraded ? 10 : 6) && PileType.Hand.GetPile(player).Cards.Count == 0
+                    && PileType.Discard.GetPile(player).Cards.Count == 4, "Hologram gives block without selection or exhaust");
+
+                await ctx.Reset();
+                var battery = await ctx.Add<ChargeBattery>(PileType.Hand, upgraded);
+                HumilityCardProfiles.ApplyKnown(battery);
+                await ctx.Play(battery);
+                Check(ctx.Self.Block == (upgraded ? 20 : 14) && !ctx.Self.HasPower<EnergyNextTurnPower>(), "ChargeBattery removes next-turn energy");
+
+                await ctx.Reset();
+                var hyperbeam = await ctx.Add<Hyperbeam>(PileType.Hand, upgraded);
+                HumilityCardProfiles.ApplyKnown(hyperbeam);
+                var beamHp = ctx.Enemies.ToDictionary(enemy => enemy, enemy => enemy.CurrentHp);
+                await ctx.Play(hyperbeam);
+                Check(beamHp.All(pair => pair.Value - pair.Key.CurrentHp == (upgraded ? 60 : 48))
+                    && !ctx.Self.HasPower<HyperbeamFocusDownPower>(), "Hyperbeam retains all-enemy damage without focus loss");
+
+                await ctx.Reset();
+                var stack = await ctx.Add<Stack>(PileType.Hand, upgraded);
+                HumilityCardProfiles.ApplyKnown(stack);
+                await ctx.AddFillerCards(PileType.Discard, 2);
+                await ctx.ApplyPower<DexterityPower>(ctx.Self, 3);
+                Check(Text(stack).Contains($"{(upgraded ? 13 : 7)}点格挡"), "Stack preview reads live discard count and native Dexterity");
+                await ctx.AddFillerCards(PileType.Discard, 3);
+                Check(Text(stack).Contains($"{(upgraded ? 19 : 13)}点格挡"), "Stack preview updates after discard count changes");
+                await ctx.Play(stack);
+                Check(ctx.Self.Block == (upgraded ? 19 : 13), "Stack execution matches live preview before moving itself to discard");
+
+                await ctx.Reset();
+                var claw = await ctx.Add<Claw>(PileType.Hand, upgraded);
+                var untouchedClaw = await ctx.Add<Claw>(PileType.Hand);
+                claw.DynamicVars.Damage.BaseValue += 4;
+                HumilityCardProfiles.ApplyKnown(claw);
+                int clawHp = ctx.PrimaryEnemy.CurrentHp;
+                await ctx.Play(claw, ctx.PrimaryEnemy);
+                Check(clawHp - ctx.PrimaryEnemy.CurrentHp == (upgraded ? 16 : 14)
+                    && untouchedClaw.DynamicVars.Damage.BaseValue == 3, "Claw preserves existing growth but does not grow other claws");
+            }
+
+            await ctx.Reset();
+            int previousOrbCapacity = player.PlayerCombatState!.OrbQueue.Capacity;
+            try
+            {
+                OrbCmd.RemoveSlots(player, previousOrbCapacity);
+                await OrbCmd.AddSlots(player, 3);
+                foreach (bool upgraded in new[] { false, true })
+                {
+                    OrbCmd.RemoveSlots(player, 3);
+                    await OrbCmd.AddSlots(player, 3);
+                    var barrage = await ctx.Add<Barrage>(PileType.Hand, upgraded);
+                    HumilityCardProfiles.ApplyKnown(barrage);
+                    int hpBefore = ctx.PrimaryEnemy.CurrentHp;
+                    await ctx.Play(barrage, ctx.PrimaryEnemy);
+                    Check(hpBefore == ctx.PrimaryEnemy.CurrentHp, "Barrage with zero orbs emits no attack");
+                    for (int i = 0; i < 3; i++)
+                        await OrbCmd.Channel<MegaCrit.Sts2.Core.Models.Orbs.FrostOrb>(choice, player);
+                    await CardPileCmd.Add(barrage, PileType.Hand, skipVisuals: true);
+                    var probe = ModelCapabilityRegistry.Create<HumilityAttackProbeCapability>();
+                    barrage.AddCapability(probe, allowMerge: false);
+                    hpBefore = ctx.PrimaryEnemy.CurrentHp;
+                    await ctx.Play(barrage, ctx.PrimaryEnemy);
+                    Check(hpBefore - ctx.PrimaryEnemy.CurrentHp == (upgraded ? 42 : 30)
+                        && probe.BeforeCount == 1 && probe.AfterCount == 1, "Barrage live orb count retains one three-hit native command");
+                }
+            }
+            finally
+            {
+                OrbCmd.RemoveSlots(player, player.PlayerCombatState.OrbQueue.Capacity);
+                await OrbCmd.AddSlots(player, previousOrbCapacity);
+            }
+
+            await ctx.Reset();
             var bodySlam = await ctx.Add<BodySlam>(PileType.Hand);
             HumilityCardProfiles.ApplyKnown(bodySlam);
             await CreatureCmd.GainBlock(ctx.Self, 7, MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered, null);
