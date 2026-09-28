@@ -359,7 +359,7 @@ public sealed class InfatuationCurse : MSEventCurseTemplate
 [RegisterCard(typeof(MSGeneratedCardPool))]
 public sealed class GagCurse : MSEventCurseTemplate
 {
-    public GagCurse() : base(2) { }
+    public GagCurse() : base(1) { }
 
     public override bool TryModifyEnergyCostInCombat(
         CardModel card,

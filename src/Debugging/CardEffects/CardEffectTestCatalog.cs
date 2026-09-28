@@ -284,7 +284,7 @@ internal static class CardEffectTestCatalog
         ConfigureEnchantmentChoice();
         ConfigureQuestChoice();
         LibraryPileChoiceProbe();
-        HandCostRestriction<GagCurse>(CardType.Skill, 1);
+        HandCostRestriction<GagCurse>(CardType.Skill, 1, expectedOwnCost: 1);
         Scripture<GuardianScripture>();
         SelectedCardDouble<HumilityLesson>();
         Pending<HypnosisCurse>("DesignDoc: 效果待后续设计");
@@ -3227,14 +3227,38 @@ internal static class CardEffectTestCatalog
             return Task.CompletedTask;
         });
 
-    private static void HandCostRestriction<T>(CardType affectedType, int surcharge) where T : CardModel =>
+    private static void HandCostRestriction<T>(CardType affectedType, int surcharge, int expectedOwnCost) where T : CardModel =>
         BaseOnly<T>(async (ctx, card) =>
         {
+            ctx.AssertEqual("restriction canonical cost", expectedOwnCost, card.EnergyCost.Canonical);
+            ctx.AssertEqual("restriction cannot upgrade", 0, card.MaxUpgradeLevel);
+            ctx.AssertEqual("restriction card type", CardType.Curse, card.Type);
+            ctx.AssertEqual("restriction rarity", CardRarity.Curse, card.Rarity);
+            ctx.AssertEqual("restriction target", TargetType.None, card.TargetType);
             await MegaCrit.Sts2.Core.Commands.CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);
             DefendIronclad fixture = await ctx.Add<DefendIronclad>(PileType.Hand);
+            StrikeIronclad attack = await ctx.Add<StrikeIronclad>(PileType.Hand);
+            ctx.AssertEqual("restriction fixture type", affectedType, fixture.Type);
             ctx.AssertEqual("hand cost surcharge", 1 + surcharge,
                 fixture.EnergyCost.GetWithModifiers(CostModifiers.All));
-        });
+            ctx.AssertEqual("non skill cost unchanged", 1, attack.EnergyCost.GetWithModifiers(CostModifiers.All));
+            ctx.AssertEqual("restriction does not surcharge itself", expectedOwnCost,
+                card.EnergyCost.GetWithModifiers(CostModifiers.All));
+            DesignSyncCombatTextContract.AssertText(ctx, card, PileType.Hand,
+                "如果这张牌在你的手牌中，你的技能牌额外耗能〈能量〉。", "restriction full text");
+            foreach (PileType pile in new[] { PileType.Draw, PileType.Discard, PileType.Exhaust })
+            {
+                await MegaCrit.Sts2.Core.Commands.CardPileCmd.Add(card, pile, skipVisuals: true);
+                ctx.AssertEqual($"{pile} restores skill cost", 1,
+                    fixture.EnergyCost.GetWithModifiers(CostModifiers.All));
+                ctx.AssertTrue($"{pile} restriction inactive",
+                    !card.TryModifyEnergyCostInCombat(fixture, 1, out decimal unchanged));
+                ctx.AssertEqual($"{pile} preserves incoming cost", 1m, unchanged);
+                await MegaCrit.Sts2.Core.Commands.CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);
+                ctx.AssertEqual($"return from {pile} restores surcharge once", 1 + surcharge,
+                    fixture.EnergyCost.GetWithModifiers(CostModifiers.All));
+            }
+        }, 21);
 
     private static void HandPlayRestriction<T>(CardType affectedType) where T : CardModel =>
         BaseOnly<T>(async (ctx, card) =>
