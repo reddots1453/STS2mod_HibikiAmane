@@ -274,7 +274,7 @@ internal static class CardEffectTestCatalog
         EndTurnArmorLoss<BitingPaperStatus>(1, CardKeyword.Exhaust);
         Scripture<BlissScripture>();
         EndTurnArmorLoss<ClothingBurnStatus>(1, CardKeyword.Ethereal, CardKeyword.Exhaust);
-        ConditionalDrawEnergy<CalmMind>(2, 3, 2, 3, minimumHand: 6);
+        CustomVariants<CalmMind>(DesignSyncCalmMindContract.Run, 90);
         Pending<ClimaxBanCurse>("DesignDoc: 效果待后续设计");
         CounterBarrierTokenProbe<CounterBarrierII, CounterBarrierIII>(3);
         CounterBarrierTokenProbe<CounterBarrierIII, CounterBarrierIV>(5);
@@ -1054,27 +1054,6 @@ internal static class CardEffectTestCatalog
             foreach (var power in powers)
                 ctx.AssertPower(power.Power, ctx.Self, power.Power, upgraded ? power.Upgraded : power.Base);
         }, 1 + powers.Length);
-
-    private static void ConditionalDrawEnergy<T>(int baseDraw, int upgradedDraw,
-        int baseEnergy, int upgradedEnergy, int minimumHand) where T : CardModel =>
-        CustomVariants<T>(async (ctx, card, upgraded) =>
-        {
-            T belowThreshold = (T)ctx.Create(typeof(T), upgraded);
-            int lowEnergy = ctx.Player.PlayerCombatState!.Energy;
-            await ctx.Play(belowThreshold);
-            ctx.AssertEqual("no energy below hand threshold", 0,
-                ctx.Player.PlayerCombatState.Energy - lowEnergy);
-
-            await ctx.AddFillerCards(PileType.Hand, minimumHand);
-            await ctx.AddFillerCards(PileType.Draw, 10);
-            int hand = ctx.CountCards<StrikeIronclad>(PileType.Hand);
-            int energy = ctx.Player.PlayerCombatState!.Energy;
-            await ctx.Play(card);
-            ctx.AssertPileDelta<StrikeIronclad>("conditional cards drawn", PileType.Hand, hand,
-                upgraded ? upgradedDraw : baseDraw);
-            ctx.AssertEqual("conditional energy gained", upgraded ? upgradedEnergy : baseEnergy,
-                ctx.Player.PlayerCombatState.Energy - energy);
-        }, 3);
 
     private static void Scripture<T>()
         where T : CardModel => CustomVariants<T>(DesignSyncScriptureContract.Run, 20);

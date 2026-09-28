@@ -169,7 +169,7 @@
   "MAIDEN_SUCCUBUS_CARD_BLIZZARD.title": "暴风雪",
   "MAIDEN_SUCCUBUS_CARD_BLIZZARD.description": "对所有敌人造成{Damage:diff()}点伤害，将1张[gold]冰雾[/gold]置入[gold]手牌[/gold]。\n接下来2个回合开始时，重复此效果。",
   "MAIDEN_SUCCUBUS_CARD_CALM_MIND.title": "心神宁静",
-  "MAIDEN_SUCCUBUS_CARD_CALM_MIND.description": "如果你的[gold]手牌[/gold]有6张或更多，抽{Cards:diff()}张牌并获得{Energy:maidenEnergyIcons()}。",
+  "MAIDEN_SUCCUBUS_CARD_CALM_MIND.description": "如果你的[gold]手牌[/gold]有6张或更多，则抽{Cards:diff()}张牌并获得{Energy:maidenEnergyIcons()}。",
   "MAIDEN_SUCCUBUS_CARD_DROWSY_STATUS.title": "困了",
   "MAIDEN_SUCCUBUS_CARD_DROWSY_STATUS.description": "",
   "MAIDEN_SUCCUBUS_CARD_MENTAL_UNITY.title": "精神统一",
