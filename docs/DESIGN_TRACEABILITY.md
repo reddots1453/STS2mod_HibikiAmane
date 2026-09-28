@@ -6,9 +6,11 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-02U：升级标量文本绑定检查（READY）
+## DS27-02U：升级标量文本绑定检查（IMPLEMENTED，仅静态绑定检查）
 
 全注册`CARD-*`升级数值显示→DS27-02U→只读源码/继承/本地化依赖审计与反例测试→DS27-CARD-TEXT/GATES。前置`a3f9c8ce`；避免局部修复后同类硬编码再现。仅验证可识别标量绑定，不能认定全部文本/机制正确，未知单列，不部署。
+
+同步`e3cd5c63`；`AuditUpgradeTextBindings.py`/`TestUpgradeTextBindings20260927.py`→LocalizationStyle门。225注册、149绑定（6间接）、0失败；新增17静态用例，累计383，既有13540/33断言、双构建及四门通过。旧视觉/全卡审计失败保留，不标VERIFIED、不部署；范围限制和待验见`DESIGN_SYNC_20260927_BATCH45.md`。
 
 ## DS27-02T：破碎与随机多目标攻击（IMPLEMENTED，游戏内待验）
 

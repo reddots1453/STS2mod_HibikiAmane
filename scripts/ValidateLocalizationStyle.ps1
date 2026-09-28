@@ -239,6 +239,12 @@ if ($LASTEXITCODE -ne 0) {
     $failures.Add("localization rich-text formatter reports drift")
 }
 
+$upgradeBindingScript = Join-Path $ProjectDir "scripts/AuditUpgradeTextBindings.py"
+& python $upgradeBindingScript
+if ($LASTEXITCODE -ne 0) {
+    $failures.Add("upgrade scalar description binding audit failed")
+}
+
 if ($failures.Count -gt 0) {
     $failures | Sort-Object -Unique | ForEach-Object { Write-Error $_ }
     exit 1
