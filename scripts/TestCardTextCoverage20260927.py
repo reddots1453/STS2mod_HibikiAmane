@@ -69,6 +69,15 @@ class CardTextInventoryTests(unittest.TestCase):
             self.assertEqual(self.rows[model]['textEvidence'], coverage.BOTH)
             self.assertEqual(rows[model]['textEvidence'], coverage.MISSING)
 
+    def test_thunder_disconnected_scenario_loses_full_text_evidence(self):
+        report = self.mutated(coverage.CATALOG,
+                              'CustomVariants<BurningDesire>(DesignSyncBurningDesireContract.Run, 100)',
+                              'Missing();')
+        self.assertTrue(report['integrityErrors'])
+        self.assertEqual(self.rows['BurningDesire']['textEvidence'], coverage.BOTH)
+        self.assertEqual(next(row for row in report['cards'] if row['model'] == 'BurningDesire')['textEvidence'],
+                         coverage.MISSING)
+
     def mutated(self, path, old, new):
         def read(file):
             text = coverage.read(file)

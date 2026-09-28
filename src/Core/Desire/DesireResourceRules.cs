@@ -47,6 +47,12 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
 {
     private static readonly HashSet<Player> ResolvingPlayers = [];
 
+    public Task AfterSecondaryResourceSpent(SecondaryResourceSpendContext context)
+    {
+        DesireCombatSpending.Record(context);
+        return Task.CompletedTask;
+    }
+
     public decimal ModifyMaxSecondaryResource(
         SecondaryResourceMaxContext context,
         decimal amount) =>

@@ -112,6 +112,8 @@ internal static class DesirePersistenceCoordinator
             return;
         }
 
+        DesireCombatSpending.Close(evt.CombatState);
+
         foreach (var player in evt.CombatState.Players)
         {
             if (player.Character is MaidenSuccubusCharacter)

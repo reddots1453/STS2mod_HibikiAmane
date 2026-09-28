@@ -56,6 +56,7 @@ internal sealed class CardEffectTestContext
 
     public async Task Reset()
     {
+        MaidenSuccubus.Core.Desire.DesireCombatSpending.ResetForTests(Combat);
         // This deliberately destroys the current combat state.  The console command
         // requires an explicit confirmation token and documents disposable-run use.
         foreach (CardPile pile in Player.Piles.Where(pile => pile.IsCombatPile))

@@ -38,6 +38,7 @@ GLOBAL = (
 )
 # (model, provider, method, scope, exact assertion anchor)
 DIRECT = (
+    ('BurningDesire', 'DesignSyncBurningDesireContract', 'Run', BOTH, 'miasma thunder full rendered text'),
     ('AcceleratedMotion', 'DesignSyncAcceleratedMotionContract', 'Run', BOTH, 'accelerated full card text'),
     ('CalmMind', 'DesignSyncCalmMindContract', 'Run', BOTH, 'calm mind exact run text'),
     ('GoddessOfIce', 'DesignSyncIceGoddessContract', 'Run', BOTH, 'goddess exact outside description'),

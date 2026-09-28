@@ -290,7 +290,9 @@ public sealed class BurningDesire : MSCorruptCard
         CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target);
-        int hits = Math.Max(1, Data.Desire.Get(Owner) + 1);
+        // SpendResources resolves before OnPlay, so this includes this play's
+        // actual payment, but does not invent another payment on a replay.
+        int hits = 1 + DesireCombatSpending.Get(Owner);
         return DamageCmd.Attack(DynamicVars.Damage.BaseValue)
             .WithHitCount(hits)
             .FromCard(this, cardPlay)

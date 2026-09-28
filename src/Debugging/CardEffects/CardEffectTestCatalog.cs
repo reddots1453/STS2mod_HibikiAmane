@@ -2382,14 +2382,7 @@ internal static class CardEffectTestCatalog
         CustomVariants<BlackVortex>(DesignSyncExhaustContract.Vortex, 20);
 
     private static void BurningDesireProbe() =>
-        CustomVariants<BurningDesire>(async (ctx, card, upgraded) =>
-        {
-            await MaidenSuccubus.Data.Desire.Set(ctx.Player, 2);
-            int hp = ctx.PrimaryEnemy.CurrentHp;
-            await ctx.Play(card, ctx.PrimaryEnemy);
-            ctx.AssertDamage("three hits at two current desire", ctx.PrimaryEnemy, hp,
-                upgraded ? 12 : 9);
-        }, 1);
+        CustomVariants<BurningDesire>(DesignSyncBurningDesireContract.Run, 100);
 
     private static void ChangePantiesProbe() =>
         CustomVariants<ChangePanties>(async (ctx, card, upgraded) =>
