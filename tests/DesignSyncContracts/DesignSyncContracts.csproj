@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../src/Acts/FourthRouteRewardOffer.cs" Link="Production/FourthRouteRewardOffer.cs" />
     <Compile Include="../../src/Acts/FourthRouteOpeningState.cs" Link="Production/FourthRouteOpeningState.cs" />
     <Compile Include="../../src/Core/Relics/GreedShopState.cs" Link="Production/GreedShopState.cs" />
     <Compile Include="../../src/Core/Relics/EnvyTriggerState.cs" Link="Production/EnvyTriggerState.cs" />

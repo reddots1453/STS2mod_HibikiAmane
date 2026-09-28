@@ -94,6 +94,11 @@ public sealed class FourthRouteLifecycle : SingletonModel
         _showingFourthRouteFlow = true;
         try
         {
+            if (runState.Players.Count == 1)
+            {
+                await FourthRouteRewardFlow.Show(_owner);
+                return;
+            }
             if (await FourthRouteSelectionScreen.ShowReward(quest,
                 FourthRouteTrialRules.RewardStage(FourthRouteProgressService.Trial(runState).Phase)))
                 await FourthRouteProgressService.ClaimInitialReward(_owner);

@@ -554,3 +554,34 @@ var corruptOpening = new FourthRouteOpeningState { Dark = (FourthRouteQuest)1000
 Equal(false, corruptOpening.HasOffers, "invalid saved enum not legal offer");
 Equal(false, corruptOpening.Finish(), "invalid saved offer cannot finish");
 Console.WriteLine($"PASS DS27 production opening flow: {checks - beforeOpening} assertions; {checks} total.");
+
+int beforeReward = checks;
+foreach (var quest in Enum.GetValues<FourthRouteQuest>())
+foreach (var phase in Enum.GetValues<FourthTrialPhase>())
+{
+    var offer = new FourthRouteRewardOffer(quest, phase);
+    bool pending = phase is FourthTrialPhase.FirstReward or FourthTrialPhase.SecondReward or FourthTrialPhase.ThirdReward;
+    Equal(pending, offer.IsValid, "only completed unclaimed trials have a reward offer");
+    Equal(phase switch { FourthTrialPhase.FirstReward => 1, FourthTrialPhase.SecondReward => 2,
+        FourthTrialPhase.ThirdReward => 4, _ => 0 }, offer.Stage, "offer uses exact awarded relic form");
+    foreach (var now in Enum.GetValues<FourthTrialPhase>())
+        Equal(pending && now == phase, offer.Matches(quest, now), "stale UI cannot claim another phase");
+    var other = quest == FourthRouteQuest.Pride ? FourthRouteQuest.Humility : FourthRouteQuest.Pride;
+    Equal(false, offer.Matches(other, phase), "stale UI cannot claim another route");
+    var restored = System.Text.Json.JsonSerializer.Deserialize<FourthRouteRewardOffer>(System.Text.Json.JsonSerializer.Serialize(offer));
+    Equal(offer, restored, "offer identity remains immutable through roundtrip");
+}
+Equal(false, new FourthRouteRewardOffer((FourthRouteQuest)1000, FourthTrialPhase.FirstReward).IsValid, "unknown route cannot be shown");
+Equal(false, new FourthRouteRewardOffer(FourthRouteQuest.Pride, (FourthTrialPhase)1000).IsValid, "unknown phase cannot be shown");
+for (int flags = 0; flags < 4096; flags++)
+{
+    bool Flag(int bit) => (flags & (1 << bit)) != 0;
+    const int required = 1 | 2 | 8 | 16;
+    const int forbidden = 4 | 32 | 64 | 128 | 256 | 512;
+    bool expectedPresentation = (flags & required) == required && (flags & forbidden) == 0
+        && (!Flag(10) || Flag(11));
+    Equal(expectedPresentation, FourthRouteRewardOffer.CanPresent(Flag(0), Flag(1), Flag(2), Flag(3), Flag(4),
+        Flag(5), Flag(6), Flag(7), Flag(8), Flag(9), Flag(10), Flag(11)),
+        "idle gates; victory boundary bypasses executor only, never other safety checks");
+}
+Console.WriteLine($"PASS DS27 production reward presentation: {checks - beforeReward} assertions; {checks} total.");

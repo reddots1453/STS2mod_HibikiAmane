@@ -1,4 +1,6 @@
 {
+  "MAIDEN_SUCCUBUS_TRIAL_REWARD.title": "试炼的奖赏",
+  "MAIDEN_SUCCUBUS_TRIAL_REWARD.claim": "点击遗物以领取奖赏。",
   "MAIDEN_SUCCUBUS_ROUTE_OPENING.title": "女神的试炼",
   "MAIDEN_SUCCUBUS_ROUTE_OPENING.common": "[sine]沉眠……[/sine]\n\n[jitter]咔嚓！[/jitter]\n\n天音在一截冰冷的石阶上醒来。\n\n前方是高塔。身后也是高塔。塔壁向上、向下，朝着所有不该存在的方向延伸。原本世界的魔力坐标则消失得干干净净。\n\n“这里是哪里？”\n\n最后的记忆，是正在亮起的传送魔法从中间折断的样子。\n\n天音再次施术。[sine]失败。[/sine]\n\n她还不知道这是哪里，但至少，这座塔还给了她一个方向——[gold]上方。[/gold]\n\n寂静中，她察觉到远处的阴影里有……",
   "MAIDEN_SUCCUBUS_ROUTE_OPENING.accept": "接受试炼",
