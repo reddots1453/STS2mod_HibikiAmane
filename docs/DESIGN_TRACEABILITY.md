@@ -6,6 +6,10 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-04I：遗忘之魂（READY）
+
+`RELIC-VANILLA-002`完整条目→DS27-04I→原版ForgottenSoul实例动态伤害/本角色隔离/正反变奏描述→DS27-RELIC/COMPAT/GATES。前置`4538afc9`，没有设计漂移。不将原版CharonsAshes误作遗忘之魂，不替换消耗命令或原生RNG，不部署。
+
 ## DS27-02V：中立牌全文（IMPLEMENTED，游戏内待验）
 
 `CARD-N-100～399`本批26牌及冰晶碎片/功性魔防壁II～IV这4张衍生（共30牌）→DS27-02V→独立基础/升级Run与战斗全文断言/图标计数/梦色圣洁颜色修复→DS27-CARD-TEXT/GATES。前置`5da574c7`，无设计漂移；原效果测试保留，不据静态通过冒称渲染验收，不部署。
