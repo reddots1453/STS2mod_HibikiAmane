@@ -1,4 +1,7 @@
 {
+  "MAIDEN_SUCCUBUS_RELIC_TONYS_CHARM.title": "东尼的咒符",
+  "MAIDEN_SUCCUBUS_RELIC_TONYS_CHARM.description": "当你移除一张牌时，将1张升级过的随机稀有牌加入牌组。拾起时，移除2张牌。",
+  "MAIDEN_SUCCUBUS_RELIC_TONYS_CHARM.flavor": "当你移除一张牌时，将1张升级过的随机稀有牌加入牌组。",
   "MAIDEN_SUCCUBUS_FORGOTTEN_SOUL.title": "遗忘之魂",
   "MAIDEN_SUCCUBUS_FORGOTTEN_SOUL.description": "每当你[gold]消耗[/gold]1张牌，对随机敌人造成{Damage}点伤害。[purple]堕落值[/purple]≥4：[gold]变奏[/gold]。",
   "MAIDEN_SUCCUBUS_FORGOTTEN_SOUL.descriptionCorrupt": "每当你[gold]消耗[/gold]1张牌，对随机敌人造成{Damage}点伤害。[purple]堕落值[/purple]＜4：[gold]变奏[/gold]。",

@@ -18,9 +18,9 @@ Q12/Q13/Q19→DS27-02AR已IMPLEMENTED：独立计数/排队复读、分层生成
 
 前置`6ffb39e2`→DesignDoc九项规则说明→DS27-02AR/04G/04J/05F/05K/05M2。Q12/Q13/Q19为能力叠加和原生重放顺序；Q14谦逊改写；Q15/Q16供奉所有权与可见性；Q17原版免费X逻辑；Q18/Q20三路线合池逐牌等概率。全部已答，不沿用历史OPEN阻塞；代码完成分项登记、游戏未验不标VERIFIED，不部署。
 
-## DS27-04K：两个随机遗物（READY）
+## DS27-04K：两个随机遗物（IMPLEMENTED，游戏内待验）
 
-RELIC-CHAR-007/Q18与RELIC-EVENT-004/Q20→三路线合池逐牌均匀/东尼永久移除奖励/枯木原生战斗生成→DS27-RELIC/EFFECT/COMPAT。前置`291bef4f`，不再OPEN。STS1原路径不存在，源码与原图标对照待新位置；不影响已明确合池部分，不能据此宣称整个枯木要求已完成。
+RELIC-CHAR-007/Q18与RELIC-EVENT-004/Q20→`UnifiedRouteCardPool`/`TonysCharm`/`WitheredTreeSoul`→`ms_test_random_relics confirm`（战斗外与战斗内各一轮）及`TestDesignSyncRandomRelics20260927.py`。计划`6f79890a`，用户F盘jar已对照原版消耗/随机/满手规则并接入两个原图标。三路线合池逐牌均匀，东尼永久移除升级稀有，枯木原生战斗生成含历史/后续钩子；治疗术只在枯木池排除。6静态、登记门、Debug0警告0错误，游戏脚本仅编译，未部署。详见第78批；东尼图标暂沿已有占位，未新增专属美术。
 
 ## DS27-02AQ：两处遗留数值（IMPLEMENTED，游戏内待验）
 

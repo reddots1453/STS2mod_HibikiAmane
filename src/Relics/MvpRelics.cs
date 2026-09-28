@@ -14,6 +14,7 @@ using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.ContentTemplates;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Core.Relics;
+using MaidenSuccubus.Core.Rewards;
 using MaidenSuccubus.Core.Routes;
 using MaidenSuccubus.Pools;
 using STS2RitsuLib.Interop.AutoRegistration;
@@ -93,25 +94,34 @@ public sealed class WitheredTreeSoul : MSRelicTemplate
 {
     public override RelicRarity Rarity => RelicRarity.Event;
 
-    public override RelicAssetProfile AssetProfile => new(
-        IconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres",
-        IconOutlinePath: "res://images/atlases/relic_outline_atlas.sprites/circlet.tres",
-        BigIconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres");
+    private static RelicAssetProfile? _assets;
+    public override RelicAssetProfile AssetProfile => _assets ??= PrepareAssets();
+
+    private static RelicAssetProfile PrepareAssets()
+    {
+        // Native relic getters require ResourceLoader paths, not loose PNGs.
+        string icon = UI.RuntimeTextureAssets.PrepareResource("relics/sts1/dead_branch.png",
+            "user://maiden_dead_branch.tres", "res://images/atlases/relic_atlas.sprites/circlet.tres");
+        string outline = UI.RuntimeTextureAssets.PrepareResource("relics/sts1/dead_branch_outline.png",
+            "user://maiden_dead_branch_outline.tres", "res://images/atlases/relic_outline_atlas.sprites/circlet.tres");
+        return new RelicAssetProfile(IconPath: icon, IconOutlinePath: outline, BigIconPath: icon);
+    }
 
     public override async Task AfterCardExhausted(
         PlayerChoiceContext context,
         CardModel card,
         bool causedByEthereal)
     {
-        if (card.Owner != Owner || !CombatManager.Instance.IsInProgress) return;
+        if (card.Owner != Owner || !CombatManager.Instance.IsInProgress
+            || CombatManager.Instance.IsOverOrEnding || Owner.Creature.CombatState == null) return;
         List<CardModel> created = CardFactory.GetDistinctForCombat(
             Owner,
-            Owner.Character.CardPool.GetUnlockedCards(Owner.UnlockState, Owner.RunState.CardMultiplayerConstraint),
+            UnifiedRouteCardPool.Get(Owner),
             1,
             Owner.RunState.Rng.CombatCardGeneration).ToList();
         if (created.FirstOrDefault() is not { } generated) return;
         Flash();
-        await CardPileCmd.Add(generated, PileType.Hand);
+        await CardPileCmd.AddGeneratedCardToCombat(generated, PileType.Hand, Owner);
     }
 }
 
