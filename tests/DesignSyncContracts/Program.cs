@@ -598,3 +598,29 @@ foreach (int corruption in Enumerable.Range(-5, 11))
             $"necklace {corruption}/{desire}: literal table covers five on both branches");
 }
 Console.WriteLine($"PASS DS27 production necklace rules: {checks - beforeNecklace} assertions; {checks} total.");
+
+int beforeMagicRelics = checks;
+foreach (int corruption in Enumerable.Range(-5, 11))
+{
+    bool variation = corruption is -5 or -4 or -3 or -2;
+    Equal(variation, MagicSupportRelicRules.PrayerVariation(corruption), "prayer inclusive minus two");
+    foreach (bool ownForm in new[] { false, true })
+    foreach (var (current, added, fresh) in new (decimal, decimal, bool)[]
+             { (1, 1, true), (9, 9, true), (2, 1, false), (18, 9, false), (0, 0, false), (0, -1, false), (9, 0, false) })
+        Equal(variation && ownForm && fresh,
+            MagicSupportRelicRules.GrantsOnForm(corruption, ownForm, current, added),
+            "prayer actual fresh entry only, all three initial form amounts");
+}
+int[] counterSequence = [1, 2, 3, 4, 0];
+for (int initial = 0; initial < 5; initial++)
+{
+    int counter = initial;
+    for (int turn = 0; turn < 30; turn++)
+    {
+        counter = MagicSupportRelicRules.NextBarrierTurn(counter);
+        Equal(counterSequence[(initial + turn) % 5], counter, "barrier every fifth across combat partitions");
+    }
+}
+Equal(1, MagicSupportRelicRules.NextBarrierTurn(-1), "barrier invalid negative state recovers safely");
+Equal(0, MagicSupportRelicRules.NextBarrierTurn(int.MaxValue), "barrier invalid huge state cannot overflow");
+Console.WriteLine($"PASS DS27 production magic support relics: {checks - beforeMagicRelics} assertions; {checks} total.");

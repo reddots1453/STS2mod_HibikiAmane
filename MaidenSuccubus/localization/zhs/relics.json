@@ -1,4 +1,11 @@
 {
+  "MAIDEN_SUCCUBUS_RELIC_PRAYER_EARRINGS.title": "祈祷耳环",
+  "MAIDEN_SUCCUBUS_RELIC_PRAYER_EARRINGS.description": "战斗开始时，获得1层[gold]魔力增幅[/gold]。[purple]堕落值[/purple]≤-2：[gold]变奏[/gold]。",
+  "MAIDEN_SUCCUBUS_RELIC_PRAYER_EARRINGS.descriptionHoly": "战斗开始时和进入[gold]变身[/gold]时，获得1层[gold]魔力增幅[/gold]。",
+  "MAIDEN_SUCCUBUS_RELIC_PRAYER_EARRINGS.flavor": "战斗开始时，获得1层魔力增幅。堕落值≤-2：变奏。",
+  "MAIDEN_SUCCUBUS_RELIC_BARRIER_GENERATOR.title": "结界生成装置",
+  "MAIDEN_SUCCUBUS_RELIC_BARRIER_GENERATOR.description": "每5个回合，获得1层[gold]圣域[/gold]。",
+  "MAIDEN_SUCCUBUS_RELIC_BARRIER_GENERATOR.flavor": "每5个回合，获得1层圣域。",
   "MAIDEN_SUCCUBUS_RELIC_HERO_ORB.title": "英雄宝珠",
   "MAIDEN_SUCCUBUS_RELIC_HERO_ORB.description": "回合结束时，[gold]保留[/gold]1张牌。[purple]堕落值[/purple]≥4或≤-4：[gold]变奏[/gold]。",
   "MAIDEN_SUCCUBUS_RELIC_HERO_ORB.descriptionCorrupt": "回合结束时，[gold]保留[/gold]1张牌并将其[gold]升级[/gold]。[purple]堕落值[/purple]＜4：[gold]变奏[/gold]。",

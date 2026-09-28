@@ -24,6 +24,12 @@ public static class TwinSoulChaliceDescriptionPatch
         Safe.Run(
             () =>
             {
+                if (__instance is PrayerEarrings { HolyVariation: true } earrings)
+                {
+                    result = new LocString("relics", earrings.Id.Entry + ".descriptionHoly");
+                    return;
+                }
+
                 if (__instance is HeartNecklace necklace)
                 {
                     result = new LocString("relics", necklace.ActiveEntry + ".description");
