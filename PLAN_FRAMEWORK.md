@@ -18,9 +18,11 @@
 
 ---
 
-### DS27-02Y：战术分析仪升级附魔候选合法性（READY）
+### DS27-02Y：战术分析仪升级附魔候选合法性（IMPLEMENTED，游戏内待验）
 
 前置`024a9767`，DesignDoc逐行/词级无漂移，完整复核战术分析仪、SYS-ENC-001普通附魔一致规则及光之翼多重附魔例外。当前仅按IsUpgradable选择，普通已有附魔牌会先升级再在ApplyVanilla<Steady>抛异常。选项须同时能升级且符合原版Steady.CanEnchant；保留光之翼既有多重附魔适配，抽1/2牌仍先执行，无合法目标正常结束。选择返回后重验实际拥有者/手牌和资格，防止等待期间目标失效。补实际候选集合检查、普通/永久附魔隔离、空候选/已升级、光之翼共存及升级/抽牌收益测试，原全文契约保留；未部署。
+
+同步`6e9b7416`；选择前/后统一资格函数及`DesignSyncTacticalAnalyzerContract`完成，`ms_test_cards confirm TacticalAnalyzer`已编译未运行。7新增静态累计435通过，双构建四门与既有13540/33通过；旧视觉/全卡审计问题保留。见`docs/DESIGN_SYNC_20260927_BATCH52.md`。
 
 ### DS27-06D：亡灵集会完整选项回归（IMPLEMENTED，游戏内待验）
 

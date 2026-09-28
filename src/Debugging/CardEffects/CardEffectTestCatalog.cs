@@ -2979,18 +2979,7 @@ internal static class CardEffectTestCatalog
         }, 1);
 
     private static void TacticalAnalyzerProbe() =>
-        CustomVariants<TacticalAnalyzer>(async (ctx, card, upgraded) =>
-        {
-            int count = upgraded ? 2 : 1;
-            IReadOnlyList<CardModel> fixtures = await ctx.AddFillerCards(PileType.Draw, count);
-            CardModel selected = fixtures[0];
-            await ctx.Play(card, selectedCards: [selected]);
-            ctx.AssertEqual("cards drawn", count,
-                ctx.CountCards<StrikeIronclad>(PileType.Hand));
-            ctx.AssertTrue("selected drawn card upgraded", selected.IsUpgraded);
-            ctx.AssertTrue("selected drawn card retained",
-                selected.Keywords.Contains(CardKeyword.Retain));
-        }, 3);
+        CustomVariants<TacticalAnalyzer>(DesignSyncTacticalAnalyzerContract.Run, 25);
 
     private static void BeyondReasonForgeProbe() =>
         CustomVariants<BeyondReasonForge>(async (ctx, card, _) =>

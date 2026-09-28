@@ -116,13 +116,16 @@ public sealed class TacticalAnalyzer : MSHolyCard
         HoverTipFactory.FromEnchantment<Steady>();
     protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(1)];
     public TacticalAnalyzer() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
+    private bool CanUpgradeAndEnchant(CardModel card) =>
+        card.Owner == Owner && card.Pile?.Type == PileType.Hand
+        && card.IsUpgradable && ModelDb.Enchantment<Steady>().CanEnchant(card);
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         await CardPileCmd.Draw(context, DynamicVars.Cards.IntValue, Owner);
         CardModel? card = (await CardSelectCmd.FromHand(context, Owner,
             new CardSelectorPrefs(CardSelectorPrefs.UpgradeSelectionPrompt, 1),
-            candidate => candidate.IsUpgradable, this)).FirstOrDefault();
-        if (card != null)
+            CanUpgradeAndEnchant, this)).FirstOrDefault();
+        if (card != null && CanUpgradeAndEnchant(card))
         {
             CardCmd.Upgrade(card);
             CombatEnchantmentCmd.ApplyVanilla<Steady>(card, 1);
