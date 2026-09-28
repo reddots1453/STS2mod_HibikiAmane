@@ -27,6 +27,15 @@ class CardTextInventoryTests(unittest.TestCase):
         self.assertNotIn(coverage.PREFIX + 'DesignSyncHolyContract.cs', providers)
         self.assertEqual(self.rows['HypnosisCurse']['textEvidence'], coverage.MISSING)
 
+    def test_status_text_requires_connected_runtime_provider(self):
+        for model in ('SemenCurse', 'ClimaxBanCurse', 'ChangePanties', 'BarbedHookStatus'):
+            self.assertEqual(self.rows[model]['textEvidence'], coverage.BOTH)
+        report = self.mutated(coverage.RUNNER, 'DesignSyncStatusTextContract.Validate(context, card, scenario.Upgraded);', '')
+        self.assertTrue(report['integrityErrors'])
+        rows = {row['model']: row for row in report['cards']}
+        for model in ('SemenCurse', 'ChangePanties', 'BarbedHookStatus'):
+            self.assertEqual(rows[model]['textEvidence'], coverage.MISSING)
+
     def test_partial_and_same_combat_instance_none_are_not_double_scene_full_text(self):
         for model in ('AllHopeLost', 'HumilityLesson', 'TransparentOutfitCurse', 'BlasphemousDesire'):
             self.assertEqual(self.rows[model]['textEvidence'], coverage.BOTH)

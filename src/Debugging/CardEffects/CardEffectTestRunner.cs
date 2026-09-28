@@ -89,6 +89,7 @@ internal static class CardEffectTestRunner
                         DesignSyncCombatTextContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncRemainingTextContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncFinalTextContract.Validate(context, card, scenario.Upgraded);
+                        DesignSyncStatusTextContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncStarterTextContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncCardBatchSixContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncTextBatchContract.Validate(context, card, scenario.Upgraded);
@@ -162,6 +163,12 @@ internal static class CardEffectTestRunner
 
     private static CardEffectSpec[] SelectSpecs(string requestedCard)
     {
+        if (string.Equals(requestedCard, "ds27-status-text", StringComparison.OrdinalIgnoreCase))
+        {
+            var batch = CardEffectTestCatalog.All.Where(spec => DesignSyncStatusTextContract.Contains(spec.CardType)).ToArray();
+            if (batch.Length != 37) throw new InvalidOperationException("DS27 status text requires all 37 cards.");
+            return batch;
+        }
         if (string.Equals(requestedCard, "all", StringComparison.OrdinalIgnoreCase))
             return CardEffectTestCatalog.All.ToArray();
 

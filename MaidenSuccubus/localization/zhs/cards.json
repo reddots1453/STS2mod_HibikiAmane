@@ -276,7 +276,7 @@
   "MAIDEN_SUCCUBUS_CARD_MAGIC_SWORD.title": "魔法之剑",
   "MAIDEN_SUCCUBUS_CARD_MAGIC_SWORD.description": "造成{Damage:diff()}点伤害。\n拾起时，为这张牌[gold]附魔[/gold]：[purple]充能：2[/purple]。",
   "MAIDEN_SUCCUBUS_CARD_CHANGE_PANTIES.title": "更换胖次",
-  "MAIDEN_SUCCUBUS_CARD_CHANGE_PANTIES.description": "{Threshold:maidenDesireIcons()}或更多时才能打出。\n获得2层[gold]滑溜[/gold]。\n获得2层[gold]易伤[/gold]。",
+  "MAIDEN_SUCCUBUS_CARD_CHANGE_PANTIES.description": "[pink]欲望[/pink]大于等于{Threshold:diff()}时才能打出。\n获得2层[gold]滑溜[/gold]。\n获得2层[gold]易伤[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_IGNITE.title": "引燃",
   "MAIDEN_SUCCUBUS_CARD_IGNITE.description": "[gold]消耗[/gold]1张牌。\n下回合开始时将其打出。",
   "MAIDEN_SUCCUBUS_CARD_BLACK_VORTEX.title": "黑色旋涡",

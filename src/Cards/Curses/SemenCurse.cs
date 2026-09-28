@@ -33,8 +33,7 @@ public abstract class MSInvasionCurseTemplate :
     public override int MaxUpgradeLevel => 0;
     public override bool CanBeGeneratedByModifiers => false;
     public override CardPoolModel Pool => ModelDb.CardPool<MSInvasionCursePool>();
-    public override IEnumerable<CardKeyword> CanonicalKeywords =>
-        [CardKeyword.Exhaust];
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [];
 
     public override CardAssetProfile AssetProfile => new(
         PortraitPath: CardArtAssets.GetPortraitPath(GetType()));

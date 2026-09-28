@@ -28,7 +28,7 @@ class RemainingNumberContracts(unittest.TestCase):
 
     def test_text_uses_changed_variables_not_old_constants(self):
         loc = json.loads(read('MaidenSuccubus/localization/zhs/cards.json'))
-        self.assertIn('{Threshold:maidenDesireIcons()}', loc['MAIDEN_SUCCUBUS_CARD_CHANGE_PANTIES.description'])
+        self.assertIn('[pink]欲望[/pink]大于等于{Threshold:diff()}时才能打出。', loc['MAIDEN_SUCCUBUS_CARD_CHANGE_PANTIES.description'])
         self.assertIn('{Damage:diff()}', loc['MAIDEN_SUCCUBUS_CARD_DESIRE_WHIP.description'])
 
 
