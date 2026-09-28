@@ -8,6 +8,10 @@
 
 > 当前汇总：[2026-09-28全范围状态核对](DESIGN_SYNC_20260927_CURRENT_STATUS.md)。旧批次段落是带日期的历史证据；不得用历史未实现项覆盖后续交付，也不得把局部IMPLEMENTED提升为全范围VERIFIED。
 
+## DS27-02AG：手牌加费卡自身费用（READY）
+
+正式诅咒牌口球1费条目→DS27-02AG→GagCurse构造费用与手牌条件回归→DS27-CARD-META/TEXT/EFFECT/GATES。前置`034db6bb`，纯非露骨数值同步，不改附加费规则/存档身份/意图；新增自身费用和离手恢复断言，不再把明确差异长期作为已知失败保留。统一无部署验证，游戏内仍待验。
+
 ## DS27-02AF：魔力爆发支付后预估（IMPLEMENTED，游戏内待验）
 
 CARD-H-500～599魔力爆发/KW-OVERDRAFT-001→DS27-02AF→耐久支付后层数预估、增幅只读可用性、预览/实际伤害与资源断言→DS27-CARD-TEXT/EFFECT/COMPAT/GATES。前置`2daa1d95`；保留实际结算与增幅消耗规则，不部署。
