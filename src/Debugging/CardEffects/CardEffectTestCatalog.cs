@@ -1093,18 +1093,7 @@ internal static class CardEffectTestCatalog
         CustomVariants<GoddessOfIce>(DesignSyncIceGoddessContract.Run, 20);
 
     private static void LullabyProbe() =>
-        CustomVariants<Lullaby>(async (ctx, card, upgraded) =>
-        {
-            AssertNeutralMetadata(ctx, card, CardRarity.Rare, upgraded ? 1 : 2);
-            await ctx.Play(card);
-            await ctx.AddFillerCards(PileType.Hand, 2);
-            int block = ctx.Self.Block;
-            LullabyPower power = ctx.Self.Powers.OfType<LullabyPower>().Single();
-            await power.BeforeFlush(new BlockingPlayerChoiceContext(), ctx.Player);
-            ctx.AssertEqual("one drowsy generated", 1,
-                ctx.CountCards<DrowsyStatus>(PileType.Hand));
-            ctx.AssertBlock("two block per resulting hand card", block, 6);
-        }, 2);
+        CustomVariants<Lullaby>(DesignSyncConfirmedStackContract.Lullaby, 12);
 
     private static void MagicIndexProbe() =>
         CustomVariants<MagicIndex>(DesignSyncEnchantmentInputContract.Index, 25);
@@ -1298,29 +1287,7 @@ internal static class CardEffectTestCatalog
         }, 3);
 
     private static void ChainDestructionProbe() =>
-        CustomVariants<ChainDestruction>(async (ctx, card, _) =>
-        {
-            await ctx.Play(card);
-            ChainDestructionPower power =
-                ctx.Self.Powers.OfType<ChainDestructionPower>().Single();
-            ctx.AssertEqual("counter starts four exhausts from trigger", 4,
-                power.DisplayAmount);
-            for (int i = 0; i < 4; i++)
-            {
-                await CardCmd.Exhaust(new BlockingPlayerChoiceContext(),
-                    await ctx.Add<MaidenDefend>(PileType.Hand));
-                ctx.AssertEqual("counter displays remaining exhausts",
-                    i == 3 ? 4 : 3 - i,
-                    power.DisplayAmount);
-            }
-            ctx.AssertPower("four exhausts arm one visible replay", ctx.Self,
-                "ChainDestructionReplayPower", 1);
-            int hp = ctx.PrimaryEnemy.CurrentHp;
-            await ctx.Play(ctx.Create<MaidenStrike>(), ctx.PrimaryEnemy);
-            ctx.AssertDamage("next card plays twice", ctx.PrimaryEnemy, hp, 12);
-            ctx.AssertPower("visible replay consumed", ctx.Self,
-                "ChainDestructionReplayPower", 0);
-        }, 8);
+        CustomVariants<ChainDestruction>(DesignSyncConfirmedStackContract.Chain, 17);
 
     private static void CurseWedgeProbe() =>
         CustomVariants<CurseWedge>(async (ctx, card, upgraded) =>
@@ -1794,19 +1761,7 @@ internal static class CardEffectTestCatalog
         }, 1);
 
     private static void SoulPurificationProbe() =>
-        CustomVariants<SoulPurification>(async (ctx, card, upgraded) =>
-        {
-            int draw = upgraded ? 2 : 1;
-            await ctx.Play(card);
-            await ctx.AddFillerCards(PileType.Draw, draw);
-            GuardianScripture scripture = ctx.Create<GuardianScripture>();
-            int hand = ctx.CountCards<StrikeIronclad>(PileType.Hand);
-            await ctx.Play(scripture);
-            ctx.AssertEqual("played scripture exhausts", PileType.Exhaust,
-                scripture.Pile?.Type);
-            ctx.AssertPileDelta<StrikeIronclad>("draw after scripture",
-                PileType.Hand, hand, draw);
-        }, 2);
+        CustomVariants<SoulPurification>(DesignSyncConfirmedStackContract.Purification, 5);
 
     private static void TacticalCoreProbe() =>
         CustomVariants<TacticalCore>(async (ctx, card, upgraded) =>

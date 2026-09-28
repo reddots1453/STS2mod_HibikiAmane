@@ -188,10 +188,10 @@ public sealed class Lullaby : MSNeutralCard
 {
     protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
         [HoverTipFactory.FromCard<DrowsyStatus>()];
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new PowerVar<LullabyPower>(2)];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("BlockPerCard", 2)];
     public Lullaby() : base(2, CardType.Power, CardRarity.Rare, TargetType.Self) { }
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
-        PowerCmd.Apply<LullabyPower>(context, Owner.Creature, 2, Owner.Creature, this);
+        PowerCmd.Apply<LullabyPower>(context, Owner.Creature, 1, Owner.Creature, this);
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
 

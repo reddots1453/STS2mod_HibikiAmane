@@ -189,7 +189,7 @@
   "MAIDEN_SUCCUBUS_CARD_MAGIC_INDEX.title": "魔力索引",
   "MAIDEN_SUCCUBUS_CARD_MAGIC_INDEX.description": "每当你抽到1张[gold]附魔牌[/gold]时，抽1张牌。",
   "MAIDEN_SUCCUBUS_CARD_LULLABY.title": "子守歌",
-  "MAIDEN_SUCCUBUS_CARD_LULLABY.description": "回合结束时，将[gold]困了[/gold]加入[gold]手牌[/gold]。\n回合结束时，你每有1张[gold]手牌[/gold]，获得{LullabyPower:diff()}点[gold]格挡[/gold]。",
+  "MAIDEN_SUCCUBUS_CARD_LULLABY.description": "回合结束时，将[gold]困了[/gold]加入[gold]手牌[/gold]。\n回合结束时，你每有1张[gold]手牌[/gold]，获得{BlockPerCard:diff()}点[gold]格挡[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_CONSECRATION.title": "祝圣",
   "MAIDEN_SUCCUBUS_CARD_CONSECRATION.description": "回合开始时，选择1张[gold]手牌[/gold]变化为随机[gold]圣言牌[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_HOLY_PUNISHMENT.title": "神圣惩戒",

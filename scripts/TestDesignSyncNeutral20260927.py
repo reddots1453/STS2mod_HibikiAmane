@@ -62,7 +62,7 @@ class NeutralDesignSync(unittest.TestCase):
             "ICE_BREAKING_SLASH": "造成{Damage:diff()}点伤害。\n将{Cards:diff()}张[gold]冰晶碎片[/gold]加入[gold]手牌[/gold]。",
             "FLAME_BLOOM": "造成{Damage:diff()}点伤害。\n给予{BurningPower:diff()}层[gold]燃烧[/gold]。\n[gold]魔力解放[/gold]：给予1层[gold]燃烧[/gold]。",
             "OBSTRUCTING_SHOT": "造成{Damage:diff()}点伤害。\n如果目标不为攻击意图，将其[gold]击晕[/gold]。",
-            "LULLABY": "回合结束时，将[gold]困了[/gold]加入[gold]手牌[/gold]。\n回合结束时，你每有1张[gold]手牌[/gold]，获得{LullabyPower:diff()}点[gold]格挡[/gold]。",
+            "LULLABY": "回合结束时，将[gold]困了[/gold]加入[gold]手牌[/gold]。\n回合结束时，你每有1张[gold]手牌[/gold]，获得{BlockPerCard:diff()}点[gold]格挡[/gold]。",
         }
         for key, text in expected.items():
             with self.subTest(card=key):

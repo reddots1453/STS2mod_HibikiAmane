@@ -42,7 +42,7 @@ internal static class DesignSyncNeutralContract
         new(typeof(Bath), "泡澡", CardType.Skill, CardRarity.Uncommon, TargetType.Self, 1, 1,
             ("Energy", 2, 2), ("NextEnergy", 2, 3)),
         new(typeof(Lullaby), "子守歌", CardType.Power, CardRarity.Rare, TargetType.Self, 2, 1,
-            ("LullabyPower", 2, 2)),
+            ("BlockPerCard", 2, 2)),
     ];
 
     internal static bool Contains(Type type) => Entries.Any(entry => entry.Model == type);

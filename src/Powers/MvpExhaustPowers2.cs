@@ -63,6 +63,7 @@ public sealed class ChainDestructionPower : MaidenSuccubusPowerTemplate
 {
     [SavedProperty] public int ExhaustProgress { get; set; }
     public override PowerType Type => PowerType.Buff;
+    public override PowerInstanceType InstanceType => PowerInstanceType.Instanced;
     public override PowerStackType StackType => PowerStackType.Counter;
     public override int DisplayAmount => 4 - ExhaustProgress % 4;
 

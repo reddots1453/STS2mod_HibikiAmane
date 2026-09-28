@@ -137,10 +137,12 @@ public sealed class LullabyPower : MaidenSuccubusPowerTemplate
     public override async Task BeforeFlush(PlayerChoiceContext context, Player player)
     {
         if (player.Creature != Owner) return;
-        await CardPileCmd.AddGeneratedCardToCombat(
-            Owner.CombatState!.CreateCard<DrowsyStatus>(player), PileType.Hand, player);
+        int layers = (int)Amount;
+        for (int i = 0; i < layers; i++)
+            await CardPileCmd.AddGeneratedCardToCombat(
+                Owner.CombatState!.CreateCard<DrowsyStatus>(player), PileType.Hand, player);
         int handSize = PileType.Hand.GetPile(player).Cards.Count;
-        await CreatureCmd.GainBlock(Owner, handSize * Amount, ValueProp.Unpowered, null);
+        await CreatureCmd.GainBlock(Owner, handSize * layers * 2, ValueProp.Unpowered, null);
     }
 }
 
