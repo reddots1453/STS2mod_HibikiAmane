@@ -15,6 +15,8 @@ $cardsPath = Join-Path $ProjectDir "src\Cards"
 
 $contract = Get-Content -Raw -Encoding UTF8 -LiteralPath $contractPath | ConvertFrom-Json
 $catalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $catalogPath
+$chainCopyContract = Get-Content -Raw -Encoding UTF8 -LiteralPath (
+    Join-Path $ProjectDir "src\Debugging\CardEffects\DesignSyncChainCopyContract.cs")
 $iteration2Contract = Get-Content -Raw -Encoding UTF8 -LiteralPath $iteration2ContractPath
 $runner = Get-Content -Raw -Encoding UTF8 -LiteralPath $runnerPath
 $console = Get-Content -Raw -Encoding UTF8 -LiteralPath $consolePath
@@ -176,11 +178,15 @@ if ($catalog -notmatch 'holy variation route identity' -or
     $catalog -notmatch 'corrupt variation remains unsealed') {
     throw "Transform and DarkElement variations must verify route identity and current-route seal compatibility."
 }
-if ($catalog -notmatch 'fatal hit triggers one chained lowest-health hit' -or
-    $catalog -notmatch 'initial hit damages the selected target' -or
-    $catalog -notmatch 'magic release hits the lowest-health enemy' -or
-    $catalog -notmatch 'magic release pays one armor') {
-    throw "SummonThunder must verify selected-target damage, lowest-health magic release, payment, and fatal-chain damage."
+if ($catalog -notmatch 'CustomVariants<SummonThunder>\(DesignSyncChainCopyContract\.Thunder, 33\)' -or
+    $chainCopyContract -notmatch 'await ctx\.Play\(ctx\.Create<SummonThunder>\(upgraded\)' -or
+    $chainCopyContract -notmatch 'ctx\.AssertDamage\(scenario \+ " selected target", initial, initialHp, damage\)' -or
+    $chainCopyContract -notmatch 'ctx\.AssertDamage\(scenario \+ " lowest-health survivor receives all pending hits", sink, sinkHp, damage \* sinkHits\)' -or
+    $chainCopyContract -notmatch 'ctx\.AssertPower\(scenario \+ " exactly one accepted armor payment"' -or
+    $chainCopyContract -notmatch '"chain\+release" \? 2 : 0' -or
+    $chainCopyContract -notmatch 'ApplyPower<MinionPower>\(initial, 1\)' -or
+    $chainCopyContract -notmatch 'ApplyPower<MinionPower>\(minion, 1\)') {
+    throw "SummonThunder must execute and verify selected-target damage, lowest-health release, payment, chained kills, combined triggers and native minion exclusions."
 }
 if ($holyPowers -notmatch '_pendingRestores' -or
     $holyPowers -notmatch 'AfterCardChangedPiles' -or

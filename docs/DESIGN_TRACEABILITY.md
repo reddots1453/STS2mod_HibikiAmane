@@ -6,9 +6,9 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-02R：雷击、耀斑与瞬闪刺（READY）
+## DS27-02R：雷击、耀斑与瞬闪刺（IMPLEMENTED，游戏内待验）
 
-`CARD-N-150～299`完整三牌条目→DS27-02R→连锁/魔力解放与斩杀合并/仆从排除、战斗减费生命周期、原生复制继承与预览→DS27效果/文本/COMPAT/GATES。前置`5d27cd1d`。补真实游戏命令脚本及精确文本回归，保留已符合设计的生产逻辑，待实施，未部署。
+`CARD-N-150～299`完整三牌条目→DS27-02R→`DesignSyncChainCopyContract`连锁/魔力解放与斩杀合并/仆从排除、战斗减费生命周期、原生复制继承与预览→DS27效果/文本/COMPAT/GATES。前置`5d27cd1d`，同步`dbacae2f`。保留符合设计的生产逻辑与正式卡面。定向入口`ms_test_cards confirm ds27-chain-copy`，每变体最低33/25/17效果断言，编译未运行；352静态、既有13540生产断言/33编码、Debug/Release及四门通过。自然回合/动画/完整存读档/多人未验；旧视觉317与全卡审计保留，未部署，见`DESIGN_SYNC_20260927_BATCH42.md`。
 
 ## DS27-02Q：索引与拾取附魔三剑（IMPLEMENTED，游戏内待验）
 

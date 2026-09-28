@@ -76,7 +76,7 @@ internal static class CardEffectTestCatalog
         DamageTargetPower<ExplosiveImpact>(6, 10, "ShatterPower", 2, 2);
         FlameBloomProbe();
         FlameSwordProbe();
-        DamageGenerate<FlashStab, FlashStab>(5, 7, PileType.Draw);
+        CustomVariants<FlashStab>(DesignSyncChainCopyContract.Flash, 17);
         ForgeStrikeProbe();
         HandDiscountProbe<FrozenBracelet>(12, 16);
         GenerateChosenCard<MaidenSuccubus.Cards.Fusion>();
@@ -443,48 +443,7 @@ internal static class CardEffectTestCatalog
         }, 2);
 
     private static void SummonThunderProbe() =>
-        CustomVariants<SummonThunder>(async (ctx, card, upgraded) =>
-        {
-            int damage = upgraded ? 9 : 7;
-            AssertNeutralMetadata(ctx, card, CardRarity.Common, 1);
-            await ctx.SetUpArmour(1);
-            Creature releaseTarget = await CreatureCmd.Add<Byrdonis>(ctx.Combat);
-            try
-            {
-                await CreatureCmd.SetMaxAndCurrentHp(releaseTarget, damage + 50);
-                int primaryHp = ctx.PrimaryEnemy.CurrentHp;
-                int releaseHp = releaseTarget.CurrentHp;
-                await ctx.Play(card, ctx.PrimaryEnemy, selectedIndices: [0]);
-                ctx.AssertDamage("initial hit damages the selected target",
-                    ctx.PrimaryEnemy, primaryHp, damage);
-                ctx.AssertDamage("magic release hits the lowest-health enemy",
-                    releaseTarget, releaseHp, damage);
-                ctx.AssertPower("magic release pays one armor", ctx.Self,
-                    "MagicArmorPower", 0);
-            }
-            finally
-            {
-                if (!releaseTarget.IsDead)
-                    await CreatureCmd.Escape(releaseTarget);
-            }
-
-            Creature fatalTarget = await CreatureCmd.Add<Byrdonis>(ctx.Combat);
-            try
-            {
-                await CreatureCmd.SetMaxAndCurrentHp(fatalTarget, damage);
-                int allHp = ctx.Enemies.Sum(enemy => enemy.CurrentHp);
-                await ctx.Play(ctx.Create<SummonThunder>(upgraded), fatalTarget);
-                ctx.AssertEqual("fatal hit triggers one chained lowest-health hit",
-                    damage * 2,
-                    allHp - ctx.Enemies.Sum(enemy => enemy.CurrentHp));
-                ctx.AssertEqual("fatal target defeated", 0, fatalTarget.CurrentHp);
-            }
-            finally
-            {
-                if (!fatalTarget.IsDead)
-                    await CreatureCmd.Escape(fatalTarget);
-            }
-        }, 4);
+        CustomVariants<SummonThunder>(DesignSyncChainCopyContract.Thunder, 33);
 
     private static void TakemikazuchiProbe() =>
         CustomVariants<Takemikazuchi>(async (ctx, card, upgraded) =>
@@ -2521,21 +2480,7 @@ internal static class CardEffectTestCatalog
         }, 3);
 
     private static void UltimateFlareProbe() =>
-        CustomVariants<UltimateFlare>(async (ctx, card, upgraded) =>
-        {
-            Dictionary<Creature, int> hp = ctx.Enemies.ToDictionary(enemy => enemy,
-                enemy => enemy.CurrentHp);
-            await ctx.Play(card);
-            foreach ((Creature enemy, int before) in hp)
-                ctx.AssertDamage($"fixed area damage {enemy.Name}", enemy, before,
-                    upgraded ? 52 : 40);
-
-            UltimateFlare retained = await ctx.Add<UltimateFlare>(PileType.Hand, upgraded);
-            await ctx.InvokeTurnEndInHand(retained);
-            ctx.AssertEqual("end-turn combat cost reduction", 3,
-                retained.EnergyCost.GetWithModifiers(CostModifiers.All));
-            ctx.AssertEqual("canonical cost", 4, card.EnergyCost.Canonical, effect: false);
-        }, 2);
+        CustomVariants<UltimateFlare>(DesignSyncChainCopyContract.Flare, 25);
 
     private static void AllCurseBiteProbe() =>
         CustomVariants<AllCurseBite>(DesignSyncAllCurseBiteContract.Run, 28);
