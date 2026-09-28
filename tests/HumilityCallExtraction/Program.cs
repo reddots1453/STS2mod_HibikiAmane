@@ -424,6 +424,78 @@ if (args.SequenceEqual(new[] { "--self-test" }))
     await zeroHit.Program!.DoubleAmounts().Execute(default, key => key == "$effectDamage:0" ? 0 : 7, zeroSink);
     Check(zeroSink.Begun.SequenceEqual(new[] { 0, 1 }) && zeroSink.Order.SequenceEqual(new[] { "Block:0" }),
         "zero-hit effect initializes result slot without shifting subsequent effect indices");
+    const string dynamicIdentity = """
+        class VariableIdentity {
+          private Rider _rider;
+          public Rider Extra { get { return _rider; } }
+          public override CardType Type => Mode;
+          Task OnPlay(Context context, Play play) {
+            switch (Mode) {
+              case CardType.Attack:
+                int hits = Extra != Rider.Triple ? 1 : 3;
+                DamageCmd.Attack(12).WithHitCount(hits).FromCard(this, play).Targeting(play.Target).Execute(context);
+                break;
+              case CardType.Skill:
+                CreatureCmd.GainBlock(Owner.Creature, 8, play);
+                break;
+            }
+            CardPileCmd.Draw(context, 3, Owner);
+          }
+        }
+        """;
+    var identity = CallExtractor.Extract(dynamicIdentity).Single().Program;
+    Check(identity?.Effects.Select(e => e.RequiredCardType).SequenceEqual(new[] { "Attack", "Skill" }) == true,
+        "instance type branch retained as card identity, not a gameplay trigger");
+    foreach (string type in new[] { "Attack", "Skill" })
+    {
+        var identitySink = new RecordedEffects();
+        await HumilityEffectProgram.Load(identity!.DoubleAmounts().Save()).Execute(default,
+            key => key.StartsWith("$cardType:") ? (key == "$cardType:" + type ? 1 : 0) : 1, identitySink);
+        Check(type == "Attack" ? identitySink.Attacks.Single().Hits == 3 && identitySink.Order.SequenceEqual(new[] { "Damage:24" })
+            : identitySink.Attacks.Count == 0 && identitySink.Order.SequenceEqual(new[] { "Block:16" }),
+            "type-specific retained effect and enum hit count survive serialization: " + type);
+    }
+    Check(CallExtractor.Extract(dynamicIdentity.Replace("return _rider;", "Mutate(); return _rider;")).Single().Program == null,
+        "enum getter with effects is not executed by extraction or runtime");
+    var hpCost = Extract("await CreatureCmd.Damage(context, Owner.Creature, DynamicVars.HpLoss.BaseValue, ValueProp.Unblockable | ValueProp.Unpowered | ValueProp.Move, this, play); " + attack);
+    Check(hpCost.Program?.Effects.Count == 1 && hpCost.Program.Effects.Single().Source == HumilityAttackSource.Card,
+        "HpLoss resource cost removed while ordinary retained attack remains");
+    var directSkill = Extract("await CreatureCmd.Damage(context, play.Target, DynamicVars.Damage, this, play); await CardPileCmd.Draw(context, 3, Owner);");
+    Check(directSkill.Program?.Effects.Single().Source == HumilityAttackSource.DirectDamageVar,
+        "non-attack direct damage retains original DamageVar props and does not become an attack");
+    const string groupedBody = """
+        await using AttackContext group = await AttackCommand.CreateContextAsync(CombatState, context, play);
+        while (count > 0) {
+            var results = await CreatureCmd.Damage(context, CombatState.HittableEnemies, DynamicVars.Damage, Owner.Creature, this, play);
+            group.AddHit(results);
+            count += results.Count(r => r.WasTargetKilled);
+        }
+        """;
+    var grouped = Extract(groupedBody);
+    Check(grouped.Program?.Effects.Single() is { Source: HumilityAttackSource.ContextCard, Target: HumilityTarget.AllEnemies } groupedEffect
+        && groupedEffect.Repeats.Evaluate(default, _ => 9) == 1,
+        "direct attack keeps native context but not outer on-kill repeat trigger");
+    Check(Extract(groupedBody.Replace("group.AddHit", "unknown.AddHit")).Program == null
+        && Extract(groupedBody + attack).Program == null,
+        "unknown native context receiver and mixed unmodeled attack grouping rejected");
+    const string spreadBody = """
+        await using AttackContext context = await AttackCommand.CreateContextAsync(base.CombatState, choice, cardPlay);
+        List<DamageResult> rows = (await CreatureCmd.Damage(choice, cardPlay.Target, base.DynamicVars.Damage.BaseValue, ValueProp.Move, this, cardPlay)).ToList();
+        context.AddHit(rows);
+        DamageResult first = rows.FirstOrDefault();
+        var others = (from e in base.CombatState.GetTeammatesOf(first.Receiver).Except(new global::_003C_003Ez__ReadOnlySingleElementList<Creature>(cardPlay.Target)) where e.IsHittable select e).ToList();
+        context.AddHit(await CreatureCmd.Damage(choice, others, first.TotalDamage + first.OverkillDamage, ValueProp.Unpowered | ValueProp.Move, base.Owner.Creature, this, cardPlay));
+        """;
+    var spread = Extract(spreadBody);
+    Check(spread.Program?.Effects.Count == 2 && spread.Program.Effects[1] is
+        { Source: HumilityAttackSource.ContextUnpowered, Target: HumilityTarget.OtherEnemies, Amount.Name: "$effectFirstDamage:0" },
+        "first native damage result drives unpowered spread excluding selected receiver");
+    Check(Extract(spreadBody.Replace("first.Receiver", "stranger")).Program == null,
+        "unproven spread receiver is not silently mapped to selected enemy teammates");
+    var v2 = mixed.Program!.Save();
+    v2["version"] = 2;
+    foreach (JsonNode? op in (JsonArray)v2["effects"]!) ((JsonObject)op!).Remove("requiredCardType");
+    Check(HumilityEffectProgram.Load(v2).Effects.All(e => e.RequiredCardType == null), "version two existing rewrites retain unconditional effects");
     return 0;
 }
 if (args.Length == 2 && args[0] == "--verify-assembly")

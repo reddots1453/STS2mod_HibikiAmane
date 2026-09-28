@@ -118,7 +118,7 @@ await execution;
 Check(delayedSink.Groups.SequenceEqual(new[] { 3, 2 }), "block follows completed attack in source order");
 
 Reject(() => HumilityEffectProgram.Load(null), "missing state rejected");
-Reject(() => HumilityEffectProgram.Load(new JsonObject { ["version"] = 3, ["effects"] = new JsonArray() }), "future schema rejected");
+Reject(() => HumilityEffectProgram.Load(new JsonObject { ["version"] = HumilityEffectProgram.SchemaVersion + 1, ["multiplier"] = 1, ["effects"] = new JsonArray() }), "future schema rejected");
 foreach (string field in new[] { "kind", "target", "amount", "repeats", "source" })
 {
     JsonObject state = doubled.Save();

@@ -42,7 +42,7 @@ internal static class CallExtractor
                 var secondExpansion = new HelperExpansion(methods, method, chain);
                 expanded = (MethodDeclarationSyntax)secondExpansion.Visit(expanded)!;
                 expanded = (MethodDeclarationSyntax)new NumericQueries(chain).Visit(expanded)!;
-                var program = Slice(expanded, methods);
+                var program = Slice(expanded, methods, NumericQueries.TypeProperty(chain));
                 bool pure = program.HasDamageOrBlock && !expansion.DeletedOtherEffect && !secondExpansion.DeletedOtherEffect
                     && chain.All(t => PurityClassifier.IsPure(t, expanded));
                 results.Add(new(name, program, null, line, pure));
@@ -64,12 +64,14 @@ internal static class CallExtractor
     };
 
     private static bool IsEffect(InvocationExpressionSyntax call) =>
-        IsCall(call, "DamageCmd", "Attack") || IsCall(call, "CreatureCmd", "GainBlock");
+        IsCall(call, "DamageCmd", "Attack") || IsCall(call, "CreatureCmd", "GainBlock") || DirectDamageQueries.IsDamage(call);
 
-    private static HumilityEffectProgram Slice(MethodDeclarationSyntax method, IReadOnlyList<MethodDeclarationSyntax> methods)
+    private static HumilityEffectProgram Slice(MethodDeclarationSyntax method, IReadOnlyList<MethodDeclarationSyntax> methods, string? typeProperty)
     {
         var all = method.DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
         var calls = all.Where(IsEffect).OrderBy(c => c.SpanStart).ToArray();
+        bool directDamage = calls.Any(DirectDamageQueries.IsDamage);
+        bool groupedDamage = directDamage && DirectDamageQueries.ValidateContext(method);
         List<(int Position, HumilityEffect Effect)> effects = [];
         HashSet<InvocationExpressionSyntax> retainedChains = [];
         foreach (var call in calls)
@@ -79,12 +81,21 @@ internal static class CallExtractor
             HumilityValue amount;
             HumilityValue repeats = HumilityValue.Number(1);
             HumilityTarget target;
+            if (DirectDamageQueries.IsDamage(call))
+            {
+                var directSource = DirectDamageQueries.Source(call, groupedDamage);
+                target = Target(call.ArgumentList.Arguments[1].Expression, method, call.SpanStart, []);
+                amount = Value(call.ArgumentList.Arguments[2].Expression, method, call.SpanStart, []);
+                effects.Add((call.SpanStart, new(HumilityEffectKind.Damage, target, amount, repeats, directSource)));
+                continue;
+            }
             if (IsCall(call, "CreatureCmd", "GainBlock"))
             {
                 if (call.ArgumentList.Arguments.Count < 2) throw Unsupported(call, "GainBlock arguments missing");
                 target = Target(call.ArgumentList.Arguments[0].Expression, method, call.SpanStart, []);
                 amount = Value(call.ArgumentList.Arguments[1].Expression, method, call.SpanStart, []);
-                effects.Add((call.SpanStart, new(HumilityEffectKind.Block, target, amount, repeats)));
+                effects.Add((call.SpanStart, new(HumilityEffectKind.Block, target, amount, repeats,
+                    RequiredCardType: NumericQueries.RequiredType(call, typeProperty))));
                 continue;
             }
             amount = Value(call.ArgumentList.Arguments.Single().Expression, method, call.SpanStart, []);
@@ -178,7 +189,8 @@ internal static class CallExtractor
                         throw Unsupported(assignment, "attack builder reassigned to unknown value");
             }
             if (executePosition < 0 || attackTarget == null) throw Unsupported(call, "attack chain must include explicit target and Execute");
-            effects.Add((executePosition, new(HumilityEffectKind.Damage, attackTarget.Value, amount, repeats, source)));
+            effects.Add((executePosition, new(HumilityEffectKind.Damage, attackTarget.Value, amount, repeats, source,
+                NumericQueries.RequiredType(call, typeProperty))));
         }
         // Unknown helpers may contain a hidden attack. Do not silently label them an
         // empty program, or keep only a direct attack while dropping a helper's damage.
@@ -191,6 +203,7 @@ internal static class CallExtractor
             var expression = statement is AwaitExpressionSyntax awaitExpression ? awaitExpression.Expression : statement;
             if (expression is not InvocationExpressionSyntax invocation || invocation.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().Any(IsEffect)) continue;
             if (retainedChains.Contains(invocation) || RemovedCalls.Statement(invocation, method)) continue;
+            if (groupedDamage && MethodName(invocation) == "AddHit") continue; // Receiver verified by ValidateContext.
             if (invocation.Expression is MemberAccessExpressionSyntax member
                 && member.Expression.ToString() is "CardPileCmd" or "CardCmd" or "PowerCmd" or "PlayerCmd" or "OrbCmd" or "CreatureCmd" or "ArgumentNullException" or "Cmd" or "SfxCmd" or "VfxCmd" or "CombatEnchantmentCmd") continue;
             if (IsCall(invocation, "ForgeCmd", "Forge") || IsCall(invocation, "OstyCmd", "Summon")) continue;
@@ -216,6 +229,8 @@ internal static class CallExtractor
     {
         expression = Unwrap(expression);
         string text = expression.ToString();
+        if (text is "CombatState?.HittableEnemies" or "base.CombatState?.HittableEnemies" or "CombatState.HittableEnemies" or "base.CombatState.HittableEnemies") return HumilityTarget.AllEnemies;
+        if (DirectDamageQueries.OtherEnemies(expression, method, before)) return HumilityTarget.OtherEnemies;
         if (text is "Owner.Creature" or "base.Owner.Creature" or "this.Owner.Creature") return HumilityTarget.Self;
         if (text is "play.Target" or "cardPlay.Target" or "play.Target.Player" or "cardPlay.Target.Player") return HumilityTarget.Selected;
         if (expression is MemberAccessExpressionSyntax { Name.Identifier.Text: "Creature" } creature)
@@ -238,6 +253,12 @@ internal static class CallExtractor
                     && !method.DescendantNodes().OfType<AssignmentExpressionSyntax>().Any(a => a.Left.ToString() == id.Identifier.Text && a.SpanStart < before))
                     return Target(init.Value, method, local[0].SpanStart, resolving);
                 var loop = expression.Ancestors().OfType<ForEachStatementSyntax>().FirstOrDefault(f => f.Identifier.Text == id.Identifier.Text);
+                if (loop?.Expression is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax { Name.Identifier.Text: "ToArray", Expression: InvocationExpressionSyntax filtered } }
+                    && filtered.Expression is MemberAccessExpressionSyntax { Name.Identifier.Text: "Where" } filter
+                    && filter.Expression.ToString() is "CombatState.HittableEnemies" or "base.CombatState.HittableEnemies"
+                    && filtered.ArgumentList.Arguments.Count == 1 && filtered.ArgumentList.Arguments[0].Expression is SimpleLambdaExpressionSyntax other
+                    && Compact(other.Body) is var predicate && (predicate == other.Parameter.Identifier.Text + "!=cardPlay.Target" || predicate == other.Parameter.Identifier.Text + "!=play.Target"))
+                    return HumilityTarget.OtherEnemies;
                 if (loop?.Expression is IdentifierNameSyntax collection)
                 {
                     var query = method.DescendantNodes().OfType<VariableDeclaratorSyntax>()
@@ -260,6 +281,8 @@ internal static class CallExtractor
     private static HumilityValue Value(ExpressionSyntax expression, MethodDeclarationSyntax method, int before, HashSet<string> resolving)
     {
         expression = Unwrap(expression);
+        if (DirectDamageQueries.FirstResult(expression, method, before) is { } firstIndex)
+            return HumilityValue.Named("$effectFirstDamage:" + firstIndex);
         if (NumericQueries.AttackResult(expression, method, before) is { } resultIndex)
             return HumilityValue.Named("$effectDamage:" + resultIndex);
         if (expression is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.CoalesceExpression } coalesce
@@ -268,9 +291,10 @@ internal static class CallExtractor
             && powerAccess.WhenNotNull.ToString() == ".Amount"
             && powerAccess.Expression is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax powerCall } getPower
             && getPower.ArgumentList.Arguments.Count == 0
-            && powerCall.Expression.ToString() is "Owner.Creature" or "base.Owner.Creature"
+            && powerCall.Expression.ToString() is "Owner.Creature" or "base.Owner.Creature" or "play.Target" or "cardPlay.Target"
             && powerCall.Name is GenericNameSyntax { Identifier.Text: "GetPower" } powerName)
-            return HumilityValue.Named("$power:" + powerName.TypeArgumentList.Arguments.Single());
+            return HumilityValue.Named((powerCall.Expression.ToString().EndsWith(".Target", StringComparison.Ordinal) ? "$targetPower:" : "$power:")
+                + powerName.TypeArgumentList.Arguments.Single());
         // Predicates embedded in numeric arguments remain part of the value,
         // distinct from the enclosing trigger statements removed by slicing.
         if (expression is ConditionalExpressionSyntax upgrade)
@@ -293,6 +317,7 @@ internal static class CallExtractor
                 Value(binary.Left, method, before, resolving), Value(binary.Right, method, before, resolving));
         if (expression is MemberAccessExpressionSyntax member)
         {
+            if (expression.ToString() == "CondemnationPower.DamagePerLayer") return HumilityValue.Named("$condemnationDamagePerLayer");
             if (member.Name.Identifier.Text == "BlockRequired"
                 && member.Expression is IdentifierNameSyntax intentLocal)
             {
@@ -392,6 +417,11 @@ internal static class CallExtractor
         expression = Unwrap(expression);
         if (expression.ToString() == "__humilityOwnerLostHpThisTurn")
             return HumilityValue.Named("$ownerLostHpThisTurn");
+        if (expression is IdentifierNameSyntax enumMarker && enumMarker.Identifier.Text.StartsWith("__humilityEnum__", StringComparison.Ordinal))
+        {
+            string[] parts = enumMarker.Identifier.Text[16..].Split("__");
+            if (parts.Length == 2) return HumilityValue.Named("$enumEquals:" + parts[0] + ":" + parts[1]);
+        }
         if (expression.ToString() is "IsUpgraded" or "base.IsUpgraded" or "this.IsUpgraded")
             return HumilityValue.Named("$upgraded");
         if (Compact(expression) is "play.Target.CurrentHp*2<play.Target.MaxHp"

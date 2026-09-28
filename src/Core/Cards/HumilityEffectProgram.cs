@@ -6,8 +6,8 @@ namespace MaidenSuccubus.Core.Cards;
 // Deliberately contains no conditional, keyword, draw, exhaust or power operation.
 // Card adapters construct this program instead of executing the original OnPlay.
 internal enum HumilityEffectKind { Damage, Block }
-internal enum HumilityAttackSource { Card, Osty }
-internal enum HumilityTarget { Selected, Self, AllEnemies, RandomEnemy, AllAllies, CurrentCardTarget, LowestHpEnemy, AllPlayers }
+internal enum HumilityAttackSource { Card, Osty, ContextCard, ContextUnpowered, DirectCard, DirectUnpowered, DirectUnblockable, DirectDamageVar }
+internal enum HumilityTarget { Selected, Self, AllEnemies, RandomEnemy, AllAllies, CurrentCardTarget, LowestHpEnemy, AllPlayers, OtherEnemies }
 internal enum HumilityValueKind { Constant, Named, EnergyX, StarX, SecondaryX, Add, Multiply, Min, Max }
 
 /// <summary>X values come from CardPlay's resource ledger, NOT the remaining balance or amount spent.</summary>
@@ -94,7 +94,8 @@ internal sealed record HumilityValue
 }
 
 internal sealed record HumilityEffect(HumilityEffectKind Kind, HumilityTarget Target,
-    HumilityValue Amount, HumilityValue Repeats, HumilityAttackSource Source = HumilityAttackSource.Card);
+    HumilityValue Amount, HumilityValue Repeats, HumilityAttackSource Source = HumilityAttackSource.Card,
+    string? RequiredCardType = null);
 
 /// <summary>
 /// The game adapter must use native damage/block commands with the original card as source.
@@ -112,7 +113,7 @@ internal interface IHumilityEffectSink
 
 internal sealed class HumilityEffectProgram
 {
-    internal const int SchemaVersion = 2;
+    internal const int SchemaVersion = 3;
     internal ReadOnlyCollection<HumilityEffect> Effects { get; }
     internal decimal AmountMultiplier { get; }
     internal bool HasDamageOrBlock => Effects.Count > 0;
@@ -128,6 +129,7 @@ internal sealed class HumilityEffectProgram
             ArgumentNullException.ThrowIfNull(effect.Amount);
             ArgumentNullException.ThrowIfNull(effect.Repeats);
             if (!Enum.IsDefined(effect.Kind) || !Enum.IsDefined(effect.Target) || !Enum.IsDefined(effect.Source)
+                || effect.RequiredCardType is not (null or "Attack" or "Skill" or "Power")
                 || effect.Kind == HumilityEffectKind.Block && effect.Source != HumilityAttackSource.Card)
                 throw new ArgumentException("Invalid humility operation.", nameof(effects));
         }
@@ -152,6 +154,7 @@ internal sealed class HumilityEffectProgram
             cancellationToken.ThrowIfCancellationRequested();
             if (!sink.CanContinue) return;
             sink.BeginEffect(index);
+            if (effect.RequiredCardType != null && resolve("$cardType:" + effect.RequiredCardType) == 0) continue;
             decimal count = decimal.Truncate(effect.Repeats.Evaluate(x, resolve));
             if (count <= 0) continue;
             int repeats = checked((int)count);
@@ -174,13 +177,14 @@ internal sealed class HumilityEffectProgram
                 ["kind"] = effect.Kind.ToString(), ["target"] = effect.Target.ToString(),
                 ["amount"] = effect.Amount.Save(), ["repeats"] = effect.Repeats.Save(),
                 ["source"] = effect.Source.ToString(),
+                ["requiredCardType"] = effect.RequiredCardType,
             });
         return new JsonObject { ["version"] = SchemaVersion, ["multiplier"] = AmountMultiplier, ["effects"] = effects };
     }
 
     internal static HumilityEffectProgram Load(JsonNode? state)
     {
-        if (state is not JsonObject obj || obj["version"]?.GetValue<int>() is not (1 or SchemaVersion)
+        if (state is not JsonObject obj || obj["version"]?.GetValue<int>() is not (1 or 2 or SchemaVersion)
             || obj["effects"] is not JsonArray effects)
             throw new FormatException("Unsupported humility program state.");
         decimal multiplier = obj["multiplier"]?.GetValue<decimal>()
@@ -193,7 +197,8 @@ internal sealed class HumilityEffectProgram
                 ReadEnum<HumilityTarget>(effect, "target"),
                 HumilityValue.Load(effect["amount"]), HumilityValue.Load(effect["repeats"]),
                 version == 1 && !effect.ContainsKey("source") ? HumilityAttackSource.Card
-                    : ReadEnum<HumilityAttackSource>(effect, "source"));
+                    : ReadEnum<HumilityAttackSource>(effect, "source"),
+                version < 3 ? null : effect["requiredCardType"]?.GetValue<string>());
         }), multiplier);
     }
 

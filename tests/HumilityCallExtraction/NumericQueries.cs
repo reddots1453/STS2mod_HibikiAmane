@@ -9,6 +9,49 @@ internal sealed class NumericQueries(IReadOnlyList<ClassDeclarationSyntax> chain
 {
     private static string Compact(SyntaxNode node) => string.Concat(node.ToString().Where(c => !char.IsWhiteSpace(c)));
 
+    internal static string? TypeProperty(IReadOnlyList<ClassDeclarationSyntax> chain) => chain
+        .SelectMany(c => c.Members.OfType<PropertyDeclarationSyntax>())
+        .FirstOrDefault(p => p.Identifier.Text == "Type" && p.Modifiers.Any(SyntaxKind.OverrideKeyword))
+        ?.ExpressionBody?.Expression is IdentifierNameSyntax name ? name.Identifier.Text : null;
+
+    internal static string? RequiredType(SyntaxNode call, string? property)
+    {
+        if (property == null) return null;
+        foreach (var section in call.Ancestors().OfType<SwitchSectionSyntax>())
+            if (section.Parent is SwitchStatementSyntax sw && sw.Expression.ToString() == property)
+            {
+                if (section.Labels.Count == 1 && section.Labels[0] is CaseSwitchLabelSyntax { Value: MemberAccessExpressionSyntax value }
+                    && value.Expression.ToString() == "CardType" && value.Name.Identifier.Text is "Attack" or "Skill" or "Power")
+                    return value.Name.Identifier.Text;
+                throw new NotSupportedException("Unsupported instance card-type branch");
+            }
+        return null;
+    }
+
+    public override SyntaxNode? VisitBinaryExpression(BinaryExpressionSyntax node)
+    {
+        if (node.Kind() is SyntaxKind.EqualsExpression or SyntaxKind.NotEqualsExpression
+            && node.Left is IdentifierNameSyntax name && node.Right is MemberAccessExpressionSyntax value)
+        {
+            var properties = chain.SelectMany(c => c.Members.OfType<PropertyDeclarationSyntax>())
+                .Where(p => p.Identifier.Text == name.Identifier.Text && p.Modifiers.Any(SyntaxKind.PublicKeyword)).ToArray();
+            if (properties.Length == 1 && properties[0] is { } property && property.Type.ToString() == value.Expression.ToString())
+            {
+                var getter = property.AccessorList?.Accessors.SingleOrDefault(a => a.IsKind(SyntaxKind.GetAccessorDeclaration));
+                ExpressionSyntax? read = property.ExpressionBody?.Expression ?? getter?.ExpressionBody?.Expression;
+                if (getter?.Body?.Statements.Count == 1 && getter.Body.Statements[0] is ReturnStatementSyntax ret) read = ret.Expression;
+                if (read is IdentifierNameSyntax field && chain.SelectMany(c => c.Members.OfType<FieldDeclarationSyntax>())
+                    .Any(f => f.Declaration.Type.ToString() == property.Type.ToString()
+                        && f.Declaration.Variables.Any(v => v.Identifier.Text == field.Identifier.Text)))
+                {
+                    ExpressionSyntax marker = SyntaxFactory.IdentifierName("__humilityEnum__" + name.Identifier.Text + "__" + value.Name.Identifier.Text);
+                    return node.IsKind(SyntaxKind.NotEqualsExpression) ? SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, marker) : marker;
+                }
+            }
+        }
+        return base.VisitBinaryExpression(node);
+    }
+
     public override SyntaxNode? VisitInvocationExpression(InvocationExpressionSyntax node)
     {
         if (node.Expression is IdentifierNameSyntax helper && node.ArgumentList.Arguments.Count == 1
@@ -82,7 +125,7 @@ internal sealed class NumericQueries(IReadOnlyList<ClassDeclarationSyntax> chain
     }
 
     private static bool IsAttack(InvocationExpressionSyntax call) => call.Expression.ToString() == "DamageCmd.Attack";
-    private static bool IsEffect(InvocationExpressionSyntax call) => IsAttack(call) || call.Expression.ToString() == "CreatureCmd.GainBlock";
+    private static bool IsEffect(InvocationExpressionSyntax call) => IsAttack(call) || call.Expression.ToString() == "CreatureCmd.GainBlock" || DirectDamageQueries.IsDamage(call);
     private static int Position(InvocationExpressionSyntax call)
     {
         if (!IsAttack(call)) return call.SpanStart;

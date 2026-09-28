@@ -159,7 +159,7 @@ class HumilityRuntime(unittest.TestCase):
 
     def test_description_native_preview_and_localization(self):
         code = read('src/Core/Cards/HumilityRewritePresentation.cs')
-        for text in ('new DamageVar(amount, ValueProp.Move)', 'new BlockVar(amount, ValueProp.Move)',
+        for text in ('new DamageVar(amount,', 'HumilityNativeEffects.DamageProps(card, effect.Source)', 'new BlockVar(amount, ValueProp.Move)',
                      'variable.UpdateCardPreview', 'ToHighlightedString', 'repeats == 1 ? ""'):
             self.assertIn(text, code)
         data = json.loads(read('MaidenSuccubus/localization/zhs/cards.json'))

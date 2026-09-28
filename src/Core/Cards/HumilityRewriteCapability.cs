@@ -79,7 +79,7 @@ public sealed class HumilityRewriteCapability : CardPlayCapability
     protected override async Task<bool> BeforeOwnerCardOnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         if (_program == null || Owner == null || ControlQuery.GetProjection(Owner) != null) return false;
-        var sink = new HumilityNativeEffects(choiceContext, cardPlay);
+        await using var sink = new HumilityNativeEffects(choiceContext, cardPlay);
         await _program.Execute(HumilityNativeEffects.XForPlay(cardPlay),
             sink.ResolveValue, sink);
         return true;

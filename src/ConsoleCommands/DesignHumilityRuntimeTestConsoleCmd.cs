@@ -33,15 +33,15 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
     private static bool _running;
     public override string CmdName => "ms_test_humility_runtime";
     public override string Args => "confirm";
-    public override string Description => "Destructive humility runtime tests; disposable single-player combat only";
+    public override string Description => "Destructive humility runtime tests; disposable single-player combat with at least two enemies";
     public override bool IsNetworked => false;
     public override CmdResult Process(Player? issuingPlayer, string[] args)
     {
         if (_running || issuingPlayer?.Character is not MaidenSuccubusCharacter
             || issuingPlayer.RunState.Players.Count != 1 || !CombatManager.Instance.IsInProgress
             || CombatManager.Instance.IsOverOrEnding || issuingPlayer.Creature.CombatState is not CombatState combat
-            || combat.HittableEnemies.Count == 0 || args.Length != 1 || args[0] != "confirm")
-            return new CmdResult(false, "Use ms_test_humility_runtime confirm in a disposable single-player Maiden combat.");
+            || combat.HittableEnemies.Count < 2 || args.Length != 1 || args[0] != "confirm")
+            return new CmdResult(false, "Use ms_test_humility_runtime confirm in a disposable single-player Maiden combat with at least two enemies.");
         return new CmdResult(Run(issuingPlayer, combat), true, "Destructive runtime tests started; see [DS27HumilityRuntimeTest].");
     }
 
@@ -263,6 +263,76 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
                 await ctx.Play(spite, ctx.PrimaryEnemy);
                 Check(beforeSpite - ctx.PrimaryEnemy.CurrentHp == (upgraded ? 30 : 20),
                     "formal history-based attack retains upgraded hit count and doubled damage");
+
+                await ctx.Reset();
+                var directLesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var echo = await ctx.Add<EchoingSlash>(PileType.Hand, upgraded);
+                await ctx.ApplyPower<VigorPower>(ctx.Self, 3);
+                await ctx.Play(directLesson, selectedCards: [echo]);
+                var beforeEcho = ctx.Enemies.ToDictionary(enemy => enemy, enemy => enemy.CurrentHp);
+                await ctx.Play(echo);
+                Check(beforeEcho.All(pair => pair.Value - pair.Key.CurrentHp == (upgraded ? 29 : 23))
+                    && ctx.Self.GetPower<VigorPower>() == null,
+                    "grouped direct attack preserves native damage modifiers and closes native attack context");
+
+                await ctx.Reset();
+                directLesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var omni = await ctx.Add<Omnislice>(PileType.Hand, upgraded);
+                await ctx.ApplyPower<StrengthPower>(ctx.Self, 3);
+                await ctx.Play(directLesson, selectedCards: [omni]);
+                int mainDamage = (upgraded ? 22 : 16) + 3;
+                Check(Text(omni) == $"造成{mainDamage}点伤害。\n对其他敌人造成{mainDamage * 2}点伤害。",
+                    "spread description retains doubled first-result formula without applying strength twice");
+                var beforeOmni = ctx.Enemies.ToDictionary(enemy => enemy, enemy => enemy.CurrentHp);
+                await ctx.Play(omni, ctx.PrimaryEnemy);
+                Check(beforeOmni.All(pair => pair.Value - pair.Key.CurrentHp == (pair.Key == ctx.PrimaryEnemy ? mainDamage : mainDamage * 2)),
+                    "spread applies first native result to other enemies only, preserving unpowered props");
+
+                foreach (CardType type in new[] { CardType.Attack, CardType.Skill })
+                foreach (var rider in new[] { MegaCrit.Sts2.Core.Models.Events.TinkerTime.RiderEffect.None,
+                    MegaCrit.Sts2.Core.Models.Events.TinkerTime.RiderEffect.Violence, MegaCrit.Sts2.Core.Models.Events.TinkerTime.RiderEffect.Wisdom })
+                {
+                    await ctx.Reset();
+                    var scienceLesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                    var science = await ctx.Add<MadScience>(PileType.Hand, upgraded);
+                    science.TinkerTimeType = type;
+                    science.TinkerTimeRider = rider;
+                    await ctx.AddFillerCards(PileType.Draw, 3);
+                    await ctx.Play(scienceLesson, selectedCards: [science]);
+                    bool triple = rider == MegaCrit.Sts2.Core.Models.Events.TinkerTime.RiderEffect.Violence;
+                    Check(Text(science) == (type == CardType.Skill ? "获得16点格挡。" : triple ? "造成24点伤害3次。" : "造成24点伤害。"),
+                        "dynamic instance type retains only its own damage/block and original numeric repeat");
+                    int beforeScience = ctx.PrimaryEnemy.CurrentHp;
+                    await ctx.Play(science, type == CardType.Attack ? ctx.PrimaryEnemy : null);
+                    Check(ctx.Self.Block == (type == CardType.Skill ? 16 : 0)
+                        && beforeScience - ctx.PrimaryEnemy.CurrentHp == (type == CardType.Attack ? triple ? 72 : 24 : 0)
+                        && PileType.Draw.GetPile(player).Cards.Count == 3,
+                        "formal dynamic attack/skill preserves type, deletes rider draw and keeps attack count");
+                }
+
+                await ctx.Reset();
+                directLesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var capture = await ctx.Add<CaptureSpirit>(PileType.Hand, upgraded);
+                await ctx.ApplyPower<StrengthPower>(ctx.Self, 3);
+                await ctx.ApplyPower<VigorPower>(ctx.Self, 3);
+                await CreatureCmd.GainBlock(ctx.PrimaryEnemy, 100, MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered, null);
+                await ctx.Play(directLesson, selectedCards: [capture]);
+                int beforeCapture = ctx.PrimaryEnemy.CurrentHp;
+                await ctx.Play(capture, ctx.PrimaryEnemy);
+                Check(beforeCapture - ctx.PrimaryEnemy.CurrentHp == (upgraded ? 8 : 6) && ctx.PrimaryEnemy.Block == 100
+                    && ctx.Self.GetPower<VigorPower>()?.Amount == 3 && PileType.Draw.GetPile(player).Cards.Count == 0,
+                    "direct skill damage keeps unblockable/unpowered flags without attack hooks or generated souls");
+
+                await ctx.Reset();
+                directLesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var judgment = await ctx.Add<FinalJudgment>(PileType.Hand, upgraded);
+                await ctx.ApplyPower<MaidenSuccubus.Powers.CondemnationPower>(ctx.PrimaryEnemy, 2);
+                await ctx.Play(directLesson, selectedCards: [judgment]);
+                var beforeJudgment = ctx.Enemies.ToDictionary(enemy => enemy, enemy => enemy.CurrentHp);
+                await ctx.Play(judgment, ctx.PrimaryEnemy);
+                Check(beforeJudgment.All(pair => pair.Value - pair.Key.CurrentHp == (pair.Key == ctx.PrimaryEnemy ? 0 : 42))
+                    && ctx.PrimaryEnemy.GetPower<MaidenSuccubus.Powers.CondemnationPower>()?.Amount == 2,
+                    "direct spread retains original amount but removes application, judgment and overdraft trigger");
 
                 await ctx.Reset();
                 var extractedSurf = await ctx.Add<Surf>(PileType.Hand, upgraded);
