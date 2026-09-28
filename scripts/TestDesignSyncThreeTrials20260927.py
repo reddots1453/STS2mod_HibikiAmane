@@ -45,6 +45,23 @@ class ThreeTrialContracts(unittest.TestCase):
         self.assertLess(code.index("await CardPileCmd.RemoveFromDeck(confirmed)"), code.index("UnlockThirdTrial"))
         self.assertNotIn("AdvanceStage", code)
 
+    def test_merchant_scenario_uses_native_inventory_and_purchase(self):
+        code = read("src/ConsoleCommands/DesignRouteRewardTestConsoleCmd.cs")
+        for text in ('confirm [merchant]', 'run.CurrentRoom is not MerchantRoom',
+                     'MerchantInventory.CreateForNormalMerchant(player)',
+                     'fragment.OnTryPurchaseWrapper(inventory)', 'skippedFragment.Cost == 100',
+                     'PlayerCmd.GainGold(99, player)', 'PlayerCmd.GainGold(1, player)',
+                     'trial.Phase == FourthTrialPhase.Second && trial.Progress == 0',
+                     'ReferenceEquals(player.Relics.OfType<FourthRouteRelic>().Single(), routeRelic)',
+                     'inventoryUpdates > 0', 'subsequent inventory does not repeat an unpurchased fragment',
+                     'second reward absorbs actual purchased fragment'):
+            self.assertIn(text, code)
+        scenario = code.split('private static async Task CheckMerchant', 1)[1]
+        self.assertNotIn('RelicCmd.Obtain', scenario)
+        self.assertNotIn('ignoreCost: true', scenario)
+        for flag in ('Pending', 'Offered', 'Purchased'):
+            self.assertIn(f'data.FourthRouteFragment{flag} = false;', code)
+
     def test_dormant_forms_are_effectless_at_hook_boundaries(self):
         code = read("src/Relics/FourthRouteRelics.cs")
         self.assertIn("Math.Clamp(value, 0, 4)", code)

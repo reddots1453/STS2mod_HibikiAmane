@@ -6,6 +6,8 @@ using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.DevConsole;
 using MegaCrit.Sts2.Core.DevConsole.ConsoleCommands;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Gold;
+using MegaCrit.Sts2.Core.Entities.Merchant;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
@@ -28,17 +30,19 @@ public sealed class DesignRouteRewardTestConsoleCmd : AbstractConsoleCmd
 {
     private static bool _running;
     public override string CmdName => "ms_test_route_reward";
-    public override string Args => "confirm";
-    public override string Description => "Destructive 42 trial reward claims; disposable single-player run only";
+    public override string Args => "confirm [merchant]";
+    public override string Description => "Destructive trial reward tests; optional merchant mode tests native fragment purchases in a disposable shop";
     public override bool IsNetworked => false;
     public override CmdResult Process(Player? player, string[] args)
     {
+        bool merchant = args.Length == 2 && args[1] == "merchant";
         if (_running || player?.Character is not MaidenSuccubusCharacter || player.RunState is not RunState run
-            || run.Players.Count != 1 || CombatManager.Instance.IsInProgress || args.Length != 1 || args[0] != "confirm")
-            return new CmdResult(false, "Use ms_test_route_reward confirm outside combat in a disposable single-player Maiden run.");
-        return new CmdResult(Run(player, run), true, "Destructive reward tests started; see [DS27RewardTest].");
+            || run.Players.Count != 1 || CombatManager.Instance.IsInProgress || args.Length < 1 || args[0] != "confirm"
+            || args.Length != 1 && !merchant || merchant && run.CurrentRoom is not MerchantRoom)
+            return new CmdResult(false, "Use ms_test_route_reward confirm [merchant] in a disposable single-player Maiden run; merchant mode requires an actual shop room. Tests remove your deck/relics and alter gold.");
+        return new CmdResult(Run(player, run, merchant), true, "Destructive reward tests started; see [DS27RewardTest].");
     }
-    private static async Task Run(Player player, RunState run)
+    private static async Task Run(Player player, RunState run, bool merchant)
     {
         _running = true;
         bool previous = TestMode.IsOn;
@@ -63,6 +67,10 @@ public sealed class DesignRouteRewardTestConsoleCmd : AbstractConsoleCmd
                 data.FourthRouteRewardPending = true;
                 data.FourthRouteRewardClaimed = false;
                 data.FourthRouteRewardCorruptionApplied = false;
+                data.FourthRouteFragmentPending = false;
+                data.FourthRouteFragmentOffered = false;
+                data.FourthRouteFragmentPurchased = false;
+                data.FourthRouteSacrificeCompleted = false;
                 data.FourthRouteOpening = null;
                 data.FourthRouteEndingChecked = false;
             });
@@ -75,6 +83,12 @@ public sealed class DesignRouteRewardTestConsoleCmd : AbstractConsoleCmd
         try
         {
             TestMode.IsOn = true;
+            if (merchant)
+            {
+                await CheckMerchant(player, run, Prepare, Check);
+                MaidenSuccubusMod.Logger.Info($"[DS27RewardTest] PASS merchant {checks}; real inventory generation and purchase wrapper tested; natural room travel, rendering and full save/load still require hand tests.");
+                return;
+            }
             Check(Harmony.GetPatchInfo(AccessTools.Method(typeof(Hook), nameof(Hook.AfterCombatVictory)))?
                 .Postfixes.Any(p => p.PatchMethod.DeclaringType == typeof(FourthRouteVictoryRewardPatch)) == true,
                 "actual full victory task wrapper installed");
@@ -139,6 +153,82 @@ public sealed class DesignRouteRewardTestConsoleCmd : AbstractConsoleCmd
         }
         catch (Exception ex) { MaidenSuccubusMod.Logger.Error("[DS27RewardTest] FAIL " + ex); throw; }
         finally { TestMode.IsOn = previous; _running = false; }
+    }
+
+    private static async Task CheckMerchant(Player player, RunState run,
+        Func<FourthRouteQuest, FourthTrialPhase, Task<FourthRouteRewardOffer>> prepare,
+        Action<bool, string> check)
+    {
+        check(Harmony.GetPatchInfo(AccessTools.Method(typeof(MerchantInventory), nameof(MerchantInventory.CreateForNormalMerchant)))?
+            .Postfixes.Any(p => p.PatchMethod.DeclaringType == typeof(FourthRouteMerchantPatch)) == true,
+            "native merchant creation patch installed");
+        async Task PrepareFragment()
+        {
+            var offer = await prepare(FourthRouteQuest.Pride, FourthTrialPhase.FirstReward);
+            check(await FourthRouteRewardFlow.Claim(player, offer), "first reward actually enters fragment phase");
+            check(FourthRouteProgressService.Trial(run).Phase == FourthTrialPhase.Fragment
+                && M5Progress.Handle.Get(run).FourthRouteFragmentPending, "first claim makes fragment eligible without granting one");
+        }
+
+        await PrepareFragment();
+        var foreign = Player.CreateForNewRun<Ironclad>(player.UnlockState, player.NetId + 1000);
+        foreign.RunState = run;
+        var foreignInventory = new MerchantInventory(foreign);
+        FourthRouteMerchantPatch.Postfix(foreignInventory);
+        check(foreignInventory.RelicEntries.Count == 0 && !M5Progress.Handle.Get(run).FourthRouteFragmentOffered,
+            "other-character patch invocation cannot consume this run's fragment offer");
+        MerchantInventory skipped = MerchantInventory.CreateForNormalMerchant(player);
+        MerchantRelicEntry skippedFragment = skipped.RelicEntries.Single(entry => entry.Model is FourthRouteFragmentRelic);
+        check(skipped.RelicEntries.Count == 3 && skippedFragment.Cost == 100, "one native relic slot replaced at exact fragment price");
+        string routeTitle = FourthRouteProgressService.CreateRelicPreview(FourthRouteQuest.Pride).Id.Entry + ".title";
+        check(((FourthRouteFragmentRelic)skippedFragment.Model!).RouteTitleKey == routeTitle,
+            "merchant fragment is named for the selected route");
+        check(M5Progress.Handle.Get(run).FourthRouteFragmentOffered, "generation records the one offer");
+        var afterSkip = MerchantInventory.CreateForNormalMerchant(player);
+        check(!afterSkip.RelicEntries.Any(entry => entry.Model is FourthRouteFragmentRelic)
+            && FourthRouteProgressService.Trial(run).Phase == FourthTrialPhase.Fragment
+            && !M5Progress.Handle.Get(run).FourthRouteFragmentPurchased,
+            "subsequent inventory does not repeat an unpurchased fragment or unlock trial");
+
+        await PrepareFragment();
+        MerchantInventory inventory = MerchantInventory.CreateForNormalMerchant(player);
+        MerchantRelicEntry fragment = inventory.RelicEntries.Single(entry => entry.Model is FourthRouteFragmentRelic);
+        var fragmentModel = fragment.Model!;
+        var routeRelic = player.Relics.OfType<FourthRouteRelic>().Single();
+        int corruption = CorruptionQuery.Get(run);
+        await PlayerCmd.LoseGold(player.Gold, player, GoldLossType.Spent);
+        await PlayerCmd.GainGold(99, player);
+        int purchaseNotifications = 0, inventoryUpdates = 0;
+        fragment.PurchaseCompleted += (_, _) => purchaseNotifications++;
+        inventory.RelicEntries.First(entry => entry != fragment).EntryUpdated += () => inventoryUpdates++;
+        check(!await fragment.OnTryPurchaseWrapper(inventory), "native purchase rejects 99 gold");
+        check(player.Gold == 99 && fragment.IsStocked && purchaseNotifications == 0
+            && !player.Relics.Contains(fragmentModel) && !M5Progress.Handle.Get(run).FourthRouteFragmentPurchased
+            && FourthRouteProgressService.Trial(run).Phase == FourthTrialPhase.Fragment,
+            "failed purchase preserves stock, gold, offer and trial state");
+        await PlayerCmd.GainGold(1, player);
+        check(await fragment.OnTryPurchaseWrapper(inventory), "native purchase succeeds with exactly 100 gold");
+        check(player.Gold == 0 && !fragment.IsStocked && purchaseNotifications == 1 && inventoryUpdates > 0,
+            "purchase pays native price, clears item and notifies original inventory handler");
+        check(player.Relics.Contains(fragmentModel) && player.Relics.OfType<FourthRouteFragmentRelic>().Count() == 1,
+            "purchased fragment remains visible in relic inventory");
+        check(ReferenceEquals(player.Relics.OfType<FourthRouteRelic>().Single(), routeRelic) && routeRelic.Stage == 1
+            && CorruptionQuery.Get(run) == corruption, "purchase neither upgrades route relic nor changes corruption");
+        var trial = FourthRouteProgressService.Trial(run);
+        check(trial.Phase == FourthTrialPhase.Second && trial.Progress == 0
+            && M5Progress.Handle.Get(run).FourthRouteFragmentPurchased && !M5Progress.Handle.Get(run).FourthRouteFragmentPending,
+            "purchase unlocks only second trial with fresh progress");
+        check(!await fragment.OnTryPurchaseWrapper(inventory) && purchaseNotifications == 1
+            && player.Relics.OfType<FourthRouteFragmentRelic>().Count() == 1,
+            "sold entry cannot purchase or grant the fragment twice");
+        check(!MerchantInventory.CreateForNormalMerchant(player).RelicEntries.Any(entry => entry.Model is FourthRouteFragmentRelic),
+            "later inventory never repeats purchased fragment");
+        await FourthRouteProgressService.AddProgress(player, FourthRouteQuest.Pride, 2);
+        check(await FourthRouteRewardFlow.Claim(player, new(FourthRouteQuest.Pride, FourthTrialPhase.SecondReward)),
+            "second trial reward can claim after native fragment purchase");
+        check(!player.Relics.Contains(fragmentModel) && player.Relics.OfType<FourthRouteRelic>().Single().Stage == 2
+            && CorruptionQuery.Get(run) == corruption + 1,
+            "second reward absorbs actual purchased fragment and upgrades relic once");
     }
 }
 #endif
