@@ -8,9 +8,11 @@
 
 > 当前汇总：[2026-09-28全范围状态核对](DESIGN_SYNC_20260927_CURRENT_STATUS.md)。旧批次段落是带日期的历史证据；不得用历史未实现项覆盖后续交付，也不得把局部IMPLEMENTED提升为全范围VERIFIED。
 
-## DS27-02AF：魔力爆发支付后预估（READY）
+## DS27-02AF：魔力爆发支付后预估（IMPLEMENTED，游戏内待验）
 
 CARD-H-500～599魔力爆发/KW-OVERDRAFT-001→DS27-02AF→耐久支付后层数预估、增幅只读可用性、预览/实际伤害与资源断言→DS27-CARD-TEXT/EFFECT/COMPAT/GATES。前置`2daa1d95`；保留实际结算与增幅消耗规则，不部署。
+
+计划`8f5648d5`；11组独立预览/伤害/剩余资源场景与直接预留钩子检查已编译，7新增静态通过；统一11/12、无漂移，游戏未运行。见`DESIGN_SYNC_20260927_BATCH63.md`。
 
 ## DS27-02AE：八牌全文与计算后缀（IMPLEMENTED，游戏内待验）
 

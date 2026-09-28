@@ -218,6 +218,14 @@ public sealed class MagicAmplificationPower : MaidenSuccubusPowerTemplate
 
     public bool IsAmplifying(CardModel card) => ReferenceEquals(card, _cardToAmplify);
 
+    // Forecast only. Never reserve a layer while descriptions are refreshed.
+    internal bool CanPreviewOverdraft(CardModel card) => Amount > 0
+        && card.Owner?.Creature == Owner
+        && card.Type is CardType.Attack or CardType.Skill
+        && !AmplificationConsumptionScope.IsExempt(card)
+        && (_cardToAmplify == null
+            || (ReferenceEquals(card, _cardToAmplify) && _reservedForOverdraft < Amount));
+
     public override Task AfterApplied(Creature? applier, CardModel? cardSource)
     {
         PlayGainFeedback();

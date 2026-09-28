@@ -140,13 +140,26 @@ public sealed class MagicBurst : MSHolyCard
         new CalculationBaseVar(7),
         new ExtraDamageVar(2),
         new CalculatedDamageVar(ValueProp.Move).WithMultiplier(
-            static (card, _) =>
-                TransformationCmd.GetAmplification(card.Owner.Creature)?.Amount > 0
-                || TransformationCmd.GetArmor(card.Owner.Creature)?.Amount > 0
-                    ? PowerLayerQuery.CountBuffLayers(card.Owner.Creature)
-                    : 0),
+            static (card, _) => PreviewReleasedLayers(card)),
     ];
     public MagicBurst() : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) { }
+
+    private static int PreviewReleasedLayers(CardModel card)
+    {
+        var creature = card.Owner.Creature;
+        int layers = PowerLayerQuery.CountBuffLayers(creature);
+        // Amplification is reserved now and removed after the entire play series.
+        if (TransformationCmd.GetAmplification(creature)?.CanPreviewOverdraft(card) == true)
+            return layers;
+        // Optional armour payment occurs BEFORE the effect counts buff layers.
+        // This forecasts acceptance; declining the choice keeps the base damage.
+        var armor = TransformationCmd.GetArmor(creature);
+        if (!TransformationCmd.IsTransformed(creature) || armor is not { Amount: > 0 })
+            return 0;
+        bool counted = armor.IsVisible
+            && armor.TypeForCurrentAmount == MegaCrit.Sts2.Core.Entities.Powers.PowerType.Buff;
+        return Math.Max(0, layers - (counted ? 1 : 0));
+    }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);

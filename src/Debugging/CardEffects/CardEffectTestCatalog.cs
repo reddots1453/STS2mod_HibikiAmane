@@ -2807,18 +2807,7 @@ internal static class CardEffectTestCatalog
         }, 3);
 
     private static void MagicBurstProbe() =>
-        CustomVariants<MagicBurst>(async (ctx, card, upgraded) =>
-        {
-            ctx.AssertEqual("one energy cost", 1,
-                card.EnergyCost.GetWithModifiers(CostModifiers.Local));
-            await ctx.ApplyPower<DexterityPower>(ctx.Self, 2);
-            await ctx.SetUpArmour(1);
-            int hp = ctx.PrimaryEnemy.CurrentHp;
-            await ctx.Play(card, ctx.PrimaryEnemy, selectedIndices: [0]);
-            ctx.AssertDamage("overdraft damage scales with buff layers",
-                ctx.PrimaryEnemy, hp, upgraded ? 16 : 13);
-            ctx.AssertPower("overdraft armor payment", ctx.Self, "MagicArmorPower", 0);
-        }, 3);
+        CustomVariants<MagicBurst>(DesignSyncMagicBurstContract.Run, 100);
 
     private static void MultipleReproductionProbe() =>
         CustomVariants<MultipleReproduction>(DesignSyncExtraTurnContract.Run, 40);
