@@ -20,8 +20,11 @@ class ValidationRunnerContracts(unittest.TestCase):
 
     def test_fixed_plan_no_deployment_game_launch_or_shared_report_writes(self):
         suites = runner.plan()
-        self.assertEqual(len(suites), 12)
-        self.assertEqual(len({s.id for s in suites}), 12)
+        self.assertEqual(len(suites), 14)
+        self.assertEqual(len({s.id for s in suites}), 14)
+        projects = {s.argv[s.argv.index("--project") + 1] for s in suites if "--project" in s.argv}
+        self.assertEqual(projects, {"tests/DesignSyncContracts", "tests/LayeredSaveContracts",
+                                    "tests/HumilityEffectContracts", "tests/GenerosityOfferingContracts"})
         builds = [s for s in suites if s.kind == "compile_only"]
         self.assertEqual([s.argv[s.argv.index("-c") + 1] for s in builds], ["Release", "Debug"])
         for suite in builds:
@@ -37,6 +40,51 @@ class ValidationRunnerContracts(unittest.TestCase):
         self.assertFalse(result["goalCompleted"])
         self.assertEqual(result["gameRuntimeStatus"], "not_run")
         self.assertEqual(set(result["runtimeGroups"].values()), {"not_run"})
+
+    def test_selection_deduplicates_preserves_plan_order_and_rejects_unknown(self):
+        suites = runner.plan()
+        self.assertEqual(runner.select_suites(suites, None), suites)
+        self.assertEqual([s.id for s in runner.select_suites(suites,
+            ["generosity_offering", "humility_effects", "humility_effects"])],
+            ["humility_effects", "generosity_offering"])
+        with self.assertRaisesRegex(ValueError, "typo"):
+            runner.select_suites(suites, ["humility_effects", "typo"])
+
+    def test_selected_success_is_not_full_plan_success(self):
+        suites = runner.plan()
+        selected = runner.select_suites(suites, ["humility_effects"])
+        calls = []
+        def execute(suite, root, log, timeout):
+            calls.append(suite.id)
+            return {"id": suite.id, "status": "passed", "exitCode": 0}
+        with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
+            directory = Path(tmp)
+            report, path = runner.run_all(directory, selected, directory, executor=execute,
+                snapshot=lambda _: self.snapshot, get_head=lambda _: self.head, available_suites=suites)
+            self.assertEqual(calls, ["humility_effects"])
+            summary = report["summary"]
+            self.assertEqual(summary["offlineStatus"], "passed_selected")
+            self.assertEqual(summary["fullPlanOfflineStatus"], "not_run")
+            self.assertEqual(summary["exitCode"], 2)
+            self.assertFalse(summary["goalCompleted"])
+            self.assertEqual(summary["executionScope"]["mode"], "selected")
+            self.assertEqual(summary["executionScope"]["omittedSuites"], [s.id for s in suites if s.id != "humility_effects"])
+            self.assertEqual(json.loads((directory / "progress.json").read_text())["executionScope"], summary["executionScope"])
+            self.assertEqual(json.loads(path.read_text())["schemaVersion"], 2)
+
+    def test_cli_list_does_not_run_and_unknown_does_not_create_report(self):
+        with patch.object(runner, "run_all") as run, patch.object(runner, "unique_directory") as directory:
+            with patch("sys.argv", ["validate", "--suite", "humility_effects", "--list"]), contextlib.redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(runner.main(), 0)
+            listing = json.loads(output.getvalue())
+            self.assertEqual(listing["status"], "not_executed")
+            self.assertEqual([s["id"] for s in listing["suites"]], ["humility_effects"])
+            with patch("sys.argv", ["validate", "--suite", "typo"]), contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as error:
+                    runner.main()
+                self.assertEqual(error.exception.code, 2)
+            run.assert_not_called()
+            directory.assert_not_called()
 
     def test_failure_missing_tool_timeout_and_interrupt_are_never_passed(self):
         for status in ("failed", "error", "timeout", "interrupted", "not_run"):
