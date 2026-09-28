@@ -6,6 +6,10 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-02R：雷击、耀斑与瞬闪刺（READY）
+
+`CARD-N-150～299`完整三牌条目→DS27-02R→连锁/魔力解放与斩杀合并/仆从排除、战斗减费生命周期、原生复制继承与预览→DS27效果/文本/COMPAT/GATES。前置`5d27cd1d`。补真实游戏命令脚本及精确文本回归，保留已符合设计的生产逻辑，待实施，未部署。
+
 ## DS27-02Q：索引与拾取附魔三剑（IMPLEMENTED，游戏内待验）
 
 `CARD-N-150～299`完整四牌条目→DS27-02Q→`MagicIndexPower`有效性/状态文本、`DesignSyncEnchantmentInputContract`精确卡面/原生连续抽牌/真实拾取附魔及首次后续收益→DS27效果/文本/COMPAT/GATES。前置`19229c1e`，同步`c323a201`。保留正确递归抽牌顺序和三剑规则。7新增静态累计345，既有13540生产断言、33编码、Debug/Release及四内容门通过。`ms_test_cards confirm ds27-enchantment-input`编译未游戏执行；三剑每变体至少17效果断言、索引至少25；自然时序/视觉/完整存读档/多人待验。旧视觉和全卡审计失败保留，未部署，见`DESIGN_SYNC_20260927_BATCH41.md`。
