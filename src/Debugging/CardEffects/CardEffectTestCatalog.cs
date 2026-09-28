@@ -2237,7 +2237,8 @@ internal static class CardEffectTestCatalog
             ctx.AssertEqual("base healing plus two per buff layer",
                 (upgraded ? 8 : 4) + 4, ctx.Self.CurrentHp - hp);
             ctx.AssertEqual("healing still exhausts once", PileType.Exhaust, card.Pile?.Type);
-        }, 4);
+            await DesignSyncSignedLayerContract.Healing(ctx, upgraded);
+        }, 12);
 
     private static void MagicSwordProbe() =>
         CustomVariants<MagicSword>((ctx, card, upgraded) => DesignSyncEnchantmentInputContract.Sword(ctx, card, upgraded), 17);
@@ -2261,7 +2262,8 @@ internal static class CardEffectTestCatalog
             await ctx.Play(card, ctx.PrimaryEnemy);
             ctx.AssertDamage("damage with three debuff layers", ctx.PrimaryEnemy, hp,
                 upgraded ? 22 : 16);
-        }, 4);
+            await DesignSyncSignedLayerContract.Judgment(ctx, upgraded);
+        }, 8);
 
     private static void LightningRecoilProbe() =>
         CustomVariants<LightningRecoil>(async (ctx, card, upgraded) =>
@@ -2552,7 +2554,8 @@ internal static class CardEffectTestCatalog
             await ctx.Play(card, ctx.PrimaryEnemy);
             ctx.AssertDamage("damage with three self-debuff layers", ctx.PrimaryEnemy, hp,
                 upgraded ? 16 : 12);
-        }, 5);
+            await DesignSyncSignedLayerContract.LastStand(ctx, upgraded);
+        }, 9);
 
     private static void LoversDaggerProbe() =>
         CustomVariants<LoversDagger>(async (ctx, card, upgraded) =>
@@ -2609,7 +2612,8 @@ internal static class CardEffectTestCatalog
                 PileType.Hand, hand, 3);
             ctx.AssertEqual("upgrade removes exhaust", upgraded,
                 !card.Keywords.Contains(CardKeyword.Exhaust));
-        }, 3);
+            await DesignSyncSignedLayerContract.Draw(ctx, upgraded);
+        }, 6);
 
     private static void MentalStabilizerProbe() =>
         CustomVariants<MentalStabilizer>(async (ctx, card, upgraded) =>
@@ -2878,7 +2882,8 @@ internal static class CardEffectTestCatalog
             ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, upgraded ? 14 : 12);
             ctx.AssertEqual("energy against debuffed target", upgraded ? 3 : 2,
                 ctx.Player.PlayerCombatState.Energy - energy);
-        }, 2);
+            await DesignSyncSignedLayerContract.Energy(ctx, upgraded);
+        }, 5);
 
     private static void StigmaProbe() =>
         CustomVariants<Stigma>(async (ctx, card, upgraded) =>

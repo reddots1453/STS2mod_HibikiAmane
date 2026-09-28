@@ -18,10 +18,12 @@ public static class PowerLayerQuery
     private static int Count(Creature creature, PowerType type)
     {
         ArgumentNullException.ThrowIfNull(creature);
-        return creature.Powers
+        // Native TypeForCurrentAmount classifies negative Strength/Dexterity
+        // as debuffs. Their magnitude is the layer count, not a negative count
+        // and not zero; hidden cleanup models remain excluded.
+        return PowerLayerMath.Count(creature.Powers
             .Where(power => power.IsVisible
-                && power.Amount > 0
                 && power.TypeForCurrentAmount == type)
-            .Sum(power => power.Amount);
+            .Select(power => power.Amount));
     }
 }

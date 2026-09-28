@@ -5,6 +5,7 @@ using MaidenSuccubus.Core.Events;
 using MaidenSuccubus.Acts;
 using MaidenSuccubus.Core.Seals;
 using MaidenSuccubus.Core.Corruption;
+using MaidenSuccubus.Core.Powers;
 
 // Compiles and executes production pure rules, not copied implementations.
 // Independent literal expectations: SYS-COR-003 and RELIC-EVENT-005, 2026-09-27.
@@ -686,3 +687,16 @@ for (int baseline = 1; baseline <= 20; baseline++)
     Equal(-baseline, tint.Restore(painted), "new external baseline restored");
 }
 Console.WriteLine($"PASS DS27 production seal presentation: {checks - beforeSeals} assertions; {checks} total.");
+
+int beforeSignedLayers = checks;
+// Independent examples: type/visibility is engine-owned and covered separately
+// in the native card contract. This host executes only production aggregation.
+foreach (var (amounts, layers) in new (int[], int)[]
+{
+    ([], 0), ([0], 0), ([1], 1), ([-1], 1), ([2, 3], 5),
+    ([-2, -3], 5), ([-2, 3], 5), ([2, -3], 5),
+    ([0, -2, 3, 0], 5), ([-10, 4, -1], 15),
+    ([2, 2, 2], 6), ([-2, -2, -2], 6), ([int.MaxValue], int.MaxValue),
+})
+    Equal(layers, PowerLayerMath.Count(amounts), "signed layer magnitude " + string.Join(",", amounts));
+Console.WriteLine($"PASS DS27 production signed power layers: {checks - beforeSignedLayers} assertions; {checks} total.");

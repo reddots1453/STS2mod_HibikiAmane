@@ -6,9 +6,11 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-02AD：有符号状态层数（READY）
+## DS27-02AD：有符号状态层数（IMPLEMENTED，游戏内待验）
 
 正式负力量备注及CARD-N/H/C按正负状态层数公式→DS27-02AD→PowerLayerQuery按TypeForCurrentAmount和可见性选取后累加绝对值→DS27-CARD-EFFECT/TEXT/COMPAT/GATES。前置`2fcf8357`；不修改原版正负分类或卡牌基值，纯聚合离线执行与实际Power/命令测试分开报告，未部署。
+
+同步`f74213dd`；负数层数遗漏已修复，13新增纯聚合断言累计13760、503静态/33编码及双构建四门/视觉通过。审判之刃、背水一战、高级治疗、圣咒、魂之冲击原测试追加实际原生状态/命令断言，尚未游戏执行。统一11/12，既有GagCurse费用差异保留，全目标未完成，见`DESIGN_SYNC_20260927_BATCH60.md`。
 
 ## DS27-02AC：理外锻成九附魔选择（IMPLEMENTED，游戏内待验）
 
