@@ -6,9 +6,11 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-02AC：理外锻成九附魔选择（READY）
+## DS27-02AC：理外锻成九附魔选择（IMPLEMENTED，游戏内待验）
 
 CARD-N-150～299理外锻成/SYS-ENC-001→DS27-02AC→两阶段选择返回守卫、原九项合法候选和数值、临时附魔/永久隔离→DS27-CARD-EFFECT/META/TEXT/COMPAT/GATES。前置`60b3be08`；不改变附魔规则或随机选择概率，不部署。
+
+同步`cf715fd6`；`ms_test_cards confirm BeyondReasonForge`原基础/升级测试扩充九项独立类型/数值/原文、合法目标集合和RNG及失效返回场景。498静态、13747/33、双构建四门和视觉门通过；统一11/12，既有费用差异不计通过。真实弹窗、自然中断、完整存读档及多人待验，见`DESIGN_SYNC_20260927_BATCH59.md`。
 
 ## DS27-02AB：多重再现额外回合时序（IMPLEMENTED，游戏内待验）
 

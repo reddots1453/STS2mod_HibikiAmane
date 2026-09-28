@@ -2894,13 +2894,7 @@ internal static class CardEffectTestCatalog
         CustomVariants<TacticalAnalyzer>(DesignSyncTacticalAnalyzerContract.Run, 25);
 
     private static void BeyondReasonForgeProbe() =>
-        CustomVariants<BeyondReasonForge>(async (ctx, card, _) =>
-        {
-            StrikeIronclad fixture = await ctx.Add<StrikeIronclad>(PileType.Hand);
-            await ctx.Play(card, selectedIndices: [0]);
-            ctx.AssertTrue("selected hand card enchanted", fixture.Enchantment != null);
-            ctx.AssertTrue("source exhausted", card.Pile?.Type == PileType.Exhaust);
-        }, 2);
+        CustomVariants<BeyondReasonForge>(DesignSyncForgeContract.Run, 120);
 
     private static void MentalUnityProbe() =>
         CustomVariants<MentalUnity>(async (ctx, card, upgraded) =>

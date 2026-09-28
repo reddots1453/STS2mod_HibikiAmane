@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.CardSelection;
+using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Extensions;
@@ -198,6 +199,10 @@ public sealed class BeyondReasonForge : MSNeutralCard
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
+        var combat = CombatState;
+        if (combat == null) return;
+        bool CanContinue() => CombatState == combat && Owner.Creature.IsAlive
+            && !CombatManager.Instance.IsOverOrEnding;
         CardModel[] hand = PileType.Hand.GetPile(Owner).Cards
             .Where(card => card != this && LayeredEnchantments.HasOpenSlot(card)).ToArray();
         List<Option> legal = CreateOptions().Where(option => hand.Any(option.CanApply))
@@ -213,15 +218,24 @@ public sealed class BeyondReasonForge : MSNeutralCard
         }
         EnchantmentChoiceCard? selectedOption = await CardSelectCmd.FromChooseACardScreen(
             context, choiceCards, Owner, canSkip: false) as EnchantmentChoiceCard;
+        if (!CanContinue() || selectedOption == null || !choiceCards.Contains(selectedOption)) return;
         Option? optionDef = legal.FirstOrDefault(option => option.Id == selectedOption?.ChoiceId);
         if (optionDef == null) return;
 
         CardModel? target = (await CardSelectCmd.FromHand(context, Owner,
             new CardSelectorPrefs(CardSelectorPrefs.EnchantSelectionPrompt, 1),
-            card => card != this && LayeredEnchantments.HasOpenSlot(card) && optionDef.CanApply(card), this))
+            card => IsEligibleTarget(card, optionDef), this))
             .FirstOrDefault();
-        if (target != null) Apply(optionDef.Id, target);
+        // Selection may have yielded while another effect moved or enchanted
+        // the card. Never apply to a stale hand reference or overwrite a slot.
+        if (CanContinue() && target != null && IsEligibleTarget(target, optionDef))
+            Apply(optionDef.Id, target);
     }
+
+    private bool IsEligibleTarget(CardModel card, Option option) =>
+        card != this && card.Owner == Owner && card.CombatState == CombatState
+        && card.Pile == PileType.Hand.GetPile(Owner)
+        && LayeredEnchantments.HasOpenSlot(card) && option.CanApply(card);
 
     private List<Option> CreateOptions() =>
     [
