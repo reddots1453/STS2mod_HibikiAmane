@@ -1,4 +1,5 @@
 using MaidenSuccubus.Cards;
+using MaidenSuccubus.Cards.Scriptures;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 
@@ -21,7 +22,15 @@ internal static class HumilityCardProfiles
             typeof(ExplosiveImpact), typeof(UltimateFlare), typeof(Takemikazuchi), typeof(AllHopeLost),
             typeof(MaidenSuccubus.Cards.Transform), typeof(IceShield), typeof(AcceleratedMotion), typeof(HealingArt),
             typeof(MaidenSuccubus.Cards.Fusion), typeof(MagiciansSecret), typeof(Procrastinate), typeof(Bath),
-            typeof(CurseInfection), typeof(ForgeCharge), typeof(BeyondReasonForge), typeof(CalmingMist), typeof(DreamMist)];
+            typeof(CurseInfection), typeof(ForgeCharge), typeof(BeyondReasonForge), typeof(CalmingMist), typeof(DreamMist),
+            typeof(PenanceSlash), typeof(HolyPunishment), typeof(FocusedSlash), typeof(DesireWard),
+            typeof(Judgment), typeof(HolyCurse), typeof(WindRumor), typeof(DevoutBulwark), typeof(AutoReactionArmor),
+            typeof(ForgeNimble), typeof(MomentaryGrace), typeof(RetainedGuard), typeof(TacticalCore), typeof(BurningRack),
+            typeof(ExternalPowerSkeleton), typeof(DragonflyTouch), typeof(TacticalAnalyzer), typeof(Tranquilizer),
+            typeof(Stigma), typeof(Rest), typeof(MultipleReproduction), typeof(SunDance), typeof(DivineEcho),
+            typeof(OriginalSinBrand), typeof(Chant), typeof(Gospel), typeof(SneakSnack), typeof(HolyFlame),
+            typeof(ExorcismPerfume), typeof(PurificationOrb), typeof(GuardianScripture), typeof(NimbleScripture),
+            typeof(PunishmentScripture), typeof(WisdomScripture), typeof(VitalityScripture), typeof(BlissScripture)];
         Type[] vanilla = [typeof(StrikeIronclad), typeof(PommelStrike), typeof(Uppercut), typeof(KinglyKick),
             typeof(ShiningStrike), typeof(DefendIronclad), typeof(ShrugItOff), typeof(Whirlwind)];
         var bindings = maiden.ToDictionary(type => type, type => "maiden:" + type.Name);

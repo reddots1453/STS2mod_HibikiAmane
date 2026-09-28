@@ -54,6 +54,22 @@ internal static class HumilityProfileDefinitions
         Group("maiden", new([]), "Transform", "IceShield", "AcceleratedMotion", "HealingArt", "Fusion",
             "MagiciansSecret", "Procrastinate", "Bath", "CurseInfection", "ForgeCharge", "BeyondReasonForge",
             "CalmingMist", "DreamMist");
+
+        // Holy cards: do not retain their debuffs, selections, generated cards or
+        // discard-pile autoplay hooks. Dragonfly snapshots the enemy count per play.
+        Group("maiden", new([D()]), "PenanceSlash", "HolyPunishment", "FocusedSlash", "DesireWard",
+            "Judgment", "HolyCurse", "WindRumor");
+        Group("maiden", new([B()]), "DevoutBulwark", "AutoReactionArmor", "ForgeNimble", "MomentaryGrace",
+            "RetainedGuard", "TacticalCore", "BurningRack");
+        Group("maiden", new([D(HumilityTarget.AllEnemies)]), "ExternalPowerSkeleton");
+        Group("maiden", new([B(V("$enemies"))]), "DragonflyTouch");
+        Group("maiden", new([]), "TacticalAnalyzer", "Tranquilizer", "Stigma", "Rest", "MultipleReproduction",
+            "SunDance", "DivineEcho", "OriginalSinBrand", "Chant", "Gospel", "SneakSnack", "HolyFlame",
+            "ExorcismPerfume", "PurificationOrb");
+        // Scripture descriptions grant power layers; they are NOT direct damage or
+        // block operations. The unrelated existing powers are never erased by rewriting.
+        Group("maiden", new([]), "GuardianScripture", "NimbleScripture", "PunishmentScripture",
+            "WisdomScripture", "VitalityScripture", "BlissScripture");
         return new ReadOnlyDictionary<string, HumilityEffectProgram>(profiles);
     }
 }

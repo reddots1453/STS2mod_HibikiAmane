@@ -81,6 +81,25 @@ internal static class HumilityRewritePatches
         }
     }
 
+    // IsPlayable is a direct virtual property, not an AbstractModel hook. Removing
+    // intrinsic text also removes restrictions such as Rest's transformation condition.
+    // Do NOT patch CanPlay: resource, keyword, target and external hook checks remain.
+    [HarmonyPatch]
+    private static class IntrinsicFlags
+    {
+        private static IEnumerable<MethodBase> TargetMethods() => CardMethods("get_IsPlayable")
+            .Concat(CardMethods("get_HasTurnEndInHandEffect"));
+        private static bool Prefix(CardModel __instance, MethodBase __originalMethod, ref bool __result)
+        {
+            bool rewritten = false;
+            Safe.Run(() => rewritten = HumilityRewriteCapability.Find(__instance) != null
+                && ControlQuery.GetProjection(__instance) == null, "Humility.IntrinsicFlags");
+            if (!rewritten) return true;
+            __result = __originalMethod.Name == "get_IsPlayable";
+            return false;
+        }
+    }
+
     [HarmonyPatch]
     private static class Description
     {

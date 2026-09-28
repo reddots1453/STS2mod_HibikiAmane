@@ -154,6 +154,8 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
             var flare = await ctx.Add<UltimateFlare>(PileType.Hand);
             var ordinaryFlare = await ctx.Add<UltimateFlare>(PileType.Hand);
             HumilityCardProfiles.ApplyKnown(flare);
+            Check(!flare.HasTurnEndInHandEffect && ordinaryFlare.HasTurnEndInHandEffect,
+                "deleted turn-end effect no longer advertises a UI trigger");
             int originalFlareCost = flare.EnergyCost.GetWithModifiers(CostModifiers.Local);
             await flare.OnTurnEndInHandWrapper(choice);
             await ordinaryFlare.OnTurnEndInHandWrapper(choice);
@@ -176,6 +178,68 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
                 "two random hits remain one native attack, not two command boundaries");
             Check(ctx.Enemies.All(enemy => !enemy.Powers.OfType<MaidenSuccubus.Powers.ShatterPower>().Any()),
                 "random profile removes original shatter effect");
+
+            await ctx.Reset();
+            var rest = await ctx.Add<Rest>(PileType.Hand);
+            var ordinaryRest = await ctx.Add<Rest>(PileType.Hand);
+            ordinaryRest.CanPlay(out var beforeRestReason, out _);
+            Check(beforeRestReason.HasFlag(UnplayableReason.BlockedByCardLogic), "ordinary Rest requires transformation");
+            HumilityCardProfiles.ApplyKnown(rest);
+            Check(rest.CanPlay(), "rewritten Rest removes its original transformation restriction");
+            ordinaryRest.CanPlay(out var afterRestReason, out _);
+            Check(afterRestReason.HasFlag(UnplayableReason.BlockedByCardLogic), "unmodified Rest remains restricted");
+            var costed = await ctx.Add<MaidenStrike>(PileType.Hand);
+            HumilityCardProfiles.ApplyKnown(costed);
+            await PlayerCmd.SetEnergy(0, player);
+            Check(!costed.CanPlay(), "intrinsic-rule removal does not bypass native insufficient energy");
+            await PlayerCmd.SetEnergy(20, player);
+            await ctx.ApplyPower<SlothPower>(ctx.Self, 1);
+            var sloth = ctx.Self.GetPower<SlothPower>() ?? throw new InvalidOperationException("Missing native Sloth test power.");
+            await ctx.Play(costed, ctx.PrimaryEnemy);
+            Check(!rest.CanPlay(out _, out var preventer) && ReferenceEquals(preventer, sloth),
+                "external native ShouldPlay restriction still prevents a rewritten card");
+            await PowerCmd.Remove(sloth);
+            await ctx.Play(rest);
+            Check(!ctx.Self.HasPower<MaidenSuccubus.Powers.RestNextTurnPower>() && rest.Pile?.Type == PileType.Discard,
+                "rewritten Rest executes empty program, no next-turn power or end-turn rule");
+
+            foreach (bool upgraded in new[] { false, true })
+            {
+                await ctx.Reset();
+                var dragonfly = await ctx.Add<DragonflyTouch>(PileType.Hand, upgraded);
+                HumilityCardProfiles.ApplyKnown(dragonfly);
+                await ctx.ApplyPower<DexterityPower>(ctx.Self, 3);
+                int targets = combat.HittableEnemies.Count;
+                int blockBefore = ctx.Self.Block;
+                await ctx.Play(dragonfly);
+                Check(ctx.Self.Block - blockBefore == ((upgraded ? 20 : 14) + 3) * targets,
+                    "enemy-count repetitions preserve native Dexterity per block operation");
+
+                await ctx.Reset();
+                var nimble = await ctx.Add<ForgeNimble>(PileType.Hand, upgraded);
+                HumilityCardProfiles.ApplyKnown(nimble);
+                var unenchanted = await ctx.Add<MaidenDefend>(PileType.Hand);
+                await ctx.Play(nimble);
+                Check(ctx.Self.Block == (upgraded ? 16 : 10) && unenchanted.Enchantment == null,
+                    "rewritten ForgeNimble gives doubled block without opening enchant selection");
+            }
+
+            await ctx.Reset();
+            var skeleton = await ctx.Add<ExternalPowerSkeleton>(PileType.Discard);
+            var ordinarySkeleton = await ctx.Add<ExternalPowerSkeleton>(PileType.Discard);
+            var reaction = await ctx.Add<AutoReactionArmor>(PileType.Discard);
+            var ordinaryReaction = await ctx.Add<AutoReactionArmor>(PileType.Discard);
+            HumilityCardProfiles.ApplyKnown(skeleton);
+            HumilityCardProfiles.ApplyKnown(reaction);
+            var beforeFlushHp = ctx.Enemies.ToDictionary(enemy => enemy, enemy => enemy.CurrentHp);
+            int beforeFlushBlock = ctx.Self.Block;
+            await Hook.BeforeFlush(combat, player);
+            Check(beforeFlushHp.All(pair => pair.Value - pair.Key.CurrentHp == 6)
+                && ctx.Self.Block - beforeFlushBlock == 5,
+                "native BeforeFlush autoplays only the untouched skeleton/armor copies");
+            Check(!skeleton.Keywords.Contains(CardKeyword.Retain) && ordinarySkeleton.Keywords.Contains(CardKeyword.Retain)
+                && !reaction.Keywords.Contains(CardKeyword.Retain) && ordinaryReaction.Keywords.Contains(CardKeyword.Retain),
+                "intrinsic Retain removed only on rewritten discard-autoplay cards");
 
             await ctx.Reset();
             var kick = await ctx.Add<KinglyKick>(PileType.Draw);

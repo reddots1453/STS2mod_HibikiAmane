@@ -8,9 +8,11 @@
 
 > 当前汇总：[2026-09-28全范围状态核对](DESIGN_SYNC_20260927_CURRENT_STATUS.md)。旧批次段落是带日期的历史证据；不得用历史未实现项覆盖后续交付，也不得把局部IMPLEMENTED提升为全范围VERIFIED。
 
-## DS27-05AB：Q14普通圣洁/圣言档案与实例属性限制（READY）
+## DS27-05AB：Q14普通圣洁/圣言档案与实例属性限制（IMPLEMENTED，游戏内待验）
 
 前置`1ea97dc2`→36张显式档案及敌人数重复格挡→生产档案断言与真实游戏脚本。只清除谦逊实例自身的使用限制及已删除回合末效果提示，不绕过原生付款/外部钩子；BeforeFlush仍由原卡钩子过滤处理。范围之外的特殊公式、正式选择器及觉醒仍待完成，不部署。
+
+计划`ac4f80cc`→累计80档案＋`HumilityRewritePatches.IntrinsicFlags`→525生产断言、10接线和Debug通过；真实休息/费用/Sloth/BeforeFlush/重复格挡等脚本仅编译未运行。第84批；不把档案注册等同正式选择器已切换。
 
 ## DS27-05AA：Q14显式效果档案（首组IMPLEMENTED，其余READY）
 

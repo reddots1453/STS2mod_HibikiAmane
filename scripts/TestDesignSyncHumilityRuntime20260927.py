@@ -5,6 +5,22 @@ from TestDesignSyncNeutral20260927 import read
 
 
 class HumilityRuntime(unittest.TestCase):
+    def test_intrinsic_properties_do_not_replace_native_can_play(self):
+        code = read('src/Patches/HumilityRewritePatches.cs')
+        for text in ('CardMethods("get_IsPlayable")', 'CardMethods("get_HasTurnEndInHandEffect")',
+                     '__originalMethod.Name == "get_IsPlayable"', '"Humility.IntrinsicFlags"'):
+            self.assertIn(text, code)
+        self.assertNotIn('CardMethods("CanPlay")', code)
+        self.assertNotIn('nameof(CardModel.CanPlay)', code)
+
+    def test_holy_profiles_have_native_rule_boundary_scenarios(self):
+        code = read('src/ConsoleCommands/DesignHumilityRuntimeTestConsoleCmd.cs')
+        for text in ('Hook.BeforeFlush(combat, player)', 'HumilityCardProfiles.ApplyKnown(rest)',
+                     'UnplayableReason.BlockedByCardLogic', 'ReferenceEquals(preventer, sloth)',
+                     'Check(!costed.CanPlay()', 'ctx.Add<DragonflyTouch>', 'ctx.Add<ForgeNimble>',
+                     '!flare.HasTurnEndInHandEffect && ordinaryFlare.HasTurnEndInHandEffect'):
+            self.assertIn(text, code)
+
     def test_profiles_bind_exact_types_and_fail_closed(self):
         code = read('src/Core/Cards/HumilityCardProfiles.cs')
         for text in ('IReadOnlyDictionary<Type, string>', 'Bindings.TryGetValue(card.GetType()',
