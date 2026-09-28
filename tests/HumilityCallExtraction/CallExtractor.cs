@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HumilityCallExtraction;
 
-internal sealed record Extraction(string Card, HumilityEffectProgram? Program, string? Error, int Line);
+internal sealed record Extraction(string Card, HumilityEffectProgram? Program, string? Error, int Line, bool OnlyDamageAndBlock = false);
 
 /// <summary>Static call slicing only: never invokes card methods or removed effects.</summary>
 internal static class CallExtractor
@@ -27,12 +27,17 @@ internal static class CallExtractor
             int line = tree.GetLineSpan(method.Span).StartLinePosition.Line + 1;
             try
             {
-                var expanded = (MethodDeclarationSyntax)new HelperExpansion(methods ?? HelperExpansion.Index([source]), method).Visit(method)!;
+                var expansion = new HelperExpansion(methods ?? HelperExpansion.Index([source]), method);
+                var expanded = (MethodDeclarationSyntax)expansion.Visit(method)!;
                 // Expression-bodied OnPlay must also be exposed to statement expansion.
                 if (expanded.ExpressionBody != null)
                     expanded = expanded.WithBody(SyntaxFactory.Block(SyntaxFactory.ExpressionStatement(expanded.ExpressionBody.Expression))).WithExpressionBody(null);
-                expanded = (MethodDeclarationSyntax)new HelperExpansion(methods ?? HelperExpansion.Index([source]), method).Visit(expanded)!;
-                results.Add(new(name, Slice(expanded), null, line));
+                var secondExpansion = new HelperExpansion(methods ?? HelperExpansion.Index([source]), method);
+                expanded = (MethodDeclarationSyntax)secondExpansion.Visit(expanded)!;
+                var program = Slice(expanded);
+                bool pure = program.HasDamageOrBlock && !expansion.DeletedOtherEffect && !secondExpansion.DeletedOtherEffect
+                    && PurityClassifier.IsPure(type, expanded);
+                results.Add(new(name, program, null, line, pure));
             }
             catch (NotSupportedException error) { results.Add(new(name, null, error.Message, line)); }
         }

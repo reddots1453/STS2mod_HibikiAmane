@@ -233,6 +233,35 @@ if (args.SequenceEqual(new[] { "--self-test" }))
         "source-proven field-only helper on another card is deleted without impersonating its receiver");
     Check(Extract("var power = GetUnknownPower(); power.Schedule();").Program == null,
         "unknown receiver configuration remains unsupported");
+    Check(Extract(attack).OnlyDamageAndBlock && mixed.OnlyDamageAndBlock && x.OnlyDamageAndBlock,
+        "pure direct, mixed and X attacks carry positive original-effect evidence");
+    Check(!guarded.OnlyDamageAndBlock && !boundaries.OnlyDamageAndBlock && !surf.OnlyDamageAndBlock,
+        "successful slicing does not imply original purity after deleting draw, conditions or other effects");
+    Check(!Extract(attack + " Growth++;").OnlyDamageAndBlock,
+        "non-command state growth is still an additional original effect");
+    var withHook = CallExtractor.Extract("class Example { Task OnPlay(Context context, Play play) { " + attack
+        + " } public override Task AfterCardPlayed(Context context, Play play) => CardPileCmd.Draw(context, 1, Owner); }").Single();
+    Check(!withHook.OnlyDamageAndBlock, "intrinsic after-play trigger prevents original pure classification");
+    Check(visual.OnlyDamageAndBlock && beforeVisual.OnlyDamageAndBlock,
+        "known visual-only presentation does not disqualify pure damage");
+    string mixedMutation = mutationHelper.Replace("foreach (Example other in cards)", attack + " foreach (Example other in cards)");
+    Check(!CallExtractor.Extract(mixedMutation).Single().OnlyDamageAndBlock,
+        "removing a field-only helper does not erase evidence of an original additional effect");
+    var pureRecord = CatalogCard("Fixture.Pure", mixed.Program, null);
+    pureRecord["onlyDamageAndBlock"] = true;
+    var pureDocument = new JsonObject { ["schemaVersion"] = 2, ["cards"] = new JsonArray(pureRecord) };
+    Check(new HumilityExtractedCatalog(pureDocument.ToJsonString()).Entries["Fixture.Pure"].OnlyDamageAndBlock
+        && !catalog.Entries["Fixture.Ready"].OnlyDamageAndBlock,
+        "catalog round trip preserves classification; legacy catalog never invents purity");
+    pureRecord.Remove("onlyDamageAndBlock");
+    rejected = false;
+    try { _ = new HumilityExtractedCatalog(pureDocument.ToJsonString()); } catch (FormatException) { rejected = true; }
+    Check(rejected, "new catalog requires explicit original-effect classification");
+    pureRecord["onlyDamageAndBlock"] = true;
+    pureRecord["program"] = new HumilityEffectProgram([]).Save();
+    rejected = false;
+    try { _ = new HumilityExtractedCatalog(pureDocument.ToJsonString()); } catch (FormatException) { rejected = true; }
+    Check(rejected, "empty effect cannot qualify for awakening");
     return 0;
 }
 if (args.Length == 2 && args[0] == "--verify-assembly")
@@ -285,10 +314,11 @@ foreach (string path in sources)
     {
         unsupported |= card.Program == null;
         cards.Add(new JsonObject { ["source"] = Path.GetFileName(path), ["sourceHash"] = hash, ["card"] = card.Card, ["line"] = card.Line,
-            ["status"] = card.Program == null ? "unsupported" : "extracted", ["program"] = card.Program?.Save(), ["error"] = card.Error });
+            ["status"] = card.Program == null ? "unsupported" : "extracted", ["program"] = card.Program?.Save(), ["error"] = card.Error,
+            ["onlyDamageAndBlock"] = card.OnlyDamageAndBlock });
     }
 }
-string json = new JsonObject { ["schemaVersion"] = 1, ["sources"] = hashes, ["cards"] = cards }.ToJsonString(new() { WriteIndented = true });
+string json = new JsonObject { ["schemaVersion"] = 2, ["sources"] = hashes, ["cards"] = cards }.ToJsonString(new() { WriteIndented = true });
 _ = new HumilityExtractedCatalog(json); // Detect duplicate identities/corrupt output before replacing any artifact.
 if (output != null)
 {

@@ -12,7 +12,8 @@ internal sealed class HelperExpansion : CSharpSyntaxRewriter
     private readonly MethodDeclarationSyntax _method;
     private readonly HashSet<string> _active;
     private readonly Counter _counter;
-    private sealed class Counter { internal int Value; }
+    private sealed class Counter { internal int Value; internal bool DeletedOtherEffect; }
+    internal bool DeletedOtherEffect => _counter.DeletedOtherEffect;
 
     internal static IReadOnlyList<MethodDeclarationSyntax> Index(IEnumerable<string> sources) => sources
         .SelectMany(source => CSharpSyntaxTree.ParseText(source).GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>()).ToArray();
@@ -52,7 +53,10 @@ internal sealed class HelperExpansion : CSharpSyntaxRewriter
             if (localMethods.Length == 1 && localMethods[0].Body is { } mutation
                 && !mutation.DescendantNodes().Any(n => n is InvocationExpressionSyntax or ObjectCreationExpressionSyntax
                     or ImplicitObjectCreationExpressionSyntax or AwaitExpressionSyntax))
+            {
+                _counter.DeletedOtherEffect = true;
                 return SyntaxFactory.Block();
+            }
         }
         // Returned selection of a helper's collection does not change its effects.
         if (call.Expression is MemberAccessExpressionSyntax { Name.Identifier.Text: "FirstOrDefault" } selected

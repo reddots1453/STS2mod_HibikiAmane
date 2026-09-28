@@ -28,6 +28,7 @@ using MaidenSuccubus.Acts;
 using MaidenSuccubus.Cards;
 using MaidenSuccubus.Commands;
 using MaidenSuccubus.Core.Desire;
+using MaidenSuccubus.Core.Cards;
 using MaidenSuccubus.Core.Routes;
 using MaidenSuccubus.Core.Relics;
 using System.Runtime.CompilerServices;
@@ -332,8 +333,7 @@ public sealed class HumilityRouteRelic : FourthRouteRelic
     public override Task AfterCardPlayed(PlayerChoiceContext context, CardPlay cardPlay)
     {
         if (Stage < 3 || cardPlay.Card.Owner != Owner || cardPlay.Card is HumilityLesson) return Task.CompletedTask;
-        bool pure = cardPlay.Card.Description.GetFormattedText().Split('.', '。').Count(part => !string.IsNullOrWhiteSpace(part)) <= 2;
-        return pure ? CardPileCmd.Draw(context, Owner) : Task.CompletedTask;
+        return HumilityAwakening.IsPure(cardPlay.Card) ? CardPileCmd.Draw(context, 2, Owner) : Task.CompletedTask;
     }
 }
 

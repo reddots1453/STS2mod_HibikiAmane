@@ -19,6 +19,7 @@ using MaidenSuccubus.Cards;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Core.Cards;
 using MaidenSuccubus.Debugging.CardEffects;
+using MaidenSuccubus.Relics;
 using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Models.Capabilities;
 
@@ -624,6 +625,40 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
             Check(dualBefore - ctx.PrimaryEnemy.CurrentHp == 12 * 4 * 3 * 2, "paid dual X and native replay use same resource values");
             Check(Data.Desire.Get(player) == 0 && player.PlayerCombatState!.Energy == 0, "native payments occur once");
 
+            await ctx.Reset();
+            var awakening = (HumilityRouteRelic)ModelDb.Relic<HumilityRouteRelic>().ToMutable();
+            awakening.Stage = 3;
+            await RelicCmd.Obtain(awakening, player);
+            try
+            {
+                foreach (int stage in new[] { 2, 3, 4 })
+                foreach (var scenario in new (Type Type, bool Rewrite, bool Swift, int OwnDraw, bool Pure)[]
+                {
+                    (typeof(StrikeIronclad), false, false, 0, true),
+                    (typeof(DefendIronclad), false, false, 0, true),
+                    (typeof(PommelStrike), false, false, 1, false),
+                    (typeof(PommelStrike), true, false, 0, true),
+                    (typeof(StrikeIronclad), false, true, 1, true),
+                    (typeof(BladeDance), true, true, 1, false),
+                    (typeof(Shiv), false, false, 0, false),
+                    (typeof(Shiv), true, false, 0, true),
+                })
+                {
+                    await ctx.Reset();
+                    awakening.Stage = stage;
+                    var card = await ctx.Add(scenario.Type, PileType.Hand);
+                    if (scenario.Swift) CardCmd.Enchant<Swift>(card, 1);
+                    if (scenario.Rewrite) HumilityExtractedCards.Apply(card);
+                    Check(HumilityAwakening.IsPure(card) == scenario.Pure,
+                        "original/rewritten/keyword/enchantment purity: " + scenario.Type.Name);
+                    await ctx.AddFillerCards(PileType.Draw, 10);
+                    await ctx.Play(card, card.TargetType == TargetType.AnyEnemy ? ctx.PrimaryEnemy : null);
+                    int expected = scenario.OwnDraw + (stage >= 3 && scenario.Pure ? 2 : 0);
+                    Check(PileType.Hand.GetPile(player).Cards.Count == expected,
+                        "actual awakening relic hook draws two only for qualifying cards at active stage");
+                }
+            }
+            finally { await RelicCmd.Remove(awakening); }
             Check(HumilityRewriteCapability.Find(ModelDb.Card<StrikeIronclad>()) == null, "canonical card never rewritten");
             MaidenSuccubusMod.Logger.Info($"[DS27HumilityRuntimeTest] PASS {checks} assertions; runtime layer only, selector adapters still pending.");
         }

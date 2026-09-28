@@ -5,6 +5,19 @@ from TestDesignSyncNeutral20260927 import read
 
 
 class HumilityRuntime(unittest.TestCase):
+    def test_awakening_uses_structural_evidence_and_two_draws(self):
+        relic = read('src/Relics/FourthRouteRelics.cs').split('public sealed class HumilityRouteRelic', 1)[1].split('[RegisterRelic', 1)[0]
+        self.assertIn('HumilityAwakening.IsPure(cardPlay.Card)', relic)
+        self.assertIn('CardPileCmd.Draw(context, 2, Owner)', relic)
+        self.assertIn('cardPlay.Card.Owner != Owner', relic)
+        self.assertIn('Stage < 3', relic)
+        self.assertNotIn('.Split(', relic)
+        code = read('src/Core/Cards/HumilityAwakening.cs')
+        for text in ('rewrite.Program.HasDamageOrBlock', 'OnlyDamageAndBlock', 'card.CanonicalKeywords.Any()',
+                     'EnchantmentKeywords(card.Enchantment)', 'ControlQuery.GetProjection(card)', 'card.Affliction?.DynamicExtraCardText'):
+            self.assertIn(text, code)
+        self.assertIn('await RelicCmd.Obtain(awakening, player)', read('src/ConsoleCommands/DesignHumilityRuntimeTestConsoleCmd.cs'))
+
     def test_live_card_target_shared_between_execution_and_description(self):
         native = read('src/Core/Cards/HumilityNativeEffects.cs')
         for text in ('HumilityTarget.CurrentCardTarget', 'TargetType.AnyEnemy => HumilityTarget.Selected',

@@ -50,6 +50,8 @@ internal static class RemovedCalls
         return expression.DescendantNodes().OfType<InvocationExpressionSyntax>().All(call => Visual(call, method));
     }
 
+    internal static bool IsVisual(InvocationExpressionSyntax call, MethodDeclarationSyntax method) => Visual(call, method);
+
     private static bool Visual(InvocationExpressionSyntax call, MethodDeclarationSyntax method)
     {
         if (call.Expression is MemberBindingExpressionSyntax bound && bound.Name.Identifier.Text == "AddChildSafely"
@@ -63,6 +65,8 @@ internal static class RemovedCalls
             && name is "Create" or "CreateNormal") return true;
         if (name == "AddChildSafely" && (receiver.Contains("CombatVfxContainer", StringComparison.Ordinal)
             || receiver == "NGame.Instance.CurrentRunNode.GlobalUi")) return true;
+        if (name == "AddChildSafely" && receiver.EndsWith("GlobalUi", StringComparison.Ordinal)
+            && call.Ancestors().OfType<ConditionalAccessExpressionSyntax>().Any(a => a.Expression.ToString() is "NRun.Instance" or "NGame.Instance")) return true;
         if (name == "GetCreatureNode" && receiver.StartsWith("NCombatRoom.", StringComparison.Ordinal)) return true;
         if (LocalType(member.Expression, method)?.EndsWith("Vfx", StringComparison.Ordinal) == true) return true;
         // Pure collection reads inside a visual callback only. Nested predicates

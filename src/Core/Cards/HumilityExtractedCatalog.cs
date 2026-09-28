@@ -3,7 +3,7 @@ using System.Text.Json.Nodes;
 
 namespace MaidenSuccubus.Core.Cards;
 
-internal sealed record HumilityExtractionEntry(HumilityEffectProgram? Program, string? Error);
+internal sealed record HumilityExtractionEntry(HumilityEffectProgram? Program, string? Error, bool OnlyDamageAndBlock = false);
 
 /// <summary>Generated data, never a hand-maintained type whitelist.</summary>
 internal sealed class HumilityExtractedCatalog
@@ -12,7 +12,7 @@ internal sealed class HumilityExtractedCatalog
 
     internal HumilityExtractedCatalog(string json)
     {
-        if (JsonNode.Parse(json) is not JsonObject root || root["schemaVersion"]?.GetValue<int>() != 1
+        if (JsonNode.Parse(json) is not JsonObject root || root["schemaVersion"]?.GetValue<int>() is not (1 or 2)
             || root["cards"] is not JsonArray cards)
             throw new FormatException("Invalid extracted humility catalog.");
         var entries = new Dictionary<string, HumilityExtractionEntry>(StringComparer.Ordinal);
@@ -26,7 +26,11 @@ internal sealed class HumilityExtractedCatalog
             if (status == "extracted" && string.IsNullOrEmpty(error)) program = HumilityEffectProgram.Load(card["program"]);
             else if (status == "unsupported" && card["program"] == null && !string.IsNullOrWhiteSpace(error)) program = null;
             else throw new FormatException("Inconsistent extracted card status: " + name);
-            if (!entries.TryAdd(name, new(program, error))) throw new FormatException("Duplicate extracted card identity: " + name);
+            bool pure = root["schemaVersion"]!.GetValue<int>() == 2
+                ? card["onlyDamageAndBlock"]?.GetValue<bool>() ?? throw new FormatException("Missing original-effect classification: " + name)
+                : false;
+            if (pure && program?.HasDamageOrBlock != true) throw new FormatException("Pure card requires nonempty effects: " + name);
+            if (!entries.TryAdd(name, new(program, error, pure))) throw new FormatException("Duplicate extracted card identity: " + name);
         }
         Entries = new ReadOnlyDictionary<string, HumilityExtractionEntry>(entries);
     }
