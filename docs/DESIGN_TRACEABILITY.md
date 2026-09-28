@@ -6,6 +6,10 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-02W：圣洁路线全文（READY）
+
+本批44张`CARD-H-*`正式条目→DS27-02W→7处逐字/标点回修、88基础/升级独立全文/资源图标计数及Run/Hand验证→DS27-CARD-TEXT/GATES。前置`2eba001c`，无设计漂移，既有效果场景保留，不改规则/数值，不部署。
+
 ## DS27-04I：遗忘之魂（IMPLEMENTED，游戏内待验）
 
 `RELIC-VANILLA-002`完整条目→DS27-04I→原版ForgottenSoul实例动态伤害/本角色隔离/正反变奏描述→DS27-RELIC/COMPAT/GATES。前置`4538afc9`，没有设计漂移。不将原版CharonsAshes误作遗忘之魂，不替换消耗命令或原生RNG，不部署。
