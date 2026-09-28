@@ -6,6 +6,10 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-04F：反咒镜与神界星尘（READY）
+
+前置`17284731`；Q10→`RELIC-CHAR-003/006`→DS27-04F→原生负面变化/角色归属/反应防递归、原生生成/每次实际出牌/计数保存、精确文本/悬停→DS27效果/文本/COMPAT/GATES。数值原文不变；实现及测试待完成，未部署。
+
 ## DS27-04E：祈祷耳环与结界生成装置（IMPLEMENTED，游戏内待验）
 
 `RELIC-CHAR-001/004`→DS27-04E→普通/稀有两模型、原生变身成功钩子、本人回合跨战斗计数、文本与悬停→DS27文本/效果/COMPAT/GATES。前置`e0cb64f2`，同步`16bf64c9`；数值原文不变。采用AfterSideTurnStartLate避免圣域当回合扣除，当前DLL双阶段顺序已只读核验。317新增生产断言累计13202、8新增静态累计323、33编码、Debug/Release和四内容门通过。`ms_test_magic_relics confirm`已编译未执行；自然回合/完整存读档/联网与图标渲染待验。视觉317和全卡旧审计问题保留，未部署，见`DESIGN_SYNC_20260927_BATCH38.md`。
