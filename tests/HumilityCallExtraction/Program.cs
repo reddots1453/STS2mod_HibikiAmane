@@ -387,6 +387,43 @@ if (args.SequenceEqual(new[] { "--self-test" }))
     Check(inheritedHook.Single(c => c.Card == "Fixture.FurtherDerived").Program != null
         && !inheritedHook.Single(c => c.Card == "Fixture.FurtherDerived").OnlyDamageAndBlock,
         "inherited original hooks prevent false pure-effect classification");
+    const string historyQuery = """
+        class HistoryCard {
+          Task OnPlay(Context context, Play play) {
+            int count = !HasLostHp(Owner.Creature) ? 1 : DynamicVars.Repeat.IntValue;
+            return DamageCmd.Attack(5).WithHitCount(count).FromCard(this, play).Targeting(play.Target).Execute(context);
+          }
+          static bool HasLostHp(Creature creature) {
+            return CombatManager.Instance.History.Entries.OfType<DamageReceivedEntry>().Any((DamageReceivedEntry e) => e.HappenedThisTurn(creature.CombatState) && e.Receiver == creature && e.Result.UnblockedDamage > 0);
+          }
+        }
+        """;
+    var historyProgram = CallExtractor.Extract(historyQuery).Single().Program;
+    Check(historyProgram?.Effects.Single().Repeats.Evaluate(default, key => key == "$ownerLostHpThisTurn" ? 0 : 3) == 1
+        && historyProgram.Effects.Single().Repeats.Evaluate(default, key => key == "$ownerLostHpThisTurn" ? 1 : 3) == 3,
+        "source-proven history predicate preserves live hit count, not card-name dispatch");
+    Check(CallExtractor.Extract(historyQuery.Replace("e.Result.UnblockedDamage > 0", "e.Result.BlockedDamage > 0")).Single().Program == null
+        && CallExtractor.Extract(historyQuery.Replace("return CombatManager", "MutateState(); return CombatManager")).Single().Program == null,
+        "different history predicate and side-effectful helper are not mistaken for pure loss query");
+    string resultBody = "var hit = " + attack + " await CreatureCmd.GainBlock(Owner.Creature, hit.Results.SelectMany((List<DamageResult> rows) => rows).Sum((DamageResult item) => item.TotalDamage + item.OverkillDamage), props, play);";
+    var dependent = Extract(resultBody);
+    Check(dependent.Program?.Effects.Count == 2 && dependent.Program.Effects[1].Amount.Name == "$effectDamage:0",
+        "attack result sum binds to prior native damage effect");
+    var afterBlock = Extract("await CreatureCmd.GainBlock(Owner.Creature, 1, play); " + resultBody);
+    Check(afterBlock.Program?.Effects[2].Amount.Name == "$effectDamage:1", "result index includes preceding block effects");
+    Check(Extract(resultBody.Replace("await CreatureCmd.GainBlock", "hit = other; await CreatureCmd.GainBlock")).Program == null
+        && Extract(resultBody.Replace("item.TotalDamage + item.OverkillDamage", "item.UnblockedDamage")).Program == null,
+        "unknown result mutation or different aggregation rejected rather than guessed");
+    var resultSink = new RecordedEffects();
+    var savedResult = HumilityEffectProgram.Load(dependent.Program!.DoubleAmounts().Save());
+    await savedResult.Execute(default, key => key == "$effectDamage:0" ? resultSink.Attacks.Single().Amount : 7, resultSink);
+    Check(resultSink.Order.SequenceEqual(new[] { "Damage:14", "Block:28" }),
+        "dependent block reads completed doubled damage then doubles its own amount after serialization");
+    var zeroHit = Extract(resultBody.Replace(".FromCard(this, play)", ".WithHitCount(0).FromCard(this, play)"));
+    var zeroSink = new RecordedEffects();
+    await zeroHit.Program!.DoubleAmounts().Execute(default, key => key == "$effectDamage:0" ? 0 : 7, zeroSink);
+    Check(zeroSink.Begun.SequenceEqual(new[] { 0, 1 }) && zeroSink.Order.SequenceEqual(new[] { "Block:0" }),
+        "zero-hit effect initializes result slot without shifting subsequent effect indices");
     return 0;
 }
 if (args.Length == 2 && args[0] == "--verify-assembly")
@@ -464,6 +501,8 @@ internal sealed class RecordedEffects : IHumilityEffectSink
     internal List<(decimal Amount, HumilityTarget Target, int Hits)> Attacks { get; } = [];
     internal List<HumilityAttackSource> Sources { get; } = [];
     internal List<string> Order { get; } = [];
+    internal List<int> Begun { get; } = [];
+    public void BeginEffect(int index) => Begun.Add(index);
     public Task Damage(decimal amount, HumilityTarget target, int hits, HumilityAttackSource source)
     {
         Attacks.Add((amount, target, hits));

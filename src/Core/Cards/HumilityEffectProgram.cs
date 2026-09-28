@@ -105,6 +105,7 @@ internal sealed record HumilityEffect(HumilityEffectKind Kind, HumilityTarget Ta
 internal interface IHumilityEffectSink
 {
     bool CanContinue { get; }
+    void BeginEffect(int index) { }
     Task Damage(decimal baseAmount, HumilityTarget target, int hits, HumilityAttackSource source);
     Task Block(decimal baseAmount, HumilityTarget target, int repetitions);
 }
@@ -145,10 +146,12 @@ internal sealed class HumilityEffectProgram
         ArgumentNullException.ThrowIfNull(sink);
         if (x.Energy < 0 || x.Stars < 0 || x.Secondary < 0)
             throw new ArgumentOutOfRangeException(nameof(x), "X values must be nonnegative play ledger values.");
-        foreach (HumilityEffect effect in Effects)
+        for (int index = 0; index < Effects.Count; index++)
         {
+            HumilityEffect effect = Effects[index];
             cancellationToken.ThrowIfCancellationRequested();
             if (!sink.CanContinue) return;
+            sink.BeginEffect(index);
             decimal count = decimal.Truncate(effect.Repeats.Evaluate(x, resolve));
             if (count <= 0) continue;
             int repeats = checked((int)count);

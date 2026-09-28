@@ -41,6 +41,7 @@ internal static class CallExtractor
                     expanded = expanded.WithBody(SyntaxFactory.Block(SyntaxFactory.ExpressionStatement(expanded.ExpressionBody.Expression))).WithExpressionBody(null);
                 var secondExpansion = new HelperExpansion(methods, method, chain);
                 expanded = (MethodDeclarationSyntax)secondExpansion.Visit(expanded)!;
+                expanded = (MethodDeclarationSyntax)new NumericQueries(chain).Visit(expanded)!;
                 var program = Slice(expanded, methods);
                 bool pure = program.HasDamageOrBlock && !expansion.DeletedOtherEffect && !secondExpansion.DeletedOtherEffect
                     && chain.All(t => PurityClassifier.IsPure(t, expanded));
@@ -259,6 +260,8 @@ internal static class CallExtractor
     private static HumilityValue Value(ExpressionSyntax expression, MethodDeclarationSyntax method, int before, HashSet<string> resolving)
     {
         expression = Unwrap(expression);
+        if (NumericQueries.AttackResult(expression, method, before) is { } resultIndex)
+            return HumilityValue.Named("$effectDamage:" + resultIndex);
         if (expression is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.CoalesceExpression } coalesce
             && coalesce.Right.ToString() == "0"
             && Unwrap(coalesce.Left) is ConditionalAccessExpressionSyntax powerAccess
@@ -387,6 +390,8 @@ internal static class CallExtractor
     private static HumilityValue BooleanValue(ExpressionSyntax expression, MethodDeclarationSyntax method, int before, HashSet<string> resolving)
     {
         expression = Unwrap(expression);
+        if (expression.ToString() == "__humilityOwnerLostHpThisTurn")
+            return HumilityValue.Named("$ownerLostHpThisTurn");
         if (expression.ToString() is "IsUpgraded" or "base.IsUpgraded" or "this.IsUpgraded")
             return HumilityValue.Named("$upgraded");
         if (Compact(expression) is "play.Target.CurrentHp*2<play.Target.MaxHp"

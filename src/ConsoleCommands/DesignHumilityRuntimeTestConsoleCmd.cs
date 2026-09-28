@@ -1,6 +1,7 @@
 #if DEBUG
 using System.Text.RegularExpressions;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Commands.Builders;
 using MegaCrit.Sts2.Core.DevConsole;
@@ -229,6 +230,39 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
                         "formal blade preserves native selected/all-enemy target without original VFX lookup");
                     Check(ctx.Self.Block == 6, "formal blade retains calculated parry block and doubles it");
                 }
+
+                await ctx.Reset();
+                var resultLesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var fists = await ctx.Add<Fisticuffs>(PileType.Hand, upgraded);
+                await ctx.ApplyPower<StrengthPower>(ctx.Self, 3);
+                await ctx.ApplyPower<DexterityPower>(ctx.Self, 2);
+                await ctx.Play(resultLesson, selectedCards: [fists]);
+                int expectedDamage = (upgraded ? 18 : 14) + 3;
+                Check(Text(fists) == $"造成{expectedDamage}点伤害。\n获得{expectedDamage * 2 + 2}点格挡。",
+                    "formal result-dependent description previews native strength then dependent block and dexterity");
+                await CreatureCmd.GainBlock(ctx.PrimaryEnemy, 100, MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered, null);
+                int beforeFists = ctx.PrimaryEnemy.CurrentHp;
+                await ctx.Play(fists, ctx.PrimaryEnemy);
+                Check(ctx.PrimaryEnemy.CurrentHp == beforeFists && ctx.PrimaryEnemy.Block == 100 - expectedDamage
+                    && ctx.Self.Block == expectedDamage * 2 + 2,
+                    "result-dependent block includes blocked damage and doubles block formula without reapplying strength");
+
+                await ctx.Reset();
+                var historyLesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var spite = await ctx.Add<Spite>(PileType.Hand, upgraded);
+                await ctx.Play(historyLesson, selectedCards: [spite]);
+                bool previouslyHurt = CombatManager.Instance.History.Entries.OfType<DamageReceivedEntry>()
+                    .Any(entry => entry.HappenedThisTurn(combat) && entry.Receiver == ctx.Self && entry.Result.UnblockedDamage > 0);
+                int baseHits = previouslyHurt ? (upgraded ? 3 : 2) : 1;
+                Check(Text(spite) == (baseHits == 1 ? "造成10点伤害。" : $"造成10点伤害{baseHits}次。"),
+                    "history-dependent count uses this turn's existing history rather than treating fixture reset as new turn");
+                await CreatureCmd.Damage(choice, ctx.Self, 1, MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered, null, null);
+                Check(Text(spite) == $"造成10点伤害{(upgraded ? 3 : 2)}次。",
+                    "history-dependent description refreshes when native damage records health loss");
+                int beforeSpite = ctx.PrimaryEnemy.CurrentHp;
+                await ctx.Play(spite, ctx.PrimaryEnemy);
+                Check(beforeSpite - ctx.PrimaryEnemy.CurrentHp == (upgraded ? 30 : 20),
+                    "formal history-based attack retains upgraded hit count and doubled damage");
 
                 await ctx.Reset();
                 var extractedSurf = await ctx.Add<Surf>(PileType.Hand, upgraded);

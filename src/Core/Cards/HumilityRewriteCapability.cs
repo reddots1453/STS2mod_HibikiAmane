@@ -81,7 +81,7 @@ public sealed class HumilityRewriteCapability : CardPlayCapability
         if (_program == null || Owner == null || ControlQuery.GetProjection(Owner) != null) return false;
         var sink = new HumilityNativeEffects(choiceContext, cardPlay);
         await _program.Execute(HumilityNativeEffects.XForPlay(cardPlay),
-            name => HumilityNativeEffects.ResolveValue(cardPlay.Card, name, cardPlay.Target), sink);
+            sink.ResolveValue, sink);
         return true;
     }
 

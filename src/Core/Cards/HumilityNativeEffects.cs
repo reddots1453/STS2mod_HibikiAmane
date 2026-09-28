@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Commands.Builders;
 using MegaCrit.Sts2.Core.Entities.Cards;
@@ -18,6 +19,16 @@ namespace MaidenSuccubus.Core.Cards;
 internal sealed class HumilityNativeEffects(PlayerChoiceContext context, CardPlay play) : IHumilityEffectSink
 {
     private readonly ICombatState? _combat = play.Card.CombatState;
+    private readonly Dictionary<int, decimal> _damageResults = [];
+    private int _effectIndex;
+    public void BeginEffect(int index)
+    {
+        _effectIndex = index;
+        _damageResults[index] = 0; // Skipped/zero-hit attacks still have an indexed empty result.
+    }
+    internal decimal ResolveValue(string name) => name.StartsWith("$effectDamage:", StringComparison.Ordinal)
+        ? _damageResults[int.Parse(name[14..], System.Globalization.CultureInfo.InvariantCulture)]
+        : ResolveValue(play.Card, name, play.Target);
     public bool CanContinue => _combat != null && ReferenceEquals(play.Card.CombatState, _combat)
         && CombatManager.Instance.IsInProgress && !CombatManager.Instance.IsOverOrEnding
         && !play.Player.Creature.IsDead;
@@ -61,6 +72,10 @@ internal sealed class HumilityNativeEffects(PlayerChoiceContext context, CardPla
     internal static decimal ResolveValue(CardModel card, string name, Creature? target)
     {
         if (name == "$upgraded") return card.IsUpgraded ? 1 : 0;
+        if (name == "$ownerLostHpThisTurn") return card.CombatState != null
+            && CombatManager.Instance.History.Entries.OfType<DamageReceivedEntry>()
+                .Any(entry => entry.HappenedThisTurn(card.CombatState) && entry.Receiver == card.Owner.Creature
+                    && entry.Result.UnblockedDamage > 0) ? 1 : 0;
         if (name == "$block") return card.Owner.Creature.Block;
         if (name == "$hp") return card.Owner.Creature.CurrentHp;
         if (name == "$enemies") return card.CombatState?.HittableEnemies.Count ?? 0;
@@ -121,6 +136,8 @@ internal sealed class HumilityNativeEffects(PlayerChoiceContext context, CardPla
             default: throw new InvalidOperationException("Unsupported humility damage target.");
         }
         await attack.WithHitFx("vfx/vfx_attack_slash").Execute(context);
+        _damageResults[_effectIndex] = attack.Results.SelectMany(results => results)
+            .Sum(result => result.TotalDamage + result.OverkillDamage);
     }
 
     public async Task Block(decimal baseAmount, HumilityTarget target, int repetitions)
