@@ -64,6 +64,7 @@
       "SporeMucusCurse", "VineSeedCurse"
     ],
     "MSGeneratedCardPool": [
+      "AphrodisiacPoisoningCurse",
       "ArousalStatus", "BarbedHookStatus", "BitingPaperStatus",
       "BlissScripture", "CalmMind", "ClimaxBanCurse", "ClothingBurnStatus",
       "CounterBarrierII", "CounterBarrierIII", "CounterBarrierIV",

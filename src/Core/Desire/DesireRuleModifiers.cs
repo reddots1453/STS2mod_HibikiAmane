@@ -5,6 +5,8 @@ namespace MaidenSuccubus.Core.Desire;
 
 public interface IDesireRuleModifier
 {
+    decimal ModifyDesireGain(Player player, decimal amount) => amount;
+
     decimal ModifyDesireCap(Player player, decimal currentCap) =>
         currentCap;
 
@@ -13,6 +15,14 @@ public interface IDesireRuleModifier
 
 public static class DesireRuleModifiers
 {
+    public static decimal ModifyGain(Player player, decimal amount)
+    {
+        if (amount <= 0) return amount;
+        foreach (var modifier in Enumerate(player))
+            amount = modifier.ModifyDesireGain(player, amount);
+        return amount;
+    }
+
     public static decimal ModifyCap(Player player, decimal currentCap)
     {
         foreach (var modifier in Enumerate(player))

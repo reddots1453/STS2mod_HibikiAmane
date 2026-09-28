@@ -13,6 +13,7 @@ internal static class DesignSyncStatusTextContract
     // Literal DesignDoc oracles. No localization/vars are used to manufacture expectations.
     private static readonly Expected[] Entries =
     [
+        new(typeof(AphrodisiacPoisoningCurse), "虚无。\n如果这张牌在你的手牌中，获得欲望时，额外获得〈欲望〉。"),
         new(typeof(AphrodisiacCurse), "打出后移除出牌组。\n获得〈欲望〉〈欲望〉。"),
         new(typeof(ArousalStatus), "不能被打出。\n虚无。\n每当你抽到该牌时，获得〈欲望〉。"),
         new(typeof(BarbedHookStatus), "失去1层魔装耐久。\n消耗。"),

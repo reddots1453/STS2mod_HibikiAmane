@@ -48,6 +48,11 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
 {
     private static readonly HashSet<Player> ResolvingPlayers = [];
 
+    public decimal ModifySecondaryResourceGain(SecondaryResourceContext context, decimal amount) =>
+        context.Definition.Id == DesireResource.Id
+            ? DesireRuleModifiers.ModifyGain(context.Player, amount)
+            : amount;
+
     public Task AfterSecondaryResourceSpent(SecondaryResourceSpendContext context)
     {
         DesireCombatSpending.Record(context);

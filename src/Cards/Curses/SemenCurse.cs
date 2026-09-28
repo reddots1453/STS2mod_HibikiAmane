@@ -397,3 +397,12 @@ public sealed class ClimaxBanCurse : MSEventCurseTemplate, IDesireRuleModifier
             ? DesireResourceRules.RecheckMaximum(Owner, this)
             : Task.CompletedTask;
 }
+
+[RegisterCard(typeof(MSGeneratedCardPool))]
+public sealed class AphrodisiacPoisoningCurse : MSEventCurseTemplate, IDesireRuleModifier
+{
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Ethereal];
+
+    public decimal ModifyDesireGain(Player player, decimal amount) =>
+        player == Owner && Pile?.Type == PileType.Hand && amount > 0 ? amount + 1 : amount;
+}

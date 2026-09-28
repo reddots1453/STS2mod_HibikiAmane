@@ -15,8 +15,8 @@ class CardTextInventoryTests(unittest.TestCase):
         cls.rows = {row['model']: row for row in cls.report['cards']}
 
     def test_all_registered_models_present_once_and_no_execution_claim(self):
-        self.assertEqual(len(self.rows), 227)
-        self.assertEqual(len(self.report['cards']), 227)
+        self.assertEqual(len(self.rows), 228)
+        self.assertEqual(len(self.report['cards']), 228)
         self.assertEqual(self.report['integrityErrors'], [])
         self.assertFalse(self.report['summary']['goalCompleted'])
         self.assertTrue(all(row['runtime'] == 'not_run' for row in self.rows.values()))
@@ -53,7 +53,7 @@ class CardTextInventoryTests(unittest.TestCase):
         self.assertEqual(self.rows['MagicResonance']['category'], 'retired_compatibility')
         self.assertEqual(self.rows['MaidenStrike']['category'], 'current_card_or_derivative')
         self.assertEqual(self.rows['MaidenStrike']['textEvidence'], coverage.BOTH)
-        self.assertEqual(self.report['summary']['current'], 217)
+        self.assertEqual(self.report['summary']['current'], 218)
 
     def test_new_provider_disconnect_restores_partial_not_false_full_coverage(self):
         report = self.mutated(coverage.RUNNER, 'DesignSyncRemainingTextContract.Validate(context, card, scenario.Upgraded);', '')

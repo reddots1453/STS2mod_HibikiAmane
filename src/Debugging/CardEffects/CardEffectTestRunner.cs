@@ -11,7 +11,7 @@ namespace MaidenSuccubus.Debugging.CardEffects;
 
 internal static class CardEffectTestRunner
 {
-    private const int ExpectedCardCount = 227;
+    private const int ExpectedCardCount = 228;
     private static readonly SemaphoreSlim Gate = new(1, 1);
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -166,7 +166,7 @@ internal static class CardEffectTestRunner
         if (string.Equals(requestedCard, "ds27-status-text", StringComparison.OrdinalIgnoreCase))
         {
             var batch = CardEffectTestCatalog.All.Where(spec => DesignSyncStatusTextContract.Contains(spec.CardType)).ToArray();
-            if (batch.Length != 37) throw new InvalidOperationException("DS27 status text requires all 37 cards.");
+            if (batch.Length != 38) throw new InvalidOperationException("DS27 status text requires all 38 cards.");
             return batch;
         }
         if (string.Equals(requestedCard, "all", StringComparison.OrdinalIgnoreCase))

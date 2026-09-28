@@ -269,6 +269,7 @@ internal static class CardEffectTestCatalog
 
     private static void RegisterGenerated()
     {
+        BaseOnly<AphrodisiacPoisoningCurse>(DesignSyncHandGainContract.Run, 10);
         DrawTriggerDesire<ArousalStatus>(1);
         PlayedArmorLoss<BarbedHookStatus>(1);
         EndTurnArmorLoss<BitingPaperStatus>(1, CardKeyword.Exhaust);

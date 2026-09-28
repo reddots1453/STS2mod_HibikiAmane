@@ -350,6 +350,8 @@
   "MAIDEN_SUCCUBUS_CARD_GAG_CURSE.title": "口球",
   "MAIDEN_SUCCUBUS_CARD_GAG_CURSE.description": "如果这张牌在你的[gold]手牌[/gold]中，你的技能牌额外耗能{energyPrefix:maidenEnergyIcons(1)}。",
   "MAIDEN_SUCCUBUS_CARD_CLIMAX_BAN_CURSE.title": "绝顶禁止",
+  "MAIDEN_SUCCUBUS_CARD_APHRODISIAC_POISONING_CURSE.title": "媚药中毒",
+  "MAIDEN_SUCCUBUS_CARD_APHRODISIAC_POISONING_CURSE.description": "如果这张牌在你的[gold]手牌[/gold]中，获得[pink]欲望[/pink]时，额外获得{energyPrefix:maidenDesireIcons(1)}。",
   "MAIDEN_SUCCUBUS_CARD_CLIMAX_BAN_CURSE.description": "如果这张牌在你的[gold]手牌[/gold]中，你不会因[pink]欲望[/pink]值满进入[gold]高潮平复[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_FOURTH_ROUTE_QUEST_CHOICE.title": "女神的任务",
   "MAIDEN_SUCCUBUS_CARD_FOURTH_ROUTE_QUEST_CHOICE.description": "[gold]试炼[/gold]：{QuestText}。\n[green]奖励[/green]：{RewardText}。",
