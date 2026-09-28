@@ -39,14 +39,14 @@ public sealed class HolyPunishment : MSHolyCard
         CardModel? card = (await CardSelectCmd.FromCombatPile(context, draw, Owner,
             new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, 1),
             candidate => candidate.IsTransformable)).FirstOrDefault();
-        CardModel? transformed = card == null
-            ? null
-            : await ScriptureCmd.TransformToRandomScripture(card);
+        if (card == null || card.Owner != Owner || card.Pile != draw || !card.IsTransformable) return;
+        CardModel transformed = await ScriptureCmd.TransformToRandomScripture(card);
         if (transformed != null
             && await Core.Transformation.TransformationCmd.PayOverdraft(
                 context, Owner.Creature, this))
         {
-            await CardPileCmd.Add(transformed, PileType.Hand);
+            draw.MoveToTopInternal(transformed);
+            await CardPileCmd.Draw(context, 1, Owner);
         }
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);

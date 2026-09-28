@@ -18,13 +18,16 @@ public sealed class ConsecrationPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
+    private bool IsActive => IsMutable && Amount > 0 && Owner.IsAlive && Owner.Powers.Contains(this);
     public override async Task AfterPlayerTurnStart(PlayerChoiceContext context, Player player)
     {
-        if (player.Creature != Owner) return;
+        if (!IsActive || player.Creature != Owner) return;
         CardModel? card = (await CardSelectCmd.FromHand(context, player,
             new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, 1),
             candidate => candidate.IsTransformable, this)).FirstOrDefault();
-        if (card != null) await ScriptureCmd.TransformToRandomScripture(card);
+        if (IsActive && card != null && card.Owner == player
+            && card.Pile?.Type == PileType.Hand && card.IsTransformable)
+            await ScriptureCmd.TransformToRandomScripture(card);
     }
 }
 

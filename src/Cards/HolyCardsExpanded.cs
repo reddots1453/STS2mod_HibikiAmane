@@ -574,6 +574,7 @@ public sealed class Gospel : MSHolyCard
             .ToArray();
         foreach (CardModel card in hand)
         {
+            if (card.Owner != Owner || card.Pile?.Type != PileType.Hand || !card.IsTransformable) continue;
             CardModel? transformed = card.Type switch
             {
                 CardType.Skill =>

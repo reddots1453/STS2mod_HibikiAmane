@@ -212,6 +212,13 @@ internal static class CardEffectTestRunner
             return batch;
         }
 
+        if (string.Equals(requestedCard, "ds27-scripture-generation", StringComparison.OrdinalIgnoreCase))
+        {
+            var batch = CardEffectTestCatalog.All.Where(spec => DesignSyncScriptureGenerationContract.Types.Contains(spec.CardType)).ToArray();
+            if (batch.Length != 4) throw new InvalidOperationException("DS27 scripture generation requires all four cards.");
+            return batch;
+        }
+
         if (string.Equals(requestedCard, "ds27-scriptures", StringComparison.OrdinalIgnoreCase))
         {
             var batch = CardEffectTestCatalog.All.Where(spec => DesignSyncScriptureContract.Types.Contains(spec.CardType)).ToArray();

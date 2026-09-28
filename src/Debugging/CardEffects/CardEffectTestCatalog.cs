@@ -202,10 +202,10 @@ internal static class CardEffectTestCatalog
         FocusedSlashProbe();
         SelectedEnchant<ForgeCharge>("Charge", 2, 3, fromPile: PileType.Discard);
         ForgeNimbleProbe();
-        TransformHand<Gospel>();
+        CustomVariants<Gospel>(DesignSyncScriptureGenerationContract.Gospel, 10);
         HolyCurseProbe();
         HolyFlameProbe();
-        DamageAndTransformDraw<HolyPunishment>(9, 12);
+        CustomVariants<HolyPunishment>(DesignSyncScriptureGenerationContract.Punishment, 30);
         HolyRadianceProbe();
         HolyResonanceProbe();
         InwardDisciplineProbe();
@@ -1709,38 +1709,10 @@ internal static class CardEffectTestCatalog
         }, 5);
 
     private static void ConsecrationProbe() =>
-        CustomVariants<Consecration>(async (ctx, card, _) =>
-        {
-            await ctx.Play(card);
-            MaidenStrike selected = await ctx.Add<MaidenStrike>(
-                PileType.Hand, skipVisuals: false);
-            TestCardSelector selector = new();
-            selector.PrepareToSelect([selected]);
-            using (CardSelectCmd.UseSelector(selector))
-            {
-                ConsecrationPower power =
-                    ctx.Self.Powers.OfType<ConsecrationPower>().Single();
-                await power.AfterPlayerTurnStart(
-                    new BlockingPlayerChoiceContext(), ctx.Player);
-            }
-            ctx.AssertTrue("selected hand card transformed",
-                selected.HasBeenRemovedFromState);
-            ctx.AssertEqual("exactly one scripture replaces selected card", 1,
-                PileType.Hand.GetPile(ctx.Player).Cards.Count(c => c is ScriptureCardTemplate));
-        }, 2);
+        CustomVariants<Consecration>(DesignSyncScriptureGenerationContract.Consecration, 10);
 
     private static void ChantProbe() =>
-        CustomVariants<Chant>(async (ctx, card, upgraded) =>
-        {
-            ctx.AssertEqual("upgrade changes only source energy cost",
-                upgraded ? 0 : 1,
-                card.EnergyCost.GetWithModifiers(CostModifiers.Local));
-            await ctx.Play(card, selectedIndices: [0]);
-            ScriptureCardTemplate generated = PileType.Hand.GetPile(ctx.Player)
-                .Cards.OfType<ScriptureCardTemplate>().Single();
-            ctx.AssertEqual("generated scripture remains unupgraded",
-                false, generated.IsUpgraded);
-        }, 2);
+        CustomVariants<Chant>(DesignSyncScriptureGenerationContract.Chant, 20);
 
     private static void DesireWardProbe() =>
         CustomVariants<DesireWard>(async (ctx, card, upgraded) =>
@@ -3122,16 +3094,6 @@ internal static class CardEffectTestCatalog
                 fixture.Enchantment?.Amount ?? 0);
         }, 3);
 
-    private static void TransformHand<T>() where T : CardModel => CustomVariants<T>(async (ctx, card, _) =>
-    {
-        await ctx.Add<StrikeIronclad>(PileType.Hand, skipVisuals: false);
-        await ctx.Add<DefendIronclad>(PileType.Hand, skipVisuals: false);
-        await ctx.Play(card);
-        int scriptures = PileType.Hand.GetPile(ctx.Player).Cards.Count(c =>
-            c is GuardianScripture or PunishmentScripture);
-        ctx.AssertEqual("attack and skill transformed to scriptures", 2, scriptures);
-    }, 1);
-
     private static void YarusMemoryProbe() =>
         CustomVariants<YarusMemory>(async (ctx, _, upgraded) =>
         {
@@ -3266,16 +3228,6 @@ internal static class CardEffectTestCatalog
                 "MagicAmplificationPower", 2);
             ctx.AssertEqual("conversion does not exhaust itself", PileType.Discard, card.Pile?.Type);
         }, 3);
-
-    private static void DamageAndTransformDraw<T>(int baseDamage, int upgradedDamage)
-        where T : CardModel => CustomVariants<T>(async (ctx, card, upgraded) =>
-        {
-            CardModel fixture = await ctx.Add<StrikeIronclad>(PileType.Draw);
-            int hp = ctx.PrimaryEnemy.CurrentHp;
-            await ctx.Play(card, ctx.PrimaryEnemy, [fixture]);
-            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, upgraded ? upgradedDamage : baseDamage);
-            ctx.AssertTrue("selected draw card transformed", fixture.HasBeenRemovedFromState);
-        }, 2);
 
     private static void SelectedCardDouble<T>() where T : CardModel =>
         CustomVariants<T>(async (ctx, card, _) =>
