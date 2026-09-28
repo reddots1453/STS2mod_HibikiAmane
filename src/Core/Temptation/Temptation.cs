@@ -46,7 +46,7 @@ public static class Temptation
     public const int ImmaculateBase = 10;
     public const int CorruptBase = 20;
     public const int PerMissingArmor = 20;
-    public const int TransparentOutfitAmount = 30;
+    public const int TransparentOutfitAmount = 20;
 
     public static int Get(Player player)
     {

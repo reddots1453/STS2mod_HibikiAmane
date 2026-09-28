@@ -25,9 +25,11 @@ class CardTextInventoryTests(unittest.TestCase):
         providers = {item['provider'] for row in self.rows.values() for item in row['providers']}
         self.assertNotIn(coverage.PREFIX + 'DesignSyncNeutralContract.cs', providers)
         self.assertNotIn(coverage.PREFIX + 'DesignSyncHolyContract.cs', providers)
-        self.assertEqual(self.rows['HumilityLesson']['textEvidence'], coverage.MISSING)
+        self.assertEqual(self.rows['HypnosisCurse']['textEvidence'], coverage.MISSING)
 
     def test_partial_and_same_combat_instance_none_are_not_double_scene_full_text(self):
+        for model in ('AllHopeLost', 'HumilityLesson', 'TransparentOutfitCurse', 'BlasphemousDesire'):
+            self.assertEqual(self.rows[model]['textEvidence'], coverage.BOTH)
         for model in ('DarkStorm', 'CurseInfection'):
             self.assertIn(coverage.PARTIAL, [item['scope'] for item in self.rows[model]['providers']])
             self.assertEqual(self.rows[model]['textEvidence'], coverage.BOTH)

@@ -306,7 +306,7 @@ internal static class CardEffectTestCatalog
         ConfigureStigmaChoice<StigmaCondemnationChoice>("CondemnationPower");
         ConfigureStigmaChoice<StigmaTargetChoice>("target");
         ConfigureStigmaChoice<StigmaWeakChoice>("WeakPower");
-        HandTemptation<TransparentOutfitCurse>(30);
+        HandTemptation<TransparentOutfitCurse>(20);
         Scripture<VitalityScripture>();
         Scripture<WisdomScripture>();
     }
@@ -3172,7 +3172,15 @@ internal static class CardEffectTestCatalog
             await MegaCrit.Sts2.Core.Commands.CardPileCmd.Add(card, PileType.Draw, skipVisuals: true);
             ctx.AssertEqual("temptation removed after leaving hand", 0,
                 Temptation.Get(ctx.Player) - before);
-        }, 2);
+            await CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);
+            ctx.AssertEqual("temptation reapplied once on reentry", amount, Temptation.Get(ctx.Player) - before);
+            T second = await ctx.Add<T>(PileType.Hand);
+            ctx.AssertEqual("two hand modifiers stack", amount * 2, Temptation.Get(ctx.Player) - before);
+            await CardPileCmd.Add(card, PileType.Discard, skipVisuals: true);
+            ctx.AssertEqual("first departure leaves second modifier", amount, Temptation.Get(ctx.Player) - before);
+            await CardPileCmd.Add(second, PileType.Exhaust, skipVisuals: true);
+            ctx.AssertEqual("all departures remove hand modifiers", 0, Temptation.Get(ctx.Player) - before);
+        }, 6);
 
     private static void DrawTriggerDesire<T>(int amount) where T : CardModel =>
         BaseOnly<T>(async (ctx, card) =>

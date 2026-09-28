@@ -29,6 +29,7 @@ GLOBAL = (
     ('DesignSyncCorruptTextContract', 'Entries', 'DS27 corrupt full rendered text', 27),
     ('DesignSyncStarterTextContract', 'Entries', 'starter full run text', 5),
     ('DesignSyncRemainingTextContract', 'Entries', 'remaining exact run text', 7),
+    ('DesignSyncFinalTextContract', 'Entries', 'final exact run text', 12),
     ('DesignSyncNeutralTextContract', 'Entries', 'DS27 neutral full rendered text', 30),
     ('DesignSyncHolyTextContract', 'Entries', 'DS27 holy full rendered text', 48),
     ('DesignSyncCombatTextContract', 'Entries', 'combat text contract true run instance', 8),
@@ -39,6 +40,7 @@ GLOBAL = (
 )
 # (model, provider, method, scope, exact assertion anchor)
 DIRECT = (
+    ('AllHopeLost', 'DesignSyncAllHopeLostContract', 'Run', BOTH, 'dual X full run text'),
     ('BurningDesire', 'DesignSyncBurningDesireContract', 'Run', BOTH, 'miasma thunder full rendered text'),
     ('AcceleratedMotion', 'DesignSyncAcceleratedMotionContract', 'Run', BOTH, 'accelerated full card text'),
     ('CalmMind', 'DesignSyncCalmMindContract', 'Run', BOTH, 'calm mind exact run text'),
