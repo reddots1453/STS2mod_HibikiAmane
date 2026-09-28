@@ -6,9 +6,9 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-02S：加速运动拾取复制（READY）
+## DS27-02S：加速运动拾取复制（IMPLEMENTED，游戏内待验）
 
-`CARD-N-150～299`完整条目→DS27-02S→Run作用域原生完整克隆/永久加入一次/战斗生成排除/保存标记→DS27效果/文本/COMPAT/GATES。前置`3441ef47`；现有新建牌只保留升级不保留附魔，需回修；测试使用真实永久入牌及模型加载，不以抽牌探针代替拾取验证。未部署。
+`CARD-N-150～299`完整条目→DS27-02S→`AcceleratedMotion.AfterCardChangedPiles`原生Run克隆/永久加入一次/战斗排除/保存标记→`DesignSyncAcceleratedMotionContract`→DS27效果/文本/COMPAT/GATES。前置`3441ef47`，同步`a543f051`。修复新建牌丢失附魔，保留数值和文本；每基础/升级场景至少41效果断言，入口`ms_test_cards confirm AcceleratedMotion`编译未运行。359静态、既有13540生产规则/33编码、Debug/Release及四门通过。旧视觉/全卡审计失败保留，完整存档/自然拾取/多人待验，未部署；见`DESIGN_SYNC_20260927_BATCH43.md`。
 
 ## DS27-02R：雷击、耀斑与瞬闪刺（IMPLEMENTED，游戏内待验）
 

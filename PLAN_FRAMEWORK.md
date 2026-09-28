@@ -18,9 +18,11 @@
 
 ---
 
-### DS27-02S：加速运动永久拾取复制（READY）
+### DS27-02S：加速运动永久拾取复制（IMPLEMENTED，游戏内待验）
 
 前置`3441ef47`。`CARD-N-150～299`：0费稀有技能，抽2/3、消耗；拾起时永久牌组加入1复制，不作用于战斗内。现有CreateCard+手动升级会丢失既有附魔等状态；按原生ICardScope规则改用RunState.CloneCard，不使用战斗CreateClone。保留SavedProperty防递归/重复拾取，复制自身不再生成复制。补完整描述、实际拾取及战斗内生成/打出、普通/附魔/升级复制、别名隔离、模型保存加载与重放回调回归。不改数值，不部署。
+
+同步`a543f051`后改为原生RunState克隆；已拾取标记在克隆前设置，复制入牌前也明确设置，避免递归。`DesignSyncAcceleratedMotionContract`替换抽牌单项探针，基础/升级各至少41效果断言，入口`ms_test_cards confirm AcceleratedMotion`。7新增静态累计359（340同步+19审计），既有13540生产规则/33编码、Debug/Release和四内容门通过。游戏脚本编译未执行，完整保存退出/多人/视觉待验；旧视觉317与全卡审计保留，未部署，见`docs/DESIGN_SYNC_20260927_BATCH43.md`。
 
 ### DS27-02R：唤雷、终极耀斑与瞬闪刺边界回归（IMPLEMENTED，游戏内待验）
 

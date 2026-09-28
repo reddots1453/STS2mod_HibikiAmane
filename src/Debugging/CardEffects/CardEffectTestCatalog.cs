@@ -59,7 +59,7 @@ internal static class CardEffectTestCatalog
 
     private static void RegisterNeutral()
     {
-        Draw<AcceleratedMotion>(2, 3);
+        CustomVariants<AcceleratedMotion>(DesignSyncAcceleratedMotionContract.Run, 41);
         BalanceBladeProbe();
         BalanceShieldProbe();
         BasicTrainingProbe();

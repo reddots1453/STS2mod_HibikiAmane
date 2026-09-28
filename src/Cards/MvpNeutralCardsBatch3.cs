@@ -87,9 +87,10 @@ public sealed class AcceleratedMotion : MSNeutralCard
         AddedPickupCopies = true;
         for (int i = 0; i < DynamicVars["Copies"].IntValue; i++)
         {
-            AcceleratedMotion copy = Owner.RunState.CreateCard<AcceleratedMotion>(Owner);
+            // This is a permanent copy, not a fresh canonical card: retain the
+            // picked card's upgrade, enchantment and other native mutable state.
+            AcceleratedMotion copy = (AcceleratedMotion)Owner.RunState.CloneCard(this);
             copy.AddedPickupCopies = true;
-            if (IsUpgraded) CardCmd.Upgrade(copy);
             await CardPileCmd.Add(copy, PileType.Deck);
         }
     }
