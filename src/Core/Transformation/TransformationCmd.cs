@@ -60,7 +60,7 @@ public static class TransformationCmd
         {
             return value;
         }
-        decimal multiplier = source is IDoubleMagicAmplification
+        decimal multiplier = MagicAmplificationCardRules.HasIntrinsicDouble(source)
             || (source.Enchantment != null
                 && creature.HasPower<TacticalCorePower>())
                 ? 2m

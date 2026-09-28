@@ -325,7 +325,7 @@ public sealed class MagicAmplificationPower : MaidenSuccubusPowerTemplate
     }
 
     private decimal AmplificationMultiplier(CardModel? card) =>
-        card is IDoubleMagicAmplification
+        MagicAmplificationCardRules.HasIntrinsicDouble(card)
         || (card?.Enchantment != null && Owner.HasPower<TacticalCorePower>())
             ? 2m
             : 1.5m;

@@ -241,6 +241,69 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
                 && !reaction.Keywords.Contains(CardKeyword.Retain) && ordinaryReaction.Keywords.Contains(CardKeyword.Retain),
                 "intrinsic Retain removed only on rewritten discard-autoplay cards");
 
+            foreach (bool upgraded in new[] { false, true })
+            foreach (int mode in new[] { 0, 1, 2 })
+            {
+                await ctx.Reset();
+                var arrow = await ctx.Add<LightArrow>(PileType.Hand, upgraded);
+                if (mode > 0) HumilityCardProfiles.ApplyKnown(arrow);
+                if (mode == 2)
+                {
+                    CardCmd.Enchant<Steady>(arrow, 1);
+                    await ctx.ApplyPower<MaidenSuccubus.Powers.TacticalCorePower>(ctx.Self, 1);
+                }
+                var arrowProbe = ModelCapabilityRegistry.Create<HumilityAttackProbeCapability>();
+                arrow.AddCapability(arrowProbe, allowMerge: false);
+                await ctx.ApplyPower<MaidenSuccubus.Powers.MagicAmplificationPower>(ctx.Self, 1);
+                Check(MaidenSuccubus.Core.Transformation.MagicAmplificationCardRules.HasIntrinsicDouble(arrow) == (mode == 0),
+                    "only untouched LightArrow retains intrinsic double amplification marker");
+                decimal expected = (upgraded ? 7 : 5) * (mode == 0 ? 2 : mode == 1 ? 3 : 4);
+                int arrowBefore = ctx.PrimaryEnemy.CurrentHp;
+                int arrowBlockBefore = ctx.Self.Block;
+                if (mode > 0) Check(!Text(arrow).Contains("对这张牌的效果翻倍"), "removed marker rule absent from card text");
+                await ctx.Play(arrow, ctx.PrimaryEnemy);
+                Check(arrowBefore - ctx.PrimaryEnemy.CurrentHp == expected && ctx.Self.Block - arrowBlockBefore == expected,
+                    "mixed damage/block keeps ordinary amplification and external TacticalCore, not erased intrinsic bonus");
+                Check(arrowProbe.DelayedAmplificationSample == (mode == 1 ? 15m : 20m),
+                    "delayed-value helper uses same intrinsic/external qualification during native reserved play");
+                Check(!ctx.Self.HasPower<MaidenSuccubus.Powers.MagicAmplificationPower>(),
+                    "native amplification consumption retained after mixed effect");
+            }
+
+            foreach (bool upgraded in new[] { false, true })
+            {
+                await ctx.Reset();
+                var barrier = await ctx.Add<ReflectiveBarrier>(PileType.Hand, upgraded);
+                HumilityCardProfiles.ApplyKnown(barrier);
+                await ctx.Play(barrier);
+                Check(ctx.Self.Block == 16, "barrier keeps only on-play block, not deleted exhaust-trigger block");
+                await CardCmd.Exhaust(choice, barrier);
+                Check(ctx.Self.Block == 16 && !ctx.Self.HasPower<MaidenSuccubus.Powers.MagicAmplificationPower>(),
+                    "exhausting rewritten barrier does not restore deleted block/amplification trigger");
+
+                await ctx.Reset();
+                var scythe = await ctx.Add<ThousandCurseScythe>(PileType.Hand, upgraded);
+                scythe.CurrentDamage = 18;
+                HumilityCardProfiles.ApplyKnown(scythe);
+                int scytheBefore = ctx.PrimaryEnemy.CurrentHp;
+                await ctx.Play(scythe, ctx.PrimaryEnemy);
+                Check(scytheBefore - ctx.PrimaryEnemy.CurrentHp == 36 && scythe.CurrentDamage == 18,
+                    "existing permanent growth is doubled only in effect program, stored source value untouched");
+                await CardCmd.Exhaust(choice, scythe);
+                Check(scythe.CurrentDamage == 18, "deleted exhaust growth does not change the stored value");
+
+                await ctx.Reset();
+                var shiningSword = await ctx.Add<ShiningSword>(PileType.Hand, upgraded);
+                HumilityCardProfiles.ApplyKnown(shiningSword);
+                var swordProbe = ModelCapabilityRegistry.Create<HumilityAttackProbeCapability>();
+                shiningSword.AddCapability(swordProbe, allowMerge: false);
+                int swordBefore = ctx.PrimaryEnemy.CurrentHp;
+                await ctx.Play(shiningSword, ctx.PrimaryEnemy);
+                Check(swordBefore - ctx.PrimaryEnemy.CurrentHp == (upgraded ? 24 : 16)
+                    && swordProbe.BeforeCount == 1 && swordProbe.AfterCount == 1,
+                    "upgraded ShiningSword keeps Repeat variable within one native attack");
+            }
+
             await ctx.Reset();
             var kick = await ctx.Add<KinglyKick>(PileType.Draw);
             HumilityCardProfiles.ApplyKnown(kick);
@@ -353,9 +416,15 @@ public sealed class HumilityAttackProbeCapability : CardCapability
 {
     internal int BeforeCount { get; private set; }
     internal int AfterCount { get; private set; }
+    internal decimal? DelayedAmplificationSample { get; private set; }
     public override Task BeforeAttack(AttackCommand command)
     {
-        if (command.CardPlay?.Card == Owner) BeforeCount++;
+        if (Owner != null && command.CardPlay?.Card == Owner)
+        {
+            BeforeCount++;
+            DelayedAmplificationSample = MaidenSuccubus.Core.Transformation.TransformationCmd
+                .ApplyAmplificationToDelayedValue(Owner.Owner.Creature, Owner, 10);
+        }
         return Task.CompletedTask;
     }
     public override Task AfterAttack(PlayerChoiceContext context, AttackCommand command)

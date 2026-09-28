@@ -5,6 +5,24 @@ from TestDesignSyncNeutral20260927 import read
 
 
 class HumilityRuntime(unittest.TestCase):
+    def test_intrinsic_amplification_marker_has_shared_runtime_gate(self):
+        rules = read('src/Core/Transformation/IDoubleMagicAmplification.cs')
+        self.assertIn('card is IDoubleMagicAmplification && HumilityRewriteCapability.Find(card) == null', rules)
+        immediate = read('src/Powers/TransformationPowers.cs')
+        delayed = read('src/Core/Transformation/TransformationCmd.cs')
+        self.assertIn('MagicAmplificationCardRules.HasIntrinsicDouble(card)', immediate)
+        self.assertIn('MagicAmplificationCardRules.HasIntrinsicDouble(source)', delayed)
+        self.assertIn('Owner.HasPower<TacticalCorePower>()', immediate)
+        self.assertIn('creature.HasPower<TacticalCorePower>()', delayed)
+
+    def test_mixed_and_exhaust_scenarios_use_native_commands(self):
+        code = read('src/ConsoleCommands/DesignHumilityRuntimeTestConsoleCmd.cs')
+        for text in ('ctx.Add<LightArrow>', 'DelayedAmplificationSample',
+                     'ApplyAmplificationToDelayedValue(Owner.Owner.Creature, Owner, 10)',
+                     'CardCmd.Exhaust(choice, barrier)', 'CardCmd.Exhaust(choice, scythe)',
+                     'scythe.CurrentDamage == 18', 'ctx.Add<ShiningSword>', 'swordProbe.BeforeCount == 1'):
+            self.assertIn(text, code)
+
     def test_intrinsic_properties_do_not_replace_native_can_play(self):
         code = read('src/Patches/HumilityRewritePatches.cs')
         for text in ('CardMethods("get_IsPlayable")', 'CardMethods("get_HasTurnEndInHandEffect")',

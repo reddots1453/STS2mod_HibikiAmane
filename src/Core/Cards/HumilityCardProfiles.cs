@@ -30,7 +30,14 @@ internal static class HumilityCardProfiles
             typeof(Stigma), typeof(Rest), typeof(MultipleReproduction), typeof(SunDance), typeof(DivineEcho),
             typeof(OriginalSinBrand), typeof(Chant), typeof(Gospel), typeof(SneakSnack), typeof(HolyFlame),
             typeof(ExorcismPerfume), typeof(PurificationOrb), typeof(GuardianScripture), typeof(NimbleScripture),
-            typeof(PunishmentScripture), typeof(WisdomScripture), typeof(VitalityScripture), typeof(BlissScripture)];
+            typeof(PunishmentScripture), typeof(WisdomScripture), typeof(VitalityScripture), typeof(BlissScripture),
+            typeof(LightWings), typeof(GaleSword), typeof(FlameSword), typeof(SharpForge), typeof(FinalSlash),
+            typeof(ThousandCurseScythe), typeof(FlameBloom), typeof(PhotonVolt), typeof(DarkStorm), typeof(MiasmaFlame),
+            typeof(ShiningSword), typeof(ReflectiveBarrier), typeof(MentalStabilizer), typeof(LightArrow),
+            typeof(SoulFuenika), typeof(FamiliarContract), typeof(OpeningPrayer), typeof(IceMist), typeof(CurseWedge),
+            typeof(MimicProliferation), typeof(DestructionReaction), typeof(SuperRegeneration), typeof(MaidenSuccubus.Cards.Ignite),
+            typeof(BlackVortex), typeof(PlayingWithFire), typeof(TemperanceSignet), typeof(CalmMind), typeof(DreamPigment),
+            typeof(HumilityLesson)];
         Type[] vanilla = [typeof(StrikeIronclad), typeof(PommelStrike), typeof(Uppercut), typeof(KinglyKick),
             typeof(ShiningStrike), typeof(DefendIronclad), typeof(ShrugItOff), typeof(Whirlwind)];
         var bindings = maiden.ToDictionary(type => type, type => "maiden:" + type.Name);

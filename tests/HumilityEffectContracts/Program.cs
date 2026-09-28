@@ -142,7 +142,7 @@ for (int i = 0; i < 40; i++) deep = new JsonObject { ["kind"] = "Add", ["left"] 
 Reject(() => HumilityValue.Load(deep), "corrupt/deep expression rejected");
 // Exercise the actual production card definitions, not a test-only reconstruction.
 var profiles = HumilityProfileDefinitions.All;
-Check(profiles.Count == 80, "reviewed groups have 72 Maiden and 8 native profiles");
+Check(profiles.Count == 109, "reviewed groups have 101 Maiden and 8 native profiles");
 Check(!profiles.ContainsKey("maiden:Surf") && !profiles.ContainsKey("foreign:PommelStrike"),
     "unsupported formulas and foreign names cannot silently become single-hit damage");
 foreach (var pair in profiles)
@@ -152,7 +152,7 @@ foreach (var pair in profiles)
     Check(pair.Value.AmountMultiplier == 1, "shared base definition starts undoubled: " + pair.Key);
     var sink = new Sink();
     await pair.Value.DoubleAmounts().Execute(new(3, 0, 4), name => name switch
-    { "Damage" => 7, "Block" => 5, "Hits" => 2, "$enemies" => 3, _ => throw new Exception("Unexpected variable " + name) }, sink);
+    { "Damage" => 7, "Block" => 5, "Hits" or "Repeat" => 2, "$enemies" => 3, _ => throw new Exception("Unexpected variable " + name) }, sink);
     Check(pair.Value.AmountMultiplier == 1, "execution cannot mutate shared catalog: " + pair.Key);
 }
 async Task Profile(string key, HumilityXValues x, Func<string, decimal> vars,
@@ -214,6 +214,31 @@ foreach (string name in new[] { "TacticalAnalyzer", "Tranquilizer", "Stigma", "R
     await profiles["maiden:" + name].DoubleAmounts().Execute(default, Missing, sink);
     Check(sink.Calls.Count == 0 && !profiles["maiden:" + name].HasDamageOrBlock,
         "removing power/selection effects does not synthesize damage or block: " + name);
+}
+foreach (bool upgraded in new[] { false, true })
+{
+    var sink = new Sink();
+    await profiles["maiden:LightArrow"].DoubleAmounts().Execute(default, _ => upgraded ? 7 : 5, sink);
+    Check(sink.Calls.SequenceEqual(new[] {
+        (HumilityEffectKind.Damage, upgraded ? 14m : 10m, HumilityTarget.Selected),
+        (HumilityEffectKind.Block, upgraded ? 14m : 10m, HumilityTarget.Self) }),
+        "LightArrow preserves attack-then-block ordering with independent operations");
+    Check(sink.Groups.SequenceEqual(new[] { 1, 1 }), "mixed effect does not merge native attack/block boundaries");
+    await Profile("maiden:ShiningSword", default, name => name == "Repeat" ? 2 : upgraded ? 6 : 4,
+        upgraded ? 12 : 8, 2, HumilityEffectKind.Damage, HumilityTarget.Selected);
+    await Profile("maiden:ReflectiveBarrier", default, _ => 8, 16, 1, HumilityEffectKind.Block, HumilityTarget.Self);
+}
+foreach (decimal storedDamage in new[] { 8m, 18m, 32m })
+    await Profile("maiden:ThousandCurseScythe", default, _ => storedDamage, storedDamage * 2, 1,
+        HumilityEffectKind.Damage, HumilityTarget.Selected);
+foreach (string name in new[] { "SoulFuenika", "FamiliarContract", "OpeningPrayer", "IceMist", "CurseWedge",
+    "MimicProliferation", "DestructionReaction", "SuperRegeneration", "Ignite", "BlackVortex", "PlayingWithFire",
+    "TemperanceSignet", "CalmMind", "DreamPigment", "HumilityLesson" })
+{
+    var sink = new Sink();
+    await profiles["maiden:" + name].DoubleAmounts().Execute(new(5, 0, 3), Missing, sink);
+    Check(!profiles["maiden:" + name].HasDamageOrBlock && sink.Groups.Count == 0,
+        "removed card-play/selection/generation effects do not synthesize an attack: " + name);
 }
 Console.WriteLine($"PASS {checks} humility program/profile assertions (production source linked; no game integration claim).");
 

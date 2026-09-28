@@ -70,6 +70,17 @@ internal static class HumilityProfileDefinitions
         // block operations. The unrelated existing powers are never erased by rewriting.
         Group("maiden", new([]), "GuardianScripture", "NimbleScripture", "PunishmentScripture",
             "WisdomScripture", "VitalityScripture", "BlissScripture");
+
+        Group("maiden", new([D()]), "LightWings", "GaleSword", "FlameSword", "SharpForge", "FinalSlash",
+            "ThousandCurseScythe", "FlameBloom", "PhotonVolt");
+        Group("maiden", new([D(HumilityTarget.AllEnemies)]), "DarkStorm", "MiasmaFlame");
+        Group("maiden", new([D(hits: V("Repeat"))]), "ShiningSword");
+        // The exhaust-triggered block is deleted, not converted into a second block.
+        Group("maiden", new([B()]), "ReflectiveBarrier", "MentalStabilizer");
+        Group("maiden", new([D(), B()]), "LightArrow");
+        Group("maiden", new([]), "SoulFuenika", "FamiliarContract", "OpeningPrayer", "IceMist", "CurseWedge",
+            "MimicProliferation", "DestructionReaction", "SuperRegeneration", "Ignite", "BlackVortex",
+            "PlayingWithFire", "TemperanceSignet", "CalmMind", "DreamPigment", "HumilityLesson");
         return new ReadOnlyDictionary<string, HumilityEffectProgram>(profiles);
     }
 }
