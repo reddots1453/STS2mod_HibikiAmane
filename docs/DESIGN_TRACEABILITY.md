@@ -8,9 +8,11 @@
 
 > 当前汇总：[2026-09-28全范围状态核对](DESIGN_SYNC_20260927_CURRENT_STATUS.md)。旧批次段落是带日期的历史证据；不得用历史未实现项覆盖后续交付，也不得把局部IMPLEMENTED提升为全范围VERIFIED。
 
-## DS27-02AP：万念俱灰双X同步（READY）
+## DS27-02AP：万念俱灰双X同步（IMPLEMENTED，游戏内待验）
 
 CARD-C欲望输出万念俱灰→支付台账Value/预览/战斗外公式→DS27-CARD-TEXT/EFFECT。前置`7ddbe565`；修复当前设计X/Y轴与重放丢失倍率，真实支付测试取代人工AfterSpent。按用户新指示收敛至本轮变动范围的定向验证，不重审无变化内容、不部署；Q17继续保留。
+
+计划`4ff4f20b`后修复与七组引擎场景完成；定向静态3/3，Debug零警告零错误，游戏脚本未运行。详细证据及命令见`DESIGN_SYNC_20260927_BATCH75.md`；本批未重新运行全量检查。
 
 ## DS27-02AO：五牌全文与变奏/资源支付（IMPLEMENTED，游戏内待验）
 

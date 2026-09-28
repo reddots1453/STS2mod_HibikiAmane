@@ -93,7 +93,7 @@ public sealed class WinterHolly : MSCorruptCard
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]
-public sealed class AllHopeLost : MSCorruptCard, ISecondaryResourceHookListener
+public sealed class AllHopeLost : MSCorruptCard
 {
     private sealed class DesireScaledDamageVar : DamageVar
     {
@@ -107,7 +107,9 @@ public sealed class AllHopeLost : MSCorruptCard, ISecondaryResourceHookListener
         {
             int desire = card.CombatState == null
                 ? 1
-                : Math.Max(0, Desire.Get(card.Owner));
+                : SecondaryResourcePaymentResolver.Plan(card).Lines
+                    .Where(line => line.ResourceId == DesireResource.Id)
+                    .Sum(line => line.Value);
             decimal damage = BaseValue * desire;
             if (runGlobalHooks)
             {
@@ -155,26 +157,18 @@ public sealed class AllHopeLost : MSCorruptCard, ISecondaryResourceHookListener
         }
     }
 
-    private int _desireSpent;
     protected override bool HasEnergyCostX => true;
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new DesireScaledDamageVar(), new CurrentEnergyHitsVar()];
     public AllHopeLost() : base(0, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy) =>
         this.SecondaryCosts().Set(DesireResource.Id, SecondaryResourceCost.X());
 
-    public Task AfterSecondaryResourceSpent(SecondaryResourceSpendContext context)
-    {
-        if (context.Card == this && context.Definition.Id == DesireResource.Id)
-            _desireSpent = context.Amount;
-        return Task.CompletedTask;
-    }
-
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         ArgumentNullException.ThrowIfNull(play.Target);
         int hits = ResolveEnergyXValue() + (IsUpgraded ? 1 : 0);
-        decimal damage = DynamicVars.Damage.BaseValue * _desireSpent;
-        _desireSpent = 0;
+        // The play ledger preserves captured Y across replays and free autoplay.
+        decimal damage = DynamicVars.Damage.BaseValue * play.SecondaryResources().Value(DesireResource.Id);
         return DamageCmd.Attack(damage).WithHitCount(hits).FromCard(this, play)
             .Targeting(play.Target).WithHitFx("vfx/vfx_attack_slash").Execute(context);
     }

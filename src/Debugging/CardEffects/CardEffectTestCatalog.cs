@@ -2331,31 +2331,7 @@ internal static class CardEffectTestCatalog
         CustomVariants<AllCurseBite>(DesignSyncAllCurseBiteContract.Run, 28);
 
     private static void AllHopeLostProbe() =>
-        CustomVariants<AllHopeLost>(async (ctx, card, upgraded) =>
-        {
-            await PlayerCmd.SetEnergy(3, ctx.Player);
-            await Desire.Set(ctx.Player, 2);
-            card.DynamicVars.Damage.UpdateCardPreview(
-                card,
-                CardPreviewMode.Normal,
-                ctx.PrimaryEnemy,
-                runGlobalHooks: true);
-            card.DynamicVars["Hits"].UpdateCardPreview(
-                card,
-                CardPreviewMode.Normal,
-                ctx.PrimaryEnemy,
-                runGlobalHooks: true);
-            ctx.AssertEqual("desire-scaled damage preview", 12m,
-                card.DynamicVars.Damage.PreviewValue);
-            ctx.AssertEqual("current-energy hit preview", upgraded ? 4m : 3m,
-                card.DynamicVars["Hits"].PreviewValue);
-            await card.AfterSecondaryResourceSpent(new SecondaryResourceSpendContext(
-                ctx.Combat, ctx.Player, DesireResource.Definition, card, 2, card));
-            int hp = ctx.PrimaryEnemy.CurrentHp;
-            await ctx.Play(card, ctx.PrimaryEnemy);
-            ctx.AssertDamage("two desire times six damage for each X hit",
-                ctx.PrimaryEnemy, hp, upgraded ? 48 : 36);
-        }, 3);
+        CustomVariants<AllHopeLost>(DesignSyncAllHopeLostContract.Run, 40);
 
     private static void BiteInvaderProbe() =>
         CustomVariants<BiteInvader>(async (ctx, card, _) =>
