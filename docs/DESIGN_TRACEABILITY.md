@@ -18,6 +18,10 @@ Q12/Q13/Q19→DS27-02AR已IMPLEMENTED：独立计数/排队复读、分层生成
 
 前置`6ffb39e2`→DesignDoc九项规则说明→DS27-02AR/04G/04J/05F/05K/05M2。Q12/Q13/Q19为能力叠加和原生重放顺序；Q14谦逊改写；Q15/Q16供奉所有权与可见性；Q17原版免费X逻辑；Q18/Q20三路线合池逐牌等概率。全部已答，不沿用历史OPEN阻塞；代码完成分项登记、游戏未验不标VERIFIED，不部署。
 
+## DS27-04K：两个随机遗物（READY）
+
+RELIC-CHAR-007/Q18与RELIC-EVENT-004/Q20→三路线合池逐牌均匀/东尼永久移除奖励/枯木原生战斗生成→DS27-RELIC/EFFECT/COMPAT。前置`291bef4f`，不再OPEN。STS1原路径不存在，源码与原图标对照待新位置；不影响已明确合池部分，不能据此宣称整个枯木要求已完成。
+
 ## DS27-02AQ：两处遗留数值（IMPLEMENTED，游戏内待验）
 
 CARD-C更换胖次/欲望鞭挞正式条目→Threshold 5/4、Damage 5/5及原Probe预期→DS27-CARD-META/EFFECT。前置`554718f9`，不新增或修改意图机制；仅本次变量与边界测试，不部署。
