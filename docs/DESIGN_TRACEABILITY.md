@@ -6,6 +6,10 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-02Z：圣言生成变化链（READY）
+
+`SYS-SCR-001/CARD-H-700～799`四牌→DS27-02Z→三选一/目标身份/变化结果/升级/永久隔离/魔力解放→DS27-CARD-EFFECT/TEXT/COMPAT/GATES。前置`62c15347`，无漂移，未部署。魂之净化独立Q19 OPEN：每次立即先消耗再抽，还是每次先抽、整组重放后消耗一次；已询问，未改实现。
+
 ## DS27-02Y：战术分析仪候选合法性（IMPLEMENTED，游戏内待验）
 
 `CARD-H-800～899`战术分析仪、`SYS-ENC-001`、光之翼例外→DS27-02Y→升级且可稳定附魔的候选/返回重验/抽牌不丢失→DS27-CARD-EFFECT/TEXT/COMPAT/GATES。前置`024a9767`，无设计漂移；对齐原版普通附魔规则，不允许借修复覆盖已有附魔、不把临时效果写入DeckVersion，未部署。
