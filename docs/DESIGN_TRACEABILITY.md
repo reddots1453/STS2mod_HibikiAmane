@@ -6,6 +6,8 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+> 当前汇总：[2026-09-28全范围状态核对](DESIGN_SYNC_20260927_CURRENT_STATUS.md)。旧批次段落是带日期的历史证据；不得用历史未实现项覆盖后续交付，也不得把局部IMPLEMENTED提升为全范围VERIFIED。
+
 ## DS27-02AD：有符号状态层数（IMPLEMENTED，游戏内待验）
 
 正式负力量备注及CARD-N/H/C按正负状态层数公式→DS27-02AD→PowerLayerQuery按TypeForCurrentAmount和可见性选取后累加绝对值→DS27-CARD-EFFECT/TEXT/COMPAT/GATES。前置`2fcf8357`；不修改原版正负分类或卡牌基值，纯聚合离线执行与实际Power/命令测试分开报告，未部署。
@@ -476,19 +478,19 @@ SYS-SEA-001/ACT4-001→DS27-01B→封印方向悬停、实际永久实例/拥有
 | SYS-TRF-001/002/004、KW-OVERDRAFT-001 | 统一零耐久规则；0层无减伤，无实际损失奖励 | 设计确认；代码待实施 | 正数到0与0时再次损失分别验证 |
 | ACT4-001、RELIC-START、灵魂罗盘 | 献祭条件、可见碎片、选角按钮、概率百分点 | 设计确认；代码待实施 | ACT4/EVENT/COMPAT |
 
-本节覆盖之前与新规则冲突的交付状态。完整证据见[审阅报告](DESIGN_SYNC_20260927_REVIEW.md)和[原始差异](DESIGN_SYNC_20260927_RAW_DIFF.md)。当前仅完成审阅，不标记任何本轮实现为IMPLEMENTED或VERIFIED。
+本节汇总状态于2026-09-28核对至`e952e4f8`；初始差异证据见[历史审阅报告](DESIGN_SYNC_20260927_REVIEW.md)和[原始差异](DESIGN_SYNC_20260927_RAW_DIFF.md)，当前缺口与证据分级见[状态核对](DESIGN_SYNC_20260927_CURRENT_STATUS.md)。Q1～Q11及三项补充均已确认，部分实现和离线测试已完成，但全范围及运行时验收尚未闭环。
 
 | 需求范围 | 变化与结论 | Plan任务 | 当前状态 | 验收组 |
 |---|---|---|---|---|
-| `DOC-ITER2-001` | 以指定历史交付为保守基线，纳入所有文本和行为差异；保留并行修改 | DS27-00 | 审阅完成；语义确认OPEN | DS27-DOC |
-| `SYS-TRF-001/002/004`、`KW-OVERDRAFT-001` | 上限5、减损33%、零层退出边界、异形态切换；旧完成结论回退 | DS27-01 | OPEN：Q1 | DS27-CARD-EFFECT/COMPAT |
-| `SYS-SEA-001`、`KW-VARIATION-001` | 封印卡视觉/说明；基础牌变奏实际路线 | DS27-01/02 | READY，需重验 | DS27-CARD-META/TEXT/EFFECT |
-| 全部`CARD-*`、`STATUS-*`、`CURSE-*`、`ENCH-*` | 所有卡面标点/排版/等级与行为；新增、移动和删除条目，旧存档兼容 | DS27-02 | 已明确项READY；Q2～Q5项OPEN；逐卡不继承旧通过 | DS27-CARD-META/TEXT/EFFECT |
-| `SYS-DES-INTENT-*`、`MON-ERO-CATALOG-001`、`SYS-CTL-*`、`SYS-INV-*` | 逐怪物数值表、冷却与连续上限、阶段保护、意图恢复 | DS27-03 | OPEN：Q1、Q6；明确表项READY | DS27-MON/COMPAT |
-| `RELIC-*`、`START-002` | 新/改遗物、先古入口、事件来源、奖励与选择交互 | DS27-04 | OPEN：Q9～Q11；DRAFT待正式确认 | DS27-EVENT/ACT4/COMPAT |
-| `ACT4-001` | 14路线×3试炼与4显示形态，单次碎片、每段堕落、献祭只解锁；第四层空注册 | DS27-05/05A/05B | 入口及主状态机IMPLEMENTED待手测；慷慨供奉、开场/奖励UI及逐阶段效果仍READY | DS27-ACT4/COMPAT |
-| `EVENT-001～003` | 原版事件集成不回归 | DS27-06 | 待回归 | DS27-EVENT |
-| `EVENT-NEW-001～007` | 七新事件及所有页面、文本、门槛、强制替换 | DS27-06 | DRAFT待Q10确认，其他歧义Q8/Q9 | DS27-EVENT/COMPAT |
-| 测试基础设施 | 原文/渲染/行为分层，不忽略标点、不依赖固定行号；静态与运行时分开报告 | DS27-07 | 方案完成，脚本未实现 | DS27-GATES |
+| `DOC-ITER2-001` | 以指定历史交付为保守基线，纳入所有文本和行为差异；保留并行修改 | DS27-00 | 审阅/初轮澄清完成；精确快照与全范围闭环仍有限制 | DS27-DOC |
+| `SYS-TRF-001/002/004`、`KW-OVERDRAFT-001` | 上限5、减损33%、零层退出边界、异形态切换；旧完成结论回退 | DS27-01 | 01A IMPLEMENTED；游戏/保存恢复待验 | DS27-CARD-EFFECT/COMPAT |
+| `SYS-SEA-001`、`KW-VARIATION-001` | 封印卡视觉/说明；基础牌变奏实际路线 | DS27-01/02 | 01B展示及既有变奏实现；实际快照/视觉/旧档待验 | DS27-CARD-META/TEXT/EFFECT |
+| 全部`CARD-*`、`STATUS-*`、`CURSE-*`、`ENCH-*` | 所有卡面标点/排版/等级与行为；新增、移动和删除条目，旧存档兼容 | DS27-02 | 部分IMPLEMENTED；225模型审计仍1失败/4未解析；Q12/Q13/Q19和全卡逐字覆盖未闭环 | DS27-CARD-META/TEXT/EFFECT |
+| `SYS-DES-INTENT-*`、`MON-ERO-CATALOG-001`、`SYS-CTL-*`、`SYS-INV-*` | 逐怪物数值表、冷却与连续上限、阶段保护、意图恢复 | DS27-03 | Q1/Q6已确认；全面实现/测试未完成；性暴力相关内容需非性化替代方案 | DS27-MON/COMPAT |
+| `RELIC-*`、`START-002` | 新/改遗物、先古入口、事件来源、奖励与选择交互 | DS27-04 | 04A～04I部分IMPLEMENTED含选角；Q18/Q20及剩余事件遗物待处理 | DS27-EVENT/ACT4/COMPAT |
+| `ACT4-001` | 14路线×3试炼与4显示形态，单次碎片、每段堕落、献祭只解锁；第四层空注册 | DS27-05/05A～05O | 状态机/单人开场领奖和多条阶段效果IMPLEMENTED；谦逊/供奉/X/Y/预约/多人未完成 | DS27-ACT4/COMPAT |
+| `EVENT-001～003` | 原版事件集成不回归 | DS27-06C | 实现和Debug回归入口完成；游戏内未运行 | DS27-EVENT |
+| `EVENT-NEW-001～007` | 七新事件及所有页面、文本、门槛、强制替换 | DS27-06 | 达弗/亡灵IMPLEMENTED；其余5项未完成；Q8～Q10已确认，不能继续标为等待答复 | DS27-EVENT/COMPAT |
+| 测试基础设施 | 原文/渲染/行为分层，不忽略标点、不依赖固定行号；静态与运行时分开报告 | DS27-07 | 分层脚本/12项离线入口已实施，最近11/12；游戏6组未执行，全范围覆盖待收口 | DS27-GATES |
 
 未完成的新敌人、第三层替换Boss、第四层战斗及多人设计不因本轮审阅自动转为READY。澄清前不在程序中固化候选规则。
