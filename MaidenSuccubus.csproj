@@ -60,7 +60,12 @@
     <PackageReference Include="STS2.RitsuLib" Version="0.4.64" />
     <EmbeddedResource Include="docs\EROTIC_ATTACK_ASSIGNMENTS.md" />
     <EmbeddedResource Include="docs\EROTIC_ATTACK_INTENTS.md" />
+    <EmbeddedResource Include="$(IntermediateOutputPath)humility-extracted.json" LogicalName="MaidenSuccubus.HumilityExtractedCatalog.json" />
   </ItemGroup>
+
+  <Target Name="GenerateHumilityCallCatalog" BeforeTargets="PrepareResources">
+    <Exec Command="dotnet run --project &quot;$(MSBuildProjectDirectory)\tests\HumilityCallExtraction\HumilityCallExtraction.csproj&quot; -- --source-dir &quot;$(MSBuildProjectDirectory)\src\Cards&quot; --source-dir &quot;$(MSBuildProjectDirectory)\..\..\_decompiled\sts2-v0.111.0\MegaCrit.Sts2.Core.Models.Cards&quot; --output &quot;$(MSBuildProjectDirectory)\$(IntermediateOutputPath)humility-extracted.json&quot;" />
+  </Target>
 
   <Target Name="CopyModForDebug" AfterTargets="Build"
           Condition="'$(Configuration)' == 'Debug' and '$(DeployMod)' == 'true'">

@@ -1,4 +1,8 @@
 using System.Text.Json.Nodes;
+using System.Security.Cryptography;
+using System.Text;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using HumilityCallExtraction;
 using MaidenSuccubus.Core.Cards;
 
@@ -35,19 +39,90 @@ if (args.SequenceEqual(new[] { "--self-test" }))
     await x.Program!.DoubleAmounts().Execute(new(3, 0, 0), _ => throw new Exception("unexpected variable lookup"), sink);
     Check(sink.Attacks.SequenceEqual(new[] { (8m, HumilityTarget.RandomEnemy, 4) }),
         "extracted program executes through production runtime with doubled amount and original multi-hit boundary");
+    JsonObject CatalogCard(string name, HumilityEffectProgram? program, string? error) => new()
+    {
+        ["card"] = name, ["status"] = program == null ? "unsupported" : "extracted", ["program"] = program?.Save(), ["error"] = error,
+    };
+    var records = new JsonArray(CatalogCard("Fixture.Ready", mixed.Program, null), CatalogCard("Fixture.Pending", null, "unsupported formula"),
+        CatalogCard("Fixture.Empty", new HumilityEffectProgram([]), null));
+    var document = new JsonObject { ["schemaVersion"] = 1, ["cards"] = records };
+    var catalog = new HumilityExtractedCatalog(document.ToJsonString());
+    Check(catalog.Entries["Fixture.Ready"].Program?.Effects.Count == 2
+        && catalog.Entries["Fixture.Pending"].Program == null && catalog.Entries["Fixture.Pending"].Error != null
+        && catalog.Entries["Fixture.Empty"].Program?.Effects.Count == 0, "catalog distinguishes complete, unsupported and genuine empty programs");
+    records.Add(CatalogCard("Fixture.Ready", mixed.Program, null));
+    bool rejected = false;
+    try { _ = new HumilityExtractedCatalog(document.ToJsonString()); } catch (FormatException) { rejected = true; }
+    Check(rejected, "duplicate generated type identities rejected");
+    records.RemoveAt(records.Count - 1);
+    records[1]!["status"] = "extracted";
+    rejected = false;
+    try { _ = new HumilityExtractedCatalog(document.ToJsonString()); } catch (FormatException) { rejected = true; }
+    Check(rejected, "inconsistent generated status cannot load as an empty effect");
     return 0;
 }
-if (args.Length == 0) { Console.Error.WriteLine("Usage: HumilityCallExtraction --self-test | source.cs [...]"); return 1; }
-var cards = new JsonArray();
-bool unsupported = false;
-foreach (string path in args)
-foreach (var card in CallExtractor.Extract(File.ReadAllText(path)))
+if (args.Length == 2 && args[0] == "--verify-assembly")
 {
-    unsupported |= card.Program == null;
-    cards.Add(new JsonObject { ["source"] = Path.GetFullPath(path), ["card"] = card.Card, ["line"] = card.Line,
-        ["status"] = card.Program == null ? "unsupported" : "extracted", ["program"] = card.Program?.Save(), ["error"] = card.Error });
+    using var pe = new PEReader(File.OpenRead(args[1]));
+    var metadata = pe.GetMetadataReader();
+    var resource = metadata.ManifestResources.Select(metadata.GetManifestResource)
+        .Single(r => metadata.GetString(r.Name) == "MaidenSuccubus.HumilityExtractedCatalog.json");
+    if (!resource.Implementation.IsNil) throw new FormatException("Catalog must be embedded, not linked");
+    var section = pe.GetSectionData(pe.PEHeaders.CorHeader!.ResourcesDirectory.RelativeVirtualAddress);
+    var blob = section.GetReader(checked((int)resource.Offset), section.Length - checked((int)resource.Offset));
+    int length = blob.ReadInt32();
+    var catalog = new HumilityExtractedCatalog(Encoding.UTF8.GetString(blob.ReadBytes(length)));
+    Console.WriteLine($"PASS embedded catalog parsed without loading game assemblies: {catalog.Entries.Count} entries; " +
+        $"{catalog.Entries.Values.Count(e => e.Program == null)} explicitly unsupported.");
+    return 0;
 }
-Console.WriteLine(new JsonObject { ["schemaVersion"] = 1, ["cards"] = cards }.ToJsonString(new() { WriteIndented = true }));
+if (args.Length == 0) { Console.Error.WriteLine("Usage: HumilityCallExtraction --self-test | [source.cs ...] [--source-dir DIR ...] [--output FILE]"); return 1; }
+var sources = new SortedSet<string>(StringComparer.Ordinal);
+string? output = null;
+for (int i = 0; i < args.Length; i++)
+{
+    if (args[i] == "--source-dir")
+    {
+        if (++i >= args.Length) throw new ArgumentException("Missing source directory");
+        foreach (string path in Directory.EnumerateFiles(args[i], "*.cs", SearchOption.AllDirectories))
+            sources.Add(Path.GetFullPath(path));
+    }
+    else if (args[i] == "--output")
+    {
+        if (++i >= args.Length || output != null) throw new ArgumentException("Expected one output file");
+        output = Path.GetFullPath(args[i]);
+    }
+    else if (args[i].StartsWith("--", StringComparison.Ordinal)) throw new ArgumentException("Unknown option " + args[i]);
+    else sources.Add(Path.GetFullPath(args[i]));
+}
+if (sources.Count == 0) throw new ArgumentException("No source files");
+if (output != null && sources.Contains(output)) throw new ArgumentException("Output cannot replace input source");
+var cards = new JsonArray();
+var hashes = new JsonArray();
+bool unsupported = false;
+foreach (string path in sources)
+{
+    string source = File.ReadAllText(path);
+    string hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(source)));
+    hashes.Add(new JsonObject { ["file"] = Path.GetFileName(path), ["sha256"] = hash });
+    foreach (var card in CallExtractor.Extract(source))
+    {
+        unsupported |= card.Program == null;
+        cards.Add(new JsonObject { ["source"] = Path.GetFileName(path), ["sourceHash"] = hash, ["card"] = card.Card, ["line"] = card.Line,
+            ["status"] = card.Program == null ? "unsupported" : "extracted", ["program"] = card.Program?.Save(), ["error"] = card.Error });
+    }
+}
+string json = new JsonObject { ["schemaVersion"] = 1, ["sources"] = hashes, ["cards"] = cards }.ToJsonString(new() { WriteIndented = true });
+_ = new HumilityExtractedCatalog(json); // Detect duplicate identities/corrupt output before replacing any artifact.
+if (output != null)
+{
+    Directory.CreateDirectory(Path.GetDirectoryName(output)!);
+    File.WriteAllText(output, json, new UTF8Encoding(false));
+    int supported = cards.Count(c => c!["status"]!.GetValue<string>() == "extracted");
+    Console.WriteLine($"Generated humility catalog: {supported} extracted, {cards.Count - supported} unsupported (diagnostics retained). {output}");
+    return 0; // A generated diagnostic entry is NOT a supported/empty effect program.
+}
+Console.WriteLine(json);
 return unsupported ? 2 : 0;
 
 internal sealed class RecordedEffects : IHumilityEffectSink

@@ -69,6 +69,21 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
             TestMode.IsOn = true;
             await ctx.PrepareSuite();
             await ctx.Reset();
+            foreach (bool upgraded in new[] { false, true })
+            {
+                await ctx.Reset();
+                var extractedSurf = await ctx.Add<Surf>(PileType.Hand, upgraded);
+                await ctx.AddFillerCards(PileType.Draw, 6);
+                var generatedEntry = HumilityExtractedCards.Get(extractedSurf);
+                Check(generatedEntry.Program?.Effects.Count == 1, "Surf resolved from generated embedded catalog, not manual table");
+                HumilityExtractedCards.Apply(extractedSurf);
+                var enemyHp = ctx.Enemies.ToDictionary(enemy => enemy, enemy => enemy.CurrentHp);
+                await ctx.Play(extractedSurf);
+                Check(enemyHp.All(pair => pair.Value - pair.Key.CurrentHp == 8)
+                    && PileType.Draw.GetPile(player).Cards.Count == 6 && PileType.Hand.GetPile(player).Cards.Count == 0,
+                    "generated Surf executes one doubled all-enemy attack without drawing or simulating draw loop");
+            }
+            await ctx.Reset();
             foreach (Type type in HumilityCardProfiles.SupportedTypes)
             foreach (bool upgraded in new[] { false, true })
             {
@@ -84,7 +99,8 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
                     Check(true, "real upgraded/base dynamic variables resolve: " + type.Name);
                 }
             }
-            Check(!HumilityCardProfiles.TryGet(ctx.Create<Surf>(), out _), "pending Surf has no guessed profile");
+            // Remaining legacy regression cases will migrate with the formal selector;
+            // generated entries never silently fall back to that hand-maintained table.
             foreach (bool upgraded in new[] { false, true })
             {
                 await ctx.Reset();

@@ -10,5 +10,6 @@
     <Reference Include="Microsoft.CodeAnalysis" HintPath="$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.dll" />
     <Reference Include="Microsoft.CodeAnalysis.CSharp" HintPath="$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.CSharp.dll" />
     <Compile Include="../../src/Core/Cards/HumilityEffectProgram.cs" Link="Production/HumilityEffectProgram.cs" />
+    <Compile Include="../../src/Core/Cards/HumilityExtractedCatalog.cs" Link="Production/HumilityExtractedCatalog.cs" />
   </ItemGroup>
 </Project>
