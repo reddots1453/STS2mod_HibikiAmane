@@ -44,7 +44,7 @@
   "MAIDEN_SUCCUBUS_RELIC_BALANCED_LENS.description": "[purple]堕落[/purple]牌与[gold]圣洁[/gold]牌出现率各提高20%。\n[purple]堕落值[/purple]在-1至1时，可重掷卡牌奖励；不低于2时，[purple]堕落[/purple]牌出现率再提高20%；不高于-2时，[gold]圣洁[/gold]牌出现率再提高20%。",
   "MAIDEN_SUCCUBUS_RELIC_BALANCED_LENS.flavor": "它不会替你选择方向，只会让每条方向更清晰。",
   "MAIDEN_SUCCUBUS_RELIC_BLINDFOLD.title": "眼罩",
-  "MAIDEN_SUCCUBUS_RELIC_BLINDFOLD.description": "无法看到敌人的意图。",
+  "MAIDEN_SUCCUBUS_RELIC_BLINDFOLD.description": "无法看到敌人意图。\n可以看到下一次遭遇战的内容。",
   "MAIDEN_SUCCUBUS_RELIC_BLINDFOLD.flavor": "看不见危险，并不代表危险不存在。",
   "MAIDEN_SUCCUBUS_RELIC_WITHERED_TREE_SOUL.title": "枯木树枝",
   "MAIDEN_SUCCUBUS_RELIC_WITHERED_TREE_SOUL.description": "每当你[gold]消耗[/gold]1张牌，将1张随机牌加入[gold]手牌[/gold]。",

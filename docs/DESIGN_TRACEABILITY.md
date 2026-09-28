@@ -6,9 +6,11 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-04H：眼罩（READY）
+## DS27-04H：眼罩（IMPLEMENTED，游戏内待验）
 
 `RELIC-EVENT-001`完整条目→DS27-04H→原生只读遭遇队列预览/本地持有者意图及悬停隔离/精确描述→DS27-RELIC/COMPAT/GATES。前置`18c3dade`；不猜问号类型，不执行未来随机编成，不改意图结算，补序列/RNG不变与跨层读取测试，不部署。
+
+同步`cab0314b`；`BlindfoldPresentation`/3个安全UI patch/眼罩拾取移除刷新与正式本地化→`ms_test_blindfold`只读游戏内契约（已编译未执行）及8静态。累计391静态、13540既有纯规则/33编码、双构建及四内容门通过。旧视觉/全卡审计失败保留，多人显示/自然跨层/实际存读档/手柄与鼠标悬停待验；见`DESIGN_SYNC_20260927_BATCH46.md`。
 
 ## DS27-02U：升级标量文本绑定检查（IMPLEMENTED，仅静态绑定检查）
 

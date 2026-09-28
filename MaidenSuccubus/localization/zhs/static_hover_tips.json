@@ -1,4 +1,12 @@
 {
+  "MAIDENSUCCUBUS_BLINDFOLD_MONSTER.title": "下一次普通遭遇",
+  "MAIDENSUCCUBUS_BLINDFOLD_MONSTER.description": "{Encounter}\n可能出现的敌人：{Monsters}\n仅指下一场普通战斗，不预测问号房间类型。",
+  "MAIDENSUCCUBUS_BLINDFOLD_ELITE.title": "下一次精英遭遇",
+  "MAIDENSUCCUBUS_BLINDFOLD_ELITE.description": "{Encounter}\n可能出现的敌人：{Monsters}\n仅指下一场精英战斗。",
+  "MAIDENSUCCUBUS_BLINDFOLD_BOSS.title": "下一次首领遭遇",
+  "MAIDENSUCCUBUS_BLINDFOLD_BOSS.description": "{Encounter}\n可能出现的敌人：{Monsters}\n仅指当前幕的下一场首领战斗。",
+  "MAIDENSUCCUBUS_BLINDFOLD_UNAVAILABLE.title": "遭遇尚未确定",
+  "MAIDENSUCCUBUS_BLINDFOLD_UNAVAILABLE.description": "当前幕没有可读取的下一场此类遭遇。",
   "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.title": "堕落值",
   "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.description": "当前[purple]堕落值[/purple]：[blue]{Current}[/blue]\n天音的[purple]堕落值[/purple]影响从卡牌奖励中获取[gold]圣洁[/gold]路线和[purple]堕落[/purple]路线卡牌的概率，以及事件选项。\n推进女神试炼、事件的某些选项和一些行为将会改变[purple]堕落值[/purple]。",
   "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.plus3": "+3[purple]堕落值[/purple]或更高时，牌组中的[gold]圣洁[/gold]牌将被封印，不参与战斗；你可以在火堆为暗黑女神献祭这些被封印的卡牌。",

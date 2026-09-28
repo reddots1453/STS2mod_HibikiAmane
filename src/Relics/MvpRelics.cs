@@ -13,6 +13,7 @@ using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.ContentTemplates;
 using MaidenSuccubus.Core.Corruption;
+using MaidenSuccubus.Core.Relics;
 using MaidenSuccubus.Core.Routes;
 using MaidenSuccubus.Pools;
 using STS2RitsuLib.Interop.AutoRegistration;
@@ -75,6 +76,10 @@ public sealed class BalancedLens : MSRelicTemplate, IMSRouteRewardModifierRelic
 public sealed class Blindfold : MSRelicTemplate
 {
     public override RelicRarity Rarity => RelicRarity.Event;
+    protected override IEnumerable<MegaCrit.Sts2.Core.HoverTips.IHoverTip> AdditionalHoverTips =>
+        BlindfoldPresentation.PreviewTips(this);
+    public override Task AfterObtained() => BlindfoldPresentation.Refresh(Owner);
+    public override Task AfterRemoved() => BlindfoldPresentation.Refresh(Owner);
 
     public override RelicAssetProfile AssetProfile => new(
         IconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres",
