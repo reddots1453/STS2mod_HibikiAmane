@@ -901,6 +901,9 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
                 {
                     (typeof(StrikeIronclad), false, false, 0, true),
                     (typeof(DefendIronclad), false, false, 0, true),
+                    (typeof(DragonflyTouch), false, false, 0, true),
+                    (typeof(DragonflyTouch), false, true, 1, true),
+                    (typeof(EvilEye), false, false, 0, true),
                     (typeof(PommelStrike), false, false, 1, false),
                     (typeof(PommelStrike), true, false, 0, true),
                     (typeof(StrikeIronclad), false, true, 1, true),

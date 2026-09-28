@@ -20,9 +20,12 @@ internal static class PurityClassifier
         var calls = method.DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
         var effects = calls.Where(IsEffect).ToArray();
         if (effects.Length == 0) return false;
+        // Slice runs first and proves every counted block loop is a single block
+        // command with a resolvable count. Repetition alone is not another effect.
         if (effects.Any(effect => effect.Ancestors().TakeWhile(n => n != method).Any(n => n is IfStatementSyntax
-            or SwitchStatementSyntax or ForStatementSyntax or ForEachStatementSyntax or WhileStatementSyntax
-            or DoStatementSyntax or AnonymousFunctionExpressionSyntax))) return false;
+            or SwitchStatementSyntax or ForEachStatementSyntax or WhileStatementSyntax
+            or DoStatementSyntax or AnonymousFunctionExpressionSyntax
+            || n is ForStatementSyntax && !IsBlock(effect)))) return false;
 
         var builderNames = method.DescendantNodes().OfType<VariableDeclaratorSyntax>()
             .Where(v => v.Initializer?.Value.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().Any(IsEffect) == true)
@@ -56,6 +59,9 @@ internal static class PurityClassifier
                 && (pre.Operand is not IdentifierNameSyntax id2 || !locals.Contains(id2.Identifier.Text)))) return false;
         return true;
     }
+
+    private static bool IsBlock(InvocationExpressionSyntax call) => call.Expression is MemberAccessExpressionSyntax member
+        && member.Expression.ToString().EndsWith("CreatureCmd", StringComparison.Ordinal) && member.Name.Identifier.Text == "GainBlock";
 
     private static bool IsEffect(InvocationExpressionSyntax call) => call.Expression is MemberAccessExpressionSyntax member
         && (member.Expression.ToString().EndsWith("DamageCmd", StringComparison.Ordinal) && member.Name.Identifier.Text == "Attack"

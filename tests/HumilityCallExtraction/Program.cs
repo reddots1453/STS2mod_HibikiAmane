@@ -29,6 +29,11 @@ if (args.SequenceEqual(new[] { "--self-test" }))
     var countedBlock = Extract("int count = CombatState.HittableEnemies.Count; for (int i = 0; i < count; i++) " + blockCall);
     Check(countedBlock.Program?.Effects.Single().Repeats.Name == "$enemies",
         "plain counted block retains live enemy count rather than flattening to one");
+    Check(countedBlock.OnlyDamageAndBlock, "original counted block qualifies for awakening without rewriting");
+    Check(!Extract("for (int i = 0; i < 3; i++) " + blockCall + " await CardPileCmd.Draw(context, 1, Owner);").OnlyDamageAndBlock,
+        "counted block with original draw remains impure even though draw is sliced away");
+    Check(!Extract("for (int i = 0; i < 3; i++) { if (ready) { " + blockCall + " } }").OnlyDamageAndBlock,
+        "original conditional block is not excused by its validated repetition count");
     var countedSink = new RecordedEffects();
     await countedBlock.Program!.DoubleAmounts().Execute(default, key => key == "$enemies" ? 3 : 7, countedSink);
     Check(countedSink.Blocks.SequenceEqual(new[] { (14m, HumilityTarget.Self, 3) }),
