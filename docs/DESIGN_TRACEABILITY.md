@@ -8,6 +8,10 @@
 
 > 当前汇总：[2026-09-28全范围状态核对](DESIGN_SYNC_20260927_CURRENT_STATUS.md)。旧批次段落是带日期的历史证据；不得用历史未实现项覆盖后续交付，也不得把局部IMPLEMENTED提升为全范围VERIFIED。
 
+## DS27-07D：继承关键词解析（READY）
+
+四张正式状态牌消耗/虚无/保留→DS27-07D→AuditCardLocalization构造参数/只读字段来源解析→DS27-CARD-META/GATES。前置`ad418cb2`；仅验证工具变化，不改规则或意图。无法证明的集合/赋值保持未知；合成负例防止错误归零，真实四牌独立预期与strict-review不冒充全量验收。
+
 ## DS27-02AG：手牌加费卡自身费用（IMPLEMENTED，游戏内待验）
 
 正式诅咒牌口球1费条目→DS27-02AG→GagCurse构造费用与手牌条件回归→DS27-CARD-META/TEXT/EFFECT/GATES。前置`034db6bb`，纯非露骨数值同步，不改附加费规则/存档身份/意图；新增自身费用和离手恢复断言，不再把明确差异长期作为已知失败保留。统一无部署验证，游戏内仍待验。
