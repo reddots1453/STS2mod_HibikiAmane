@@ -7,5 +7,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../src/Core/Cards/HumilityEffectProgram.cs" Link="Production/HumilityEffectProgram.cs" />
+    <Compile Include="../../src/Core/Cards/HumilityProfileDefinitions.cs" Link="Production/HumilityProfileDefinitions.cs" />
   </ItemGroup>
 </Project>

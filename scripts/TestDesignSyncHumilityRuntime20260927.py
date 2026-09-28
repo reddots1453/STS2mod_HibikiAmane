@@ -5,6 +5,31 @@ from TestDesignSyncNeutral20260927 import read
 
 
 class HumilityRuntime(unittest.TestCase):
+    def test_profiles_bind_exact_types_and_fail_closed(self):
+        code = read('src/Core/Cards/HumilityCardProfiles.cs')
+        for text in ('IReadOnlyDictionary<Type, string>', 'Bindings.TryGetValue(card.GetType()',
+                     'bindings.Count != HumilityProfileDefinitions.All.Count', 'throw new NotSupportedException',
+                     'typeof(MaidenSuccubus.Cards.Fusion)', 'typeof(Whirlwind)'):
+            self.assertIn(text, code)
+        self.assertNotIn('DynamicVars', code)
+        self.assertNotIn('GetFormattedText', code)
+        definitions = read('src/Core/Cards/HumilityProfileDefinitions.cs')
+        self.assertIn('new ReadOnlyDictionary', definitions)
+        self.assertNotIn('MegaCrit', definitions)
+        project = read('tests/HumilityEffectContracts/HumilityEffectContracts.csproj')
+        self.assertIn('../../src/Core/Cards/HumilityProfileDefinitions.cs', project)
+
+    def test_game_suite_uses_production_profiles(self):
+        code = read('src/ConsoleCommands/DesignHumilityRuntimeTestConsoleCmd.cs')
+        for text in ('HumilityCardProfiles.SupportedTypes', 'ctx.Create(type, upgraded)',
+                     'HumilityNativeEffects.ResolveValue(card, name, ctx.PrimaryEnemy)',
+                     'HumilityCardProfiles.ApplyKnown(dualX)', 'HumilityCardProfiles.ApplyKnown(whirlwind)',
+                     'HumilityCardProfiles.ApplyKnown(empty)', 'flare.OnTurnEndInHandWrapper(choice)',
+                     'HumilityCardProfiles.ApplyKnown(explosive)'):
+            self.assertIn(text, code)
+        self.assertNotIn('new([Damage(', code)
+        self.assertNotIn('new([Block(', code)
+
     def test_instance_boundary_and_no_enchantment_reapplication(self):
         code = read('src/Core/Cards/HumilityRewriteCapability.cs')
         for text in ('card.Pile?.IsCombatPile != true', 'CardType.Attack or CardType.Skill',

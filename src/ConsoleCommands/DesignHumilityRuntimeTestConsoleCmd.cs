@@ -24,8 +24,8 @@ using STS2RitsuLib.Models.Capabilities;
 
 namespace MaidenSuccubus.ConsoleCommands;
 
-// This suite tests the runtime with explicit complete programs. It does NOT claim
-// that the production HumilityLesson selector has all card adapters yet.
+// Uses the production reviewed profiles. It does NOT claim that the production
+// HumilityLesson selector has all card adapters yet.
 public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
 {
     private static bool _running;
@@ -43,11 +43,6 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
         return new CmdResult(Run(issuingPlayer, combat), true, "Destructive runtime tests started; see [DS27HumilityRuntimeTest].");
     }
 
-    private static HumilityValue N(decimal amount) => HumilityValue.Number(amount);
-    private static HumilityEffect Damage(HumilityValue? repeats = null, HumilityTarget target = HumilityTarget.Selected) =>
-        new(HumilityEffectKind.Damage, target, HumilityValue.Named("Damage"), repeats ?? N(1));
-    private static HumilityEffect Block(HumilityValue? repeats = null) =>
-        new(HumilityEffectKind.Block, HumilityTarget.Self, HumilityValue.Named("Block"), repeats ?? N(1));
     private static string Text(CardModel card) => Regex.Replace(card.GetDescriptionForPile(PileType.Hand), @"\[[^\]]*\]", "");
 
     private static async Task Run(Player player, CombatState combat)
@@ -73,13 +68,30 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
         {
             TestMode.IsOn = true;
             await ctx.PrepareSuite();
+            await ctx.Reset();
+            foreach (Type type in HumilityCardProfiles.SupportedTypes)
+            foreach (bool upgraded in new[] { false, true })
+            {
+                CardModel card = ctx.Create(type, upgraded);
+                Check(HumilityCardProfiles.TryGet(card, out var program), "exact real model binding: " + type.Name);
+                Check(card.Type is CardType.Attack or CardType.Skill, "profile type is eligible: " + type.Name);
+                HumilityNativeEffects.Validate(program);
+                foreach (var effect in program.Effects)
+                {
+                    decimal Resolve(string name) => HumilityNativeEffects.ResolveValue(card, name, ctx.PrimaryEnemy);
+                    _ = effect.Amount.Evaluate(new(3, 0, 4), Resolve);
+                    _ = effect.Repeats.Evaluate(new(3, 0, 4), Resolve);
+                    Check(true, "real upgraded/base dynamic variables resolve: " + type.Name);
+                }
+            }
+            Check(!HumilityCardProfiles.TryGet(ctx.Create<Surf>(), out _), "pending Surf has no guessed profile");
             foreach (bool upgraded in new[] { false, true })
             {
                 await ctx.Reset();
                 var pommel = await ctx.Add<PommelStrike>(PileType.Hand, upgraded);
                 await ctx.AddFillerCards(PileType.Draw, 8);
                 decimal baseDamage = pommel.DynamicVars.Damage.BaseValue;
-                var rewrite = HumilityRewriteCapability.Apply(pommel, new([Damage()]));
+                var rewrite = HumilityCardProfiles.ApplyKnown(pommel);
                 var probe = ModelCapabilityRegistry.Create<HumilityAttackProbeCapability>();
                 pommel.AddCapability(probe, allowMerge: false);
                 Check(!combat.IterateHookListeners().Contains(pommel), "original card removed from native hook stream");
@@ -102,7 +114,7 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
                 var swift = await ctx.Add<PommelStrike>(PileType.Hand, upgraded);
                 CardCmd.Enchant<Swift>(swift, 2);
                 var enchantment = swift.Enchantment;
-                HumilityRewriteCapability.Apply(swift, new([Damage()]));
+                HumilityCardProfiles.ApplyKnown(swift);
                 await ctx.AddFillerCards(PileType.Draw, 8);
                 Check(ReferenceEquals(enchantment, swift.Enchantment), "same enchantment instance retained");
                 await ctx.Play(swift, ctx.PrimaryEnemy);
@@ -111,7 +123,7 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
                 await ctx.Reset();
                 var replay = await ctx.Add<PommelStrike>(PileType.Hand, upgraded);
                 CardCmd.Enchant<Glam>(replay, 1);
-                HumilityRewriteCapability.Apply(replay, new([Damage()]));
+                HumilityCardProfiles.ApplyKnown(replay);
                 await ctx.AddFillerCards(PileType.Draw, 8);
                 before = ctx.PrimaryEnemy.CurrentHp;
                 await ctx.Play(replay, ctx.PrimaryEnemy);
@@ -120,7 +132,7 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
 
                 await ctx.Reset();
                 var defense = await ctx.Add<DoubleDefense>(PileType.Hand, upgraded);
-                HumilityRewriteCapability.Apply(defense, new([Block(N(2))]));
+                HumilityCardProfiles.ApplyKnown(defense);
                 await ctx.ApplyPower<DexterityPower>(ctx.Self, 3);
                 int initialBlock = ctx.Self.Block;
                 await ctx.Play(defense);
@@ -129,8 +141,45 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
             }
 
             await ctx.Reset();
+            var empty = await ctx.Add<AcceleratedMotion>(PileType.Hand);
+            CardCmd.Enchant<Swift>(empty, 2);
+            HumilityCardProfiles.ApplyKnown(empty);
+            await ctx.AddFillerCards(PileType.Draw, 8);
+            Check(!HumilityRewriteCapability.Find(empty)!.Program.HasDamageOrBlock, "empty program is not pure damage/block");
+            await ctx.Play(empty);
+            Check(PileType.Hand.GetPile(player).Cards.Count == 2 && empty.Pile?.Type == PileType.Discard,
+                "empty program deletes original draw/exhaust but retains native Swift");
+
+            await ctx.Reset();
+            var flare = await ctx.Add<UltimateFlare>(PileType.Hand);
+            var ordinaryFlare = await ctx.Add<UltimateFlare>(PileType.Hand);
+            HumilityCardProfiles.ApplyKnown(flare);
+            int originalFlareCost = flare.EnergyCost.GetWithModifiers(CostModifiers.Local);
+            await flare.OnTurnEndInHandWrapper(choice);
+            await ordinaryFlare.OnTurnEndInHandWrapper(choice);
+            Check(flare.EnergyCost.GetWithModifiers(CostModifiers.Local) == originalFlareCost
+                && ordinaryFlare.EnergyCost.GetWithModifiers(CostModifiers.Local) == originalFlareCost - 1,
+                "original turn-end discount removed on rewritten instance only");
+            var flareHp = ctx.Enemies.ToDictionary(enemy => enemy, enemy => enemy.CurrentHp);
+            await ctx.Play(flare);
+            Check(flareHp.All(pair => pair.Value - pair.Key.CurrentHp == 80), "all-enemy profile doubles each enemy damage");
+
+            await ctx.Reset();
+            var explosive = await ctx.Add<ExplosiveImpact>(PileType.Hand);
+            HumilityCardProfiles.ApplyKnown(explosive);
+            var randomProbe = ModelCapabilityRegistry.Create<HumilityAttackProbeCapability>();
+            explosive.AddCapability(randomProbe, allowMerge: false);
+            int totalBefore = ctx.Enemies.Sum(enemy => enemy.CurrentHp);
+            await ctx.Play(explosive);
+            Check(totalBefore - ctx.Enemies.Sum(enemy => enemy.CurrentHp) == 12
+                && randomProbe.BeforeCount == 1 && randomProbe.AfterCount == 1,
+                "two random hits remain one native attack, not two command boundaries");
+            Check(ctx.Enemies.All(enemy => !enemy.Powers.OfType<MaidenSuccubus.Powers.ShatterPower>().Any()),
+                "random profile removes original shatter effect");
+
+            await ctx.Reset();
             var kick = await ctx.Add<KinglyKick>(PileType.Draw);
-            HumilityRewriteCapability.Apply(kick, new([Damage()]));
+            HumilityCardProfiles.ApplyKnown(kick);
             int oldCost = kick.EnergyCost.GetWithModifiers(CostModifiers.Local);
             await CardPileCmd.Draw(choice, 1, player);
             Check(kick.EnergyCost.GetWithModifiers(CostModifiers.Local) == oldCost, "original AfterCardDrawn cost trigger suppressed");
@@ -141,7 +190,7 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
 
             await ctx.Reset();
             var modified = await ctx.Add<PommelStrike>(PileType.Hand);
-            HumilityRewriteCapability.Apply(modified, new([Damage()]));
+            HumilityCardProfiles.ApplyKnown(modified);
             await ctx.ApplyPower<StrengthPower>(ctx.Self, 3);
             await ctx.ApplyPower<VulnerablePower>(ctx.PrimaryEnemy, 1);
             string targeted = Regex.Replace(modified.GetDescriptionForPile(PileType.Hand, ctx.PrimaryEnemy), @"\[[^\]]*\]", "");
@@ -153,7 +202,7 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
             await ctx.Reset();
             var goopy = await ctx.Add<DefendIronclad>(PileType.Hand);
             CardCmd.Enchant<Goopy>(goopy, 1);
-            HumilityRewriteCapability.Apply(goopy, new([Block()]));
+            HumilityCardProfiles.ApplyKnown(goopy);
             Check(goopy.Keywords.Contains(CardKeyword.Exhaust), "Goopy exhaust keyword preserved");
             await ctx.Play(goopy);
             Check(goopy.Pile?.Type == PileType.Exhaust && goopy.Enchantment!.Amount == 2,
@@ -161,7 +210,7 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
 
             await ctx.Reset();
             var shining = await ctx.Add<ShiningStrike>(PileType.Hand);
-            HumilityRewriteCapability.Apply(shining, new([Damage()]));
+            HumilityCardProfiles.ApplyKnown(shining);
             int oldStars = player.PlayerCombatState!.Stars;
             await ctx.Play(shining, ctx.PrimaryEnemy);
             Check(shining.Pile?.Type == PileType.Discard && player.PlayerCombatState.Stars == oldStars,
@@ -171,7 +220,7 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
             var conditional = await ctx.Add<Uppercut>(PileType.Hand);
             conditional.AddKeyword(CardKeyword.Retain);
             conditional.BaseReplayCount = 2;
-            HumilityRewriteCapability.Apply(conditional, new([Damage()]));
+            HumilityCardProfiles.ApplyKnown(conditional);
             Check(!conditional.Keywords.Contains(CardKeyword.Retain) && conditional.BaseReplayCount == 0, "old keywords/intrinsic replay removed");
             await ctx.Play(conditional, ctx.PrimaryEnemy);
             Check(!ctx.PrimaryEnemy.Powers.OfType<WeakPower>().Any() && !ctx.PrimaryEnemy.Powers.OfType<VulnerablePower>().Any(), "original status effects removed");
@@ -179,7 +228,7 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
             await ctx.Reset();
             var retained = await ctx.Add<StrikeIronclad>(PileType.Hand);
             CardCmd.Enchant<Steady>(retained, 1);
-            HumilityRewriteCapability.Apply(retained, new([Damage()]));
+            HumilityCardProfiles.ApplyKnown(retained);
             Check(retained.Keywords.Contains(CardKeyword.Retain), "Steady's native retain survives without re-enchanting");
             HumilityRewriteCapability.Apply(retained, new([]));
             Check(HumilityRewriteCapability.Find(retained)!.Program.AmountMultiplier == 4, "second application scales existing program, ignores replacement input");
@@ -200,7 +249,7 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
                 foreach (var old in player.Relics.OfType<ChemicalX>().ToArray()) await RelicCmd.Remove(old);
                 if (chemical) await RelicCmd.Obtain(ModelDb.Relic<ChemicalX>().ToMutable(), player);
                 var whirlwind = await ctx.Add<Whirlwind>(PileType.Hand);
-                HumilityRewriteCapability.Apply(whirlwind, new([Damage(HumilityValue.X(HumilityValueKind.EnergyX), HumilityTarget.AllEnemies)]));
+                HumilityCardProfiles.ApplyKnown(whirlwind);
                 var probe = ModelCapabilityRegistry.Create<HumilityAttackProbeCapability>();
                 whirlwind.AddCapability(probe, allowMerge: false);
                 await PlayerCmd.SetEnergy(x, player);
@@ -214,8 +263,7 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
             foreach (var old in player.Relics.OfType<ChemicalX>().ToArray()) await RelicCmd.Remove(old);
             await ctx.Reset();
             var dualX = await ctx.Add<AllHopeLost>(PileType.Hand);
-            var amount = HumilityValue.Binary(HumilityValueKind.Multiply, HumilityValue.Named("Damage"), HumilityValue.X(HumilityValueKind.SecondaryX));
-            HumilityRewriteCapability.Apply(dualX, new([new(HumilityEffectKind.Damage, HumilityTarget.Selected, amount, HumilityValue.X(HumilityValueKind.EnergyX))]));
+            HumilityCardProfiles.ApplyKnown(dualX);
             CardCmd.Enchant<Glam>(dualX, 1);
             await PlayerCmd.SetEnergy(3, player);
             await Data.Desire.Set(player, 4);

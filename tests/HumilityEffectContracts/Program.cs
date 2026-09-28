@@ -140,7 +140,60 @@ Reject(() => HumilityValue.Named(" "), "empty variable rejected");
 JsonNode deep = N(1).Save();
 for (int i = 0; i < 40; i++) deep = new JsonObject { ["kind"] = "Add", ["left"] = deep, ["right"] = N(1).Save() };
 Reject(() => HumilityValue.Load(deep), "corrupt/deep expression rejected");
-Console.WriteLine($"PASS {checks} humility effect program assertions (production source linked; no game integration claim).");
+// Exercise the actual production card definitions, not a test-only reconstruction.
+var profiles = HumilityProfileDefinitions.All;
+Check(profiles.Count == 44, "reviewed first group has 36 Maiden and 8 native profiles");
+Check(!profiles.ContainsKey("maiden:Surf") && !profiles.ContainsKey("foreign:PommelStrike"),
+    "unsupported formulas and foreign names cannot silently become single-hit damage");
+foreach (var pair in profiles)
+{
+    var loaded = HumilityEffectProgram.Load(pair.Value.Save());
+    Check(loaded.Save().ToJsonString() == pair.Value.Save().ToJsonString(), "every actual definition roundtrips: " + pair.Key);
+    Check(pair.Value.AmountMultiplier == 1, "shared base definition starts undoubled: " + pair.Key);
+    var sink = new Sink();
+    await pair.Value.DoubleAmounts().Execute(new(3, 0, 4), name => name switch
+    { "Damage" => 7, "Block" => 5, "Hits" => 2, _ => throw new Exception("Unexpected variable " + name) }, sink);
+    Check(pair.Value.AmountMultiplier == 1, "execution cannot mutate shared catalog: " + pair.Key);
+}
+async Task Profile(string key, HumilityXValues x, Func<string, decimal> vars,
+    decimal amount, int repeats, HumilityEffectKind kind, HumilityTarget target)
+{
+    var sink = new Sink();
+    await profiles[key].DoubleAmounts().Execute(x, vars, sink);
+    Check(sink.Calls.Count == repeats && sink.Calls.All(call => call == (kind, amount, target)), "actual card program: " + key);
+    Check(sink.Groups.SequenceEqual(repeats > 0 ? new[] { repeats } : Array.Empty<int>()), "native command boundary: " + key);
+}
+foreach (bool upgraded in new[] { false, true })
+{
+    await Profile("vanilla:PommelStrike", default, _ => upgraded ? 10 : 9, upgraded ? 20 : 18, 1,
+        HumilityEffectKind.Damage, HumilityTarget.Selected);
+    await Profile("maiden:DoubleDefense", default, _ => upgraded ? 6 : 4, upgraded ? 12 : 8, 2,
+        HumilityEffectKind.Block, HumilityTarget.Self);
+    await Profile("maiden:ExplosiveImpact", default, _ => upgraded ? 5 : 3, upgraded ? 10 : 6, 2,
+        HumilityEffectKind.Damage, HumilityTarget.RandomEnemy);
+    await Profile("maiden:UltimateFlare", default, _ => upgraded ? 52 : 40, upgraded ? 104 : 80, 1,
+        HumilityEffectKind.Damage, HumilityTarget.AllEnemies);
+    foreach (int hits in new[] { 2, 3, 8 })
+        await Profile("maiden:Takemikazuchi", default, name => name == "Hits" ? hits : upgraded ? 8 : 6,
+            upgraded ? 16 : 12, hits, HumilityEffectKind.Damage, HumilityTarget.Selected);
+    foreach (int energy in new[] { 0, 1, 4 })
+    {
+        await Profile("vanilla:Whirlwind", new(energy, 0, 0), _ => upgraded ? 8 : 5,
+            upgraded ? 16 : 10, energy, HumilityEffectKind.Damage, HumilityTarget.AllEnemies);
+        foreach (int secondary in new[] { 0, 1, 7 })
+            await Profile("maiden:AllHopeLost", new(energy, 0, secondary), name => name == "Hits" ? upgraded ? 1 : 0 : 6,
+                secondary * 12, energy + (upgraded ? 1 : 0), HumilityEffectKind.Damage, HumilityTarget.Selected);
+    }
+}
+foreach (string name in new[] { "Transform", "IceShield", "AcceleratedMotion", "HealingArt", "Fusion",
+    "MagiciansSecret", "Procrastinate", "Bath", "CurseInfection", "ForgeCharge", "BeyondReasonForge", "CalmingMist", "DreamMist" })
+{
+    var sink = new Sink();
+    var program = profiles["maiden:" + name].DoubleAmounts();
+    await program.Execute(default, Missing, sink);
+    Check(!program.HasDamageOrBlock && sink.Groups.Count == 0, "explicit empty card is not a pure-effect card: " + name);
+}
+Console.WriteLine($"PASS {checks} humility program/profile assertions (production source linked; no game integration claim).");
 
 internal sealed class Sink : IHumilityEffectSink
 {
