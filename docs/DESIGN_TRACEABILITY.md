@@ -8,6 +8,10 @@
 
 > 当前汇总：[2026-09-28全范围状态核对](DESIGN_SYNC_20260927_CURRENT_STATUS.md)。旧批次段落是带日期的历史证据；不得用历史未实现项覆盖后续交付，也不得把局部IMPLEMENTED提升为全范围VERIFIED。
 
+## DS27-02AI：四张随身牌全文覆盖（READY）
+
+CARD-H-900～929四张随身牌→DS27-02AI→HolyText 48张/96份独立文本、基础升级元数据与Run/Hand描述→DS27-CARD-TEXT/META/GATES。前置`145c7541`，不变更现有效果或意图；保留原测试目录和所有既有44牌预期，运行时仍待验，不部署。
+
 ## DS27-02AH：心神宁静完整文本与门槛（IMPLEMENTED，游戏内待验）
 
 EVENT-CARD-001→DS27-02AH→补正式描述“则”、基础/升级Run/Hand独立全文和其他手牌5/6/7张门槛→DS27-CARD-TEXT/EFFECT/GATES。前置`4cc86719`，不改变0费/保留/奖励规则；抽牌不足/禁止不伪造抽取收益，测试使用真实牌堆/打牌命令，未运行不标VERIFIED，不部署。
