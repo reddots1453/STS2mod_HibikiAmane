@@ -1,11 +1,14 @@
 #if DEBUG
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
+using MegaCrit.Sts2.Core.Models.Enchantments;
 using MaidenSuccubus.Cards;
 using MaidenSuccubus.Commands;
 using MaidenSuccubus.Core.Cards;
@@ -84,16 +87,16 @@ internal static class DesignSyncFreeUntilPlayedContract
         check(!ModelCapabilities.TryGet(consumed, out ModelCapabilitySet? consumedSet)
             || consumedSet.Get<FreeUntilPlayedCapability>() == null, "consumed entitlement not resurrected by save");
 
-        // X/Y remains deliberately unchanged until Q17 is answered.
+        // Q17: free fixed costs do not replace native X/Y payment semantics.
         var x = await ctx.Add<Whirlwind>(PileType.Discard);
         int xSpend = x.EnergyCost.GetAmountToSpend();
         GeneratedCardCostCmd.SetFreeUntilPlayed(x);
-        check(x.EnergyCost.CostsX && x.EnergyCost.GetAmountToSpend() == xSpend, "pending X semantics unchanged");
+        check(x.EnergyCost.CostsX && x.EnergyCost.GetAmountToSpend() == xSpend, "native X semantics unchanged");
         var y = await ctx.Add<MaidenStrike>(PileType.Discard);
         y.SecondaryCosts().Set(DesireResource.Id, SecondaryResourceCost.X());
         int ySpend = SecondaryResourcePaymentResolver.Plan(y).Lines.Single().AmountToSpend;
         GeneratedCardCostCmd.SetFreeUntilPlayed(y);
-        check(SecondaryResourcePaymentResolver.Plan(y).Lines.Single().AmountToSpend == ySpend, "pending Y semantics unchanged");
+        check(SecondaryResourcePaymentResolver.Plan(y).Lines.Single().AmountToSpend == ySpend, "native Y semantics unchanged");
         var curse = await ctx.Add<Injury>(PileType.Discard);
         int negative = curse.EnergyCost.GetWithModifiers(CostModifiers.All);
         GeneratedCardCostCmd.SetFreeUntilPlayed(curse);
@@ -155,6 +158,67 @@ internal static class DesignSyncFreeUntilPlayedContract
         GeneratedCardCostCmd.SetFreeUntilPlayed(untouched);
         await ModelCapabilities.Get(untouched).Get<FreeUntilPlayedCapability>()!.BeforeCombatStart();
         check(!FreeUntilPlayedCapability.IsActive(untouched), "next combat does not inherit stale entitlement");
+        await RunXCosts(ctx, check);
+    }
+
+    private static async Task RunXCosts(CardEffectTestContext ctx, Action<bool, string> check)
+    {
+        var choice = new BlockingPlayerChoiceContext();
+        foreach (bool untilPlayed in new[] { false, true })
+        foreach (bool upgraded in new[] { false, true })
+        foreach (var sample in new (int Energy, int Desire, bool Replay)[] { (2, 3, false), (2, 3, true), (0, 3, false), (2, 0, false) })
+        {
+            await ctx.Reset();
+            await PlayerCmd.SetEnergy(sample.Energy, ctx.Player);
+            await Data.Desire.Set(ctx.Player, sample.Desire);
+            var card = await ctx.Add<AllHopeLost>(PileType.Hand, upgraded);
+            if (sample.Replay) CardCmd.Enchant<Glam>(card, 1);
+            if (untilPlayed) GeneratedCardCostCmd.SetFreeUntilPlayed(card);
+            else GeneratedCardCostCmd.SetFreeThisTurn(card);
+            check(card.EnergyCost.CostsX && card.SecondaryCosts().Get(DesireResource.Id).CostsX,
+                "free preserves both X cost identities");
+            if (untilPlayed)
+            {
+                card.EndOfTurnCleanup();
+                check(FreeUntilPlayedCapability.IsActive(card), "X entitlement survives the turn boundary");
+            }
+            int start = CombatManager.Instance.History.Entries.Count();
+            int hp = ctx.PrimaryEnemy.CurrentHp;
+            (int energy, int stars) = await card.SpendResources();
+            check(energy == sample.Energy && ctx.Player.PlayerCombatState!.Energy == 0
+                && Data.Desire.Get(ctx.Player) == 0, "native paid X/Y consumes available resources despite fixed-cost free");
+            await card.OnPlayWrapper(choice, ctx.PrimaryEnemy, isAutoPlay: false,
+                new ResourceInfo { EnergySpent = energy, EnergyValue = energy, StarsSpent = stars, StarValue = stars },
+                skipCardPileVisuals: true);
+            int hits = (sample.Energy + (upgraded ? 1 : 0)) * (sample.Replay ? 2 : 1);
+            check(hp - ctx.PrimaryEnemy.CurrentHp == 6 * sample.Desire * hits,
+                "free dual X damage uses captured native values on every replay");
+            check(CombatManager.Instance.History.Entries.Skip(start).OfType<DamageReceivedEntry>()
+                .Count(hit => hit.CardSource == card && hit.Receiver == ctx.PrimaryEnemy) == hits,
+                "free dual X preserves base upgraded zero and replay hit counts");
+            check(!FreeUntilPlayedCapability.IsActive(card), "native final cleanup consumes X entitlement once");
+        }
+
+        // The native ThisTurn binding also covers fixed secondary costs without custom layers.
+        await ctx.Reset();
+        await PlayerCmd.SetEnergy(3, ctx.Player);
+        await Data.Desire.Set(ctx.Player, 3);
+        var fixedCard = await ctx.Add<MaidenStrike>(PileType.Hand);
+        fixedCard.SecondaryCosts().Set(DesireResource.Id, 2);
+        GeneratedCardCostCmd.SetFreeThisTurn(fixedCard);
+        (int paid, int starPaid) = await fixedCard.SpendResources();
+        check(paid == 0 && starPaid == 0 && ctx.Player.PlayerCombatState!.Energy == 3
+            && Data.Desire.Get(ctx.Player) == 3, "native ThisTurn frees fixed energy and secondary cost");
+        await fixedCard.OnPlayWrapper(choice, ctx.PrimaryEnemy, isAutoPlay: false,
+            new ResourceInfo { EnergySpent = paid, EnergyValue = paid, StarsSpent = starPaid, StarValue = starPaid },
+            skipCardPileVisuals: true);
+        await CardPileCmd.Add(fixedCard, PileType.Hand, skipVisuals: true);
+        (paid, starPaid) = await fixedCard.SpendResources();
+        check(paid == 1 && ctx.Player.PlayerCombatState!.Energy == 2 && Data.Desire.Get(ctx.Player) == 1,
+            "native ThisTurn binding clears after play and restores both fixed costs");
+        await fixedCard.OnPlayWrapper(choice, ctx.PrimaryEnemy, isAutoPlay: false,
+            new ResourceInfo { EnergySpent = paid, EnergyValue = paid, StarsSpent = starPaid, StarValue = starPaid },
+            skipCardPileVisuals: true);
     }
 }
 #endif

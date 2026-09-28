@@ -57,8 +57,22 @@ class FreeUntilPlayedContracts(unittest.TestCase):
         code = read("src/Debugging/CardEffects/DesignSyncFreeUntilPlayedContract.cs")
         for value in ("ctx.Add<FocusedSlash>", "ctx.Combat.CloneCard(card)", "CardModel.FromSerializable(card.ToSerializable())",
                       "clone cleanup cannot consume original entitlement", "consumed entitlement not resurrected by save",
-                      "global-only query not changed", "unmarked card retains dynamic cost", "pending X semantics unchanged",
-                      "pending Y semantics unchanged", "combat end removes entitlement"):
+                      "global-only query not changed", "unmarked card retains dynamic cost", "native X semantics unchanged",
+                      "native Y semantics unchanged", "combat end removes entitlement"):
+            self.assertIn(value, code)
+
+    def test_this_turn_delegates_to_native_without_erasing_secondary_x(self):
+        code = read("src/Commands/GeneratedCardCostCmd.cs").split("public static void SetFreeThisTurn", 1)[1]
+        self.assertIn("card.SetToFreeThisTurn();", code)
+        self.assertNotIn("costs.Set", code)
+        self.assertNotIn("SecondaryResourceCost.Free", code)
+
+    def test_paid_dual_x_cases_cover_both_durations_upgrade_and_replay(self):
+        code = read("src/Debugging/CardEffects/DesignSyncFreeUntilPlayedContract.cs").split("private static async Task RunXCosts", 1)[1]
+        for value in ("foreach (bool untilPlayed", "foreach (bool upgraded", "(2, 3, true)",
+                      "(0, 3, false)", "(2, 0, false)", "await card.SpendResources()",
+                      "isAutoPlay: false", "OfType<DamageReceivedEntry>()", "6 * sample.Desire * hits",
+                      "native ThisTurn frees fixed energy and secondary cost", "restores both fixed costs"):
             self.assertIn(value, code)
 
     def test_test_only_providers_cleanup_and_no_false_handtest_claim(self):
