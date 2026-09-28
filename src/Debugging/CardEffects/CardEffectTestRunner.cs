@@ -85,6 +85,7 @@ internal static class CardEffectTestRunner
                         DesignSyncHolyContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncHolyTextContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncCorruptTextContract.Validate(context, card, scenario.Upgraded);
+                        DesignSyncVariationTextContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncCombatTextContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncRemainingTextContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncStarterTextContract.Validate(context, card, scenario.Upgraded);
@@ -235,6 +236,14 @@ internal static class CardEffectTestRunner
             var batch = CardEffectTestCatalog.All.Where(spec => DesignSyncCorruptTextContract.Contains(spec.CardType)).ToArray();
             if (batch.Length != 27 || batch.Length != DesignSyncCorruptTextContract.Entries.Length)
                 throw new InvalidOperationException("DS27 corrupt text requires all 27 cards and their existing effect scenarios.");
+            return batch;
+        }
+
+        if (string.Equals(requestedCard, "ds27-variation-text", StringComparison.OrdinalIgnoreCase))
+        {
+            var batch = CardEffectTestCatalog.All.Where(spec => DesignSyncVariationTextContract.Contains(spec.CardType)).ToArray();
+            if (batch.Length != 5 || batch.Length != DesignSyncVariationTextContract.Entries.Length)
+                throw new InvalidOperationException("DS27 variation text requires all five cards and their effect scenarios.");
             return batch;
         }
 

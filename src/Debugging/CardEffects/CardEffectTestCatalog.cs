@@ -1454,20 +1454,7 @@ internal static class CardEffectTestCatalog
         }, 9);
 
     private static void LegendaryMinerProbe() =>
-        CustomVariants<LegendaryMiner>(async (ctx, card, upgraded) =>
-        {
-            int perPoint = upgraded ? 4 : 3;
-            await ctx.Play(card);
-            int block = ctx.Self.Block;
-            await Desire.Modify(ctx.Player, 2);
-            ctx.AssertBlock("block from two desire gained", block, perPoint * 2);
-            LegendaryMinerPower power =
-                ctx.Self.Powers.OfType<LegendaryMinerPower>().Single();
-            block = ctx.Self.Block;
-            await power.AfterSecondaryResourceSpent(new SecondaryResourceSpendContext(
-                ctx.Combat, ctx.Player, DesireResource.Definition, card, 2, card));
-            ctx.AssertBlock("block from two desire spent", block, perPoint * 2);
-        }, 2);
+        CustomVariants<LegendaryMiner>(DesignSyncLegendaryMinerContract.Run, 14);
 
     private static void LordOfBlazeProbe() =>
         CustomVariants<LordOfBlaze>(async (ctx, card, upgraded) =>
@@ -2518,6 +2505,7 @@ internal static class CardEffectTestCatalog
                 card.GetDescriptionForPile(PileType.Hand, ctx.PrimaryEnemy), @"\[[^\]]+\]", "");
             ctx.AssertTrue("base damage is not counted twice in description", preview.StartsWith(upgraded ? "造成4点伤害。" : "造成3点伤害。"));
             ctx.AssertTrue("combat total updates to debuff layers", preview.Contains(upgraded ? "（造成16点伤害）" : "（造成12点伤害）"));
+            DesignSyncVariationTextContract.LastStandTotal(ctx, card, upgraded, upgraded ? 16 : 12);
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(card, ctx.PrimaryEnemy);
             ctx.AssertDamage("damage with three self-debuff layers", ctx.PrimaryEnemy, hp,

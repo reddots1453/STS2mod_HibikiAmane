@@ -68,6 +68,7 @@ internal static class DesignSyncSignedLayerContract
         ctx.AssertEqual("negative stats not counted as self buffs", 0, PowerLayerQuery.CountBuffLayers(ctx.Self));
         // 3+5*3-2 / 4+5*4-2: native negative Strength still reduces attack damage.
         Preview(ctx, card, $"（造成{(upgraded ? 22 : 16)}点伤害）", true);
+        DesignSyncVariationTextContract.LastStandTotal(ctx, card, upgraded, upgraded ? 22 : 16);
         int hp = ctx.PrimaryEnemy.CurrentHp;
         await ctx.Play(card, ctx.PrimaryEnemy);
         ctx.AssertDamage("self-debuff bonus plus native strength penalty", ctx.PrimaryEnemy, hp, upgraded ? 22 : 16);

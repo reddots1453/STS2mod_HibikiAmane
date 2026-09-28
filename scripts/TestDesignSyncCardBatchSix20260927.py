@@ -43,7 +43,7 @@ class CardBatchSix(unittest.TestCase):
         self.assertEqual(loc["MAIDEN_SUCCUBUS_CARD_DREAM_PIGMENT.description"],
                          "从[gold]抽牌堆[/gold]中抽取[purple]堕落牌[/purple]、[gold]圣洁牌[/gold]和[gold]中立牌[/gold]各1张。")
         self.assertEqual(loc["MAIDEN_SUCCUBUS_CARD_LAST_STAND.description"],
-                         "造成{CalculationBase:diff()}点伤害。\n每有1层负面状态，额外造成{ExtraDamage:diff()}点伤害。\n{InCombat:\n（造成{CalculatedDamage:diff()}点伤害）|}")
+                         "造成{CalculationBase:diff()}点伤害。\n每有1层负面状态，额外造成{ExtraDamage:diff()}点伤害。{InCombat:\n（造成{CalculatedDamage:diff()}点伤害）|}")
         remaining = {
             "DARK_THRUST": "造成{Damage:diff()}点伤害。\n抽2张牌。",
             "MIASMA_ABSORPTION": "获得{Energy:maidenEnergyIcons()}。",

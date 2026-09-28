@@ -78,6 +78,14 @@ class CardTextInventoryTests(unittest.TestCase):
         self.assertEqual(next(row for row in report['cards'] if row['model'] == 'BurningDesire')['textEvidence'],
                          coverage.MISSING)
 
+    def test_variation_group_disconnect_downgrades_all_five(self):
+        report = self.mutated(coverage.RUNNER, 'DesignSyncVariationTextContract.Validate(context, card, scenario.Upgraded);', '')
+        self.assertTrue(report['integrityErrors'])
+        rows = {row['model']: row for row in report['cards']}
+        for model in ('DarkElement', 'DarkOrigin', 'LastStand', 'LegendaryMiner', 'RecollectionRoom'):
+            self.assertEqual(self.rows[model]['textEvidence'], coverage.BOTH)
+            self.assertEqual(rows[model]['textEvidence'], coverage.MISSING)
+
     def mutated(self, path, old, new):
         def read(file):
             text = coverage.read(file)

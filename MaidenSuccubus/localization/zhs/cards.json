@@ -31,7 +31,7 @@
   "MAIDEN_SUCCUBUS_CARD_MIASMA_ABSORPTION.title": "瘴气吸收",
   "MAIDEN_SUCCUBUS_CARD_MIASMA_ABSORPTION.description": "获得{Energy:maidenEnergyIcons()}。",
   "MAIDEN_SUCCUBUS_CARD_LAST_STAND.title": "背水一战",
-  "MAIDEN_SUCCUBUS_CARD_LAST_STAND.description": "造成{CalculationBase:diff()}点伤害。\n每有1层负面状态，额外造成{ExtraDamage:diff()}点伤害。\n{InCombat:\n（造成{CalculatedDamage:diff()}点伤害）|}",
+  "MAIDEN_SUCCUBUS_CARD_LAST_STAND.description": "造成{CalculationBase:diff()}点伤害。\n每有1层负面状态，额外造成{ExtraDamage:diff()}点伤害。{InCombat:\n（造成{CalculatedDamage:diff()}点伤害）|}",
   "MAIDEN_SUCCUBUS_CARD_DREAM_PIGMENT.title": "梦色的颜料",
   "MAIDEN_SUCCUBUS_CARD_DREAM_PIGMENT.description": "从[gold]抽牌堆[/gold]中抽取[purple]堕落牌[/purple]、[gold]圣洁牌[/gold]和[gold]中立牌[/gold]各1张。",
   "MAIDEN_SUCCUBUS_CARD_LIGHTNING_KICK.title": "闪电踢击",
