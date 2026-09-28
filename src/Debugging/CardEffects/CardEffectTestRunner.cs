@@ -84,6 +84,7 @@ internal static class CardEffectTestRunner
                         DesignSyncNeutralTextContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncHolyContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncHolyTextContract.Validate(context, card, scenario.Upgraded);
+                        DesignSyncCombatTextContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncCardBatchSixContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncTextBatchContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncEnchantmentInputContract.Validate(context, card, scenario.Upgraded);
@@ -231,6 +232,14 @@ internal static class CardEffectTestRunner
             var batch = CardEffectTestCatalog.All.Where(spec => DesignSyncHolyTextContract.Contains(spec.CardType)).ToArray();
             if (batch.Length != 44 || batch.Length != DesignSyncHolyTextContract.Entries.Length)
                 throw new InvalidOperationException("DS27 holy text requires all 44 cards and their existing effect scenarios.");
+            return batch;
+        }
+
+        if (string.Equals(requestedCard, "ds27-combat-text", StringComparison.OrdinalIgnoreCase))
+        {
+            var batch = CardEffectTestCatalog.All.Where(spec => DesignSyncCombatTextContract.Contains(spec.CardType)).ToArray();
+            if (batch.Length != 8 || batch.Length != DesignSyncCombatTextContract.Entries.Length)
+                throw new InvalidOperationException("DS27 combat text requires eight cards and their existing effect scenarios.");
             return batch;
         }
 

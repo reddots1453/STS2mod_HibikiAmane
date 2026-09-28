@@ -452,6 +452,7 @@ internal static class CardEffectTestCatalog
             TakemikazuchiTrackerPower tracker = ctx.Self
                 .Powers.OfType<TakemikazuchiTrackerPower>().Single();
             tracker.PlayedEnchantedCards = 3;
+            DesignSyncCombatTextContract.TrackedHits(ctx, card, upgraded);
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(card, ctx.PrimaryEnemy);
             ctx.AssertDamage("two base hits plus played enchanted cards",
@@ -1606,6 +1607,8 @@ internal static class CardEffectTestCatalog
                 projected.TryGetCapability<BattleReplayOriginCapability>(out _));
             ctx.AssertTrue("original replay instance was transformed",
                 replay.HasBeenRemovedFromState);
+            DesignSyncCombatTextContract.AssertText(ctx, projected, PileType.Hand,
+                (upgraded ? "保留。\n" : "") + "造成6点伤害。", "replay projection renders copied strike not source text");
 
             await ctx.Play(projected, ctx.PrimaryEnemy);
             BattleTechniqueReplay restored = PileType.Discard.GetPile(ctx.Player).Cards
@@ -1618,6 +1621,8 @@ internal static class CardEffectTestCatalog
                 restored.TryGetCapability<BattleReplayOriginCapability>(out _));
             ctx.AssertEqual("played projection leaves play pile", 0,
                 PileType.Play.GetPile(ctx.Player).Cards.Count);
+            DesignSyncCombatTextContract.AssertText(ctx, restored, PileType.Discard,
+                DesignSyncCombatTextContract.ExpectedOutside(restored, upgraded), "replay restores full original description");
         }, 7);
 
     private static void DesireWhipProbe() =>

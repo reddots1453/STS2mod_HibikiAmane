@@ -106,7 +106,9 @@ foreach ($path in $paths) {
         $value = Add-SpecialHighlight $value
         $value = Add-MechanicHighlight $value
         if ($isCardFile -and $key.EndsWith(".description")) {
-            $sentencePattern = [regex]::Escape($fullStop) + '(?!\\n)(?=.)'
+            # A combat-only suffix owns its newline; adding another outside the
+            # condition creates an empty line in combat and a trailing line in Deck.
+            $sentencePattern = [regex]::Escape($fullStop) + '(?!\\n|\{InCombat:\\n)(?=.)'
             $value = [regex]::Replace($value, $sentencePattern, $fullStop + '\n')
         }
 
