@@ -1,4 +1,7 @@
 {
+  "MAIDEN_SUCCUBUS_FORGOTTEN_SOUL.title": "遗忘之魂",
+  "MAIDEN_SUCCUBUS_FORGOTTEN_SOUL.description": "每当你[gold]消耗[/gold]1张牌，对随机敌人造成{Damage}点伤害。[purple]堕落值[/purple]≥4：[gold]变奏[/gold]。",
+  "MAIDEN_SUCCUBUS_FORGOTTEN_SOUL.descriptionCorrupt": "每当你[gold]消耗[/gold]1张牌，对随机敌人造成{Damage}点伤害。[purple]堕落值[/purple]＜4：[gold]变奏[/gold]。",
   "MAIDEN_SUCCUBUS_RELIC_COUNTER_CURSE_MIRROR.title": "反咒镜",
   "MAIDEN_SUCCUBUS_RELIC_COUNTER_CURSE_MIRROR.description": "给予敌人负面状态时，额外给予1层[gold]燃烧[/gold]。[purple]堕落值[/purple]≤-3：[gold]变奏[/gold]。",
   "MAIDEN_SUCCUBUS_RELIC_COUNTER_CURSE_MIRROR.descriptionHoly": "给予敌人负面状态时，额外给予1层[gold]断罪[/gold]。[purple]堕落值[/purple]＞-3：[gold]变奏[/gold]。",

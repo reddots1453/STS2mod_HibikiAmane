@@ -6,9 +6,11 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-04I：遗忘之魂（READY）
+## DS27-04I：遗忘之魂（IMPLEMENTED，游戏内待验）
 
 `RELIC-VANILLA-002`完整条目→DS27-04I→原版ForgottenSoul实例动态伤害/本角色隔离/正反变奏描述→DS27-RELIC/COMPAT/GATES。前置`4538afc9`，没有设计漂移。不将原版CharonsAshes误作遗忘之魂，不替换消耗命令或原生RNG，不部署。
+
+同步`743a97fe`；`ForgottenSoulVariation`、变量与描述getter patch、独立本地化→`ms_test_forgotten_soul confirm`（已编译未运行）和7静态。累计406静态、既有13540/33、双构建四门通过，当前DLL原生回调也已只读核对；真实战斗与多人待验，旧视觉/审计失败保留，见`DESIGN_SYNC_20260927_BATCH48.md`。
 
 ## DS27-02V：中立牌全文（IMPLEMENTED，游戏内待验）
 
