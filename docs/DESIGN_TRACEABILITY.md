@@ -8,6 +8,10 @@
 
 > 当前汇总：[2026-09-28全范围状态核对](DESIGN_SYNC_20260927_CURRENT_STATUS.md)。旧批次段落是带日期的历史证据；不得用历史未实现项覆盖后续交付，也不得把局部IMPLEMENTED提升为全范围VERIFIED。
 
+## DS27-02AM：27张堕落普通机制牌全文及暗焰壁障（READY）
+
+CARD-C-100～600/800正式完整条目→27牌独立Run/Hand全文与元数据/原生关键词、暗焰壁障费用/格挡/持续时间/减伤时序、似水年华标点→DS27-CARD-TEXT/EFFECT/META/GATES。前置`52a2e273`，设计无漂移；旧暗焰实现与当前明确要求冲突，按Plan回修。连锁破坏全文不解决Q12，不改任何未定或成人规则；未部署。
+
 ## DS27-02AL / DS27-05P：书库及节制两处设计回修（IMPLEMENTED，游戏内待验）
 
 设计输入`fd3a6fa5`→先古书库/ACT4节制→InsatiableGreed手牌持续邻接服务、出牌快照和红绿边框；新节制之戒/环及拾取奖励、试炼2/2/3→DS27-CARD-TEXT/EFFECT/META/COMPAT、DS27-ROUTE、DS27-GATES。实施前审查见`DESIGN_SYNC_20260928_LIBRARY_TEMPERANCE.md`；Q21用户已答持续手牌效果，Q22条件不成立。旧书库与节制成果回退READY；耐心和其他路线不变，不部署。
