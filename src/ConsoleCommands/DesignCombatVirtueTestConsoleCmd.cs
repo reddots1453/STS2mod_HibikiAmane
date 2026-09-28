@@ -64,58 +64,32 @@ public sealed class DesignCombatVirtueTestConsoleCmd : AbstractConsoleCmd
             foreach (RelicModel relic in player.Relics.ToArray()) await RelicCmd.Remove(relic);
             foreach (int stage in new[] { 0, 1, 2, 3, 4 })
             {
-                int max = stage == 0 ? 0 : stage == 1 ? 2 : 3;
-                var prefs = TemperanceRouteRelic.SelectionPrefs(stage);
-                Check(prefs.MinSelect == 0 && prefs.MaxSelect == max, "literal optional selection range");
-                if (stage > 0) Check(prefs.RequireManualConfirmation, "optional selection not auto-forced");
-                foreach (int selectedCount in new[] { 0, 1, max }.Distinct().Where(count => count <= max))
+                int countBefore = player.Deck.Cards.Count;
+                var relic = (TemperanceRouteRelic)ModelDb.Relic<TemperanceRouteRelic>().ToMutable();
+                relic.Stage = stage; relic.Owner = player;
+                await relic.AfterObtained();
+                var added = player.Deck.Cards.Where(card => !permanent.ContainsKey(card)).ToArray();
+                try
                 {
-                    await ClearCards();
-                    List<CardModel> draw = [];
-                    for (int i = 0; i < 4; i++) draw.Add(await AddStrike(PileType.Draw));
-                    var hand = await AddStrike(PileType.Hand);
-                    var discard = await AddStrike(PileType.Discard);
-                    var relic = (TemperanceRouteRelic)ModelDb.Relic<TemperanceRouteRelic>().ToMutable();
-                    relic.Stage = stage; relic.Owner = player;
-                    var selector = new TestCardSelector();
-                    selector.PrepareToSelect(draw.Take(selectedCount));
-                    using (CardSelectCmd.UseSelector(selector)) await relic.BeforeCombatStart();
-                    for (int i = 0; i < draw.Count; i++)
+                    Check(added.Length == (stage == 0 ? 0 : 1), "one permanent pickup reward");
+                    if (stage > 0)
                     {
-                        Check(draw[i].Keywords.Contains(CardKeyword.Exhaust) == (i < selectedCount), "only selected instance gains Exhaust");
-                        Check(draw[i].Pile?.Type == PileType.Draw, "adding keyword does not move/exhaust card now");
-                        Check(draw[i].Enchantment == null, "no removed Swift enchantment");
+                        Check(added[0].GetType() == (stage <= 2 ? typeof(TemperanceSignet) : typeof(TemperanceCirclet)),
+                            "literal stage reward identity");
+                        Check(!added[0].IsUpgraded && added[0].Rarity == CardRarity.Ancient, "unupgraded ancient reward");
                     }
-                    Check(!hand.Keywords.Contains(CardKeyword.Exhaust) && !discard.Keywords.Contains(CardKeyword.Exhaust),
-                        "hand and discard not selected");
+                    await relic.AfterObtained();
+                    await relic.BeforeCombatStart();
+                    Check(player.Deck.Cards.Count == countBefore + added.Length, "repeat pickup and combat do not duplicate");
+                    var restored = (TemperanceRouteRelic)RelicModel.FromSerializable(relic.ToSerializable());
+                    restored.Owner = player;
+                    Check(restored.Stage == stage && restored.PickupEffectGranted == (stage > 0), "pickup state round trip");
+                    await restored.AfterObtained();
+                    await restored.BeforeCombatStart();
+                    Check(player.Deck.Cards.Count == countBefore + added.Length, "saved pickup does not reissue");
                 }
+                finally { if (added.Length > 0) await CardPileCmd.RemoveFromDeck(added, showPreview: false); }
             }
-            await ClearCards();
-            var temperance = (TemperanceRouteRelic)ModelDb.Relic<TemperanceRouteRelic>().ToMutable();
-            temperance.Stage = 4; temperance.Owner = player;
-            await temperance.BeforeCombatStart();
-            Check(!PileType.Draw.GetPile(player).Cards.Any(), "empty draw safe without selector");
-            var moved = await AddStrike(PileType.Draw);
-            var delayed = new TestCardSelector();
-            var selection = delayed.SetupForAsyncCardSelection();
-            using (CardSelectCmd.UseSelector(delayed))
-            {
-                Task pending = temperance.BeforeCombatStart();
-                await CardPileCmd.Add(moved, PileType.Hand, skipVisuals: true);
-                selection.SetResult([moved]);
-                await pending;
-            }
-            Check(!moved.Keywords.Contains(CardKeyword.Exhaust), "stale selection does not affect moved card");
-
-            await ClearCards();
-            var enchanted = await AddStrike(PileType.Draw);
-            var originalEnchantment = CardCmd.Enchant(ModelDb.Enchantment<Sharp>().ToMutable(), enchanted, 2);
-            var keepEnchant = new TestCardSelector();
-            keepEnchant.PrepareToSelect([enchanted]);
-            using (CardSelectCmd.UseSelector(keepEnchant)) await temperance.BeforeCombatStart();
-            Check(enchanted.Keywords.Contains(CardKeyword.Exhaust) && ReferenceEquals(enchanted.Enchantment, originalEnchantment),
-                "existing enchantment preserved alongside Exhaust");
-
             foreach (int stage in new[] { 0, 1, 2, 3, 4 })
             {
                 await ClearCards();

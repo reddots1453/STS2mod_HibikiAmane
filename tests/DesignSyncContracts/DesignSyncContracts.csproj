@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../src/Core/Cards/LibraryNeighbourRules.cs" Link="Production/LibraryNeighbourRules.cs" />
     <Compile Include="../../src/Core/Powers/PowerLayerMath.cs" Link="Production/PowerLayerMath.cs" />
     <Compile Include="../../src/Core/Seals/SealRules.cs" Link="Production/SealRules.cs" />
     <Compile Include="../../src/Core/Corruption/CorruptionBand.cs" Link="Production/CorruptionBand.cs" />

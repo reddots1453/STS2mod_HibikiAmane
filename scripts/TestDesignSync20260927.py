@@ -75,10 +75,11 @@ class DesignSyncBatchOne(unittest.TestCase):
     def test_library_identity_and_cost(self):
         self.assertEqual(self.cards["MAIDEN_SUCCUBUS_CARD_INSATIABLE_GREED.title"], "娅露丝的书库")
         self.assertEqual(self.cards["MAIDEN_SUCCUBUS_CARD_INSATIABLE_GREED.description"],
-                         "你不能抽牌。\n回合开始时，选择一个牌堆，随机打出其中的10张牌。")
+                         "这张牌左侧相邻的卡牌获得[gold]消耗[/gold]，右侧相邻的卡牌获得[gold]重放[/gold]：1。")
         source = card_class("src/Cards/Iteration1CorruptCards.cs", "InsatiableGreed")
-        self.assertIn("base(2, CardType.Power, CardRarity.Ancient", source)
-        self.assertIn("AddKeyword(CardKeyword.Retain)", source)
+        self.assertIn("base(2, CardType.Skill, CardRarity.Ancient", source)
+        self.assertIn("EnergyCost.UpgradeBy(-1)", source)
+        self.assertIn("CardKeyword.Ethereal", source)
         self.assertNotIn("SecondaryCosts", source)
 
     def test_ancient_integrations_registered(self):
@@ -91,9 +92,11 @@ class DesignSyncBatchOne(unittest.TestCase):
 
     def test_library_pile_choices_and_draw_ban(self):
         source = read("src/Powers/YarusLibraryPower.cs")
-        self.assertIn("PileType.Draw, PileType.Discard, PileType.Exhaust", source)
-        self.assertIn("cards.StableShuffle(player.RunState.Rng.CombatCardGeneration)", source)
-        self.assertIn("cards.Take(10)", source)
+        command = read("src/Commands/TemperancePileCmd.cs")
+        self.assertIn("PileType.Draw, PileType.Discard, PileType.Exhaust", command)
+        self.assertIn("cards.StableShuffle(player.RunState.Rng.CombatCardGeneration)", command)
+        self.assertIn("cards.Take(count)", command)
+        self.assertIn("TemperancePileCmd.Play(context, player, 10, () => IsActive)", source)
         self.assertIn("ShouldDraw(Player player, bool fromHandDraw) => !IsActive || player.Creature != Owner", source)
 
     def test_library_choice_title_uses_dynamic_contributor(self):

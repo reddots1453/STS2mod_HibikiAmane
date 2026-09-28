@@ -104,7 +104,7 @@ public static class FrameworkSelfTests
                 [FourthRouteQuest.Generosity] = 1,
                 [FourthRouteQuest.Chastity] = 2,
                 [FourthRouteQuest.Benevolence] = 4,
-                [FourthRouteQuest.Temperance] = 1,
+                [FourthRouteQuest.Temperance] = 2,
                 [FourthRouteQuest.Patience] = 4,
                 [FourthRouteQuest.Diligence] = 2,
             };

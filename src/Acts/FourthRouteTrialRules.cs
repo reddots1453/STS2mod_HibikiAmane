@@ -42,7 +42,7 @@ public static class FourthRouteTrialRules
                 or FourthRouteQuest.Generosity => 1,
             FourthRouteQuest.Greed => trial switch { 1 => 200, 2 => 300, _ => 500 },
             FourthRouteQuest.Benevolence => trial == 3 ? 5 : 4,
-            FourthRouteQuest.Temperance => trial,
+            FourthRouteQuest.Temperance => trial == 3 ? 3 : 2,
             FourthRouteQuest.Patience => 4,
             _ => throw new ArgumentOutOfRangeException(nameof(quest))
         };

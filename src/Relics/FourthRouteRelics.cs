@@ -408,26 +408,30 @@ public sealed class BenevolenceRouteRelic : FourthRouteRelic
 public sealed class TemperanceRouteRelic : FourthRouteRelic
 {
     public override FourthRouteQuest Quest => FourthRouteQuest.Temperance;
-    public override async Task BeforeCombatStart()
+    public override bool HasUponPickupEffect => VirtueCombatRules.TemperanceReward(Stage) != 0;
+    [SavedProperty] public bool PickupEffectGranted { get; set; }
+    protected override IEnumerable<IHoverTip> AdditionalHoverTips => Stage is 1 or 2
+        ? [HoverTipFactory.FromCard<TemperanceSignet>()] : Stage is 3 or 4
+        ? [HoverTipFactory.FromCard<TemperanceCirclet>()] : [];
+    public override async Task AfterObtained()
     {
-        if (Stage == 0 || Owner.Creature.CombatState is not { } combat) return;
-        CardPile pile = PileType.Draw.GetPile(Owner);
-        int maximum = VirtueCombatRules.TemperanceMaximum(Stage);
-        if (maximum == 0 || pile.Cards.Count == 0) return;
-        IEnumerable<CardModel> selected = await CardSelectCmd.FromCombatPile(new BlockingPlayerChoiceContext(), pile, Owner,
-            SelectionPrefs(Stage));
-        // The selector does not move cards: only annotate surviving combat instances.
-        if (Owner.Creature.CombatState != combat) return;
-        foreach (CardModel card in selected)
+        if (!HasUponPickupEffect || PickupEffectGranted || Owner.Character is not Characters.MaidenSuccubusCharacter) return;
+        PickupEffectGranted = true;
+        CardModel? reward = null;
+        try
         {
-            if (card.Owner != Owner || card.Pile != pile) continue;
-            card.AddKeyword(CardKeyword.Exhaust);
+            reward = VirtueCombatRules.TemperanceReward(Stage) == 1
+                ? Owner.RunState.CreateCard<TemperanceSignet>(Owner)
+                : Owner.RunState.CreateCard<TemperanceCirclet>(Owner);
+            await CardPileCmd.Add(reward, PileType.Deck);
+        }
+        catch
+        {
+            // Retry only if insertion never committed; later visual failure must not duplicate the reward.
+            if (reward?.Pile?.Type != PileType.Deck) PickupEffectGranted = false;
+            throw;
         }
     }
-
-    internal static CardSelectorPrefs SelectionPrefs(int stage) => new(
-        new LocString("card_selection", "MAIDEN_SUCCUBUS_TEMPERANCE_ADD_EXHAUST"),
-        0, VirtueCombatRules.TemperanceMaximum(stage));
 }
 
 [RegisterRelic(typeof(MSRelicPool))]

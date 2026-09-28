@@ -8,15 +8,19 @@
 
 > 当前汇总：[2026-09-28全范围状态核对](DESIGN_SYNC_20260927_CURRENT_STATUS.md)。旧批次段落是带日期的历史证据；不得用历史未实现项覆盖后续交付，也不得把局部IMPLEMENTED提升为全范围VERIFIED。
 
-## DS27-02AL / DS27-05P：书库及节制两处设计回修（READY）
+## DS27-02AL / DS27-05P：书库及节制两处设计回修（IMPLEMENTED，游戏内待验）
 
 设计输入`fd3a6fa5`→先古书库/ACT4节制→InsatiableGreed手牌持续邻接服务、出牌快照和红绿边框；新节制之戒/环及拾取奖励、试炼2/2/3→DS27-CARD-TEXT/EFFECT/META/COMPAT、DS27-ROUTE、DS27-GATES。实施前审查见`DESIGN_SYNC_20260928_LIBRARY_TEMPERANCE.md`；Q21用户已答持续手牌效果，Q22条件不成立。旧书库与节制成果回退READY；耐心和其他路线不变，不部署。
 
-## DS27-02AK：初始及辅助五牌全文（READY）
+计划`5253596e`落实：LibraryHandAura/LibraryNeighbourRules/LibraryAuraOverlay、TemperancePileCmd及两张先古衍生牌、奖励保存幂等和2/2/3试炼完成；旧200断言迁环，新书库/戒和拾取保存场景单独接线。577静态、13778生产/33编码、双构建五门、统一12/12通过无漂移。227注册模型，133双实例全文声明/84未识别。第70批离线复验已收口；本批游戏六组仍未执行，未部署，见`DESIGN_SYNC_20260927_BATCH71.md`。
+
+## DS27-02AK：初始及辅助五牌全文（IMPLEMENTED，游戏内待验）
 
 CARD-N基础打防/变身/随身与困了→DS27-02AK→真Run/Hand全文、原生关键词排序、变奏边界回落重入及元数据→DS27-CARD-TEXT/META/COMPAT/GATES。前置`7dad6468`；数值和效果不变，测试需要一次性测试局，不部署、不以编译替代实机。
 
 计划`f8ea5341`后代码已写，统一12子项通过但DesignDoc在运行中漂移，整体失败；本批8项和清单11项在新文档下再次通过，仍保留READY。新书库/节制变更不得继续沿用旧IMPLEMENTED证明。详见第70批检查点，未部署。
+
+第71批已同步新设计并重新统一12/12通过、指纹稳定，当前更新IMPLEMENTED；上述失败是第70批历史证据。全部游戏验收仍未运行。
 
 ## DS27-02AJ：七牌双实例全文（IMPLEMENTED，游戏内待验）
 

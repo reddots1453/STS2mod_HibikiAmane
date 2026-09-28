@@ -520,13 +520,15 @@ public sealed class BiteInvader : MSCorruptCard
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class InsatiableGreed : MSCorruptCard
 {
-    // Retain the existing serialized identity for the renamed ancient card.
+    // Retain Dusty Tome/save identity; its old power now belongs to TemperanceCirclet.
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Ethereal];
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [HoverTipFactory.Static(StaticHoverTip.ReplayDynamic, new DynamicVar("Times", 1))];
     public InsatiableGreed()
-        : base(2, CardType.Power, CardRarity.Ancient, TargetType.Self) { }
+        : base(2, CardType.Skill, CardRarity.Ancient, TargetType.Self) { }
 
-    protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
-        PowerCmd.Apply<YarusLibraryPower>(
-            context, Owner.Creature, 1, Owner.Creature, this);
+    // The aura is queried while in Hand, not granted by playing this card.
+    protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) => Task.CompletedTask;
 
-    protected override void OnUpgrade() => AddKeyword(CardKeyword.Retain);
+    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }

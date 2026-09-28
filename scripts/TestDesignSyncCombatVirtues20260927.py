@@ -22,25 +22,21 @@ class CombatVirtueContracts(unittest.TestCase):
                 self.assertEqual(expected, re.sub(r"\[/?gold\]", "", loc[prefix + str(stage)]))
             self.assertEqual(loc[prefix + "3"], loc[prefix + "4"])
 
-    def test_temperance_optional_selection_and_clear_prompt(self):
+    def test_temperance_saved_pickup_and_correct_ancient_cards(self):
         code = relic("Temperance")
-        for part in ("PileType.Draw.GetPile(Owner)", "CardSelectCmd.FromCombatPile", "SelectionPrefs(Stage)",
-                     "0, VirtueCombatRules.TemperanceMaximum(stage)", "pile.Cards.Count == 0"):
+        for part in ("[SavedProperty] public bool PickupEffectGranted", "public override async Task AfterObtained()",
+                     "Owner.RunState.CreateCard<TemperanceSignet>(Owner)", "Owner.RunState.CreateCard<TemperanceCirclet>(Owner)",
+                     "await CardPileCmd.Add(reward, PileType.Deck)", "PickupEffectGranted = true"):
             self.assertIn(part, code)
-        loc = json.loads(read("MaidenSuccubus/localization/zhs/card_selection.json"))
-        prompt = loc["MAIDEN_SUCCUBUS_TEMPERANCE_ADD_EXHAUST"]
-        self.assertIn("至多{MaxCount}", prompt)
-        self.assertIn("附加消耗", prompt)
-        self.assertIn("可以不选", prompt)
-        self.assertNotIn("ExhaustSelectionPrompt", code)
+        self.assertIn("!HasUponPickupEffect || PickupEffectGranted", code)
+        self.assertLess(code.index("PickupEffectGranted = true"), code.index("await CardPileCmd.Add"))
 
     def test_no_exhaust_now_or_extra_enchantment(self):
         code = relic("Temperance")
-        self.assertIn("card.AddKeyword(CardKeyword.Exhaust)", code)
-        for part in ("CardPileCmd.Exhaust", "CardCmd.Enchant", "CombatEnchantmentCmd", "Swift"):
+        for part in ("CardPileCmd.Exhaust", "CardCmd.Enchant", "CombatEnchantmentCmd", "Swift",
+                     "AddKeyword", "FromCombatPile", "BeforeCombatStart"):
             self.assertNotIn(part, code)
-        for part in ("card.Owner != Owner || card.Pile != pile", "Owner.Creature.CombatState != combat"):
-            self.assertIn(part, code)
+        self.assertIn("Owner.Character is not Characters.MaidenSuccubusCharacter", code)
 
     def test_patience_lifecycle_separates_first_turn_triggers(self):
         code = relic("Patience")
@@ -69,7 +65,7 @@ class CombatVirtueContracts(unittest.TestCase):
         self.assertIn("../../src/Core/Relics/VirtueCombatRules.cs",
                       read("tests/DesignSyncContracts/DesignSyncContracts.csproj"))
         code = read("tests/DesignSyncContracts/Program.cs")
-        for part in ("VirtueCombatRules.TemperanceMaximum", "VirtueCombatRules.PatienceAtCombatStart",
+        for part in ("VirtueCombatRules.TemperanceReward", "VirtueCombatRules.PatienceAtCombatStart",
                      "VirtueCombatRules.PatienceAtTurnStart", "VirtueCombatRules.PatienceDiscount",
                      "first turn no double generation", "four-turn cumulative generation"):
             self.assertIn(part, code)
@@ -77,8 +73,8 @@ class CombatVirtueContracts(unittest.TestCase):
     def test_engine_probe_not_automatic_and_restores_test_mode(self):
         code = read("src/ConsoleCommands/DesignCombatVirtueTestConsoleCmd.cs")
         for part in ("#if DEBUG", 'args[0] != "confirm"', "!CombatManager.Instance.IsInProgress",
-                     "issuingPlayer.RunState.Players.Count != 1", "_running", "CardSelectCmd.UseSelector",
-                     "SetupForAsyncCardSelection", "EndOfTurnCleanup", "AfterCardPlayedCleanup",
+                     "issuingPlayer.RunState.Players.Count != 1", "_running", "RelicModel.FromSerializable(relic.ToSerializable())",
+                     "saved pickup does not reissue", "EndOfTurnCleanup", "AfterCardPlayedCleanup",
                      "permanent deck untouched", "TestMode.IsOn = priorTestMode", "[DS27CombatVirtueTest] FAIL"):
             self.assertIn(part, code)
 

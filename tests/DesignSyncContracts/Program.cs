@@ -6,6 +6,7 @@ using MaidenSuccubus.Acts;
 using MaidenSuccubus.Core.Seals;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Core.Powers;
+using MaidenSuccubus.Core.Cards;
 
 // Compiles and executes production pure rules, not copied implementations.
 // Independent literal expectations: SYS-COR-003 and RELIC-EVENT-005, 2026-09-27.
@@ -307,13 +308,13 @@ Console.WriteLine($"PASS DS27 production virtue pickups: {checks - beforeVirtues
 int beforeCombatVirtues = checks;
 (int Stage, int Max, bool AtCombat, bool AtTurn, bool Discount)[] combatVirtues =
 [
-    (0, 0, false, false, false), (1, 2, true, false, false), (2, 3, true, false, true),
-    (3, 3, false, true, true), (4, 3, false, true, true),
+    (0, 0, false, false, false), (1, 1, true, false, false), (2, 1, true, false, true),
+    (3, 2, false, true, true), (4, 2, false, true, true),
     (-1, 0, false, false, false), (5, 0, false, false, false)
 ];
 foreach (var row in combatVirtues)
 {
-    Equal(row.Max, VirtueCombatRules.TemperanceMaximum(row.Stage), "temperance optional maximum");
+    Equal(row.Max, VirtueCombatRules.TemperanceReward(row.Stage), "temperance pickup identity");
     Equal(row.AtCombat, VirtueCombatRules.PatienceAtCombatStart(row.Stage), "patience combat timing");
     Equal(row.AtTurn, VirtueCombatRules.PatienceAtTurnStart(row.Stage, true), "patience own turn timing");
     Equal(false, VirtueCombatRules.PatienceAtTurnStart(row.Stage, false), "other player's turn ignored");
@@ -700,3 +701,25 @@ foreach (var (amounts, layers) in new (int[], int)[]
 })
     Equal(layers, PowerLayerMath.Count(amounts), "signed layer magnitude " + string.Join(",", amounts));
 Console.WriteLine($"PASS DS27 production signed power layers: {checks - beforeSignedLayers} assertions; {checks} total.");
+
+int beforeLibrary = checks;
+foreach (var (hand, index, want) in new (string[], int, LibraryAuraEffect)[]
+{
+    ([], 0, LibraryAuraEffect.None), (["L"], 0, LibraryAuraEffect.None),
+    (["L", "x"], 0, LibraryAuraEffect.None), (["L", "x"], 1, LibraryAuraEffect.Replay),
+    (["x", "L"], 0, LibraryAuraEffect.Exhaust), (["x", "L"], 1, LibraryAuraEffect.None),
+    (["L", "x", "L"], 1, LibraryAuraEffect.Exhaust | LibraryAuraEffect.Replay),
+    (["L", "x", "y"], 2, LibraryAuraEffect.None), (["x", "y", "L"], 0, LibraryAuraEffect.None),
+    (["L", "L", "L"], 1, LibraryAuraEffect.Exhaust | LibraryAuraEffect.Replay),
+    (["L", "x"], -1, LibraryAuraEffect.None), (["x", "L"], 2, LibraryAuraEffect.None),
+    (["L"], int.MaxValue, LibraryAuraEffect.None), (["L"], int.MinValue, LibraryAuraEffect.None),
+})
+    Equal(want, LibraryNeighbourRules.Evaluate(hand, index, item => item == "L"), "literal live adjacency");
+var handOrder = new List<string> { "left", "L", "right" };
+Equal(LibraryAuraEffect.Exhaust, LibraryNeighbourRules.Evaluate(handOrder, 0, item => item == "L"), "initial left");
+handOrder.Remove("L");
+Equal(LibraryAuraEffect.None, LibraryNeighbourRules.Evaluate(handOrder, 0, item => item == "L"), "leave hand revokes");
+handOrder.Insert(0, "L");
+Equal(LibraryAuraEffect.Replay, LibraryNeighbourRules.Evaluate(handOrder, 1, item => item == "L"), "reorder recomputes");
+Equal(LibraryAuraEffect.None, LibraryNeighbourRules.Evaluate(handOrder, 2, item => item == "L"), "only direct neighbour");
+Console.WriteLine($"PASS DS27 production library adjacency: {checks - beforeLibrary} assertions; {checks} total.");

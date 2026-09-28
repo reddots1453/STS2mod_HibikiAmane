@@ -284,6 +284,8 @@ internal static class CardEffectTestCatalog
         ConfigureEnchantmentChoice();
         ConfigureQuestChoice();
         LibraryPileChoiceProbe();
+        CustomVariants<TemperanceSignet>(DesignSyncTemperanceSignetContract.Run, 150);
+        CustomVariants<TemperanceCirclet>(DesignSyncLibraryContract.Run, 200);
         HandCostRestriction<GagCurse>(CardType.Skill, 1, expectedOwnCost: 1);
         Scripture<GuardianScripture>();
         SelectedCardDouble<HumilityLesson>();
@@ -1416,14 +1418,15 @@ internal static class CardEffectTestCatalog
         }, 2);
 
     private static void InsatiableGreedProbe() =>
-        CustomVariants<InsatiableGreed>(DesignSyncLibraryContract.Run, 200);
+        CustomVariants<InsatiableGreed>(DesignSyncLibraryAuraContract.Run, 20);
 
     private static void LibraryPileChoiceProbe() =>
         CustomVariants<LibraryPileChoice>((ctx, card, _) =>
         {
             foreach (PileType pile in new[] { PileType.Draw, PileType.Discard, PileType.Exhaust })
+            foreach (int count in new[] { 3, 4, 10 })
             {
-                card.Configure(pile);
+                card.Configure(pile, count);
                 ctx.AssertEqual("choice keeps selected pile", pile, card.SelectedPile, effect: false);
                 string expectedTitle = pile switch
                 {
@@ -1432,6 +1435,9 @@ internal static class CardEffectTestCatalog
                     _ => "消耗牌堆",
                 };
                 ctx.AssertEqual("choice title binds its own pile", expectedTitle, card.Title, effect: false);
+                ctx.AssertEqual("choice text uses selected pile and caller limit",
+                    $"不能被打出。\n随机打出{expectedTitle}中的{count}张牌。",
+                    DesignSyncNeutralTextContract.Normalize(card.GetDescriptionForPile(PileType.None)), effect: false);
             }
             return Task.CompletedTask;
         }, 0);

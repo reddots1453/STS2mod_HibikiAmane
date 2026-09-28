@@ -13,14 +13,15 @@ public sealed class LibraryPileChoice : MSGeneratedCard, ICardTitleContributor
     public PileType SelectedPile { get; private set; } = PileType.Draw;
     public override int MaxUpgradeLevel => 0;
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Unplayable];
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new StringVar("PileName", "抽牌堆")];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new StringVar("PileName", "抽牌堆"), new DynamicVar("Count", 10)];
     public LibraryPileChoice() : base(-1, CardType.Skill, CardRarity.Token, TargetType.None) { }
 
     public IEnumerable<CardTitleFragment> GetTitleFragments(CardTitleContext context) =>
         [new(new LocString("cards", Id.Entry + ".pileTitle"), CardTitleFragmentPlacement.ReplaceBase)];
 
-    public void Configure(PileType pile)
+    public void Configure(PileType pile, int count = 10)
     {
+        DynamicVars["Count"].BaseValue = count;
         SelectedPile = pile;
         ((StringVar)DynamicVars["PileName"]).StringValue = pile switch
         {

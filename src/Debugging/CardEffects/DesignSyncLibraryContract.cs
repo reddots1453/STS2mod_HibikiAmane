@@ -37,17 +37,14 @@ internal static class DesignSyncLibraryContract
         ctx.AssertEqual("library ancient rarity", CardRarity.Ancient, card.Rarity, effect: false);
         ctx.AssertEqual("library cost", 2, card.EnergyCost.GetWithModifiers(CostModifiers.All), effect: false);
         ctx.AssertEqual("library upgraded retain", upgraded, card.Keywords.Contains(CardKeyword.Retain), effect: false);
-        var tome = (DustyTome)ModelDb.Relic<DustyTome>().ToMutable();
-        tome.SetupForPlayer(ctx.Player);
-        ctx.AssertEqual("Dusty Tome selects library", card.Id, tome.AncientCard!, effect: false);
-        var outside = ctx.Player.RunState.CreateCard<InsatiableGreed>(ctx.Player);
+        var outside = ctx.Player.RunState.CreateCard<TemperanceCirclet>(ctx.Player);
         if (upgraded) CardCmd.Upgrade(outside);
         foreach (var (instance, pile) in new[] { (outside, PileType.Deck), (card, PileType.Hand) })
         {
             string expected = (upgraded ? "保留。\n" : "") + "你不能抽牌。\n回合开始时，选择一个牌堆，随机打出其中的10张牌。";
             ctx.AssertEqual("library full rendered text " + pile, expected,
                 DesignSyncNeutralTextContract.Normalize(instance.GetDescriptionForPile(pile, ctx.PrimaryEnemy)), effect: false);
-            ctx.AssertEqual("library renamed title", upgraded ? "娅露丝的书库+" : "娅露丝的书库", instance.Title, effect: false);
+            ctx.AssertEqual("library renamed title", upgraded ? "节制之环+" : "节制之环", instance.Title, effect: false);
         }
         foreach (PileType pile in Piles)
         foreach (int count in new[] { 0, 1, 9, 10, 12 })
@@ -59,7 +56,7 @@ internal static class DesignSyncLibraryContract
     private static async Task CheckPile(CardEffectTestContext ctx, bool upgraded, PileType pile, int count)
     {
         await ctx.Reset();
-        await ctx.Play(ctx.Create<InsatiableGreed>(upgraded));
+        await ctx.Play(ctx.Create<TemperanceCirclet>(upgraded));
         var power = ctx.Self.GetPower<YarusLibraryPower>()!;
         var cards = new List<CardModel>();
         for (int i = 0; i < count; i++) cards.Add(await ctx.Add<StrikeIronclad>(pile, i % 2 == 1));
@@ -119,7 +116,7 @@ internal static class DesignSyncLibraryContract
     private static async Task CheckNativeUnplayable(CardEffectTestContext ctx, bool upgraded)
     {
         await ctx.Reset();
-        await ctx.Play(ctx.Create<InsatiableGreed>(upgraded));
+        await ctx.Play(ctx.Create<TemperanceCirclet>(upgraded));
         var power = ctx.Self.GetPower<YarusLibraryPower>()!;
         var wound = await ctx.Add<Wound>(PileType.Exhaust);
         var defend = await ctx.Add<DefendIronclad>(PileType.Exhaust);
@@ -137,7 +134,7 @@ internal static class DesignSyncLibraryContract
     private static async Task CheckLifecycle(CardEffectTestContext ctx, bool upgraded)
     {
         await ctx.Reset();
-        await ctx.Play(ctx.Create<InsatiableGreed>(upgraded));
+        await ctx.Play(ctx.Create<TemperanceCirclet>(upgraded));
         var power = ctx.Self.GetPower<YarusLibraryPower>()!;
         var foreign = Player.CreateForNewRun<Ironclad>(ctx.Player.UnlockState, ctx.Player.NetId + 1000);
         foreign.RunState = ctx.Player.RunState;

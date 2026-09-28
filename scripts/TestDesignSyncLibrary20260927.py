@@ -13,6 +13,7 @@ class LibraryContracts(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.power = read("src/Powers/YarusLibraryPower.cs")
+        cls.command = read("src/Commands/TemperancePileCmd.cs")
         cls.runtime = read("src/Debugging/CardEffects/DesignSyncLibraryContract.cs")
 
     def test_active_power_and_draw_ban(self):
@@ -22,17 +23,18 @@ class LibraryContracts(unittest.TestCase):
             self.assertIn(token, self.power)
 
     def test_revalidate_choice_and_combat_before_rng(self):
-        for token in ("var combat = Owner.CombatState", "Owner.CombatState != combat", "!choices.Contains(selected)",
+        for token in ("var combat = player.Creature.CombatState", "player.Creature.CombatState == combat", "!choices.Contains(selected)",
                       "card.Owner == player && card.Pile == selected.SelectedPile.GetPile(player)"):
-            self.assertIn(token, self.power)
-        self.assertLess(self.power.index("!choices.Contains(selected)"), self.power.index("cards.StableShuffle"))
-        self.assertIn("canSkip: false", self.power)
+            self.assertIn(token, self.command)
+        self.assertLess(self.command.index("!choices.Contains(selected)"), self.command.index("cards.StableShuffle"))
+        self.assertIn("canSkip: false", self.command)
 
     def test_snapshot_native_play_and_ten_limit_unchanged(self):
         for token in ("selected.SelectedPile.GetPile(player).Cards.ToList()",
                       "cards.StableShuffle(player.RunState.Rng.CombatCardGeneration)",
-                      "foreach (CardModel card in cards.Take(10))", "await CardCmd.AutoPlay(context, card, target: null)"):
-            self.assertIn(token, self.power)
+                      "foreach (CardModel card in cards.Take(count))", "await CardCmd.AutoPlay(context, card, target: null)"):
+            self.assertIn(token, self.command)
+        self.assertIn("TemperancePileCmd.Play(context, player, 10, () => IsActive)", self.power)
         self.assertIn("2费   你不能抽牌。回合开始时，选择一个牌堆，随机打出其中的10张牌。升级后获得保留。", read("DesignDoc.md"))
 
     def test_three_piles_boundaries_and_independent_rng_identity(self):
@@ -64,11 +66,11 @@ class LibraryContracts(unittest.TestCase):
             self.assertIn(token, self.runtime)
 
     def test_registration_and_fulltext_keep_ancient_contract(self):
-        self.assertIn("CustomVariants<InsatiableGreed>(DesignSyncLibraryContract.Run, 200)",
+        self.assertIn("CustomVariants<TemperanceCirclet>(DesignSyncLibraryContract.Run, 200)",
                       read("src/Debugging/CardEffects/CardEffectTestCatalog.cs"))
-        for token in ("CardRarity.Ancient", "CardKeyword.Retain", "tome.SetupForPlayer(ctx.Player)", "tome.AncientCard!",
-                      "ctx.Player.RunState.CreateCard<InsatiableGreed>", "instance.GetDescriptionForPile(pile, ctx.PrimaryEnemy)",
-                      "娅露丝的书库+", "保留。\\n"):
+        for token in ("CardRarity.Ancient", "CardKeyword.Retain",
+                      "ctx.Player.RunState.CreateCard<TemperanceCirclet>", "instance.GetDescriptionForPile(pile, ctx.PrimaryEnemy)",
+                      "节制之环+", "保留。\\n"):
             self.assertIn(token, self.runtime)
 
 

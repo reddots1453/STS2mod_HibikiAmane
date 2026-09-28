@@ -28,7 +28,7 @@ internal static class FourthRouteTrialContracts
             [FourthRouteQuest.Gluttony] = [2, 2, 2], [FourthRouteQuest.Wrath] = [2, 2, 2],
             [FourthRouteQuest.Sloth] = [1, 1, 1], [FourthRouteQuest.Humility] = [1, 1, 1],
             [FourthRouteQuest.Generosity] = [1, 1, 1], [FourthRouteQuest.Chastity] = [2, 2, 2],
-            [FourthRouteQuest.Benevolence] = [4, 4, 5], [FourthRouteQuest.Temperance] = [1, 2, 3],
+            [FourthRouteQuest.Benevolence] = [4, 4, 5], [FourthRouteQuest.Temperance] = [2, 2, 3],
             [FourthRouteQuest.Patience] = [4, 4, 4], [FourthRouteQuest.Diligence] = [2, 2, 2]
         };
         Check(targets.Count == 14, "every route represented");
