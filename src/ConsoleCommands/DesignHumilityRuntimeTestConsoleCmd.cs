@@ -24,8 +24,8 @@ using STS2RitsuLib.Models.Capabilities;
 
 namespace MaidenSuccubus.ConsoleCommands;
 
-// Uses the production reviewed profiles. It does NOT claim that the production
-// HumilityLesson selector has all card adapters yet.
+// Generated-catalog cases plus legacy runtime regressions pending migration.
+// This does not claim that the formal HumilityLesson selector is connected yet.
 public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
 {
     private static bool _running;
@@ -91,6 +91,15 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
                 await ctx.Play(helperAttack, ctx.PrimaryEnemy);
                 Check(hpBefore - ctx.PrimaryEnemy.CurrentHp == amount,
                     "generated helper expansion executes damage through original card/native modifiers");
+
+                await ctx.Reset();
+                var splitAttack = await ctx.Add<PerfectedStrike>(PileType.Hand, upgraded);
+                HumilityExtractedCards.Apply(splitAttack);
+                amount = splitAttack.DynamicVars.CalculatedDamage.Calculate(ctx.PrimaryEnemy) * 2;
+                hpBefore = ctx.PrimaryEnemy.CurrentHp;
+                await ctx.Play(splitAttack, ctx.PrimaryEnemy);
+                Check(hpBefore - ctx.PrimaryEnemy.CurrentHp == amount,
+                    "generated split builder retains calculated amount and executes once");
             }
             await ctx.Reset();
             foreach (Type type in HumilityCardProfiles.SupportedTypes)
@@ -492,7 +501,9 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
 
             await ctx.Reset();
             var shiv = await ctx.Add<Shiv>(PileType.Hand);
-            HumilityCardProfiles.ApplyKnown(shiv);
+            Check(HumilityExtractedCards.Get(shiv).Program?.Effects.Single().Target == HumilityTarget.CurrentCardTarget,
+                "generated split target branches retain live external targeting");
+            HumilityExtractedCards.Apply(shiv);
             Check(!Text(shiv).Contains("所有敌人"), "initial rewritten Shiv remains single target");
             await ctx.ApplyPower<FanOfKnivesPower>(ctx.Self, 1);
             Check(Text(shiv).Contains("对所有敌人造成8点伤害"), "external FanOfKnives updates rewritten description");

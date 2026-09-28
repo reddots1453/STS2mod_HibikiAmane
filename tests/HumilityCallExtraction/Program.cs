@@ -136,6 +136,38 @@ if (args.SequenceEqual(new[] { "--self-test" }))
     Check(extraEffects.Program?.Effects.Count == 1, "new enchantment, forging and summoning are removed rather than extra damage");
     Check(CallExtractor.Extract("class Returned { Task OnPlay(Context c, Play p) { return Hidden(); } }").Single().Program == null,
         "unresolved returned helper is not silently treated as empty");
+    string split = "var command = DamageCmd.Attack(4).FromCard(this, play); "
+        + "await CreatureCmd.GainBlock(Owner.Creature, 3, play); command.Targeting(play.Target); await command.Execute(context);";
+    var splitProgram = Extract(split).Program;
+    Check(splitProgram?.Effects.Select(e => e.Kind).SequenceEqual(new[] { HumilityEffectKind.Block, HumilityEffectKind.Damage }) == true,
+        "split builder is ordered at Execute, not construction before block");
+    var splitSink = new RecordedEffects();
+    await splitProgram!.DoubleAmounts().Execute(default, _ => 0, splitSink);
+    Check(splitSink.Order.SequenceEqual(new[] { "Block:6", "Damage:8" }),
+        "production execution preserves actual block-attack order for split chain");
+    var branched = Extract("var command = DamageCmd.Attack(4).FromCard(this, play); "
+        + "if (externalAllTargets) command = command.TargetingAllOpponents(CombatState); else command = command.Targeting(play.Target); "
+        + "await command.Execute(context);");
+    Check(branched.Program?.Effects.Single().Target == HumilityTarget.CurrentCardTarget,
+        "exclusive single/all target branches use card's live target type");
+    Check(Extract(split.Replace("command.Targeting(play.Target);", "command.Targeting(play.Target); command.TargetingAllOpponents(CombatState);")).Program == null,
+        "sequential conflicting targets are not misread as dynamic branch");
+    Check(Extract(split.Replace("await command.Execute(context);", "command = OtherAttack(); await command.Execute(context);")).Program == null
+        && Extract(split + "await command.Execute(context);").Program == null,
+        "unknown builder reassignment and repeated execution do not silently merge");
+    Check(Extract(split.Replace("command.Targeting(play.Target);", "if (flag) command.WithHitCount(2); else command.WithHitCount(3); command.Targeting(play.Target);")).Program == null,
+        "conflicting branch hit counts require numeric resolution rather than last branch wins");
+    var beforeVisual = Extract(attack.Replace(".Execute(context)", ".BeforeDamage(async () => { var fx = NBeamVfx.Create(Owner.Creature); NCombatRoom.Instance.CombatVfxContainer.AddChildSafely(fx); await Cmd.Wait(0.2f); }).OnlyPlayAnimOnce().Execute(context)"));
+    Check(beforeVisual.Program?.Effects.Count == 1, "recognized visual-only BeforeDamage removed with animation flags");
+    Check(Extract(attack.Replace(".Execute(context)", ".BeforeDamage(() => HiddenEffect()).Execute(context)")).Program == null,
+        "unknown BeforeDamage behavior is not guessed to be visual");
+    Check(Extract(attack.Replace(".Execute(context)", ".BeforeDamage(() => { Owner.Creature.CurrentHp = 0; return Task.CompletedTask; }).Execute(context)")).Program == null,
+        "callback state mutation cannot pass the visual-only classifier without method calls");
+    var otherStatements = Extract(attack + " CardModel card = CreateCard(); card.SetToFreeThisTurn(); card.EnergyCost.SetThisCombat(0); "
+        + "List<CardModel> generated = new List<CardModel>(); generated.Add(card); generated.Clear();");
+    Check(otherStatements.Program?.Effects.Count == 1, "typed card cost and list maintenance are deleted as other effects");
+    Check(Extract("Unknown generated = GetUnknown(); generated.Add(1);").Program == null,
+        "unknown Add method is not assumed to be list maintenance");
     return 0;
 }
 if (args.Length == 2 && args[0] == "--verify-assembly")
@@ -209,11 +241,17 @@ internal sealed class RecordedEffects : IHumilityEffectSink
     public bool CanContinue => true;
     internal List<(decimal Amount, HumilityTarget Target, int Hits)> Attacks { get; } = [];
     internal List<HumilityAttackSource> Sources { get; } = [];
+    internal List<string> Order { get; } = [];
     public Task Damage(decimal amount, HumilityTarget target, int hits, HumilityAttackSource source)
     {
         Attacks.Add((amount, target, hits));
         Sources.Add(source);
+        Order.Add("Damage:" + amount.ToString(System.Globalization.CultureInfo.InvariantCulture));
         return Task.CompletedTask;
     }
-    public Task Block(decimal amount, HumilityTarget target, int repeats) => Task.CompletedTask;
+    public Task Block(decimal amount, HumilityTarget target, int repeats)
+    {
+        Order.Add("Block:" + amount.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        return Task.CompletedTask;
+    }
 }

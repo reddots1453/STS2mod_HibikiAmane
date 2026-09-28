@@ -57,7 +57,8 @@ internal static class CallExtractor
     {
         var all = method.DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
         var calls = all.Where(IsEffect).OrderBy(c => c.SpanStart).ToArray();
-        List<HumilityEffect> effects = [];
+        List<(int Position, HumilityEffect Effect)> effects = [];
+        HashSet<InvocationExpressionSyntax> retainedChains = [];
         foreach (var call in calls)
         {
             if (call.Ancestors().TakeWhile(n => n != method).Any(n => n is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax))
@@ -70,40 +71,101 @@ internal static class CallExtractor
                 if (call.ArgumentList.Arguments.Count < 2) throw Unsupported(call, "GainBlock arguments missing");
                 target = Target(call.ArgumentList.Arguments[0].Expression);
                 amount = Value(call.ArgumentList.Arguments[1].Expression, method, call.SpanStart, []);
-                effects.Add(new(HumilityEffectKind.Block, target, amount, repeats));
+                effects.Add((call.SpanStart, new(HumilityEffectKind.Block, target, amount, repeats)));
                 continue;
             }
             amount = Value(call.ArgumentList.Arguments.Single().Expression, method, call.SpanStart, []);
             HumilityTarget? attackTarget = null;
+            InvocationExpressionSyntax? targetCall = null;
             HumilityAttackSource source = HumilityAttackSource.Card;
-            bool execute = false;
-            SyntaxNode current = call;
-            while (current.Parent is MemberAccessExpressionSyntax member && member.Expression == current
-                   && member.Parent is InvocationExpressionSyntax next)
+            bool sourceSet = false, countSet = false;
+            int executePosition = -1;
+            void ReadChain(InvocationExpressionSyntax first, bool includeFirst)
             {
-                switch (member.Name.Identifier.Text)
+                SyntaxNode current = first;
+                var chain = new List<InvocationExpressionSyntax>();
+                if (includeFirst) chain.Add(first);
+                while (current.Parent is MemberAccessExpressionSyntax link && link.Expression == current
+                    && link.Parent is InvocationExpressionSyntax nextLink)
+                { chain.Add(nextLink); current = nextLink; }
+                foreach (var next in chain)
                 {
-                    case "WithHitCount": repeats = Value(next.ArgumentList.Arguments.Single().Expression, method, call.SpanStart, []); break;
-                    case "Targeting": attackTarget = Target(next.ArgumentList.Arguments.Single().Expression); break;
-                    case "TargetingAllOpponents": attackTarget = HumilityTarget.AllEnemies; break;
-                    case "TargetingRandomOpponents": attackTarget = HumilityTarget.RandomEnemy; break;
-                    case "Execute": execute = true; break;
-                    case "FromCard": source = HumilityAttackSource.Card; break;
+                    if (executePosition >= 0) throw Unsupported(next, "attack builder configured or executed after Execute");
+                    retainedChains.Add(next);
+                    string name = MethodName(next);
+                    HumilityTarget? nextTarget = name switch
+                    {
+                        "Targeting" => Target(next.ArgumentList.Arguments.Single().Expression),
+                        "TargetingAllOpponents" => HumilityTarget.AllEnemies,
+                        "TargetingRandomOpponents" => HumilityTarget.RandomEnemy,
+                        _ => null,
+                    };
+                    if (nextTarget.HasValue)
+                    {
+                        if (attackTarget.HasValue && attackTarget != nextTarget)
+                        {
+                            if (attackTarget is not (HumilityTarget.Selected or HumilityTarget.AllEnemies or HumilityTarget.CurrentCardTarget)
+                                || nextTarget is not (HumilityTarget.Selected or HumilityTarget.AllEnemies)
+                                || targetCall == null || !ExclusiveBranches(targetCall, next))
+                                throw Unsupported(next, "conflicting attack targets");
+                            attackTarget = HumilityTarget.CurrentCardTarget;
+                        }
+                        else attackTarget = nextTarget;
+                        targetCall = next;
+                        continue;
+                    }
+                    switch (name)
+                    {
+                    case "WithHitCount":
+                        var count = Value(next.ArgumentList.Arguments.Single().Expression, method, next.SpanStart, []);
+                        if (countSet && repeats != count) throw Unsupported(next, "conflicting attack counts");
+                        repeats = count; countSet = true; break;
+                    case "Execute":
+                        if (executePosition >= 0) throw Unsupported(next, "multiple executions of one attack builder");
+                        executePosition = next.SpanStart; break;
+                    case "FromCard":
+                        if (sourceSet && source != HumilityAttackSource.Card) throw Unsupported(next, "conflicting attack sources");
+                        source = HumilityAttackSource.Card; sourceSet = true; break;
                     case "FromOsty":
                         if (next.ArgumentList.Arguments.Count < 2
                             || Unwrap(next.ArgumentList.Arguments[0].Expression).ToString() is not ("Owner.Osty" or "base.Owner.Osty" or "this.Owner.Osty"))
                             throw Unsupported(next, "unsupported Osty source expression");
-                        source = HumilityAttackSource.Osty;
+                        if (sourceSet && source != HumilityAttackSource.Osty) throw Unsupported(next, "conflicting attack sources");
+                        source = HumilityAttackSource.Osty; sourceSet = true;
+                        break;
+                    case "BeforeDamage":
+                        if (next.ArgumentList.Arguments.Count != 1 || !RemovedCalls.VisualCallback(next.ArgumentList.Arguments[0].Expression, method))
+                            throw Unsupported(next, "nonvisual BeforeDamage callback");
                         break;
                     case "WithHitFx": case "WithAttackerAnim": case "WithHitVfxNode":
-                    case "WithHitVfxSpawnedAtBase": case "SpawningHitVfxOnEachCreature": case "WithNoAttackerAnim": case "WithAttackerFx":
+                    case "WithHitVfxSpawnedAtBase": case "SpawningHitVfxOnEachCreature": case "WithNoAttackerAnim": case "WithAttackerFx": case "OnlyPlayAnimOnce":
                         break; // Visual callbacks are not executed by the rewritten program.
-                    default: throw Unsupported(next, "unsupported attack-chain method " + member.Name.Identifier.Text);
+                    default: throw Unsupported(next, "unsupported attack-chain method " + name);
+                    }
                 }
-                current = next;
             }
-            if (!execute || attackTarget == null) throw Unsupported(call, "attack chain must include explicit target and Execute");
-            effects.Add(new(HumilityEffectKind.Damage, attackTarget.Value, amount, repeats, source));
+            ReadChain(call, false);
+            if (executePosition < 0)
+            {
+                var declaration = call.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
+                if (declaration == null) throw Unsupported(call, "attack builder must be a direct chain or unique local");
+                string localName = declaration.Identifier.Text;
+                if (method.DescendantNodes().OfType<VariableDeclaratorSyntax>().Count(v => v.Identifier.Text == localName) != 1)
+                    throw Unsupported(declaration, "ambiguous attack builder local");
+                var continuations = all.Where(c => c.SpanStart > call.SpanStart && c.Expression is MemberAccessExpressionSyntax m
+                    && m.Expression is IdentifierNameSyntax id && id.Identifier.Text == localName).OrderBy(c => c.SpanStart).ToArray();
+                foreach (var continuation in continuations)
+                {
+                    if (continuation.Ancestors().TakeWhile(n => n != method).Any(n => n is AnonymousFunctionExpressionSyntax))
+                        throw Unsupported(continuation, "deferred attack builder use");
+                    ReadChain(continuation, true);
+                }
+                foreach (var assignment in method.DescendantNodes().OfType<AssignmentExpressionSyntax>().Where(a => a.Left.ToString() == localName))
+                    if (!assignment.Right.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().Any(retainedChains.Contains))
+                        throw Unsupported(assignment, "attack builder reassigned to unknown value");
+            }
+            if (executePosition < 0 || attackTarget == null) throw Unsupported(call, "attack chain must include explicit target and Execute");
+            effects.Add((executePosition, new(HumilityEffectKind.Damage, attackTarget.Value, amount, repeats, source)));
         }
         // Unknown helpers may contain a hidden attack. Do not silently label them an
         // empty program, or keep only a direct attack while dropping a helper's damage.
@@ -115,12 +177,13 @@ internal static class CallExtractor
             if (statement.Ancestors().TakeWhile(n => n != method).Any(n => n is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax)) continue;
             var expression = statement is AwaitExpressionSyntax awaitExpression ? awaitExpression.Expression : statement;
             if (expression is not InvocationExpressionSyntax invocation || invocation.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().Any(IsEffect)) continue;
+            if (retainedChains.Contains(invocation) || RemovedCalls.Statement(invocation, method)) continue;
             if (invocation.Expression is MemberAccessExpressionSyntax member
                 && member.Expression.ToString() is "CardPileCmd" or "CardCmd" or "PowerCmd" or "PlayerCmd" or "OrbCmd" or "CreatureCmd" or "ArgumentNullException" or "Cmd" or "SfxCmd" or "VfxCmd" or "CombatEnchantmentCmd") continue;
             if (IsCall(invocation, "ForgeCmd", "Forge") || IsCall(invocation, "OstyCmd", "Summon")) continue;
             throw Unsupported(invocation, "helper statement may hide damage/block: " + MethodName(invocation));
         }
-        return new(effects);
+        return new(effects.OrderBy(e => e.Position).Select(e => e.Effect));
     }
 
     private static ExpressionSyntax Unwrap(ExpressionSyntax expression) => expression switch
@@ -130,6 +193,11 @@ internal static class CallExtractor
         PostfixUnaryExpressionSyntax p when p.IsKind(SyntaxKind.SuppressNullableWarningExpression) => Unwrap(p.Operand),
         _ => expression,
     };
+
+    private static bool ExclusiveBranches(SyntaxNode first, SyntaxNode second) => first.Ancestors().OfType<IfStatementSyntax>()
+        .Any(branch => branch.Else != null &&
+            (branch.Statement.Span.Contains(first.Span) && branch.Else.Statement.Span.Contains(second.Span)
+             || branch.Else.Statement.Span.Contains(first.Span) && branch.Statement.Span.Contains(second.Span)));
 
     private static HumilityTarget Target(ExpressionSyntax expression)
     {
