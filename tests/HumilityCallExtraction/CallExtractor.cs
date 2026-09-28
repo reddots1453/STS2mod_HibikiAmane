@@ -41,7 +41,7 @@ internal static class CallExtractor
                     expanded = expanded.WithBody(SyntaxFactory.Block(SyntaxFactory.ExpressionStatement(expanded.ExpressionBody.Expression))).WithExpressionBody(null);
                 var secondExpansion = new HelperExpansion(methods, method, chain);
                 expanded = (MethodDeclarationSyntax)secondExpansion.Visit(expanded)!;
-                var program = Slice(expanded);
+                var program = Slice(expanded, methods);
                 bool pure = program.HasDamageOrBlock && !expansion.DeletedOtherEffect && !secondExpansion.DeletedOtherEffect
                     && chain.All(t => PurityClassifier.IsPure(t, expanded));
                 results.Add(new(name, program, null, line, pure));
@@ -65,7 +65,7 @@ internal static class CallExtractor
     private static bool IsEffect(InvocationExpressionSyntax call) =>
         IsCall(call, "DamageCmd", "Attack") || IsCall(call, "CreatureCmd", "GainBlock");
 
-    private static HumilityEffectProgram Slice(MethodDeclarationSyntax method)
+    private static HumilityEffectProgram Slice(MethodDeclarationSyntax method, IReadOnlyList<MethodDeclarationSyntax> methods)
     {
         var all = method.DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
         var calls = all.Where(IsEffect).OrderBy(c => c.SpanStart).ToArray();
@@ -146,7 +146,7 @@ internal static class CallExtractor
                         source = HumilityAttackSource.Osty; sourceSet = true;
                         break;
                     case "BeforeDamage":
-                        if (next.ArgumentList.Arguments.Count != 1 || !RemovedCalls.VisualCallback(next.ArgumentList.Arguments[0].Expression, method))
+                        if (next.ArgumentList.Arguments.Count != 1 || !RemovedCalls.VisualCallback(next.ArgumentList.Arguments[0].Expression, method, methods))
                             throw Unsupported(next, "nonvisual BeforeDamage callback");
                         break;
                     case "WithHitFx": case "WithAttackerAnim": case "WithHitVfxNode":

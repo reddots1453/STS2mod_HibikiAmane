@@ -323,6 +323,33 @@ if (args.SequenceEqual(new[] { "--self-test" }))
         "foreign intent cannot be rebound to selected target");
     Check(Extract("CardModel selected = null; selected.InvokeDrawn();").Program?.Effects.Count == 0,
         "card draw notification removed without restoring its triggers");
+    string scaledVisual = "float scale = 0.8f; " + attack.Replace(".Execute(context)",
+        ".BeforeDamage(() => { NBeamVfx fx = NBeamVfx.Create(play.Target); fx.Scale = Vector2.One * scale; scale += 0.1f; return Task.CompletedTask; }).Execute(context)");
+    Check(Extract(scaledVisual).Program?.Effects.Count == 1,
+        "animation-only captured scale and visual node assignment removed");
+    Check(Extract(scaledVisual.Replace("DynamicVars.Damage.BaseValue", "scale")).Program == null,
+        "captured visual variable used by gameplay cannot be discarded");
+    Check(Extract("Node stage = NCombatRoom.Instance?.CombatVfxContainer; NBeamVfx fx = NBeamVfx.Create(play.Target); stage.AddChildSafely(fx);").Program?.Effects.Count == 0,
+        "proven visual container alias yields empty program without playing VFX");
+    Check(Extract("Node stage = UnknownNode(); NBeamVfx fx = NBeamVfx.Create(play.Target); stage.AddChildSafely(fx);").Program == null,
+        "unknown node alias not assumed to be combat visuals");
+    const string visualQuerySource = """
+        class Example {
+          static NBladeVfx? GetVisual(Player player, CardModel card) {
+            CardModel original = card.DupeOf ?? card;
+            return (NCombatRoom.Instance?.GetCreatureNode(player.Creature))?.GetChildren().OfType<NBladeVfx>().FirstOrDefault(b => b.Card == original);
+          }
+          Task OnPlay(Context context, Play play) {
+            return DamageCmd.Attack(10).FromCard(this, play).Targeting(play.Target)
+              .BeforeDamage(() => { NBladeVfx fx = GetVisual(Owner, this); fx.Attack(position); return Task.CompletedTask; }).Execute(context);
+          }
+        }
+        """;
+    Check(CallExtractor.Extract(visualQuerySource).Single().Program?.Effects.Count == 1,
+        "source-proven read-only visual query removed without invoking helper");
+    Check(CallExtractor.Extract(visualQuerySource.Replace("CardModel original = card.DupeOf ?? card;",
+        "Owner.Creature.CurrentHp = 0; CardModel original = card.DupeOf ?? card;")).Single().Program == null,
+        "visual return type cannot disguise a gameplay mutation");
     var newTargetRoundTrip = HumilityEffectProgram.Load(lowestTarget.Program!.DoubleAmounts().Save());
     Check(newTargetRoundTrip.Effects.Single().Target == HumilityTarget.LowestHpEnemy
         && newTargetRoundTrip.AmountMultiplier == 2, "new target survives production serialization and doubling");

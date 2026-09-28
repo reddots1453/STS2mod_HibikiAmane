@@ -197,6 +197,40 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
             foreach (bool upgraded in new[] { false, true })
             {
                 await ctx.Reset();
+                var fireLesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var fire = await ctx.Add<FiendFire>(PileType.Hand, upgraded);
+                await ctx.AddFillerCards(PileType.Hand, 3);
+                await ctx.Play(fireLesson, selectedCards: [fire]);
+                int fireHp = ctx.PrimaryEnemy.CurrentHp;
+                await ctx.Play(fire, ctx.PrimaryEnemy);
+                Check(fireHp - ctx.PrimaryEnemy.CurrentHp == (upgraded ? 60 : 42)
+                    && PileType.Hand.GetPile(player).Cards.Count == 3 && fire.Pile?.Type == PileType.Discard,
+                    "formal fire keeps three hits while removing exhaust-hand, intrinsic exhaust and visual callback");
+
+                await ctx.Reset();
+                var hazeLesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var haze = await ctx.Add<Haze>(PileType.Hand, upgraded);
+                await ctx.Play(hazeLesson, selectedCards: [haze]);
+                Check(Text(haze) == "", "formal visual-only and power-only card becomes empty description");
+                await ctx.Play(haze);
+                Check(ctx.Enemies.All(enemy => !enemy.Powers.Any()), "formal haze creates no poison/weak or visual helper effects");
+
+                foreach (bool allEnemies in new[] { false, true })
+                {
+                    await ctx.Reset();
+                    var bladeLesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                    var blade = await ctx.Add<SovereignBlade>(PileType.Hand, upgraded);
+                    await ctx.ApplyPower<ParryPower>(ctx.Self, 3);
+                    if (allEnemies) await ctx.ApplyPower<SeekingEdgePower>(ctx.Self, 1);
+                    await ctx.Play(bladeLesson, selectedCards: [blade]);
+                    var beforeBlade = ctx.Enemies.ToDictionary(enemy => enemy, enemy => enemy.CurrentHp);
+                    await ctx.Play(blade, ctx.PrimaryEnemy);
+                    Check(beforeBlade.All(pair => pair.Value - pair.Key.CurrentHp == (allEnemies || pair.Key == ctx.PrimaryEnemy ? 20 : 0)),
+                        "formal blade preserves native selected/all-enemy target without original VFX lookup");
+                    Check(ctx.Self.Block == 6, "formal blade retains calculated parry block and doubles it");
+                }
+
+                await ctx.Reset();
                 var extractedSurf = await ctx.Add<Surf>(PileType.Hand, upgraded);
                 await ctx.AddFillerCards(PileType.Draw, 6);
                 var generatedEntry = HumilityExtractedCards.Get(extractedSurf);

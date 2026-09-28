@@ -48,20 +48,66 @@ internal static class RemovedCalls
         return false;
     }
 
-    internal static bool VisualCallback(ExpressionSyntax expression, MethodDeclarationSyntax method)
+    internal static bool VisualCallback(ExpressionSyntax expression, MethodDeclarationSyntax method,
+        IReadOnlyList<MethodDeclarationSyntax>? methods = null)
     {
         // A method group or unknown callback is not assumed to be visual.
         if (expression is not AnonymousFunctionExpressionSyntax) return false;
-        if (expression.DescendantNodes().Any(node => node is AssignmentExpressionSyntax or ThrowStatementSyntax or ThrowExpressionSyntax
+        if (expression.DescendantNodes().Any(node => node is ThrowStatementSyntax or ThrowExpressionSyntax
             || node is PostfixUnaryExpressionSyntax post && post.Kind() is SyntaxKind.PostIncrementExpression or SyntaxKind.PostDecrementExpression
             || node is PrefixUnaryExpressionSyntax pre && pre.Kind() is SyntaxKind.PreIncrementExpression or SyntaxKind.PreDecrementExpression)) return false;
-        return expression.DescendantNodes().OfType<InvocationExpressionSyntax>().All(call => Visual(call, method));
+        foreach (var assignment in expression.DescendantNodes().OfType<AssignmentExpressionSyntax>())
+        {
+            if (assignment.Left is MemberAccessExpressionSyntax property
+                && property.Name.Identifier.Text is "Scale" or "Position" or "Modulate" or "Rotation"
+                && LocalType(property.Expression, method)?.EndsWith("Vfx", StringComparison.Ordinal) == true)
+                continue;
+            if (assignment.Left is not IdentifierNameSyntax local) return false;
+            var definitions = method.DescendantNodes().OfType<VariableDeclaratorSyntax>()
+                .Where(v => v.Identifier.Text == local.Identifier.Text).ToArray();
+            if (definitions.Length != 1 || definitions[0].Parent is not VariableDeclarationSyntax definition
+                || definition.Type.ToString() is not ("float" or "double" or "Vector2" or "Vector3" or "Color"))
+                return false;
+            // A captured animation variable must have no uses in gameplay expressions.
+            if (method.DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Any(id => id.Identifier.Text == local.Identifier.Text && !expression.Span.Contains(id.Span)))
+                return false;
+        }
+        return expression.DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .All(call => Visual(call, method) || VisualQuery(call, methods));
+    }
+
+    private static bool VisualQuery(InvocationExpressionSyntax call, IReadOnlyList<MethodDeclarationSyntax>? methods)
+    {
+        if (methods == null || call.Expression is not IdentifierNameSyntax name) return false;
+        var candidates = methods.Where(m => m.Identifier.Text == name.Identifier.Text
+            && m.ParameterList.Parameters.Count == call.ArgumentList.Arguments.Count).ToArray();
+        if (candidates.Length != 1) return false;
+        var helper = candidates[0];
+        if (!helper.ReturnType.ToString().TrimEnd('?').EndsWith("Vfx", StringComparison.Ordinal)
+            || helper.DescendantNodes().Any(n => n is AssignmentExpressionSyntax or AwaitExpressionSyntax
+                or ThrowStatementSyntax or ObjectCreationExpressionSyntax
+                or PostfixUnaryExpressionSyntax or PrefixUnaryExpressionSyntax))
+            return false;
+        var calls = helper.DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+        return calls.Any(c => c.Expression is MemberBindingExpressionSyntax { Name.Identifier.Text: "GetCreatureNode" }
+                && c.Ancestors().OfType<ConditionalAccessExpressionSyntax>()
+                    .Any(a => a.Expression.ToString() == "NCombatRoom.Instance"))
+            && calls.All(c => c.Expression switch
+            {
+                MemberBindingExpressionSyntax b => b.Name.Identifier.Text is "GetCreatureNode" or "GetChildren",
+                MemberAccessExpressionSyntax m => m.Name.Identifier.Text is "OfType" or "FirstOrDefault" or "GetChildren",
+                _ => false,
+            });
     }
 
     internal static bool IsVisual(InvocationExpressionSyntax call, MethodDeclarationSyntax method) => Visual(call, method);
 
     private static bool Visual(InvocationExpressionSyntax call, MethodDeclarationSyntax method)
     {
+        if (call.Expression is MemberBindingExpressionSyntax { Name.Identifier.Text: "GetCreatureNode" }
+            && call.Ancestors().OfType<ConditionalAccessExpressionSyntax>()
+                .Any(a => a.Expression.ToString() == "NCombatRoom.Instance")) return true;
         if (call.Expression is MemberBindingExpressionSyntax bound && bound.Name.Identifier.Text == "AddChildSafely"
             && call.Parent is ConditionalAccessExpressionSyntax conditional)
             return conditional.Expression.ToString().Contains("CombatVfxContainer", StringComparison.Ordinal);
@@ -73,6 +119,15 @@ internal static class RemovedCalls
             && name is "Create" or "CreateNormal") return true;
         if (name == "AddChildSafely" && (receiver.Contains("CombatVfxContainer", StringComparison.Ordinal)
             || receiver == "NGame.Instance.CurrentRunNode.GlobalUi")) return true;
+        if (name == "AddChildSafely" && member.Expression is IdentifierNameSyntax id)
+        {
+            var definitions = method.DescendantNodes().OfType<VariableDeclaratorSyntax>()
+                .Where(v => v.Identifier.Text == id.Identifier.Text).ToArray();
+            if (definitions.Length == 1
+                && definitions[0].Initializer?.Value.ToString() == "NCombatRoom.Instance?.CombatVfxContainer"
+                && !method.DescendantNodes().OfType<AssignmentExpressionSyntax>().Any(a => a.Left.ToString() == id.Identifier.Text))
+                return true;
+        }
         if (name == "AddChildSafely" && receiver.EndsWith("GlobalUi", StringComparison.Ordinal)
             && call.Ancestors().OfType<ConditionalAccessExpressionSyntax>().Any(a => a.Expression.ToString() is "NRun.Instance" or "NGame.Instance")) return true;
         if (name == "GetCreatureNode" && receiver.StartsWith("NCombatRoom.", StringComparison.Ordinal)) return true;
@@ -102,6 +157,12 @@ internal static class RemovedCalls
         if (expression is not IdentifierNameSyntax local) return null;
         string name = local.Identifier.Text;
         var declarations = method.DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text == name).ToArray();
+        if (declarations.Length > 1)
+        {
+            var types = declarations.Select(v => (v.Parent as VariableDeclarationSyntax)?.Type.ToString().TrimEnd('?'))
+                .Distinct().ToArray();
+            if (types.Length == 1 && types[0] is not (null or "var")) return types[0];
+        }
         if (declarations.Length == 1 && declarations[0].Parent is VariableDeclarationSyntax declaration)
         {
             if (declaration.Type.ToString() != "var") return declaration.Type.ToString().TrimEnd('?');
