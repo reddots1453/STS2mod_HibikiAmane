@@ -6,6 +6,10 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-01B：封印与献祭正式展示（READY）
+
+SYS-SEA-001/ACT4-001→DS27-01B→封印方向悬停、实际永久实例/拥有者隔离、原牌升级预览、染色生命周期及献祭原文→DS27-CARD-TEXT/COMPAT/ACT4/GATES。前置`1d3f4daa`，不改封印/移除/试炼实际规则；未部署。RELIC-EVENT-004另列DS27-04J-Q20 OPEN，随机池范围待确认。
+
 ## DS27-02AA：先古书库完整回归（IMPLEMENTED，游戏内待验）
 
 先古卡“娅露丝的书库”→DS27-02AA→InsatiableGreed/YarusLibraryPower→三牌堆实际选项、随机十张身份/顺序/上限、抽牌禁止及状态生命周期→DS27-CARD-EFFECT/META/COMPAT/GATES。前置`aa69ce99`，不变更随机流或规则，保留旧序列化ID；补选择返回守卫和独立期望的真实命令测试。未部署。
