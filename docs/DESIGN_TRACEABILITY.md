@@ -8,6 +8,10 @@
 
 > 当前汇总：[2026-09-28全范围状态核对](DESIGN_SYNC_20260927_CURRENT_STATUS.md)。旧批次段落是带日期的历史证据；不得用历史未实现项覆盖后续交付，也不得把局部IMPLEMENTED提升为全范围VERIFIED。
 
+## DS27-02AK：初始及辅助五牌全文（READY）
+
+CARD-N基础打防/变身/随身与困了→DS27-02AK→真Run/Hand全文、原生关键词排序、变奏边界回落重入及元数据→DS27-CARD-TEXT/META/COMPAT/GATES。前置`7dad6468`；数值和效果不变，测试需要一次性测试局，不部署、不以编译替代实机。
+
 ## DS27-02AJ：七牌双实例全文（IMPLEMENTED，游戏内待验）
 
 CARD-N炎之剑/风神披风/理外锻成、CARD-C超再生/黑暗风暴/咒印传染、口球正式费用描述→DS27-02AJ→独立全文Run/Hand契约及炎之剑计数分行→DS27-CARD-TEXT/GATES。前置`118dec5d`；保持既有机制/效果测试，清单只登记声明，不冒充运行证据，不部署。
