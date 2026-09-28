@@ -1,4 +1,5 @@
 """Independent literal-oracle/design checks, not a native SmartFormat renderer."""
+import hashlib
 import json
 import re
 import unittest
@@ -22,6 +23,13 @@ def design_sentence(title, lines, upgraded):
     text = audit.design_effect(title, lines)
     if not text:
         raise AssertionError('No design sentence: ' + title)
+    if title == '贞操防御':
+        text, separator, note = text.partition('\n')
+        # This exact following paragraph is a rule note, not card-face text.
+        # A changed/missing note must trigger review, never silently disappear.
+        if not separator or hashlib.sha256(note.encode('utf-8')).hexdigest() != \
+                'ba6e54b6e4b86114250f74d7fab7e0104db08862e59eaaaad54f140a22a2768b':
+            raise AssertionError('ChastityDefense rule-note boundary changed; review before excluding it')
     text = re.sub(r'^(?:\d+(?:/\d+)?|X)费\s*', '', text).replace('*', '')
     text = re.sub(r'(\d+)%/(\d+)%', lambda m: m[2 if upgraded else 1] + '%', text)
     text = re.sub(r'(\d+)/(\d+)', lambda m: m[2 if upgraded else 1], text)
@@ -65,9 +73,9 @@ class HolyFullTextContracts(unittest.TestCase):
         cls.loc = json.loads(read('MaidenSuccubus/localization/zhs/cards.json'))
         cls.lines = read('DesignDoc.md').splitlines()
 
-    def test_exact_44_holy_models_and_88_literal_variants(self):
-        self.assertEqual(len(self.rows), 44)
-        self.assertEqual(len({name for name, _, _ in self.rows}), 44)
+    def test_exact_48_holy_models_and_96_literal_variants(self):
+        self.assertEqual(len(self.rows), 48)
+        self.assertEqual(len({name for name, _, _ in self.rows}), 48)
         pool = json.loads(read('docs/content_contract_20260824.json'))['cards']['MSHolyCardPool']
         for name, base, upgrade in self.rows:
             self.assertIn(name, pool)
@@ -76,7 +84,7 @@ class HolyFullTextContracts(unittest.TestCase):
                 self.assertNotIn('\n\n', text)
                 self.assertTrue(text.endswith('。'))
 
-    def test_all_88_sentences_match_design_without_erasing_punctuation(self):
+    def test_all_96_sentences_match_design_without_erasing_punctuation(self):
         for name, base, upgrade in self.rows:
             title = self.loc['MAIDEN_SUCCUBUS_CARD_' + audit.screaming_snake(name) + '.title']
             for upgraded, expected in ((False, base), (True, upgrade)):
@@ -105,7 +113,7 @@ class HolyFullTextContracts(unittest.TestCase):
         self.assertNotIn('.Trim(', source)
         runner = read('src/Debugging/CardEffects/CardEffectTestRunner.cs')
         for token in ('DesignSyncHolyTextContract.Validate(context, card, scenario.Upgraded);',
-                      '"ds27-holy-text"', 'batch.Length != 44 || batch.Length != DesignSyncHolyTextContract.Entries.Length',
+                      '"ds27-holy-text"', 'batch.Length != 48 || batch.Length != DesignSyncHolyTextContract.Entries.Length',
                       'await scenario.Execute(context, card);', 'scenarioResult.EffectAssertionCount < scenario.MinimumEffectAssertions'):
             self.assertIn(token, runner)
 
@@ -141,6 +149,56 @@ class HolyFullTextContracts(unittest.TestCase):
             if re.search(r'\d', base):
                 mutant = re.sub(r'\d+', lambda m: str(int(m[0]) + 1), base, count=1)
                 self.assertNotEqual(mutant.replace('\n', ''), design)
+
+    def test_portable_four_have_independent_upgrade_and_line_break_expectations(self):
+        rows = {name: (base, upgrade) for name, base, upgrade in self.rows}
+        self.assertEqual(rows['ResistanceGloves'], ('挣脱2。\n随身。', '挣脱3。\n随身。'))
+        self.assertEqual(rows['RestraintEvasion'],
+                         ('获得6点格挡。\n挣脱1。\n如果目标为拘束意图，额外获得等量于拘束伤害的格挡。\n随身。',
+                          '获得9点格挡。\n挣脱1。\n如果目标为拘束意图，额外获得等量于拘束伤害的格挡。\n随身。'))
+        self.assertEqual(rows['ChastityDefense'],
+                         ('持续1回合，保留你的手牌，阻止侵犯意图。\n随身。',
+                          '持续2回合，保留你的手牌，阻止侵犯意图。\n随身。'))
+        self.assertEqual(rows['RegenerativeMagicFiber'], ('回合开始时，获得1层魔装耐久。\n随身。',) * 2)
+        for name in ('ResistanceGloves', 'RestraintEvasion', 'ChastityDefense', 'RegenerativeMagicFiber'):
+            for text in rows[name]:
+                self.assertEqual(text.count('随身。'), 1)
+                self.assertNotIn('消耗。', text)
+
+    def test_portable_metadata_assertions_do_not_replace_effect_assertions(self):
+        source = read('src/Debugging/CardEffects/DesignSyncHolyTextContract.cs')
+        self.assertIn('ValidatePortableMetadata(ctx, card, upgraded);', source)
+        for token in ('ResistanceGloves => (0, CardType.Skill, CardRarity.Common, TargetType.Self)',
+                      'RestraintEvasion => (1, CardType.Skill, CardRarity.Uncommon, TargetType.AnyEnemy)',
+                      'ChastityDefense => (1, CardType.Skill, CardRarity.Uncommon, TargetType.Self)',
+                      'RegenerativeMagicFiber => (upgraded ? 1 : 2, CardType.Power, CardRarity.Rare, TargetType.Self)',
+                      'card.Keywords.Contains(MaidenSuccubus.Keywords.PortableKeyword.Value), effect: false'):
+            self.assertIn(token, source)
+        block = source.split('private static void ValidatePortableMetadata', 1)[1]
+        self.assertEqual(block.count('effect: false'), 5)
+
+    def test_portable_keyword_colors_remain_in_original_localization(self):
+        for name, words in {
+            'RESISTANCE_GLOVES': ('挣脱',),
+            'RESTRAINT_EVASION': ('格挡', '挣脱', '拘束'),
+            'CHASTITY_DEFENSE': ('保留', '手牌', '侵犯'),
+            'REGENERATIVE_MAGIC_FIBER': ('魔装耐久',),
+        }.items():
+            text = self.loc['MAIDEN_SUCCUBUS_CARD_' + name + '.description']
+            for word in words:
+                self.assertIn('[gold]' + word + '[/gold]', text)
+
+    def test_rule_note_exclusion_is_exact_and_does_not_drop_unknown_new_text(self):
+        index = audit.design_index('贞操防御', self.lines)
+        note_index = next(i for i in range(index + 1, len(self.lines)) if self.lines[i].startswith('（回合开始'))
+        changed = list(self.lines)
+        changed[note_index] = changed[note_index] + '新增说明。'
+        with self.assertRaisesRegex(AssertionError, 'rule-note boundary changed'):
+            design_sentence('贞操防御', changed, False)
+        missing = list(self.lines)
+        missing[note_index] = ''
+        with self.assertRaisesRegex(AssertionError, 'rule-note boundary changed'):
+            design_sentence('贞操防御', missing, False)
 
 
 if __name__ == '__main__':

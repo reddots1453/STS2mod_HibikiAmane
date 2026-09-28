@@ -13,6 +13,10 @@ internal static class DesignSyncHolyTextContract
 {
     internal static readonly Expected[] Entries =
     [
+        new(typeof(ResistanceGloves), "挣脱2。\n随身。", "挣脱3。\n随身。"),
+        new(typeof(RestraintEvasion), "获得6点格挡。\n挣脱1。\n如果目标为拘束意图，额外获得等量于拘束伤害的格挡。\n随身。", "获得9点格挡。\n挣脱1。\n如果目标为拘束意图，额外获得等量于拘束伤害的格挡。\n随身。"),
+        new(typeof(ChastityDefense), "持续1回合，保留你的手牌，阻止侵犯意图。\n随身。", "持续2回合，保留你的手牌，阻止侵犯意图。\n随身。"),
+        new(typeof(RegenerativeMagicFiber), "回合开始时，获得1层魔装耐久。\n随身。", "回合开始时，获得1层魔装耐久。\n随身。"),
         new(typeof(AutoReactionArmor), "保留。\n获得5点格挡。\n回合结束时，在弃牌堆中自动打出此牌。", "保留。\n获得7点格挡。\n回合结束时，在弃牌堆中自动打出此牌。"),
         new(typeof(Blizzard), "对所有敌人造成6点伤害，将1张冰雾置入手牌。\n接下来2个回合开始时，重复此效果。", "对所有敌人造成8点伤害，将1张冰雾置入手牌。\n接下来2个回合开始时，重复此效果。"),
         new(typeof(BurningRack), "给予2层燃烧。\n获得2点格挡。", "给予3层燃烧。\n获得3点格挡。"),
@@ -72,6 +76,7 @@ internal static class DesignSyncHolyTextContract
     {
         Expected? entry = Entries.SingleOrDefault(entry => entry.Model == card.GetType());
         if (entry == null) return;
+        ValidatePortableMetadata(ctx, card, upgraded);
         string expected = upgraded ? entry.Upgraded : entry.Base;
         var outside = ctx.Player.RunState.CreateCard(ModelDb.GetById<CardModel>(card.Id), ctx.Player);
         if (upgraded) CardCmd.Upgrade(outside);
@@ -81,6 +86,24 @@ internal static class DesignSyncHolyTextContract
             string actual = instance.GetDescriptionForPile(pile, ctx.PrimaryEnemy);
             ctx.AssertEqual("DS27 holy full rendered text " + pile, expected, Normalize(actual), effect: false);
         }
+    }
+
+    private static void ValidatePortableMetadata(CardEffectTestContext ctx, CardModel card, bool upgraded)
+    {
+        (int Cost, CardType Type, CardRarity Rarity, TargetType Target)? expected = card switch
+        {
+            ResistanceGloves => (0, CardType.Skill, CardRarity.Common, TargetType.Self),
+            RestraintEvasion => (1, CardType.Skill, CardRarity.Uncommon, TargetType.AnyEnemy),
+            ChastityDefense => (1, CardType.Skill, CardRarity.Uncommon, TargetType.Self),
+            RegenerativeMagicFiber => (upgraded ? 1 : 2, CardType.Power, CardRarity.Rare, TargetType.Self),
+            _ => null,
+        };
+        if (expected is not { } value) return;
+        ctx.AssertEqual("portable holy cost", value.Cost, card.EnergyCost.GetWithModifiers(CostModifiers.All), effect: false);
+        ctx.AssertEqual("portable holy type", value.Type, card.Type, effect: false);
+        ctx.AssertEqual("portable holy rarity", value.Rarity, card.Rarity, effect: false);
+        ctx.AssertEqual("portable holy target", value.Target, card.TargetType, effect: false);
+        ctx.AssertTrue("portable holy keyword", card.Keywords.Contains(MaidenSuccubus.Keywords.PortableKeyword.Value), effect: false);
     }
 }
 #endif

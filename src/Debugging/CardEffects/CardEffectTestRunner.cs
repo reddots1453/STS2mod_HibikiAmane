@@ -230,8 +230,8 @@ internal static class CardEffectTestRunner
         if (string.Equals(requestedCard, "ds27-holy-text", StringComparison.OrdinalIgnoreCase))
         {
             var batch = CardEffectTestCatalog.All.Where(spec => DesignSyncHolyTextContract.Contains(spec.CardType)).ToArray();
-            if (batch.Length != 44 || batch.Length != DesignSyncHolyTextContract.Entries.Length)
-                throw new InvalidOperationException("DS27 holy text requires all 44 cards and their existing effect scenarios.");
+            if (batch.Length != 48 || batch.Length != DesignSyncHolyTextContract.Entries.Length)
+                throw new InvalidOperationException("DS27 holy text requires all 48 cards and their existing effect scenarios.");
             return batch;
         }
 
