@@ -1,4 +1,7 @@
 {
+  "MAIDEN_GENEROSITY_OFFER.description": "慷慨供奉",
+  "MAIDEN_GENEROSITY_OFFER.progress": "放弃关联的遗物，推进慷慨试炼。与领取该遗物只能选择一项。",
+  "MAIDEN_GENEROSITY_OFFER.removal": "放弃关联的遗物，移除2张牌。与领取该遗物只能选择一项。",
   "MAIDEN_SUCCUBUS_RELIC_TONYS_CHARM.title": "东尼的咒符",
   "MAIDEN_SUCCUBUS_RELIC_TONYS_CHARM.description": "当你移除一张牌时，将1张升级过的随机稀有牌加入牌组。拾起时，移除2张牌。",
   "MAIDEN_SUCCUBUS_RELIC_TONYS_CHARM.flavor": "当你移除一张牌时，将1张升级过的随机稀有牌加入牌组。",

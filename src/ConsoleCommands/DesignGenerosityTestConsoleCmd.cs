@@ -122,6 +122,7 @@ public sealed class DesignGenerosityTestConsoleCmd : AbstractConsoleCmd
             invalidSelector.PrepareToSelect([excess[0], excess[0], excess[1], excess[2]]);
             using (CardSelectCmd.UseSelector(invalidSelector)) await capped.AfterObtained();
             Check(player.Deck.Cards.Count == 2 && player.Deck.Cards.Contains(excess[2]), "duplicate and oversized selection cannot exceed removal count");
+            await MaidenSuccubus.Debugging.GenerosityOfferingContract.Run(player, Check);
             MaidenSuccubusMod.Logger.Info($"[DS27GenerosityTest] PASS {checks} assertions; disposable run modified.");
         }
         catch (Exception ex)
