@@ -136,6 +136,57 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
 
                 await ctx.Reset();
                 lesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var arithmetic = await ctx.Add<LoversDagger>(PileType.Hand, upgraded);
+                await ctx.Play(lesson, selectedCards: [arithmetic]);
+                hp = ctx.PrimaryEnemy.CurrentHp;
+                int arithmeticDamage = upgraded ? 192 : 144;
+                Check(Text(arithmetic) == $"造成{arithmeticDamage}点伤害。", "formal compound formula description has no removed trigger");
+                await ctx.Play(arithmetic, ctx.PrimaryEnemy);
+                Check(hp - ctx.PrimaryEnemy.CurrentHp == arithmeticDamage, "formal compound arithmetic applies without original control/stun triggers");
+
+                await ctx.Reset();
+                lesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var burst = await ctx.Add<MagicBurst>(PileType.Hand, upgraded);
+                await ctx.ApplyPower<DexterityPower>(ctx.Self, 2);
+                await ctx.Play(lesson, selectedCards: [burst]);
+                hp = ctx.PrimaryEnemy.CurrentHp;
+                await ctx.Play(burst, ctx.PrimaryEnemy);
+                Check(hp - ctx.PrimaryEnemy.CurrentHp == (upgraded ? 26 : 22),
+                    "formal buff-layer formula has no removed payment or amplification requirement");
+
+                foreach (bool low in new[] { false, true })
+                {
+                    await ctx.Reset();
+                    lesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                    var verdict = await ctx.Add<SwordVerdict>(PileType.Hand, upgraded);
+                    if (low) await CreatureCmd.SetCurrentHp(ctx.PrimaryEnemy, 9999);
+                    await ctx.Play(lesson, selectedCards: [verdict]);
+                    hp = ctx.PrimaryEnemy.CurrentHp;
+                    await ctx.Play(verdict, ctx.PrimaryEnemy);
+                    Check(hp - ctx.PrimaryEnemy.CurrentHp == (low ? 96 : 48),
+                        "formal numeric condition evaluates selected target health in both branches");
+                    Check(!ctx.PrimaryEnemy.IsStunned, "formal numeric branch does not restore removed stun command");
+                }
+
+                await ctx.Reset();
+                lesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var evasion = await ctx.Add<RestraintEvasion>(PileType.Hand, upgraded);
+                await ctx.Play(lesson, selectedCards: [evasion]);
+                await ctx.Play(evasion, ctx.PrimaryEnemy);
+                Check(ctx.Self.Block == (upgraded ? 18 : 12), "formal block rewrite without target intent uses zero extra block");
+
+                await ctx.Reset();
+                lesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var pigment = await ctx.Add<DreamPigment>(PileType.Hand, upgraded);
+                await ctx.AddFillerCards(PileType.Draw, 2);
+                await ctx.Play(lesson, selectedCards: [pigment]);
+                Check(Text(pigment) == "", "formal non-damage rewrite has empty intrinsic description");
+                await ctx.Play(pigment);
+                Check(PileType.Draw.GetPile(player).Cards.Count == 2 && PileType.Hand.GetPile(player).Cards.Count == 0,
+                    "formal pigment rewrite does not draw, choose, copy or invoke draw notifications");
+
+                await ctx.Reset();
+                lesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
                 var scripture = await ctx.Add<MaidenSuccubus.Cards.Scriptures.GuardianScripture>(PileType.Hand);
                 await ctx.Play(lesson, selectedCards: [scripture]);
                 Check(HumilityRewriteCapability.Find(scripture)?.Program.Effects.Count == 0 && Text(scripture) == "",

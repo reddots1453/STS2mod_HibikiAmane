@@ -9,6 +9,8 @@ using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Core.Desire;
+using MaidenSuccubus.Core.Powers;
+using MaidenSuccubus.Core.Intents;
 using STS2RitsuLib.Combat.SecondaryResources;
 
 namespace MaidenSuccubus.Core.Cards;
@@ -63,6 +65,15 @@ internal sealed class HumilityNativeEffects(PlayerChoiceContext context, CardPla
         if (name == "$hp") return card.Owner.Creature.CurrentHp;
         if (name == "$enemies") return card.CombatState?.HittableEnemies.Count ?? 0;
         if (name == "$spentSecondary") return DesireCombatSpending.Get(card.Owner);
+        if (name == "$buffLayers") return PowerLayerQuery.CountBuffLayers(card.Owner.Creature);
+        if (name == "$targetBelowHalf") return target != null && target.CurrentHp * 2 < target.MaxHp ? 1 : 0;
+        if (name == "$targetControlBlock") return target?.Monster?.NextMove.Intents
+            .OfType<ControlIntent>().FirstOrDefault()?.BlockRequired ?? 0;
+        if (name.StartsWith("$targetHasPower:", StringComparison.Ordinal))
+        {
+            string type = name[16..];
+            return target?.Powers.Any(power => power.GetType().Name == type || power.GetType().FullName == type) == true ? 1 : 0;
+        }
         if (name.StartsWith("$power:", StringComparison.Ordinal))
         {
             string powerType = name[7..];

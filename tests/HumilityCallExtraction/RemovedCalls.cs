@@ -37,7 +37,7 @@ internal static class RemovedCalls
         if (member.Expression is MemberAccessExpressionSyntax cost && cost.Name.Identifier.Text == "EnergyCost"
             && name is "SetThisCombat" or "AddThisCombat" or "SetThisTurn" or "AddThisTurn" or "SetThisTurnOrUntilPlayed") return true;
         string? type = LocalType(member.Expression, method);
-        if (type == "CardModel" && name is "SetToFreeThisTurn" or "SetToFreeThisCombat" or "AddKeyword" or "RemoveKeyword" or "FinalizeUpgradeInternal") return true;
+        if (type == "CardModel" && name is "SetToFreeThisTurn" or "SetToFreeThisCombat" or "AddKeyword" or "RemoveKeyword" or "FinalizeUpgradeInternal" or "InvokeDrawn") return true;
         if (type == "CardPile" && name == "MoveToTopInternal") return true;
         if (type == "CombatRoom" && name == "AddExtraReward") return true;
         if (type == "EnchantmentChoiceCard" && name == "Configure") return true;

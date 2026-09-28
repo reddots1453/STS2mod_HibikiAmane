@@ -287,6 +287,42 @@ if (args.SequenceEqual(new[] { "--self-test" }))
         + attack.Replace(".FromCard", ".WithHitCount(count).FromCard"));
     Check(handCount.Program?.Effects.Single().Repeats.Name == "$pile:Hand",
         "pure card-pile snapshot count used without executing removed exhaust commands");
+    var arithmetic = Extract("decimal n = DynamicVars.Damage.BaseValue; if (locked) n *= 2; if (stunned) n *= 2; "
+        + attack.Replace("DynamicVars.Damage.BaseValue", "n"));
+    Check(arithmetic.Program?.Effects.Single().Amount.Evaluate(default, _ => 18) == 72,
+        "local compound numeric dependencies retained while outer triggers are removed");
+    var buffFormula = Extract("decimal n = DynamicVars.CalculationBase.BaseValue; if (paid) n += PowerLayerQuery.CountBuffLayers(Owner.Creature) * DynamicVars.ExtraDamage.BaseValue; "
+        + attack.Replace("DynamicVars.Damage.BaseValue", "n"));
+    var buffSink = new RecordedEffects();
+    await buffFormula.Program!.DoubleAmounts().Execute(default, n => n switch
+    { "CalculationBase" => 7, "ExtraDamage" => 2, "$buffLayers" => 3, _ => throw new Exception(n) }, buffSink);
+    Check(buffSink.Attacks.Single().Amount == 26, "buff formula doubles final damage without executing payment");
+    Check(Extract("decimal n = 2; while (ready) n *= 2; " + attack.Replace("DynamicVars.Damage.BaseValue", "n")).Program == null,
+        "loop-mutated numeric dependency is not silently flattened");
+    Check(Extract("decimal n = 2; if (ready) n += 3; else n += 4; " + attack.Replace("DynamicVars.Damage.BaseValue", "n")).Program == null,
+        "exclusive numeric assignments remain explicit unsupported rather than summed");
+    var predicate = Extract("bool low = play.Target.CurrentHp * 2 < play.Target.MaxHp; "
+        + attack.Replace("DynamicVars.Damage.BaseValue", "DynamicVars.Damage.BaseValue * (low ? 2 : 1)"));
+    Check(predicate.Program?.Effects.Single().Amount.Evaluate(default, n => n == "$targetBelowHalf" ? 1 : 24) == 48
+        && predicate.Program.Effects.Single().Amount.Evaluate(default, n => n == "$targetBelowHalf" ? 0 : 24) == 24,
+        "read-only predicate inside numeric argument remains live in both branches");
+    var powerCount = Extract(attack.Replace(".FromCard", ".WithHitCount(!play.Target.HasPower<VulnerablePower>() ? 1 : 2).FromCard"));
+    Check(powerCount.Program?.Effects.Single().Repeats.Evaluate(default, _ => 0) == 1
+        && powerCount.Program.Effects.Single().Repeats.Evaluate(default, _ => 1) == 2,
+        "negated target-power predicate retains native one versus two hit count");
+    Check(Extract(attack.Replace("DynamicVars.Damage.BaseValue", "SideEffect() ? 1 : 2")).Program == null,
+        "unknown predicate does not execute side effects or become a guessed branch");
+    var intentAmount = Extract("ControlIntent? intent = play.Target?.Monster?.NextMove.Intents.OfType<ControlIntent>().FirstOrDefault(); "
+        + "if (intent != null) await CreatureCmd.GainBlock(Owner.Creature, intent.BlockRequired, play);");
+    Check(intentAmount.Program?.Effects.Single().Amount.Name == "$targetControlBlock",
+        "selected target intent amount retained after nullable trigger removal");
+    Check(Extract("ControlIntent intent = play.Target?.Monster?.NextMove.Intents.OfType<ControlIntent>().FirstOrDefault(); "
+        + "intent = ForeignTarget(); await CreatureCmd.GainBlock(Owner.Creature, intent.BlockRequired, play);").Program == null,
+        "reassigned intent cannot be silently read from original target");
+    Check(Extract("ControlIntent intent = ForeignTarget(); await CreatureCmd.GainBlock(Owner.Creature, intent.BlockRequired, play);").Program == null,
+        "foreign intent cannot be rebound to selected target");
+    Check(Extract("CardModel selected = null; selected.InvokeDrawn();").Program?.Effects.Count == 0,
+        "card draw notification removed without restoring its triggers");
     var newTargetRoundTrip = HumilityEffectProgram.Load(lowestTarget.Program!.DoubleAmounts().Save());
     Check(newTargetRoundTrip.Effects.Single().Target == HumilityTarget.LowestHpEnemy
         && newTargetRoundTrip.AmountMultiplier == 2, "new target survives production serialization and doubling");

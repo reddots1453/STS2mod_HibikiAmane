@@ -268,15 +268,15 @@ internal static class CallExtractor
             && powerCall.Expression.ToString() is "Owner.Creature" or "base.Owner.Creature"
             && powerCall.Name is GenericNameSyntax { Identifier.Text: "GetPower" } powerName)
             return HumilityValue.Named("$power:" + powerName.TypeArgumentList.Arguments.Single());
-        // Upgrade selection is part of the numeric argument, not a surrounding
-        // trigger condition. Bind it live so upgrading the rewritten card still works.
-        if (expression is ConditionalExpressionSyntax upgrade
-            && Unwrap(upgrade.Condition).ToString() is "IsUpgraded" or "base.IsUpgraded" or "this.IsUpgraded")
+        // Predicates embedded in numeric arguments remain part of the value,
+        // distinct from the enclosing trigger statements removed by slicing.
+        if (expression is ConditionalExpressionSyntax upgrade)
         {
+            HumilityValue condition = BooleanValue(upgrade.Condition, method, before, resolving);
             HumilityValue yes = Value(upgrade.WhenTrue, method, before, resolving);
             HumilityValue no = Value(upgrade.WhenFalse, method, before, resolving);
             return HumilityValue.Binary(HumilityValueKind.Add, no,
-                HumilityValue.Binary(HumilityValueKind.Multiply, HumilityValue.Named("$upgraded"),
+                HumilityValue.Binary(HumilityValueKind.Multiply, condition,
                     HumilityValue.Binary(HumilityValueKind.Add, yes,
                         HumilityValue.Binary(HumilityValueKind.Multiply, HumilityValue.Number(-1), no))));
         }
@@ -290,6 +290,19 @@ internal static class CallExtractor
                 Value(binary.Left, method, before, resolving), Value(binary.Right, method, before, resolving));
         if (expression is MemberAccessExpressionSyntax member)
         {
+            if (member.Name.Identifier.Text == "BlockRequired"
+                && member.Expression is IdentifierNameSyntax intentLocal)
+            {
+                var definitions = method.DescendantNodes().OfType<VariableDeclaratorSyntax>()
+                    .Where(v => v.Identifier.Text == intentLocal.Identifier.Text && v.SpanStart < before).ToArray();
+                if (definitions.Length == 1 && definitions[0].Initializer is { } init
+                    && !method.DescendantNodes().OfType<AssignmentExpressionSyntax>()
+                        .Any(a => a.Left.ToString() == intentLocal.Identifier.Text && a.SpanStart < before)
+                    && Compact(init.Value) is
+                        "play.Target?.Monster?.NextMove.Intents.OfType<ControlIntent>().FirstOrDefault()"
+                        or "cardPlay.Target?.Monster?.NextMove.Intents.OfType<ControlIntent>().FirstOrDefault()")
+                    return HumilityValue.Named("$targetControlBlock");
+            }
             if (member.Name.Identifier.Text == "Count" && Pile(member.Expression, method, before, []) is { } pile)
                 return HumilityValue.Named("$pile:" + pile);
             if (DynamicVars(member.Expression)) return HumilityValue.Named(member.Name.Identifier.Text);
@@ -303,6 +316,10 @@ internal static class CallExtractor
             return HumilityValue.Named(variableName);
         if (expression is InvocationExpressionSyntax invocation && invocation.Expression is MemberAccessExpressionSyntax access)
         {
+            if (access.Expression.ToString() == "PowerLayerQuery" && access.Name.Identifier.Text == "CountBuffLayers"
+                && invocation.ArgumentList.Arguments.Count == 1
+                && invocation.ArgumentList.Arguments[0].Expression.ToString() is "Owner.Creature" or "base.Owner.Creature")
+                return HumilityValue.Named("$buffLayers");
             if (access.Expression.ToString() == "DesireCombatSpending" && access.Name.Identifier.Text == "Get"
                 && invocation.ArgumentList.Arguments.Count == 1 && invocation.ArgumentList.Arguments[0].Expression.ToString() is "Owner" or "base.Owner")
                 return HumilityValue.Named("$spentSecondary");
@@ -333,19 +350,69 @@ internal static class CallExtractor
             {
                 var declarations = method.DescendantNodes().OfType<VariableDeclaratorSyntax>()
                     .Where(v => v.Identifier.Text == name && v.SpanStart < before).ToArray();
-                bool assigned = method.DescendantNodes().OfType<AssignmentExpressionSyntax>()
-                    .Any(a => a.Left.ToString() == name && a.SpanStart < before);
+                var assignments = method.DescendantNodes().OfType<AssignmentExpressionSyntax>()
+                    .Where(a => a.Left.ToString() == name && a.SpanStart < before).OrderBy(a => a.SpanStart).ToArray();
                 bool mutated = method.DescendantNodes().Any(n => n.SpanStart < before &&
                     (n is PostfixUnaryExpressionSyntax p && p.Operand.ToString() == name ||
                      n is PrefixUnaryExpressionSyntax p2 && p2.Operand.ToString() == name &&
                      p2.Kind() is SyntaxKind.PreIncrementExpression or SyntaxKind.PreDecrementExpression));
-                if (assigned || mutated || declarations.Length != 1 || declarations[0].Initializer == null)
+                if (mutated || declarations.Length != 1 || declarations[0].Initializer == null)
                     throw Unsupported(expression, "local requires unsupported assignment/control-flow slicing");
-                return Value(declarations[0].Initializer!.Value, method, declarations[0].SpanStart, resolving);
+                var value = Value(declarations[0].Initializer!.Value, method, declarations[0].SpanStart, resolving);
+                foreach (var assignment in assignments)
+                {
+                    // Slice arithmetic dependencies, not the trigger around them.
+                    // Loops/else arms and arbitrary reassignment require an explicit
+                    // meaning; never guess a last assignment or execute the source.
+                    if (assignment.Kind() is not (SyntaxKind.AddAssignmentExpression or SyntaxKind.MultiplyAssignmentExpression)
+                        || assignment.SpanStart < declarations[0].SpanStart
+                        || assignment.Ancestors().TakeWhile(n => n != method).Any(n =>
+                            n is ForStatementSyntax or ForEachStatementSyntax or WhileStatementSyntax or DoStatementSyntax
+                            or SwitchStatementSyntax or AnonymousFunctionExpressionSyntax
+                            || n is IfStatementSyntax { Else: not null }))
+                        throw Unsupported(assignment, "unsupported numeric reassignment or repeated dependency");
+                    value = HumilityValue.Binary(assignment.IsKind(SyntaxKind.AddAssignmentExpression)
+                        ? HumilityValueKind.Add : HumilityValueKind.Multiply, value,
+                        Value(assignment.Right, method, assignment.SpanStart, resolving));
+                }
+                return value;
             }
             finally { resolving.Remove(name); }
         }
         throw Unsupported(expression, "unsupported numeric expression (not executed)");
+    }
+
+    private static string Compact(SyntaxNode node) => string.Concat(node.ToString().Where(c => !char.IsWhiteSpace(c)));
+
+    private static HumilityValue BooleanValue(ExpressionSyntax expression, MethodDeclarationSyntax method, int before, HashSet<string> resolving)
+    {
+        expression = Unwrap(expression);
+        if (expression.ToString() is "IsUpgraded" or "base.IsUpgraded" or "this.IsUpgraded")
+            return HumilityValue.Named("$upgraded");
+        if (Compact(expression) is "play.Target.CurrentHp*2<play.Target.MaxHp"
+            or "cardPlay.Target.CurrentHp*2<cardPlay.Target.MaxHp")
+            return HumilityValue.Named("$targetBelowHalf");
+        if (expression is PrefixUnaryExpressionSyntax not && not.IsKind(SyntaxKind.LogicalNotExpression))
+            return HumilityValue.Binary(HumilityValueKind.Add, HumilityValue.Number(1),
+                HumilityValue.Binary(HumilityValueKind.Multiply, HumilityValue.Number(-1),
+                    BooleanValue(not.Operand, method, before, resolving)));
+        if (expression is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax member } call
+            && member.Expression.ToString() is "play.Target" or "cardPlay.Target"
+            && member.Name is GenericNameSyntax { Identifier.Text: "HasPower" } power && call.ArgumentList.Arguments.Count == 0)
+            return HumilityValue.Named("$targetHasPower:" + power.TypeArgumentList.Arguments.Single());
+        if (expression is IdentifierNameSyntax id && resolving.Add(id.Identifier.Text))
+        {
+            try
+            {
+                var definitions = method.DescendantNodes().OfType<VariableDeclaratorSyntax>()
+                    .Where(v => v.Identifier.Text == id.Identifier.Text && v.SpanStart < before).ToArray();
+                if (definitions.Length == 1 && definitions[0].Initializer is { } init
+                    && !method.DescendantNodes().OfType<AssignmentExpressionSyntax>().Any(a => a.Left.ToString() == id.Identifier.Text && a.SpanStart < before))
+                    return BooleanValue(init.Value, method, definitions[0].SpanStart, resolving);
+            }
+            finally { resolving.Remove(id.Identifier.Text); }
+        }
+        throw Unsupported(expression, "unsupported read-only numeric predicate");
     }
 
     private static string? Pile(ExpressionSyntax expression, MethodDeclarationSyntax method, int before, HashSet<string> seen)
