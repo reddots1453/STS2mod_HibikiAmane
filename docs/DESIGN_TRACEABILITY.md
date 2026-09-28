@@ -6,9 +6,11 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-01B：封印与献祭正式展示（READY）
+## DS27-01B：封印与献祭正式展示（IMPLEMENTED，游戏内待验）
 
 SYS-SEA-001/ACT4-001→DS27-01B→封印方向悬停、实际永久实例/拥有者隔离、原牌升级预览、染色生命周期及献祭原文→DS27-CARD-TEXT/COMPAT/ACT4/GATES。前置`1d3f4daa`，不改封印/移除/试炼实际规则；未部署。RELIC-EVENT-004另列DS27-04J-Q20 OPEN，随机池范围待确认。
+
+同步`46b308a3`；封印分方向说明、献祭原文及永久实例限定完成，节点复用恢复自己的色值、保留外部色值。207新增生产断言累计13747、7新增静态累计458、33编码与双构建四门通过；新增只读`ms_test_seal_view`编译未执行，不据此标视觉/真实战斗VERIFIED。旧失败保留，见`DESIGN_SYNC_20260927_BATCH55.md`。
 
 ## DS27-02AA：先古书库完整回归（IMPLEMENTED，游戏内待验）
 

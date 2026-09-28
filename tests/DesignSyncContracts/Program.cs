@@ -3,6 +3,8 @@ using MaidenSuccubus.Core.Relics;
 using MaidenSuccubus.Util;
 using MaidenSuccubus.Core.Events;
 using MaidenSuccubus.Acts;
+using MaidenSuccubus.Core.Seals;
+using MaidenSuccubus.Core.Corruption;
 
 // Compiles and executes production pure rules, not copied implementations.
 // Independent literal expectations: SYS-COR-003 and RELIC-EVENT-005, 2026-09-27.
@@ -649,3 +651,38 @@ for (int initial = 0; initial < 7; initial++)
 Equal(1, ReactiveMagicRelicRules.NextStardust(int.MinValue), "negative progress recovers safely");
 Equal(0, ReactiveMagicRelicRules.NextStardust(int.MaxValue), "huge progress cannot overflow");
 Console.WriteLine($"PASS DS27 production reactive magic relics: {checks - beforeReactiveRelics} assertions; {checks} total.");
+
+int beforeSeals = checks;
+foreach (CorruptionBand band in Enum.GetValues<CorruptionBand>())
+foreach (RouteCardKind route in Enum.GetValues<RouteCardKind>())
+{
+    bool sealedCard = (band, route) is (CorruptionBand.Holy, RouteCardKind.Corrupt)
+        or (CorruptionBand.Corrupt, RouteCardKind.Holy);
+    Equal(sealedCard, SealRules.IsSealed(band, route), "unchanged sealing truth table");
+    for (int flags = 0; flags < 4; flags++)
+    {
+        string? key = flags == 3 && sealedCard
+            ? route == RouteCardKind.Holy ? "MAIDENSUCCUBUS_SEALED_CARD.holy" : "MAIDENSUCCUBUS_SEALED_CARD.corrupt"
+            : null;
+        Equal(key, SealRules.DescriptionKey((flags & 1) != 0, (flags & 2) != 0, band, route),
+            "seal presentation requires correct owner and real permanent instance");
+    }
+}
+Equal(false, SealRules.IsSealed((CorruptionBand)99, RouteCardKind.Holy), "invalid band not sealed");
+Equal(false, SealRules.IsSealed(CorruptionBand.Holy, (RouteCardKind)99), "invalid route not sealed");
+for (int baseline = 1; baseline <= 20; baseline++)
+{
+    var tint = new OwnedVisualOverride<int>();
+    Equal(baseline, tint.Restore(baseline), "untouched tint unchanged");
+    int painted = tint.Apply(baseline, value => value * 2);
+    Equal(baseline * 2, painted, "relative tint preserves baseline");
+    Equal(painted, tint.Apply(painted, value => value * 2), "refresh does not multiply tint repeatedly");
+    Equal(baseline, tint.Restore(painted), "recycled holder restores original not white");
+    Equal(baseline, tint.Restore(baseline), "repeated restore inert");
+    tint.Apply(baseline, value => value * 2);
+    Equal(-baseline, tint.Restore(-baseline), "external color change wins");
+    painted = tint.Apply(-baseline, value => value * 3);
+    Equal(-baseline * 3, painted, "reassigned external baseline used");
+    Equal(-baseline, tint.Restore(painted), "new external baseline restored");
+}
+Console.WriteLine($"PASS DS27 production seal presentation: {checks - beforeSeals} assertions; {checks} total.");

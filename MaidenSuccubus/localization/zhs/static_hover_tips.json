@@ -15,6 +15,8 @@
   "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.minus5": "-5[purple]堕落值[/purple]时，每场战斗结束失去1点[pink]欲望[/pink]。",
   "MAIDENSUCCUBUS_SEALED_CARD.title": "封印",
   "MAIDENSUCCUBUS_SEALED_CARD.description": "这张牌仍在[gold]永久牌组[/gold]中，但按当前[purple]堕落值[/purple]不会进入下一场战斗。战斗中[purple]堕落值[/purple]变化不会改变当前战斗牌堆。",
+  "MAIDENSUCCUBUS_SEALED_CARD.holy": "由于[purple]堕落值[/purple]≥3，这张牌被封印了，战斗开始时不会进入[gold]抽牌堆[/gold]。",
+  "MAIDENSUCCUBUS_SEALED_CARD.corrupt": "由于[purple]堕落值[/purple]≤-3，这张牌被封印了，战斗开始时不会进入[gold]抽牌堆[/gold]。",
   "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.title": "欲望",
   "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.description": "响木天音的[pink]欲望[/pink]，会因遭受[pink]色情攻击[/pink]而提高。最高10点，跨回合、跨战斗持续累计。\n[pink]欲望[/pink]过高或达到满时将对战斗产生巨大的负面效果，但[purple]堕落[/purple]路线的部分卡牌可以利用[pink]欲望[/pink]。",
   "MAIDENSUCCUBUS_SECONDARY_RESOURCE_DESIRE.threshold8": "8点[pink]欲望[/pink]或以上，将无法格挡防御怪物的拘束类意图；",

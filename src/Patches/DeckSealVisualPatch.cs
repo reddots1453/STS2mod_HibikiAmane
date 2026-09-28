@@ -1,11 +1,11 @@
 using Godot;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Screens;
-using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Core.Seals;
 using MaidenSuccubus.Util;
 
@@ -20,24 +20,49 @@ public static class DeckSealVisualPatch
 {
     private static readonly Color SealedColor =
         new(0.38f, 0.38f, 0.46f, 0.82f);
+    private static readonly ConditionalWeakTable<NGridCardHolder, OwnedVisualOverride<Color>> Tints = new();
+
+    internal static bool HasSealTint(NGridCardHolder holder) =>
+        Tints.TryGetValue(holder, out var tint) && tint.Matches(holder.Modulate);
 
     [HarmonyPatch(typeof(NGridCardHolder), "OnCardReassigned")]
     [HarmonyPostfix]
     public static void AfterCardReassigned(NGridCardHolder __instance)
     {
-        Safe.Run(
-            () =>
-            {
-                if (!IsInDeckView(__instance))
-                {
-                    return;
-                }
+        Safe.Run(() => Refresh(__instance), nameof(AfterCardReassigned));
+    }
 
-                __instance.Modulate = IsSealed(__instance)
-                    ? SealedColor
-                    : Colors.White;
-            },
-            nameof(DeckSealVisualPatch));
+    // A newly allocated/reused holder can be assigned before it has a deck-view parent.
+    [HarmonyPatch(typeof(NDeckViewScreen), "DisplayCards")]
+    [HarmonyPostfix]
+    public static void AfterDeckDisplayed(NDeckViewScreen __instance) => Safe.Run(() =>
+    {
+        var pending = new Stack<Node>();
+        pending.Push(__instance);
+        while (pending.TryPop(out var node))
+        {
+            if (node is NGridCardHolder holder) Refresh(holder);
+            else foreach (Node child in node.GetChildren()) pending.Push(child);
+        }
+    }, nameof(AfterDeckDisplayed));
+
+    [HarmonyPatch(typeof(NGridCardHolder), nameof(NGridCardHolder.OnFreedToPool))]
+    [HarmonyPrefix]
+    public static void BeforeReturnedToPool(NGridCardHolder __instance) =>
+        Safe.Run(() => Restore(__instance), nameof(BeforeReturnedToPool));
+
+    private static void Restore(NGridCardHolder holder)
+    {
+        if (!Tints.TryGetValue(holder, out var tint)) return;
+        holder.Modulate = tint.Restore(holder.Modulate);
+        Tints.Remove(holder);
+    }
+
+    private static void Refresh(NGridCardHolder holder)
+    {
+        Restore(holder);
+        if (!IsInDeckView(holder) || SealPresentation.DescriptionKey(holder.CardModel) == null) return;
+        holder.Modulate = Tints.GetOrCreateValue(holder).Apply(holder.Modulate, color => color * SealedColor);
     }
 
     [HarmonyPatch(typeof(NCardHolder), "CreateHoverTips")]
@@ -48,10 +73,13 @@ public static class DeckSealVisualPatch
         Safe.Run(
             () =>
             {
-                if (!IsInDeckView(__instance) || !IsSealed(__instance))
+                if (!IsInDeckView(__instance))
                 {
                     return;
                 }
+
+                string? descriptionKey = SealPresentation.DescriptionKey(__instance.CardModel);
+                if (descriptionKey == null) return;
 
                 var card = __instance.CardNode?.Model;
                 if (card == null)
@@ -66,7 +94,7 @@ public static class DeckSealVisualPatch
                         "MAIDENSUCCUBUS_SEALED_CARD.title"),
                     new LocString(
                         "static_hover_tips",
-                        "MAIDENSUCCUBUS_SEALED_CARD.description")));
+                        descriptionKey)));
                 NHoverTipSet.CreateAndShow(__instance, tips)
                     ?.SetAlignmentForCardHolder(__instance);
                 runOriginal = false;
@@ -75,14 +103,7 @@ public static class DeckSealVisualPatch
         return runOriginal;
     }
 
-    private static bool IsSealed(NCardHolder holder)
-    {
-        var card = holder.CardNode?.Model;
-        return card?.RunState is RunState runState
-            && CombatSealQuery.IsSealed(runState, card);
-    }
-
-    private static bool IsInDeckView(Node node)
+    internal static bool IsInDeckView(Node node)
     {
         for (Node? current = node; current != null; current = current.GetParent())
         {

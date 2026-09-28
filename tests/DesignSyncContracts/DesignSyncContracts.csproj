@@ -6,6 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../src/Core/Seals/SealRules.cs" Link="Production/SealRules.cs" />
+    <Compile Include="../../src/Core/Corruption/CorruptionBand.cs" Link="Production/CorruptionBand.cs" />
+    <Compile Include="../../src/Core/Routes/RouteCardKind.cs" Link="Production/RouteCardKind.cs" />
+    <Compile Include="../../src/Util/OwnedVisualOverride.cs" Link="Production/OwnedVisualOverride.cs" />
     <Compile Include="../../src/Core/Relics/ReactiveMagicRelicRules.cs" Link="Production/ReactiveMagicRelicRules.cs" />
     <Compile Include="../../src/Core/Relics/MagicSupportRelicRules.cs" Link="Production/MagicSupportRelicRules.cs" />
     <Compile Include="../../src/Core/Relics/HeartNecklaceRules.cs" Link="Production/HeartNecklaceRules.cs" />

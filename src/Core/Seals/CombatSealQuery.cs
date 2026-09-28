@@ -22,12 +22,7 @@ public static class CombatSealQuery
     public static bool IsSealed(
         CorruptionBand band,
         RouteCardKind route) =>
-        band switch
-        {
-            CorruptionBand.Holy => route == RouteCardKind.Corrupt,
-            CorruptionBand.Corrupt => route == RouteCardKind.Holy,
-            _ => false,
-        };
+        SealRules.IsSealed(band, route);
 
     public static IReadOnlyList<CardModel> GetSealedDeckCards(Player player)
     {
