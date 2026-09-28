@@ -6,6 +6,10 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-02AC：理外锻成九附魔选择（READY）
+
+CARD-N-150～299理外锻成/SYS-ENC-001→DS27-02AC→两阶段选择返回守卫、原九项合法候选和数值、临时附魔/永久隔离→DS27-CARD-EFFECT/META/TEXT/COMPAT/GATES。前置`60b3be08`；不改变附魔规则或随机选择概率，不部署。
+
 ## DS27-02AB：多重再现额外回合时序（IMPLEMENTED，游戏内待验）
 
 CARD-H-950～999多重再现→DS27-02AB→纯额外回合查询、拥有者回合开始到期、未到期广播保护、个人回合号与失效守卫→DS27-CARD-EFFECT/COMPAT/GATES。前置`242902d3`；不改Single堆叠/数值/关键词，不部署。
