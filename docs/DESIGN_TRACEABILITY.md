@@ -6,6 +6,10 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-02Y：战术分析仪候选合法性（READY）
+
+`CARD-H-800～899`战术分析仪、`SYS-ENC-001`、光之翼例外→DS27-02Y→升级且可稳定附魔的候选/返回重验/抽牌不丢失→DS27-CARD-EFFECT/TEXT/COMPAT/GATES。前置`024a9767`，无设计漂移；对齐原版普通附魔规则，不允许借修复覆盖已有附魔、不把临时效果写入DeckVersion，未部署。
+
 ## DS27-06D：亡灵集会选项回归（IMPLEMENTED，游戏内待验）
 
 `EVENT-NEW-003`完整正文及Q9当前生命/具体整数澄清→DS27-06D→已有真实事件测试扩充全文、选择数量/等待、门槛、RNG和结果页断言→DS27-EVENT/COMPAT/GATES。前置`a28fb31b`，无设计漂移，不增补玩法、未部署。
