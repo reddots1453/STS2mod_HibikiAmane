@@ -166,7 +166,7 @@ public sealed class MultipleReproduction : MSHolyCard
         MultipleReproductionPower? power = await PowerCmd.Apply<MultipleReproductionPower>(
             context, Owner.Creature, 1, Owner.Creature, this);
         if (power != null)
-            power.DelayOneTurn = !await OverdraftCmd.Offer(context, this, 1);
+            power.Schedule(!await OverdraftCmd.Offer(context, this, 1));
     }
     protected override void OnUpgrade() { }
 }

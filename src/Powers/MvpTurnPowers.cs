@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.Powers;
+using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Saves.Runs;
 using STS2RitsuLib.Combat.Ui.ExtraCornerAmountLabels;
@@ -36,6 +37,20 @@ public sealed class MultipleReproductionPower :
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
 
+    // -1 is the legacy state: advance at the next owner turn-start callback.
+    [SavedProperty]
+    public int DelayAppliedOnTurn { get; set; } = -1;
+
+    private bool IsActive => IsMutable && Amount > 0 && Owner.IsAlive
+        && Owner.CombatState != null && Owner.Powers.Contains(this);
+
+    public void Schedule(bool delayOneTurn)
+    {
+        if (!IsActive) return;
+        DelayAppliedOnTurn = Owner.Player!.PlayerCombatState!.TurnNumber;
+        DelayOneTurn = delayOneTurn;
+    }
+
     public override LocString Title => new(
         "powers",
         $"{Id.Entry}.{(DelayOneTurn ? "nextTurnTitle" : "thisTurnTitle")}");
@@ -57,21 +72,27 @@ public sealed class MultipleReproductionPower :
                 DelayOneTurn ? "下" : "本"),
         ];
 
-    public override bool ShouldTakeExtraTurn(Player player)
+    public override Task AfterPlayerTurnStart(PlayerChoiceContext context, Player player)
     {
-        if (player.Creature != Owner)
-            return false;
-        if (DelayOneTurn)
+        if (IsActive && player.Creature == Owner && DelayOneTurn
+            && player.PlayerCombatState!.TurnNumber > DelayAppliedOnTurn)
         {
+            // An autoplay earlier in this SAME turn-start must still wait for
+            // the next personal turn. Extra turns count as personal turns too.
             DelayOneTurn = false;
-            return false;
         }
-        return true;
+        return Task.CompletedTask;
     }
+
+    // Native Hook.ShouldTakeExtraTurn short-circuits: it is a query, not a clock.
+    public override bool ShouldTakeExtraTurn(Player player) =>
+        IsActive && player.Creature == Owner && !DelayOneTurn;
 
     public override Task AfterTakingExtraTurn(Player player)
     {
-        if (player.Creature == Owner)
+        // The engine broadcasts this even when ANOTHER source grants the turn.
+        // Pending next-turn grants must survive that broadcast.
+        if (IsActive && player.Creature == Owner && !DelayOneTurn)
             return PowerCmd.Remove(this);
         return Task.CompletedTask;
     }

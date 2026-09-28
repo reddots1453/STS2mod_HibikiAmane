@@ -6,9 +6,11 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-02AB：多重再现额外回合时序（READY）
+## DS27-02AB：多重再现额外回合时序（IMPLEMENTED，游戏内待验）
 
 CARD-H-950～999多重再现→DS27-02AB→纯额外回合查询、拥有者回合开始到期、未到期广播保护、个人回合号与失效守卫→DS27-CARD-EFFECT/COMPAT/GATES。前置`242902d3`；不改Single堆叠/数值/关键词，不部署。
+
+同步`680a9d32`；`ms_test_cards confirm MultipleReproduction`基础/升级契约已编译未运行，覆盖原生Ambergris共存、反复查询、同轮/其他玩家/失效回调及图标切换。491静态、13747/33、双构建四门和视觉门通过；统一11/12、既有GagCurse费用仍失败，源码无漂移。详见`DESIGN_SYNC_20260927_BATCH58.md`，自然回合与存读档仍待验。
 
 ## DS27-07C：竖向侧栏结构门（IMPLEMENTED，离线已执行；游戏视觉待验）
 
