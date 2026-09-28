@@ -6,17 +6,35 @@ namespace HumilityCallExtraction;
 /// <summary>Recognized non-damage operations. Names alone are not a blanket helper exemption.</summary>
 internal static class RemovedCalls
 {
+    // Effect boundaries are APIs, not card identities. Do not inline a deleted
+    // power/selection/transformation and accidentally resurrect its inner effects.
+    internal static bool Boundary(InvocationExpressionSyntax call)
+    {
+        if (call.Expression is not MemberAccessExpressionSyntax member) return false;
+        string receiver = member.Expression.ToString();
+        string name = member.Name.Identifier.Text;
+        if (receiver is "CardCmd" or "CardPileCmd" or "CardSelectCmd" or "PowerCmd" or "PlayerCmd" or "OrbCmd"
+            or "CombatEnchantmentCmd" or "GeneratedCardCostCmd" or "CondemnationCmd" or "TransformationCmd") return true;
+        return (receiver, name) is ("ControlCmd", "Escape") or ("IntentMoveFactory", "Stun")
+            or ("Temptation", "Modify") or ("Data.Desire", "Modify") or ("TemperancePileCmd", "Play")
+            or ("Hook", "AfterPreventingDraw") or ("Array", "Empty")
+            || name == "GetPile" && receiver.StartsWith("PileType.", StringComparison.Ordinal);
+    }
+
     internal static bool Statement(InvocationExpressionSyntax call, MethodDeclarationSyntax method)
     {
-        if (Visual(call, method)) return true;
+        if (Boundary(call) || Visual(call, method)) return true;
         if (call.Expression is not MemberAccessExpressionSyntax member) return false;
         string name = member.Name.Identifier.Text;
         string receiver = member.Expression.ToString();
         if (receiver is "PotionCmd" or "Log") return true;
         if (member.Expression is MemberAccessExpressionSyntax cost && cost.Name.Identifier.Text == "EnergyCost"
-            && name is "SetThisCombat" or "AddThisCombat" or "SetThisTurn" or "AddThisTurn") return true;
+            && name is "SetThisCombat" or "AddThisCombat" or "SetThisTurn" or "AddThisTurn" or "SetThisTurnOrUntilPlayed") return true;
         string? type = LocalType(member.Expression, method);
-        if (type == "CardModel" && name is "SetToFreeThisTurn" or "SetToFreeThisCombat" or "AddKeyword" or "RemoveKeyword") return true;
+        if (type == "CardModel" && name is "SetToFreeThisTurn" or "SetToFreeThisCombat" or "AddKeyword" or "RemoveKeyword" or "FinalizeUpgradeInternal") return true;
+        if (type == "CardPile" && name == "MoveToTopInternal") return true;
+        if (type?.EndsWith("Power", StringComparison.Ordinal) == true && name is "Schedule" or "SetDamage" or "SetSelectedCard" or "Trigger") return true;
+        if (receiver.EndsWith(".PendingPostCombatCards", StringComparison.Ordinal) && name == "Add") return true;
         if (type != null && (type.StartsWith("List<", StringComparison.Ordinal) || type.StartsWith("HashSet<", StringComparison.Ordinal))
             && name is "Add" or "Remove" or "RemoveAt" or "Clear" or "AddRange") return true;
         return false;
@@ -54,17 +72,40 @@ internal static class RemovedCalls
         return false;
     }
 
-    private static string? LocalType(ExpressionSyntax expression, MethodDeclarationSyntax method)
+    internal static string? LocalType(ExpressionSyntax expression, MethodDeclarationSyntax method)
     {
+        expression = Unwrap(expression);
+        if (expression is InvocationExpressionSyntax invocation && invocation.Expression is MemberAccessExpressionSyntax member)
+        {
+            if (member.Expression.ToString() == "PowerCmd" && member.Name is GenericNameSyntax { Identifier.Text: "Apply" } generic)
+                return generic.TypeArgumentList.Arguments.Single().ToString();
+            if (member.Name.Identifier.Text == "FirstOrDefault")
+            {
+                var selection = Unwrap(member.Expression);
+                if (selection is InvocationExpressionSyntax select && select.Expression is MemberAccessExpressionSyntax access
+                    && access.Expression.ToString() == "CardSelectCmd") return "CardModel";
+            }
+            if (member.Name.Identifier.Text == "GetPile" && member.Expression.ToString().StartsWith("PileType.", StringComparison.Ordinal)) return "CardPile";
+        }
         if (expression is not IdentifierNameSyntax local) return null;
         string name = local.Identifier.Text;
         var declarations = method.DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text == name).ToArray();
         if (declarations.Length == 1 && declarations[0].Parent is VariableDeclarationSyntax declaration)
         {
-            if (declaration.Type.ToString() != "var") return declaration.Type.ToString();
+            if (declaration.Type.ToString() != "var") return declaration.Type.ToString().TrimEnd('?');
             if (declarations[0].Initializer?.Value is ObjectCreationExpressionSyntax created) return created.Type.ToString();
+            // Only infer direct API return types; do not chase arbitrary alias cycles.
+            if (declarations[0].Initializer?.Value is { } value && Unwrap(value) is not IdentifierNameSyntax)
+                return LocalType(value, method);
         }
         var loops = method.DescendantNodes().OfType<ForEachStatementSyntax>().Where(f => f.Identifier.Text == name).ToArray();
-        return loops.Length == 1 ? loops[0].Type.ToString() : null;
+        return loops.Length == 1 ? loops[0].Type.ToString().TrimEnd('?') : null;
     }
+
+    private static ExpressionSyntax Unwrap(ExpressionSyntax expression) => expression switch
+    {
+        ParenthesizedExpressionSyntax p => Unwrap(p.Expression),
+        AwaitExpressionSyntax a => Unwrap(a.Expression),
+        _ => expression,
+    };
 }

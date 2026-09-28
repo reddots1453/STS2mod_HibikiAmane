@@ -9,6 +9,7 @@ internal sealed class HelperExpansion : CSharpSyntaxRewriter
 {
     private readonly IReadOnlyList<MethodDeclarationSyntax> _methods;
     private readonly string _owner;
+    private readonly MethodDeclarationSyntax _method;
     private readonly HashSet<string> _active;
     private readonly Counter _counter;
     private sealed class Counter { internal int Value; }
@@ -17,9 +18,9 @@ internal sealed class HelperExpansion : CSharpSyntaxRewriter
         .SelectMany(source => CSharpSyntaxTree.ParseText(source).GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>()).ToArray();
 
     internal HelperExpansion(IReadOnlyList<MethodDeclarationSyntax> methods, MethodDeclarationSyntax owner)
-        : this(methods, ClassName(owner), [], new Counter()) { }
-    private HelperExpansion(IReadOnlyList<MethodDeclarationSyntax> methods, string owner, HashSet<string> active, Counter counter)
-        => (_methods, _owner, _active, _counter) = (methods, owner, active, counter);
+        : this(methods, owner, [], new Counter()) { }
+    private HelperExpansion(IReadOnlyList<MethodDeclarationSyntax> methods, MethodDeclarationSyntax owner, HashSet<string> active, Counter counter)
+        => (_methods, _owner, _method, _active, _counter) = (methods, ClassName(owner), owner, active, counter);
 
     private static string ClassName(MethodDeclarationSyntax method)
     {
@@ -39,6 +40,24 @@ internal sealed class HelperExpansion : CSharpSyntaxRewriter
     {
         if (expression is AwaitExpressionSyntax awaiting) expression = awaiting.Expression;
         if (expression is not InvocationExpressionSyntax call) return null;
+        if (RemovedCalls.Boundary(call)) return null;
+        if (call.Expression is MemberAccessExpressionSyntax instanceMember
+            && RemovedCalls.LocalType(instanceMember.Expression, _method) is { } localType
+            && _owner.EndsWith("." + localType, StringComparison.Ordinal))
+        {
+            var localMethods = _methods.Where(m => ClassName(m) == _owner
+                && m.Identifier.Text == instanceMember.Name.Identifier.Text && ArgumentsFit(m, call)).ToArray();
+            // A helper that only mutates another card's fields/vars is an effect to
+            // delete, not an attack using the current card as the wrong receiver.
+            if (localMethods.Length == 1 && localMethods[0].Body is { } mutation
+                && !mutation.DescendantNodes().Any(n => n is InvocationExpressionSyntax or ObjectCreationExpressionSyntax
+                    or ImplicitObjectCreationExpressionSyntax or AwaitExpressionSyntax))
+                return SyntaxFactory.Block();
+        }
+        // Returned selection of a helper's collection does not change its effects.
+        if (call.Expression is MemberAccessExpressionSyntax { Name.Identifier.Text: "FirstOrDefault" } selected
+            && call.ArgumentList.Arguments.Count == 0 && selected.Expression is ParenthesizedExpressionSyntax { Expression: AwaitExpressionSyntax collection })
+            return Expand(collection.Expression);
         string name, receiver;
         bool instance;
         switch (call.Expression)
@@ -55,9 +74,11 @@ internal sealed class HelperExpansion : CSharpSyntaxRewriter
             (ClassName(m) == receiver || !instance && ClassName(m).EndsWith("." + receiver, StringComparison.Ordinal)) &&
             (instance || m.Modifiers.Any(SyntaxKind.StaticKeyword))).ToArray();
         if (matches.Length == 0) return null;
+        if (matches.Length > 1)
+            matches = matches.Where(m => ArgumentsFit(m, call)).ToArray();
         if (matches.Length != 1) throw new NotSupportedException("Ambiguous helper overload: " + receiver + "." + name);
         var helper = matches[0];
-        string identity = ClassName(helper) + "." + name;
+        string identity = ClassName(helper) + "." + name + helper.ParameterList;
         if (_active.Count >= 16 || !_active.Add(identity)) throw new NotSupportedException("Recursive helper extraction: " + identity);
         try
         {
@@ -70,9 +91,33 @@ internal sealed class HelperExpansion : CSharpSyntaxRewriter
                 ? SyntaxFactory.Block(SyntaxFactory.ExpressionStatement(helper.ExpressionBody.Expression))
                 : throw new NotSupportedException("Helper has no source body: " + identity));
             body = (BlockSyntax)new Substitute(values).Visit(body)!;
-            return (BlockSyntax)new HelperExpansion(_methods, ClassName(helper), _active, _counter).Visit(body)!;
+            return (BlockSyntax)new HelperExpansion(_methods, helper, _active, _counter).Visit(body)!;
         }
         finally { _active.Remove(identity); }
+    }
+
+    private bool ArgumentsFit(MethodDeclarationSyntax method, InvocationExpressionSyntax call)
+    {
+        Dictionary<string, ExpressionSyntax> args;
+        try { args = Bind(method, call); }
+        catch (NotSupportedException) { return false; }
+        foreach (var parameter in method.ParameterList.Parameters)
+        {
+            ExpressionSyntax argument = args[parameter.Identifier.Text];
+            string expected = parameter.Type?.ToString().TrimEnd('?') ?? "";
+            string? actual = argument switch
+            {
+                MemberAccessExpressionSyntax member when member.Name.Identifier.Text == "IntValue" => "int",
+                MemberAccessExpressionSyntax member when member.Name.Identifier.Text == "Owner" => "Player",
+                MemberAccessExpressionSyntax member when member.Name.Identifier.Text == "CombatState" => "ICombatState",
+                _ => RemovedCalls.LocalType(argument, _method),
+            };
+            // Only use unambiguous game API types. Numeric literals can convert to
+            // several overloads, so they deliberately do not resolve ambiguity.
+            if (actual != null && expected != actual
+                && (actual is "Player" or "ICombatState" || expected is "Player" or "ICombatState")) return false;
+        }
+        return true;
     }
 
     private static Dictionary<string, ExpressionSyntax> Bind(MethodDeclarationSyntax method, InvocationExpressionSyntax call)

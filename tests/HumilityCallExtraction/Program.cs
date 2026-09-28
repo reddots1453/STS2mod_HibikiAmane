@@ -168,6 +168,71 @@ if (args.SequenceEqual(new[] { "--self-test" }))
     Check(otherStatements.Program?.Effects.Count == 1, "typed card cost and list maintenance are deleted as other effects");
     Check(Extract("Unknown generated = GetUnknown(); generated.Add(1);").Program == null,
         "unknown Add method is not assumed to be list maintenance");
+    var boundaries = Extract(attack + " await CondemnationCmd.Apply(context, play.Target, 2); "
+        + "await TransformationCmd.GainArmor(context, Owner.Creature, 2, this); GeneratedCardCostCmd.SetFreeThisTurn(this); "
+        + "Data.Desire.Modify(Owner, 2); await TemperancePileCmd.Play(context, Owner, 1);");
+    Check(boundaries.Program?.Effects.Count == 1, "independent status, resource, armor and autoplay effects are deleted at command boundary");
+    Check(Extract("CardModel? selected = (await CardSelectCmd.FromHand(context, Owner)).FirstOrDefault(); "
+        + "selected.FinalizeUpgradeInternal();").Program?.Effects.Count == 0,
+        "nullable selected-card configuration is removed without executing selection");
+    Check(Extract("var power = await PowerCmd.Apply<ExamplePower>(context, Owner); power.Schedule(); "
+        + "(await PowerCmd.Apply<ExamplePower>(context, Owner)).SetDamage(5);").Program?.Effects.Count == 0,
+        "power-returned configuration is removed as part of the power effect");
+    const string boundarySource = """
+        namespace Fixture;
+        class Example { Task OnPlay(Context context, Play play) { return PowerCmd.Apply(context, play); } }
+        static class PowerCmd {
+          static Task Apply(Context context, Play play) {
+            return DamageCmd.Attack(99).FromCard(this, play).Targeting(play.Target).Execute(context);
+          }
+        }
+        """;
+    Check(CallExtractor.Extract(boundarySource).Single().Program?.Effects.Count == 0,
+        "deleted power internals are not inlined back into a card's retained damage");
+    const string overloadSource = """
+        namespace Fixture;
+        class Example { Task OnPlay(Context context, Play play) {
+          Effects.Run(base.Owner, DynamicVars.Hits.IntValue, base.CombatState, context, play);
+          return Task.CompletedTask;
+        } }
+        static class Effects {
+          static Task Run(Player owner, ICombatState state, Player creator, Context context, Play play) => Hidden();
+          static Task Run(Player owner, int count, ICombatState state, Context context, Play play) {
+            return DamageCmd.Attack(4).FromCard(this, play).WithHitCount(count).Targeting(play.Target).Execute(context);
+          }
+        }
+        """;
+    Check(CallExtractor.Extract(overloadSource).Single().Program?.Effects.Single().Repeats.Name == "Hits",
+        "API argument shapes disambiguate same-arity overloads without card identities");
+    const string returnedCollection = """
+        namespace Fixture;
+        class Example { Task OnPlay(Context context, Play play) => Effects.Generate(base.Owner, base.CombatState); }
+        static class Effects {
+          static async Task<CardModel> Generate(Player owner, ICombatState state) {
+            return (await Generate(owner, 1, state)).FirstOrDefault();
+          }
+          static Task<IEnumerable<CardModel>> Generate(Player owner, int count, ICombatState state) {
+            CardPileCmd.AddGeneratedCardsToCombat(cards, PileType.Hand, owner);
+            return Array.Empty<CardModel>();
+          }
+        }
+        """;
+    Check(CallExtractor.Extract(returnedCollection).Single().Program?.Effects.Count == 0,
+        "arity-resolved overload delegation and returned collection selection do not restore card generation");
+    const string mutationHelper = """
+        namespace Fixture;
+        class Example {
+          Task OnPlay(Context context, Play play) {
+            foreach (Example other in cards) other.Grow(2);
+            return Task.CompletedTask;
+          }
+          void Grow(decimal amount) { DynamicVars.Damage.BaseValue += amount; Growth += amount; }
+        }
+        """;
+    Check(CallExtractor.Extract(mutationHelper).Single().Program?.Effects.Count == 0,
+        "source-proven field-only helper on another card is deleted without impersonating its receiver");
+    Check(Extract("var power = GetUnknownPower(); power.Schedule();").Program == null,
+        "unknown receiver configuration remains unsupported");
     return 0;
 }
 if (args.Length == 2 && args[0] == "--verify-assembly")

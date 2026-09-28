@@ -100,6 +100,17 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
                 await ctx.Play(splitAttack, ctx.PrimaryEnemy);
                 Check(hpBefore - ctx.PrimaryEnemy.CurrentHp == amount,
                     "generated split builder retains calculated amount and executes once");
+
+                await ctx.Reset();
+                var generationAndBlock = await ctx.Add<CloakAndDagger>(PileType.Hand, upgraded);
+                HumilityExtractedCards.Apply(generationAndBlock);
+                amount = generationAndBlock.DynamicVars.Block.BaseValue * 2;
+                Check(Text(generationAndBlock) == $"获得{amount}点格挡。",
+                    "generated projection contains block only, not the removed token-generation description");
+                int blockBefore = ctx.Self.Block;
+                await ctx.Play(generationAndBlock);
+                Check(ctx.Self.Block - blockBefore == amount && PileType.Hand.GetPile(player).Cards.Count == 0,
+                    "source-overload extraction retains block without creating tokens");
             }
             await ctx.Reset();
             foreach (Type type in HumilityCardProfiles.SupportedTypes)
