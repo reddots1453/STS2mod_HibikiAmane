@@ -32,7 +32,8 @@ public sealed class ShatterPower : MaidenSuccubusPowerTemplate
         CardModel? cardSource,
         CardPlay? cardPlay)
     {
-        if (target != Owner || dealer is null || dealer.Side == Owner.Side)
+        if (target != Owner || dealer is null || dealer.Side == Owner.Side
+            || !props.IsPoweredAttack())
         {
             return 0;
         }

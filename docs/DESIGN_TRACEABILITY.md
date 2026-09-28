@@ -6,9 +6,9 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-02T：破碎与随机多目标攻击（READY）
+## DS27-02T：破碎与随机多目标攻击（IMPLEMENTED，游戏内待验）
 
-`CARD-N-150～299`破碎/两牌与堕落路线闪电踢击/渎神黄昏完整条目→DS27-02T→原生攻击类型过滤/敌我同规则/随机多目标真实命令断言/精确文本→DS27效果/文本/COMPAT/GATES。前置`eb51da19`，修正非攻击伤害错误加成和第一敌人测试假设，不改设计数值，未部署。
+`CARD-N-150～299`破碎/两牌与堕落路线闪电踢击/渎神黄昏完整条目→DS27-02T→ShatterPower原生攻击类型过滤/气旋升级显示/冲击正式语序/`DesignSyncShatterRandomContract`→DS27效果/文本/COMPAT/GATES。前置`eb51da19`，同步`09fa1739`；不改设计数值。`ms_test_cards confirm ds27-shatter-random`已编译未运行，指定目标牌每变体26、随机牌14最低效果断言。366静态、既有13540生产规则/33编码、Debug/Release与四门通过。旧视觉/全卡审计仍失败；自然战斗/多人/完整存档/截图待验，未部署，见`DESIGN_SYNC_20260927_BATCH44.md`。
 
 ## DS27-02S：加速运动拾取复制（IMPLEMENTED，游戏内待验）
 

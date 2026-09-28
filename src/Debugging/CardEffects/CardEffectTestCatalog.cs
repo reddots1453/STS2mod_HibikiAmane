@@ -69,11 +69,11 @@ internal static class CardEffectTestCatalog
         BorrowedForceStrikeProbe();
         HandDiscountProbe<BurningBracelet>(14, 20);
         CounterBarrierProbe();
-        DamageTargetPower<CycloneRupture>(5, 5, "ShatterPower", 1, 2);
+        CustomVariants<CycloneRupture>((ctx, card, upgraded) => DesignSyncShatterRandomContract.Targeted(ctx, card, upgraded), 26);
         Block<DoubleDefense>(8, 12);
         DreamMistProbe();
         DreamPigmentProbe();
-        DamageTargetPower<ExplosiveImpact>(6, 10, "ShatterPower", 2, 2);
+        CustomVariants<ExplosiveImpact>((ctx, card, upgraded) => DesignSyncShatterRandomContract.Random(ctx, card, upgraded), 14);
         FlameBloomProbe();
         FlameSwordProbe();
         CustomVariants<FlashStab>(DesignSyncChainCopyContract.Flash, 17);
@@ -119,7 +119,7 @@ internal static class CardEffectTestCatalog
         BlackVortexProbe();
         DesireAndSelfPowers<BlasphemousDesire>(5, 7,
             ("StrengthPower", -3, -3), ("RestoreStrengthAtTurnEndPower", 3, 3));
-        Damage<BlasphemousTwilight>(25, 36);
+        CustomVariants<BlasphemousTwilight>((ctx, card, upgraded) => DesignSyncShatterRandomContract.Random(ctx, card, upgraded), 14);
         BurningBladeRitualProbe();
         BurningDesireProbe();
         ChainDestructionProbe();
@@ -148,7 +148,7 @@ internal static class CardEffectTestCatalog
         InsatiableGreedProbe();
         LastStandProbe();
         LegendaryMinerProbe();
-        DamageTargetPower<LightningKick>(10, 12, "ShatterPower", 4, 5);
+        CustomVariants<LightningKick>((ctx, card, upgraded) => DesignSyncShatterRandomContract.Targeted(ctx, card, upgraded), 26);
         LordOfBlazeProbe();
         LoversDaggerProbe();
         LureDeepProbe();
