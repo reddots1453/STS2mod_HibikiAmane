@@ -8,6 +8,10 @@
 
 > 当前汇总：[2026-09-28全范围状态核对](DESIGN_SYNC_20260927_CURRENT_STATUS.md)。旧批次段落是带日期的历史证据；不得用历史未实现项覆盖后续交付，也不得把局部IMPLEMENTED提升为全范围VERIFIED。
 
+## DS27-02AQ：两处遗留数值（READY）
+
+CARD-C更换胖次/欲望鞭挞正式条目→Threshold 5/4、Damage 5/5及原Probe预期→DS27-CARD-META/EFFECT。前置`554718f9`，不新增或修改意图机制；仅本次变量与边界测试，不部署。
+
 ## DS27-02AP：万念俱灰双X同步（IMPLEMENTED，游戏内待验）
 
 CARD-C欲望输出万念俱灰→支付台账Value/预览/战斗外公式→DS27-CARD-TEXT/EFFECT。前置`7ddbe565`；修复当前设计X/Y轴与重放丢失倍率，真实支付测试取代人工AfterSpent。按用户新指示收敛至本轮变动范围的定向验证，不重审无变化内容、不部署；Q17继续保留。
