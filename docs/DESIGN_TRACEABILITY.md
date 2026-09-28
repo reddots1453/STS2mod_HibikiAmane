@@ -8,6 +8,10 @@
 
 > 当前汇总：[2026-09-28全范围状态核对](DESIGN_SYNC_20260927_CURRENT_STATUS.md)。旧批次段落是带日期的历史证据；不得用历史未实现项覆盖后续交付，也不得把局部IMPLEMENTED提升为全范围VERIFIED。
 
+## DS27-02AE：八牌全文与计算后缀（READY）
+
+CARD-N-150～299/CARD-H-200～299、500～599、930～999八牌→DS27-02AE→独立基础/升级完整原文与Run/Hand显示、条件换行、复制复原描述→DS27-CARD-TEXT/EFFECT/GATES。前置`fe89d863`；补文本覆盖不代替原行为回归，Q13保持OPEN，不部署。
+
 ## DS27-02AD：有符号状态层数（IMPLEMENTED，游戏内待验）
 
 正式负力量备注及CARD-N/H/C按正负状态层数公式→DS27-02AD→PowerLayerQuery按TypeForCurrentAmount和可见性选取后累加绝对值→DS27-CARD-EFFECT/TEXT/COMPAT/GATES。前置`2fcf8357`；不修改原版正负分类或卡牌基值，纯聚合离线执行与实际Power/命令测试分开报告，未部署。
