@@ -1583,16 +1583,18 @@ internal static class CardEffectTestCatalog
         }, 7);
 
     private static void DesireWhipProbe() =>
-        CustomVariants<DesireWhip>(async (ctx, card, _) =>
+        CustomVariants<DesireWhip>(async (ctx, card, upgraded) =>
         {
+            ctx.AssertEqual("whip base and upgrade damage", 5m, card.DynamicVars.Damage.BaseValue);
+            ctx.AssertEqual("whip energy cost", upgraded ? 0 : 1, card.EnergyCost.GetWithModifiers(CostModifiers.All));
             IntentMoveFactory.SetTransient(ctx.PrimaryEnemy.Monster!,
                 IntentMoveFactory.CreateControl(ctx.PrimaryEnemy.Monster!,
                     new ControlIntentSpec(4, ControlType.Attack, 3)));
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(card, ctx.PrimaryEnemy);
-            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, 7);
+            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, 5);
             ctx.AssertTrue("control-intent target stunned", ctx.PrimaryEnemy.IsStunned);
-        }, 2);
+        }, 4);
 
     private static void BlizzardProbe() =>
         CustomVariants<Blizzard>(async (ctx, card, upgraded) =>
@@ -2351,7 +2353,8 @@ internal static class CardEffectTestCatalog
         CustomVariants<ChangePanties>(async (ctx, card, upgraded) =>
         {
             await CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);
-            int threshold = upgraded ? 5 : 6;
+            int threshold = upgraded ? 4 : 5;
+            ctx.AssertEqual("threshold matches current design", threshold, card.DynamicVars["Threshold"].IntValue);
             await MaidenSuccubus.Data.Desire.Set(ctx.Player, threshold - 1);
             ctx.AssertTrue("blocked below threshold",
                 !MegaCrit.Sts2.Core.Hooks.Hook.ShouldPlay(ctx.Combat, card, out AbstractModel? _,
@@ -2360,11 +2363,16 @@ internal static class CardEffectTestCatalog
             ctx.AssertTrue("playable at threshold",
                 MegaCrit.Sts2.Core.Hooks.Hook.ShouldPlay(ctx.Combat, card, out AbstractModel? _,
                     AutoPlayType.Default));
+            await MaidenSuccubus.Data.Desire.Set(ctx.Player, threshold + 1);
+            ctx.AssertTrue("playable above threshold",
+                MegaCrit.Sts2.Core.Hooks.Hook.ShouldPlay(ctx.Combat, card, out AbstractModel? _,
+                    AutoPlayType.Default));
+            await MaidenSuccubus.Data.Desire.Set(ctx.Player, threshold);
             ctx.AssertEqual("card type", CardType.Power, card.Type);
             await ctx.Play(card);
             ctx.AssertPower("slippery", ctx.Self, "SlipperyPower", 2);
             ctx.AssertPower("vulnerable", ctx.Self, "VulnerablePower", 2);
-        }, 5);
+        }, 7);
 
     private static void CoronationProbe() =>
         CustomVariants<Coronation>(async (ctx, card, upgraded) =>

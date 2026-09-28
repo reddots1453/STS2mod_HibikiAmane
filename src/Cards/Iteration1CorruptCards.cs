@@ -430,7 +430,7 @@ public sealed class DesireWhip : MSCorruptCard
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [PortableKeyword.Value, CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(7, ValueProp.Move)];
+        [new DamageVar(5, ValueProp.Move)];
 
     public DesireWhip()
         : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) =>

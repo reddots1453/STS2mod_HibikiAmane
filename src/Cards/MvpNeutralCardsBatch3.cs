@@ -139,7 +139,7 @@ public sealed class ChangePanties : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new PowerVar<SlipperyPower>(2), new PowerVar<VulnerablePower>(2),
-            new DynamicVar("Threshold", 6)];
+            new DynamicVar("Threshold", 5)];
     public ChangePanties() : base(2, CardType.Power, CardRarity.Uncommon, TargetType.Self) { }
     public override bool ShouldPlay(CardModel card, AutoPlayType autoPlayType) =>
         card != this
