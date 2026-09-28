@@ -6,6 +6,10 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-02U：升级标量文本绑定检查（READY）
+
+全注册`CARD-*`升级数值显示→DS27-02U→只读源码/继承/本地化依赖审计与反例测试→DS27-CARD-TEXT/GATES。前置`a3f9c8ce`；避免局部修复后同类硬编码再现。仅验证可识别标量绑定，不能认定全部文本/机制正确，未知单列，不部署。
+
 ## DS27-02T：破碎与随机多目标攻击（IMPLEMENTED，游戏内待验）
 
 `CARD-N-150～299`破碎/两牌与堕落路线闪电踢击/渎神黄昏完整条目→DS27-02T→ShatterPower原生攻击类型过滤/气旋升级显示/冲击正式语序/`DesignSyncShatterRandomContract`→DS27效果/文本/COMPAT/GATES。前置`eb51da19`，同步`09fa1739`；不改设计数值。`ms_test_cards confirm ds27-shatter-random`已编译未运行，指定目标牌每变体26、随机牌14最低效果断言。366静态、既有13540生产规则/33编码、Debug/Release与四门通过。旧视觉/全卡审计仍失败；自然战斗/多人/完整存档/截图待验，未部署，见`DESIGN_SYNC_20260927_BATCH44.md`。
