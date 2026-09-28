@@ -52,7 +52,7 @@ class RetentionStarterContract(unittest.TestCase):
         choices = read("src/Characters/Starts/MaidenSuccubusStartProfiles.cs")
         self.assertIn("[typeof(TwinSoulChalice), typeof(HeroOrb)]", choices)
         contract = json.loads(read("docs/content_contract_20260824.json"))
-        self.assertEqual(len(contract["relics"]), 32)
+        self.assertEqual(len(contract["relics"]), 33)  # Includes the approved TonysCharm addition.
         self.assertIn("BalancedLens", contract["relics"])  # Legacy identity is not silently repurposed.
 
     def test_selection_is_player_lobby_data_not_process_global(self):

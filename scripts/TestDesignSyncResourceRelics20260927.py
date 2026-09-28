@@ -1,4 +1,4 @@
-"""Stage descriptions and real draw/cost/prevention test wiring; X/Y remains Q17."""
+"""Stage descriptions and real draw/cost/prevention wiring; Q17 uses native X payment."""
 import json
 import re
 import unittest
@@ -39,12 +39,14 @@ class ResourceRelicContracts(unittest.TestCase):
         self.assertNotIn("HashSet<CardModel>", code)
         self.assertNotIn("SetThisTurnOrUntilPlayed", code)
 
-    def test_fixed_cost_duration_and_unresolved_x_not_guessed(self):
+    def test_fixed_cost_duration_preserves_confirmed_native_x_payment(self):
         code = read("src/Commands/GeneratedCardCostCmd.cs").split("public static void SetFreeUntilPlayed", 1)[1].split("public static void SetFreeThisTurn", 1)[0]
         for text in ("EnergyCost.SetUntilPlayed(0)", "SetStarCostUntilPlayed(0)", "SecondaryResourceCost.Free",
-                     "SecondaryResourceCostDuration.UntilPlayed", "!card.EnergyCost.CostsX", "!card.HasStarCostX", "!costs.Get(resourceId).CostsX", "await Q17"):
+                     "SecondaryResourceCostDuration.UntilPlayed", "!card.EnergyCost.CostsX", "!card.HasStarCostX", "!costs.Get(resourceId).CostsX"):
             self.assertIn(text, code)
         self.assertNotIn("SecondaryResourceCostDuration.ThisTurn", code)
+        self.assertNotIn("await Q17", code)
+        self.assertIn("X费以及对应X型副资源费用不因免费变为0，仍按原版X费逻辑支付和取值。", read("DesignDoc.md"))
 
     def test_chastity_counts_and_own_live_turn(self):
         code = relic("Chastity")

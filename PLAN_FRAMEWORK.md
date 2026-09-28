@@ -20,9 +20,11 @@
 
 ---
 
-### DS27-07S：已确认规则的旧验收断言同步（READY）
+### DS27-07S：已确认规则的旧验收断言同步（IMPLEMENTED，选定离线验证通过）
 
 前置`2f1cf086`，DesignDoc无漂移。当前合并验证发现5个过期静态断言：四处遗物数仍32，但`63b15207`已按RELIC-CHAR-007新增TonysCharm为33；一处还要求已答复Q17待确认注释。同步为正式33遗物和原版X免费规则，保留严格数量/具体注册/支付及持续期检查，不修改生产规则，不扩展验证框架。复跑选定静态、生产规则、编码、Release与精确内容登记；不运行游戏、不部署。
+
+计划`9e853f66`后同步四处严格遗物数33与Q17正式X规则，不修改生产实现。统一入口选定design_static/production_rules/save_codec/release_build/content五组全部通过（624静态，Release零警告零错误，精确33遗物登记）；报告`obj/design-sync-validation/20260928T184858Z-2a994de0c19e/report.json`，运行中源码无漂移，测试HEAD为计划提交加本组测试修改。报告明确passed_selected、游戏not_run，后续文档记录不冒称测试时指纹；未部署。
 
 ### DS27-05AT：谦逊既有回归接入正式程序（IMPLEMENTED，游戏内待验）
 

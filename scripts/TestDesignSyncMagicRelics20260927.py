@@ -31,7 +31,7 @@ class MagicRelicContracts(unittest.TestCase):
         for name in ("PrayerEarrings", "BarrierGenerator"):
             self.assertEqual(contract["relics"].count(name), 1)
             self.assertIn(f"[RegisterRelic(typeof(MSRelicPool))]\npublic sealed class {name}", source)
-        self.assertEqual(len(contract["relics"]), 32)
+        self.assertEqual(len(contract["relics"]), 33)  # Includes the approved TonysCharm addition.
         self.assertIn("RelicRarity.Common", source)
         self.assertIn("RelicRarity.Rare", source)
         self.assertIn("HoverTipFactory.FromPower<MagicAmplificationPower>()", source)
