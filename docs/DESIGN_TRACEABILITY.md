@@ -6,6 +6,10 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-02AA：先古书库完整回归（READY）
+
+先古卡“娅露丝的书库”→DS27-02AA→InsatiableGreed/YarusLibraryPower→三牌堆实际选项、随机十张身份/顺序/上限、抽牌禁止及状态生命周期→DS27-CARD-EFFECT/META/COMPAT/GATES。前置`aa69ce99`，不变更随机流或规则，保留旧序列化ID；补选择返回守卫和独立期望的真实命令测试。未部署。
+
 ## DS27-02Z：圣言生成变化链（IMPLEMENTED，游戏内待验）
 
 `SYS-SCR-001/CARD-H-700～799`四牌→DS27-02Z→三选一/目标身份/变化结果/升级/永久隔离/魔力解放→DS27-CARD-EFFECT/TEXT/COMPAT/GATES。前置`62c15347`，无漂移，未部署。魂之净化独立Q19 OPEN：每次立即先消耗再抽，还是每次先抽、整组重放后消耗一次；已询问，未改实现。
