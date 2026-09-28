@@ -19,6 +19,10 @@ internal static class RemovedCalls
             or ("Temptation", "Modify") or ("Data.Desire", "Modify") or ("TemperancePileCmd", "Play")
             or ("Hook", "AfterPreventingDraw") or ("Array", "Empty")
             or ("HumilityExtractedCards", "Apply")
+            or ("DoomPower", "DoomKill")
+            or ("CombatManager.Instance.History", "CardDrawn")
+            or ("Hook", "AfterCardDrawn") or ("IntentMoveFactory", "TryForceErotic")
+            or ("Desire", "Modify")
             || name == "GetPile" && receiver.StartsWith("PileType.", StringComparison.Ordinal);
     }
 
@@ -35,6 +39,8 @@ internal static class RemovedCalls
         string? type = LocalType(member.Expression, method);
         if (type == "CardModel" && name is "SetToFreeThisTurn" or "SetToFreeThisCombat" or "AddKeyword" or "RemoveKeyword" or "FinalizeUpgradeInternal") return true;
         if (type == "CardPile" && name == "MoveToTopInternal") return true;
+        if (type == "CombatRoom" && name == "AddExtraReward") return true;
+        if (type == "EnchantmentChoiceCard" && name == "Configure") return true;
         if (type?.EndsWith("Power", StringComparison.Ordinal) == true && name is "Schedule" or "SetDamage" or "SetSelectedCard" or "Trigger") return true;
         if (receiver.EndsWith(".PendingPostCombatCards", StringComparison.Ordinal) && name == "Add") return true;
         if (type != null && (type.StartsWith("List<", StringComparison.Ordinal) || type.StartsWith("HashSet<", StringComparison.Ordinal))
@@ -104,8 +110,12 @@ internal static class RemovedCalls
             if (declarations[0].Initializer?.Value is { } value && Unwrap(value) is not IdentifierNameSyntax)
                 return LocalType(value, method);
         }
-        var loops = method.DescendantNodes().OfType<ForEachStatementSyntax>().Where(f => f.Identifier.Text == name).ToArray();
-        return loops.Length == 1 ? loops[0].Type.ToString().TrimEnd('?') : null;
+        var loops = method.DescendantNodes().OfType<ForEachStatementSyntax>().Where(f => f.Identifier.Text == name)
+            .Select(f => f.Type.ToString().TrimEnd('?')).Distinct().ToArray();
+        if (loops.Length == 1) return loops[0];
+        var patterns = method.DescendantNodes().OfType<DeclarationPatternSyntax>()
+            .Where(p => p.Designation.ToString() == name).Select(p => p.Type.ToString()).Distinct().ToArray();
+        return patterns.Length == 1 ? patterns[0] : null;
     }
 
     private static ExpressionSyntax Unwrap(ExpressionSyntax expression) => expression switch

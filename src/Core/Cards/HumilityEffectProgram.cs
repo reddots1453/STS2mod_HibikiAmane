@@ -7,7 +7,7 @@ namespace MaidenSuccubus.Core.Cards;
 // Card adapters construct this program instead of executing the original OnPlay.
 internal enum HumilityEffectKind { Damage, Block }
 internal enum HumilityAttackSource { Card, Osty }
-internal enum HumilityTarget { Selected, Self, AllEnemies, RandomEnemy, AllAllies, CurrentCardTarget }
+internal enum HumilityTarget { Selected, Self, AllEnemies, RandomEnemy, AllAllies, CurrentCardTarget, LowestHpEnemy, AllPlayers }
 internal enum HumilityValueKind { Constant, Named, EnergyX, StarX, SecondaryX, Add, Multiply, Min, Max }
 
 /// <summary>X values come from CardPlay's resource ledger, NOT the remaining balance or amount spent.</summary>

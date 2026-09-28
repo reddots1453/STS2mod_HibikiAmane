@@ -11,6 +11,8 @@
   "MAIDEN_HUMILITY_REWRITE.target_AllEnemies": "对所有敌人",
   "MAIDEN_HUMILITY_REWRITE.target_RandomEnemy": "对随机敌人",
   "MAIDEN_HUMILITY_REWRITE.target_AllAllies": "所有友方",
+  "MAIDEN_HUMILITY_REWRITE.target_AllPlayers": "所有玩家",
+  "MAIDEN_HUMILITY_REWRITE.target_LowestHpEnemy": "对生命最低的敌人",
   "MAIDEN_SUCCUBUS_CARD_DARK_ORIGIN.title": "黑暗之源",
   "MAIDEN_SUCCUBUS_CARD_DARK_ORIGIN.description": "造成{Damage:diff()}点伤害。\n[gold]魔力解放[/gold]：{IsCorrupt:造成{Damage:diff()}点伤害|获得{Block:diff()}点[gold]格挡[/gold]}。\n{IsCorrupt:[purple]堕落值[/purple]≤-3|[purple]堕落值[/purple]＞-3}：[gold]变奏[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_LIBRARY_PILE_CHOICE.title": "选择牌堆",

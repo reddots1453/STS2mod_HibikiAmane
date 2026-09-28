@@ -25,8 +25,8 @@ internal sealed class HumilityNativeEffects(PlayerChoiceContext context, CardPla
         foreach (HumilityEffect effect in program.Effects)
         {
             bool valid = effect.Kind == HumilityEffectKind.Damage
-                ? effect.Target is HumilityTarget.Selected or HumilityTarget.Self or HumilityTarget.AllEnemies or HumilityTarget.RandomEnemy or HumilityTarget.CurrentCardTarget
-                : effect.Target is HumilityTarget.Selected or HumilityTarget.Self or HumilityTarget.AllAllies;
+                ? effect.Target is HumilityTarget.Selected or HumilityTarget.Self or HumilityTarget.AllEnemies or HumilityTarget.RandomEnemy or HumilityTarget.CurrentCardTarget or HumilityTarget.LowestHpEnemy
+                : effect.Target is HumilityTarget.Selected or HumilityTarget.Self or HumilityTarget.AllAllies or HumilityTarget.AllPlayers;
             if (!valid) throw new ArgumentException("This humility target/operation needs a native adapter.", nameof(program));
         }
     }
@@ -53,12 +53,28 @@ internal sealed class HumilityNativeEffects(PlayerChoiceContext context, CardPla
             (int)Data.Desire.Get(card.Owner));
     }
 
+    internal static Creature? LowestHpEnemy(CardModel card) => card.CombatState?.HittableEnemies
+        .OrderBy(enemy => enemy.CurrentHp).FirstOrDefault();
+
     internal static decimal ResolveValue(CardModel card, string name, Creature? target)
     {
         if (name == "$upgraded") return card.IsUpgraded ? 1 : 0;
         if (name == "$block") return card.Owner.Creature.Block;
         if (name == "$hp") return card.Owner.Creature.CurrentHp;
         if (name == "$enemies") return card.CombatState?.HittableEnemies.Count ?? 0;
+        if (name == "$spentSecondary") return DesireCombatSpending.Get(card.Owner);
+        if (name.StartsWith("$power:", StringComparison.Ordinal))
+        {
+            string powerType = name[7..];
+            return card.Owner.Creature.Powers.FirstOrDefault(power => power.GetType().Name == powerType
+                || power.GetType().FullName == powerType)?.Amount ?? 0;
+        }
+        if (name.StartsWith("$pile:", StringComparison.Ordinal)
+            && Enum.TryParse(name[6..], out PileType pile))
+        {
+            var cards = pile.GetPile(card.Owner).Cards;
+            return cards.Count - (pile == PileType.Hand && cards.Contains(card) ? 1 : 0);
+        }
         if (!card.DynamicVars.TryGetValue(name, out DynamicVar? value))
             throw new InvalidOperationException($"Missing humility value {card.Id}:{name}.");
         return value is CalculatedVar calculated ? calculated.Calculate(target) : value.BaseValue;
@@ -84,6 +100,11 @@ internal sealed class HumilityNativeEffects(PlayerChoiceContext context, CardPla
                 attack.Targeting(play.Target);
                 break;
             case HumilityTarget.Self: attack.Targeting(play.Player.Creature); break;
+            case HumilityTarget.LowestHpEnemy:
+                var lowest = LowestHpEnemy(play.Card);
+                if (lowest == null) return;
+                attack.Targeting(lowest);
+                break;
             case HumilityTarget.AllEnemies: attack.TargetingAllOpponents(_combat!); break;
             case HumilityTarget.RandomEnemy: attack.TargetingRandomOpponents(_combat!); break;
             default: throw new InvalidOperationException("Unsupported humility damage target.");
@@ -100,6 +121,8 @@ internal sealed class HumilityNativeEffects(PlayerChoiceContext context, CardPla
                 HumilityTarget.Self => [play.Player.Creature],
                 HumilityTarget.Selected => play.Target != null ? [play.Target] : [],
                 HumilityTarget.AllAllies => _combat!.Allies,
+                HumilityTarget.AllPlayers => _combat!.GetTeammatesOf(play.Player.Creature)
+                    .Where(creature => creature.IsAlive && creature.IsPlayer),
                 _ => throw new InvalidOperationException("Unsupported humility block target."),
             };
             foreach (Creature creature in targets.ToArray())

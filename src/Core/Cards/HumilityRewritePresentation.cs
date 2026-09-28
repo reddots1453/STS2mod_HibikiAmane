@@ -19,16 +19,18 @@ internal static class HumilityRewritePresentation
         List<string> lines = [];
         foreach (HumilityEffect effect in capability.Program.Effects)
         {
-            decimal amount = effect.Amount.Evaluate(x, name => HumilityNativeEffects.ResolveValue(card, name, target))
+            Creature? previewTarget = effect.Target == HumilityTarget.LowestHpEnemy
+                ? HumilityNativeEffects.LowestHpEnemy(card) : target;
+            decimal amount = effect.Amount.Evaluate(x, name => HumilityNativeEffects.ResolveValue(card, name, previewTarget))
                 * capability.Program.AmountMultiplier;
             DynamicVar variable = effect.Kind == HumilityEffectKind.Damage
                 ? effect.Source == HumilityAttackSource.Osty
                     ? new OstyDamageVar(amount, ValueProp.Move) : new DamageVar(amount, ValueProp.Move)
                 : new BlockVar(amount, ValueProp.Move);
             variable.SetOwner(card);
-            variable.UpdateCardPreview(card, CardPreviewMode.Normal, target, runGlobalHooks: card.CombatState != null);
+            variable.UpdateCardPreview(card, CardPreviewMode.Normal, previewTarget, runGlobalHooks: card.CombatState != null);
             decimal repeats = Math.Max(0, decimal.Truncate(effect.Repeats.Evaluate(x,
-                name => HumilityNativeEffects.ResolveValue(card, name, target))));
+                name => HumilityNativeEffects.ResolveValue(card, name, previewTarget))));
             string key = effect.Kind == HumilityEffectKind.Damage ? "damage" : "block";
             var line = new LocString("cards", $"MAIDEN_HUMILITY_REWRITE.{key}");
             line.Add("Amount", variable.ToHighlightedString(inverse: false));

@@ -106,6 +106,36 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
 
                 await ctx.Reset();
                 lesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var growingBlock = await ctx.Add<TenaciousResistance>(PileType.Hand, upgraded);
+                await ctx.ApplyPower<MaidenSuccubus.Powers.TenaciousResistancePower>(ctx.Self, 5);
+                await ctx.Play(lesson, selectedCards: [growingBlock]);
+                decimal expectedBlock = (growingBlock.DynamicVars.Block.BaseValue + 5) * 2;
+                Check(Text(growingBlock) == $"获得{expectedBlock}点格挡。", "formal rewrite previews existing Power growth only");
+                await ctx.Play(growingBlock);
+                Check(ctx.Self.Block == expectedBlock && ctx.PowerAmount<MaidenSuccubus.Powers.TenaciousResistancePower>(ctx.Self) == 5,
+                    "formal rewrite uses existing growth without applying new growth");
+
+                await ctx.Reset();
+                lesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var accumulated = await ctx.Add<BurningDesire>(PileType.Hand, upgraded);
+                await ctx.Play(lesson, selectedCards: [accumulated]);
+                await MaidenSuccubus.Data.Desire.Set(player, 5);
+                hp = ctx.PrimaryEnemy.CurrentHp;
+                await Pay(accumulated);
+                Check(hp - ctx.PrimaryEnemy.CurrentHp == accumulated.DynamicVars.Damage.BaseValue * 2 * 2,
+                    "formal rewrite retains hit count including this play's real secondary payment");
+
+                await ctx.Reset();
+                lesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
+                var thunder = await ctx.Add<SummonThunder>(PileType.Hand, upgraded);
+                await ctx.Play(lesson, selectedCards: [thunder]);
+                hp = ctx.PrimaryEnemy.CurrentHp;
+                await ctx.Play(thunder, ctx.PrimaryEnemy);
+                Check(hp - ctx.PrimaryEnemy.CurrentHp == thunder.DynamicVars.Damage.BaseValue * 4,
+                    "formal rewrite removes outer trigger/loop, keeps one selected and one live lowest-HP attack");
+
+                await ctx.Reset();
+                lesson = await ctx.Add<HumilityLesson>(PileType.Hand, upgraded);
                 var scripture = await ctx.Add<MaidenSuccubus.Cards.Scriptures.GuardianScripture>(PileType.Hand);
                 await ctx.Play(lesson, selectedCards: [scripture]);
                 Check(HumilityRewriteCapability.Find(scripture)?.Program.Effects.Count == 0 && Text(scripture) == "",

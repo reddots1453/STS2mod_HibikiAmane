@@ -81,7 +81,7 @@ internal static class CallExtractor
             if (IsCall(call, "CreatureCmd", "GainBlock"))
             {
                 if (call.ArgumentList.Arguments.Count < 2) throw Unsupported(call, "GainBlock arguments missing");
-                target = Target(call.ArgumentList.Arguments[0].Expression);
+                target = Target(call.ArgumentList.Arguments[0].Expression, method, call.SpanStart, []);
                 amount = Value(call.ArgumentList.Arguments[1].Expression, method, call.SpanStart, []);
                 effects.Add((call.SpanStart, new(HumilityEffectKind.Block, target, amount, repeats)));
                 continue;
@@ -107,7 +107,7 @@ internal static class CallExtractor
                     string name = MethodName(next);
                     HumilityTarget? nextTarget = name switch
                     {
-                        "Targeting" => Target(next.ArgumentList.Arguments.Single().Expression),
+                        "Targeting" => Target(next.ArgumentList.Arguments.Single().Expression, method, next.SpanStart, []),
                         "TargetingAllOpponents" => HumilityTarget.AllEnemies,
                         "TargetingRandomOpponents" => HumilityTarget.RandomEnemy,
                         _ => null,
@@ -211,11 +211,46 @@ internal static class CallExtractor
             (branch.Statement.Span.Contains(first.Span) && branch.Else.Statement.Span.Contains(second.Span)
              || branch.Else.Statement.Span.Contains(first.Span) && branch.Statement.Span.Contains(second.Span)));
 
-    private static HumilityTarget Target(ExpressionSyntax expression)
+    private static HumilityTarget Target(ExpressionSyntax expression, MethodDeclarationSyntax method, int before, HashSet<string> resolving)
     {
-        string text = Unwrap(expression).ToString();
+        expression = Unwrap(expression);
+        string text = expression.ToString();
         if (text is "Owner.Creature" or "base.Owner.Creature" or "this.Owner.Creature") return HumilityTarget.Self;
-        if (text is "play.Target" or "cardPlay.Target") return HumilityTarget.Selected;
+        if (text is "play.Target" or "cardPlay.Target" or "play.Target.Player" or "cardPlay.Target.Player") return HumilityTarget.Selected;
+        if (expression is MemberAccessExpressionSyntax { Name.Identifier.Text: "Creature" } creature)
+            return Target(creature.Expression, method, before, resolving);
+        if (expression is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax { Name.Identifier.Text: "First" } first } firstCall
+            && firstCall.ArgumentList.Arguments.Count == 0
+            && first.Expression is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax { Name.Identifier.Text: "OrderBy" } order } sort
+            && order.Expression.ToString() is "CombatState.HittableEnemies" or "base.CombatState.HittableEnemies"
+            && sort.ArgumentList.Arguments.Count == 1 && sort.ArgumentList.Arguments[0].Expression is SimpleLambdaExpressionSyntax lambda
+            && lambda.Body.ToString() == lambda.Parameter.Identifier.Text + ".CurrentHp")
+            return HumilityTarget.LowestHpEnemy;
+        if (expression is IdentifierNameSyntax id)
+        {
+            if (!resolving.Add(id.Identifier.Text)) throw Unsupported(expression, "cyclic target alias");
+            try
+            {
+                var local = method.DescendantNodes().OfType<VariableDeclaratorSyntax>()
+                    .Where(v => v.Identifier.Text == id.Identifier.Text && v.SpanStart < before).ToArray();
+                if (local.Length == 1 && local[0].Initializer is { } init
+                    && !method.DescendantNodes().OfType<AssignmentExpressionSyntax>().Any(a => a.Left.ToString() == id.Identifier.Text && a.SpanStart < before))
+                    return Target(init.Value, method, local[0].SpanStart, resolving);
+                var loop = expression.Ancestors().OfType<ForEachStatementSyntax>().FirstOrDefault(f => f.Identifier.Text == id.Identifier.Text);
+                if (loop?.Expression is IdentifierNameSyntax collection)
+                {
+                    var query = method.DescendantNodes().OfType<VariableDeclaratorSyntax>()
+                        .SingleOrDefault(v => v.Identifier.Text == collection.Identifier.Text)?.Initializer?.Value as QueryExpressionSyntax;
+                    if (query != null && query.FromClause.Expression.ToString() is "base.CombatState.GetTeammatesOf(base.Owner.Creature)" or "CombatState.GetTeammatesOf(Owner.Creature)"
+                        && query.Body.Clauses.Count == 1
+                        && query.Body.Clauses[0] is WhereClauseSyntax where
+                        && where.Condition.ToString() == query.FromClause.Identifier.Text + " != null && " + query.FromClause.Identifier.Text + ".IsAlive && " + query.FromClause.Identifier.Text + ".IsPlayer"
+                        && query.Body.SelectOrGroup is SelectClauseSyntax selected && selected.Expression.ToString() == query.FromClause.Identifier.Text)
+                        return HumilityTarget.AllPlayers;
+                }
+            }
+            finally { resolving.Remove(id.Identifier.Text); }
+        }
         throw Unsupported(expression, "unsupported target expression");
     }
 
@@ -224,6 +259,15 @@ internal static class CallExtractor
     private static HumilityValue Value(ExpressionSyntax expression, MethodDeclarationSyntax method, int before, HashSet<string> resolving)
     {
         expression = Unwrap(expression);
+        if (expression is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.CoalesceExpression } coalesce
+            && coalesce.Right.ToString() == "0"
+            && Unwrap(coalesce.Left) is ConditionalAccessExpressionSyntax powerAccess
+            && powerAccess.WhenNotNull.ToString() == ".Amount"
+            && powerAccess.Expression is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax powerCall } getPower
+            && getPower.ArgumentList.Arguments.Count == 0
+            && powerCall.Expression.ToString() is "Owner.Creature" or "base.Owner.Creature"
+            && powerCall.Name is GenericNameSyntax { Identifier.Text: "GetPower" } powerName)
+            return HumilityValue.Named("$power:" + powerName.TypeArgumentList.Arguments.Single());
         // Upgrade selection is part of the numeric argument, not a surrounding
         // trigger condition. Bind it live so upgrading the rewritten card still works.
         if (expression is ConditionalExpressionSyntax upgrade
@@ -246,6 +290,8 @@ internal static class CallExtractor
                 Value(binary.Left, method, before, resolving), Value(binary.Right, method, before, resolving));
         if (expression is MemberAccessExpressionSyntax member)
         {
+            if (member.Name.Identifier.Text == "Count" && Pile(member.Expression, method, before, []) is { } pile)
+                return HumilityValue.Named("$pile:" + pile);
             if (DynamicVars(member.Expression)) return HumilityValue.Named(member.Name.Identifier.Text);
             if (member.Name.Identifier.Text is "BaseValue" or "IntValue") return Value(member.Expression, method, before, resolving);
             if (expression.ToString() is "play.Resources.EnergyValue" or "cardPlay.Resources.EnergyValue") return HumilityValue.X(HumilityValueKind.EnergyX);
@@ -257,6 +303,9 @@ internal static class CallExtractor
             return HumilityValue.Named(variableName);
         if (expression is InvocationExpressionSyntax invocation && invocation.Expression is MemberAccessExpressionSyntax access)
         {
+            if (access.Expression.ToString() == "DesireCombatSpending" && access.Name.Identifier.Text == "Get"
+                && invocation.ArgumentList.Arguments.Count == 1 && invocation.ArgumentList.Arguments[0].Expression.ToString() is "Owner" or "base.Owner")
+                return HumilityValue.Named("$spentSecondary");
             if (access.Name.Identifier.Text == "Value" && invocation.ArgumentList.Arguments.Count == 1
                 && invocation.ArgumentList.Arguments[0].Expression.ToString() == "DesireResource.Id"
                 && access.Expression is InvocationExpressionSyntax ledger && ledger.ArgumentList.Arguments.Count == 0
@@ -297,6 +346,27 @@ internal static class CallExtractor
             finally { resolving.Remove(name); }
         }
         throw Unsupported(expression, "unsupported numeric expression (not executed)");
+    }
+
+    private static string? Pile(ExpressionSyntax expression, MethodDeclarationSyntax method, int before, HashSet<string> seen)
+    {
+        expression = Unwrap(expression);
+        if (expression is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax { Name.Identifier.Text: "ToList" } list })
+            return Pile(list.Expression, method, before, seen);
+        if (expression is MemberAccessExpressionSyntax { Name.Identifier.Text: "Cards", Expression: InvocationExpressionSyntax get }
+            && get.Expression is MemberAccessExpressionSyntax { Name.Identifier.Text: "GetPile", Expression: MemberAccessExpressionSyntax pile }
+            && pile.Expression.ToString() == "PileType" && get.ArgumentList.Arguments.Count == 1
+            && get.ArgumentList.Arguments[0].Expression.ToString() is "Owner" or "base.Owner")
+            return pile.Name.Identifier.Text;
+        if (expression is IdentifierNameSyntax id && seen.Add(id.Identifier.Text))
+        {
+            var locals = method.DescendantNodes().OfType<VariableDeclaratorSyntax>()
+                .Where(v => v.Identifier.Text == id.Identifier.Text && v.SpanStart < before).ToArray();
+            if (locals.Length == 1 && locals[0].Initializer is { } init
+                && !method.DescendantNodes().OfType<AssignmentExpressionSyntax>().Any(a => a.Left.ToString() == id.Identifier.Text && a.SpanStart < before))
+                return Pile(init.Value, method, locals[0].SpanStart, seen);
+        }
+        return null;
     }
 
     private static NotSupportedException Unsupported(SyntaxNode node, string reason) =>

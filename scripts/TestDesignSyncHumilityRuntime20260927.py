@@ -5,6 +5,17 @@ from TestDesignSyncNeutral20260927 import read
 
 
 class HumilityRuntime(unittest.TestCase):
+    def test_generated_numeric_reads_and_targets_share_native_paths(self):
+        code = read('src/Core/Cards/HumilityNativeEffects.cs')
+        for text in ('DesireCombatSpending.Get(card.Owner)', 'name.StartsWith("$power:"',
+                     'LowestHpEnemy(play.Card)', 'GetTeammatesOf(play.Player.Creature)',
+                     'creature.IsAlive && creature.IsPlayer'):
+            self.assertIn(text, code)
+        self.assertIn('HumilityNativeEffects.LowestHpEnemy(card)', read('src/Core/Cards/HumilityRewritePresentation.cs'))
+        game = read('src/ConsoleCommands/DesignHumilityRuntimeTestConsoleCmd.cs')
+        for text in ('selectedCards: [growingBlock]', 'selectedCards: [accumulated]', 'selectedCards: [thunder]', 'await Pay(accumulated)'):
+            self.assertIn(text, game)
+
     def test_formal_selector_rewrites_effects_not_dynamic_vars(self):
         code = read('src/Cards/FourthRouteCards.cs')
         self.assertIn('HumilityExtractedCards.Apply(selected)', code)

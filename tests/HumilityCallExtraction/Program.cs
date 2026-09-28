@@ -262,6 +262,34 @@ if (args.SequenceEqual(new[] { "--self-test" }))
     rejected = false;
     try { _ = new HumilityExtractedCatalog(pureDocument.ToJsonString()); } catch (FormatException) { rejected = true; }
     Check(rejected, "empty effect cannot qualify for awakening");
+    var aliases = Extract("Player ally = play.Target.Player; await CreatureCmd.GainBlock(ally.Creature, 9, play);");
+    Check(aliases.Program?.Effects.Single() is { Target: HumilityTarget.Selected, Kind: HumilityEffectKind.Block },
+        "selected player alias resolves back to selected creature without inventing self target");
+    var lowestTarget = Extract("var enemy = CombatState.HittableEnemies.OrderBy(e => e.CurrentHp).First(); "
+        + attack.Replace("play.Target", "enemy"));
+    Check(lowestTarget.Program?.Effects.Single().Target == HumilityTarget.LowestHpEnemy,
+        "source lowest-HP query becomes live lowest-HP targeting, not selected/random targeting");
+    var aliasCycle = Extract("var a = b; var b = a; " + attack.Replace("play.Target", "a"));
+    Check(aliasCycle.Program == null, "cyclic or forward target aliases remain unsupported");
+    var allies = Extract("var players = from c in CombatState.GetTeammatesOf(Owner.Creature) where c != null && c.IsAlive && c.IsPlayer select c; "
+        + "foreach (Creature ally in players) await CreatureCmd.GainBlock(ally, DynamicVars.Block, play);");
+    Check(allies.Program?.Effects.Single().Target == HumilityTarget.AllPlayers,
+        "native alive player filter retained without adding pets or opponents");
+    var spent = Extract("int count = 1 + DesireCombatSpending.Get(Owner); "
+        + attack.Replace(".FromCard", ".WithHitCount(count).FromCard"));
+    Check(spent.Program?.Effects.Single().Repeats.Evaluate(default, n => n == "$spentSecondary" ? 4 : throw new Exception(n)) == 5,
+        "actual accumulated resource payment retained in hit count without replaying payment");
+    var growth = Extract("decimal growth = Owner.Creature.GetPower<GrowthPower>()?.Amount ?? 0; "
+        + "await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block.BaseValue + growth, play); await PowerCmd.Apply<GrowthPower>(context, Owner.Creature, 2);");
+    Check(growth.Program?.Effects.Single().Amount.Evaluate(default, n => n == "$power:GrowthPower" ? 5 : 2) == 7,
+        "existing growth read retained, new growth command removed");
+    var handCount = Extract("var hand = PileType.Hand.GetPile(Owner).Cards.ToList(); int count = hand.Count; "
+        + attack.Replace(".FromCard", ".WithHitCount(count).FromCard"));
+    Check(handCount.Program?.Effects.Single().Repeats.Name == "$pile:Hand",
+        "pure card-pile snapshot count used without executing removed exhaust commands");
+    var newTargetRoundTrip = HumilityEffectProgram.Load(lowestTarget.Program!.DoubleAmounts().Save());
+    Check(newTargetRoundTrip.Effects.Single().Target == HumilityTarget.LowestHpEnemy
+        && newTargetRoundTrip.AmountMultiplier == 2, "new target survives production serialization and doubling");
     const string inherited = """
         namespace Fixture;
         abstract class BaseCard {
