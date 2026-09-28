@@ -22,7 +22,9 @@ internal static class HumilityRewritePresentation
             decimal amount = effect.Amount.Evaluate(x, name => HumilityNativeEffects.ResolveValue(card, name, target))
                 * capability.Program.AmountMultiplier;
             DynamicVar variable = effect.Kind == HumilityEffectKind.Damage
-                ? new DamageVar(amount, ValueProp.Move) : new BlockVar(amount, ValueProp.Move);
+                ? effect.Source == HumilityAttackSource.Osty
+                    ? new OstyDamageVar(amount, ValueProp.Move) : new DamageVar(amount, ValueProp.Move)
+                : new BlockVar(amount, ValueProp.Move);
             variable.SetOwner(card);
             variable.UpdateCardPreview(card, CardPreviewMode.Normal, target, runGlobalHooks: card.CombatState != null);
             decimal repeats = Math.Max(0, decimal.Truncate(effect.Repeats.Evaluate(x,

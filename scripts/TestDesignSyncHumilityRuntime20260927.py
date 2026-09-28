@@ -102,11 +102,16 @@ class HumilityRuntime(unittest.TestCase):
         code = read('src/Core/Cards/HumilityNativeEffects.cs')
         for text in ('ResolveEnergyXValue()', 'ResolveStarXValue()',
                      'play.SecondaryResources().Value(DesireResource.Id)',
-                     'FromCard(play.Card, play).WithHitCount(hits)',
+                     'DamageCmd.Attack(baseAmount).WithHitCount(hits)',
+                     'else attack.FromCard(play.Card, play)',
+                     'if (play.Player.Osty is not { IsDead: false } osty) return;',
+                     'attack.FromOsty(osty, play.Card, play)',
                      'TargetingRandomOpponents(_combat!)',
                      'CreatureCmd.GainBlock(creature, baseAmount, ValueProp.Move, play)'):
             self.assertIn(text, code)
         self.assertNotIn('new Random', code)
+        self.assertIn('new OstyDamageVar(amount, ValueProp.Move)',
+                      read('src/Core/Cards/HumilityRewritePresentation.cs'))
 
     def test_nested_hook_stream_and_direct_result_override(self):
         code = read('src/Patches/HumilityRewritePatches.cs')

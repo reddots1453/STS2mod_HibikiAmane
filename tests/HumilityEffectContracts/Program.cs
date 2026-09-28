@@ -118,8 +118,8 @@ await execution;
 Check(delayedSink.Groups.SequenceEqual(new[] { 3, 2 }), "block follows completed attack in source order");
 
 Reject(() => HumilityEffectProgram.Load(null), "missing state rejected");
-Reject(() => HumilityEffectProgram.Load(new JsonObject { ["version"] = 2, ["effects"] = new JsonArray() }), "future schema rejected");
-foreach (string field in new[] { "kind", "target", "amount", "repeats" })
+Reject(() => HumilityEffectProgram.Load(new JsonObject { ["version"] = 3, ["effects"] = new JsonArray() }), "future schema rejected");
+foreach (string field in new[] { "kind", "target", "amount", "repeats", "source" })
 {
     JsonObject state = doubled.Save();
     ((JsonObject)state["effects"]![0]!).Remove(field);
@@ -305,7 +305,7 @@ internal sealed class Sink : IHumilityEffectSink
     internal List<int> Groups { get; } = [];
     internal Task Delay { get; set; } = Task.CompletedTask;
     internal Action<(HumilityEffectKind Kind, decimal Amount, HumilityTarget Target)>? OnCall { get; set; }
-    public Task Damage(decimal baseAmount, HumilityTarget target, int hits) => Emit(HumilityEffectKind.Damage, baseAmount, target, hits);
+    public Task Damage(decimal baseAmount, HumilityTarget target, int hits, HumilityAttackSource source) => Emit(HumilityEffectKind.Damage, baseAmount, target, hits);
     public Task Block(decimal baseAmount, HumilityTarget target, int repetitions) => Emit(HumilityEffectKind.Block, baseAmount, target, repetitions);
     private Task Emit(HumilityEffectKind kind, decimal amount, HumilityTarget target, int repetitions)
     {

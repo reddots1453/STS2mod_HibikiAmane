@@ -94,7 +94,44 @@ if (args.SequenceEqual(new[] { "--self-test" }))
     var visual = Extract(attack.Replace(".Execute(context)", ".WithHitVfxSpawnedAtBase().WithNoAttackerAnim().Execute(context)") + " await VfxCmd.PlayOnCreatureCenter(Owner.Creature, effect);");
     Check(visual.Program?.Effects.Count == 1, "visual modifiers and standalone visual command do not block extraction");
     var foreignSource = Extract(attack.Replace(".FromCard(this, play)", ".FromOsty(Owner.Osty, this, play)"));
-    Check(foreignSource.Program == null, "different attacker source is not incorrectly discarded as a visual setting");
+    Check(foreignSource.Program?.Effects.Single().Source == HumilityAttackSource.Osty,
+        "Osty attack source retained instead of becoming player damage");
+    var restoredSource = HumilityEffectProgram.Load(foreignSource.Program!.DoubleAmounts().Save());
+    var sourceSink = new RecordedEffects();
+    await restoredSource.Execute(default, _ => 7, sourceSink);
+    Check(sourceSink.Sources.SequenceEqual(new[] { HumilityAttackSource.Osty }) && sourceSink.Attacks.Single().Amount == 14,
+        "attack source survives doubling, serialization and production execution");
+    var legacy = mixed.Program!.Save();
+    legacy["version"] = 1;
+    foreach (JsonNode? op in (JsonArray)legacy["effects"]!) ((JsonObject)op!).Remove("source");
+    Check(HumilityEffectProgram.Load(legacy).Effects.All(e => e.Source == HumilityAttackSource.Card),
+        "version one programs retain original card source");
+    var invalidSource = restoredSource.Save();
+    invalidSource["effects"]![0]!["source"] = "Unknown";
+    rejected = false;
+    try { _ = HumilityEffectProgram.Load(invalidSource); } catch (FormatException) { rejected = true; }
+    Check(rejected, "unknown saved attack source rejected");
+    var invalidBlockSource = mixed.Program.Save();
+    invalidBlockSource["effects"]![0]!["source"] = "Osty";
+    rejected = false;
+    try { _ = HumilityEffectProgram.Load(invalidBlockSource); } catch (ArgumentException) { rejected = true; }
+    Check(rejected, "block cannot carry an attack-only source");
+    Check(Extract(attack.Replace(".FromCard(this, play)", ".FromOsty(otherPet, this, play)")).Program == null,
+        "unknown pet source cannot silently become owner's Osty");
+    var secondary = Extract("decimal damage = DynamicVars.Damage.BaseValue * play.SecondaryResources().Value(DesireResource.Id); "
+        + attack.Replace("DynamicVars.Damage.BaseValue", "damage").Replace(".Execute(context)", ".WithHitCount(ResolveEnergyXValue()).Execute(context)"));
+    var secondarySink = new RecordedEffects();
+    await secondary.Program!.DoubleAmounts().Execute(new(2, 0, 3), _ => 6, secondarySink);
+    Check(secondarySink.Attacks.SequenceEqual(new[] { (36m, HumilityTarget.Selected, 2) }),
+        "secondary X amount and energy X hits come from separate play ledger values");
+    var upgradeCount = Extract("int hits = ResolveEnergyXValue() + (IsUpgraded ? 1 : 0); "
+        + attack.Replace(".Execute(context)", ".WithHitCount(hits).Execute(context)"));
+    Check(upgradeCount.Program?.Effects.Single().Repeats.Evaluate(new(2,0,0), _ => 0) == 2
+        && upgradeCount.Program.Effects.Single().Repeats.Evaluate(new(2,0,0), _ => 1) == 3,
+        "numeric upgrade branch remains live without restoring outer trigger conditions");
+    Check(Extract(attack.Replace("DynamicVars.Damage.BaseValue", "other.SecondaryResources().Value(DesireResource.Id)")).Program == null
+        && Extract(attack.Replace("DynamicVars.Damage.BaseValue", "play.SecondaryResources().Value(UnknownResource.Id)")).Program == null,
+        "foreign ledger or unrecognized resource is not assumed to be secondary X");
     var extraEffects = Extract(attack + " await CombatEnchantmentCmd.Apply<AnyEnchant>(card, 1); await ForgeCmd.Forge(3, Owner, this); await OstyCmd.Summon(context, Owner, 3, this);");
     Check(extraEffects.Program?.Effects.Count == 1, "new enchantment, forging and summoning are removed rather than extra damage");
     Check(CallExtractor.Extract("class Returned { Task OnPlay(Context c, Play p) { return Hidden(); } }").Single().Program == null,
@@ -171,9 +208,11 @@ internal sealed class RecordedEffects : IHumilityEffectSink
 {
     public bool CanContinue => true;
     internal List<(decimal Amount, HumilityTarget Target, int Hits)> Attacks { get; } = [];
-    public Task Damage(decimal amount, HumilityTarget target, int hits)
+    internal List<HumilityAttackSource> Sources { get; } = [];
+    public Task Damage(decimal amount, HumilityTarget target, int hits, HumilityAttackSource source)
     {
         Attacks.Add((amount, target, hits));
+        Sources.Add(source);
         return Task.CompletedTask;
     }
     public Task Block(decimal amount, HumilityTarget target, int repeats) => Task.CompletedTask;

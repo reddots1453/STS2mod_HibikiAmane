@@ -55,6 +55,7 @@ internal sealed class HumilityNativeEffects(PlayerChoiceContext context, CardPla
 
     internal static decimal ResolveValue(CardModel card, string name, Creature? target)
     {
+        if (name == "$upgraded") return card.IsUpgraded ? 1 : 0;
         if (name == "$block") return card.Owner.Creature.Block;
         if (name == "$hp") return card.Owner.Creature.CurrentHp;
         if (name == "$enemies") return card.CombatState?.HittableEnemies.Count ?? 0;
@@ -63,11 +64,19 @@ internal sealed class HumilityNativeEffects(PlayerChoiceContext context, CardPla
         return value is CalculatedVar calculated ? calculated.Calculate(target) : value.BaseValue;
     }
 
-    public async Task Damage(decimal baseAmount, HumilityTarget target, int hits)
+    public async Task Damage(decimal baseAmount, HumilityTarget target, int hits, HumilityAttackSource source)
     {
         if (!CanContinue) return;
         target = ResolveTarget(play.Card, target);
-        AttackCommand attack = DamageCmd.Attack(baseAmount).FromCard(play.Card, play).WithHitCount(hits);
+        AttackCommand attack = DamageCmd.Attack(baseAmount).WithHitCount(hits);
+        if (source == HumilityAttackSource.Osty)
+        {
+            // Summoning was removed with the card's other effects. Never substitute
+            // the player when the original attack's required source does not exist.
+            if (play.Player.Osty is not { IsDead: false } osty) return;
+            attack.FromOsty(osty, play.Card, play);
+        }
+        else attack.FromCard(play.Card, play);
         switch (target)
         {
             case HumilityTarget.Selected:

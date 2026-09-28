@@ -75,6 +75,7 @@ internal static class CallExtractor
             }
             amount = Value(call.ArgumentList.Arguments.Single().Expression, method, call.SpanStart, []);
             HumilityTarget? attackTarget = null;
+            HumilityAttackSource source = HumilityAttackSource.Card;
             bool execute = false;
             SyntaxNode current = call;
             while (current.Parent is MemberAccessExpressionSyntax member && member.Expression == current
@@ -87,7 +88,14 @@ internal static class CallExtractor
                     case "TargetingAllOpponents": attackTarget = HumilityTarget.AllEnemies; break;
                     case "TargetingRandomOpponents": attackTarget = HumilityTarget.RandomEnemy; break;
                     case "Execute": execute = true; break;
-                    case "FromCard": case "WithHitFx": case "WithAttackerAnim": case "WithHitVfxNode":
+                    case "FromCard": source = HumilityAttackSource.Card; break;
+                    case "FromOsty":
+                        if (next.ArgumentList.Arguments.Count < 2
+                            || Unwrap(next.ArgumentList.Arguments[0].Expression).ToString() is not ("Owner.Osty" or "base.Owner.Osty" or "this.Owner.Osty"))
+                            throw Unsupported(next, "unsupported Osty source expression");
+                        source = HumilityAttackSource.Osty;
+                        break;
+                    case "WithHitFx": case "WithAttackerAnim": case "WithHitVfxNode":
                     case "WithHitVfxSpawnedAtBase": case "SpawningHitVfxOnEachCreature": case "WithNoAttackerAnim": case "WithAttackerFx":
                         break; // Visual callbacks are not executed by the rewritten program.
                     default: throw Unsupported(next, "unsupported attack-chain method " + member.Name.Identifier.Text);
@@ -95,7 +103,7 @@ internal static class CallExtractor
                 current = next;
             }
             if (!execute || attackTarget == null) throw Unsupported(call, "attack chain must include explicit target and Execute");
-            effects.Add(new(HumilityEffectKind.Damage, attackTarget.Value, amount, repeats));
+            effects.Add(new(HumilityEffectKind.Damage, attackTarget.Value, amount, repeats, source));
         }
         // Unknown helpers may contain a hidden attack. Do not silently label them an
         // empty program, or keep only a direct attack while dropping a helper's damage.
@@ -136,6 +144,18 @@ internal static class CallExtractor
     private static HumilityValue Value(ExpressionSyntax expression, MethodDeclarationSyntax method, int before, HashSet<string> resolving)
     {
         expression = Unwrap(expression);
+        // Upgrade selection is part of the numeric argument, not a surrounding
+        // trigger condition. Bind it live so upgrading the rewritten card still works.
+        if (expression is ConditionalExpressionSyntax upgrade
+            && Unwrap(upgrade.Condition).ToString() is "IsUpgraded" or "base.IsUpgraded" or "this.IsUpgraded")
+        {
+            HumilityValue yes = Value(upgrade.WhenTrue, method, before, resolving);
+            HumilityValue no = Value(upgrade.WhenFalse, method, before, resolving);
+            return HumilityValue.Binary(HumilityValueKind.Add, no,
+                HumilityValue.Binary(HumilityValueKind.Multiply, HumilityValue.Named("$upgraded"),
+                    HumilityValue.Binary(HumilityValueKind.Add, yes,
+                        HumilityValue.Binary(HumilityValueKind.Multiply, HumilityValue.Number(-1), no))));
+        }
         if (expression is LiteralExpressionSyntax literal && literal.Token.Value is IConvertible number
             && literal.IsKind(SyntaxKind.NumericLiteralExpression))
             return HumilityValue.Number(Convert.ToDecimal(number, System.Globalization.CultureInfo.InvariantCulture));
@@ -157,6 +177,13 @@ internal static class CallExtractor
             return HumilityValue.Named(variableName);
         if (expression is InvocationExpressionSyntax invocation && invocation.Expression is MemberAccessExpressionSyntax access)
         {
+            if (access.Name.Identifier.Text == "Value" && invocation.ArgumentList.Arguments.Count == 1
+                && invocation.ArgumentList.Arguments[0].Expression.ToString() == "DesireResource.Id"
+                && access.Expression is InvocationExpressionSyntax ledger && ledger.ArgumentList.Arguments.Count == 0
+                && ledger.Expression is MemberAccessExpressionSyntax ledgerAccess
+                && ledgerAccess.Name.Identifier.Text == "SecondaryResources"
+                && ledgerAccess.Expression.ToString() is "play" or "cardPlay")
+                return HumilityValue.X(HumilityValueKind.SecondaryX);
             if (access.Name.Identifier.Text == "Calculate") return Value(access.Expression, method, before, resolving);
             if (access.Expression.ToString() is "base" or "this" && invocation.ArgumentList.Arguments.Count == 0
                 && access.Name.Identifier.Text is "ResolveEnergyXValue" or "ResolveStarXValue")
