@@ -8,6 +8,10 @@
 
 > 当前汇总：[2026-09-28全范围状态核对](DESIGN_SYNC_20260927_CURRENT_STATUS.md)。旧批次段落是带日期的历史证据；不得用历史未实现项覆盖后续交付，也不得把局部IMPLEMENTED提升为全范围VERIFIED。
 
+## DS27-02AH：心神宁静完整文本与门槛（READY）
+
+EVENT-CARD-001→DS27-02AH→补正式描述“则”、基础/升级Run/Hand独立全文和其他手牌5/6/7张门槛→DS27-CARD-TEXT/EFFECT/GATES。前置`4cc86719`，不改变0费/保留/奖励规则；抽牌不足/禁止不伪造抽取收益，测试使用真实牌堆/打牌命令，未运行不标VERIFIED，不部署。
+
 ## DS27-07D：继承关键词解析（IMPLEMENTED，离线已验）
 
 四张正式状态牌消耗/虚无/保留→DS27-07D→AuditCardLocalization构造参数/只读字段来源解析→DS27-CARD-META/GATES。前置`ad418cb2`；仅验证工具变化，不改规则或意图。无法证明的集合/赋值保持未知；合成负例防止错误归零，真实四牌独立预期与strict-review不冒充全量验收。
