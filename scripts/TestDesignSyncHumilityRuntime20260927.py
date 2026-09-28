@@ -86,7 +86,7 @@ class HumilityRuntime(unittest.TestCase):
 
     def test_holy_profiles_have_native_rule_boundary_scenarios(self):
         code = read('src/ConsoleCommands/DesignHumilityRuntimeTestConsoleCmd.cs')
-        for text in ('Hook.BeforeFlush(combat, player)', 'HumilityCardProfiles.ApplyKnown(rest)',
+        for text in ('Hook.BeforeFlush(combat, player)', 'HumilityExtractedCards.Apply(rest)',
                      'UnplayableReason.BlockedByCardLogic', 'ReferenceEquals(preventer, sloth)',
                      'Check(!costed.CanPlay()', 'ctx.Add<DragonflyTouch>', 'ctx.Add<ForgeNimble>',
                      '!flare.HasTurnEndInHandEffect && ordinaryFlare.HasTurnEndInHandEffect'):
@@ -106,14 +106,13 @@ class HumilityRuntime(unittest.TestCase):
         project = read('tests/HumilityEffectContracts/HumilityEffectContracts.csproj')
         self.assertIn('../../src/Core/Cards/HumilityProfileDefinitions.cs', project)
 
-    def test_game_suite_uses_production_profiles(self):
+    def test_game_suite_uses_formal_generated_programs(self):
         code = read('src/ConsoleCommands/DesignHumilityRuntimeTestConsoleCmd.cs')
-        for text in ('HumilityCardProfiles.SupportedTypes', 'ctx.Create(type, upgraded)',
-                     'HumilityNativeEffects.ResolveValue(card, name, ctx.PrimaryEnemy)',
-                     'HumilityCardProfiles.ApplyKnown(dualX)', 'HumilityCardProfiles.ApplyKnown(whirlwind)',
-                     'HumilityCardProfiles.ApplyKnown(empty)', 'flare.OnTurnEndInHandWrapper(choice)',
-                     'HumilityCardProfiles.ApplyKnown(explosive)'):
+        for text in ('HumilityExtractedCards.Apply(dualX)', 'HumilityExtractedCards.Apply(whirlwind)',
+                     'HumilityExtractedCards.Apply(empty)', 'flare.OnTurnEndInHandWrapper(choice)',
+                     'HumilityExtractedCards.Apply(explosive)'):
             self.assertIn(text, code)
+        self.assertNotIn('HumilityCardProfiles', code)
         self.assertNotIn('new([Damage(', code)
         self.assertNotIn('new([Block(', code)
 

@@ -94,6 +94,7 @@ internal static class CallExtractor
                 if (call.ArgumentList.Arguments.Count < 2) throw Unsupported(call, "GainBlock arguments missing");
                 target = Target(call.ArgumentList.Arguments[0].Expression, method, call.SpanStart, []);
                 amount = Value(call.ArgumentList.Arguments[1].Expression, method, call.SpanStart, []);
+                repeats = BlockRepetitions(call, method);
                 effects.Add((call.SpanStart, new(HumilityEffectKind.Block, target, amount, repeats,
                     RequiredCardType: NumericQueries.RequiredType(call, typeProperty))));
                 continue;
@@ -225,6 +226,38 @@ internal static class CallExtractor
             (branch.Statement.Span.Contains(first.Span) && branch.Else.Statement.Span.Contains(second.Span)
              || branch.Else.Statement.Span.Contains(first.Span) && branch.Statement.Span.Contains(second.Span)));
 
+    private static HumilityValue BlockRepetitions(InvocationExpressionSyntax call, MethodDeclarationSyntax method)
+    {
+        var loop = call.Ancestors().TakeWhile(n => n != method).OfType<ForStatementSyntax>().FirstOrDefault();
+        if (loop == null) return HumilityValue.Number(1);
+
+        // A plain counted block command represents repeated block, not a removed
+        // draw/kill loop. Keep its count without executing any surrounding behavior.
+        var variables = loop.Declaration?.Variables;
+        if (variables?.Count != 1 || loop.Initializers.Count != 0
+            || variables.Value[0].Initializer?.Value.ToString() != "0"
+            || loop.Condition is not BinaryExpressionSyntax condition || !condition.IsKind(SyntaxKind.LessThanExpression)
+            || condition.Left is not IdentifierNameSyntax index || index.Identifier.Text != variables.Value[0].Identifier.Text
+            || loop.Incrementors.Count != 1
+            || loop.Incrementors[0] is not PostfixUnaryExpressionSyntax increment
+            || !increment.IsKind(SyntaxKind.PostIncrementExpression) || increment.Operand.ToString() != index.Identifier.Text)
+            throw Unsupported(loop, "unsupported block repetition counter");
+
+        StatementSyntax body = loop.Statement;
+        while (true)
+        {
+            if (body is BlockSyntax block && block.Statements.Count == 1) body = block.Statements[0];
+            else if (body is IfStatementSyntax { Else: null } guard) body = guard.Statement;
+            else break;
+        }
+        if (body is not ExpressionStatementSyntax { Expression: AwaitExpressionSyntax awaited }
+            || awaited.Expression != call
+            || loop.Ancestors().TakeWhile(n => n != method).Any(n => n is ForStatementSyntax))
+            throw Unsupported(loop, "block loop requires a single retained block command");
+
+        return Value(condition.Right, method, loop.SpanStart, []);
+    }
+
     private static HumilityTarget Target(ExpressionSyntax expression, MethodDeclarationSyntax method, int before, HashSet<string> resolving)
     {
         expression = Unwrap(expression);
@@ -317,6 +350,8 @@ internal static class CallExtractor
                 Value(binary.Left, method, before, resolving), Value(binary.Right, method, before, resolving));
         if (expression is MemberAccessExpressionSyntax member)
         {
+            if (expression.ToString() is "CombatState.HittableEnemies.Count" or "base.CombatState.HittableEnemies.Count"
+                or "this.CombatState.HittableEnemies.Count") return HumilityValue.Named("$enemies");
             if (expression.ToString() == "CondemnationPower.DamagePerLayer") return HumilityValue.Named("$condemnationDamagePerLayer");
             if (member.Name.Identifier.Text == "BlockRequired"
                 && member.Expression is IdentifierNameSyntax intentLocal)
@@ -417,6 +452,8 @@ internal static class CallExtractor
         expression = Unwrap(expression);
         if (expression.ToString() == "__humilityOwnerLostHpThisTurn")
             return HumilityValue.Named("$ownerLostHpThisTurn");
+        if (expression.ToString() == "__humilityOwnerExhaustedThisTurn")
+            return HumilityValue.Named("$ownerExhaustedThisTurn");
         if (expression is IdentifierNameSyntax enumMarker && enumMarker.Identifier.Text.StartsWith("__humilityEnum__", StringComparison.Ordinal))
         {
             string[] parts = enumMarker.Identifier.Text[16..].Split("__");

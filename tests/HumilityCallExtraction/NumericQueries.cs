@@ -52,6 +52,25 @@ internal sealed class NumericQueries(IReadOnlyList<ClassDeclarationSyntax> chain
         return base.VisitBinaryExpression(node);
     }
 
+    public override SyntaxNode? VisitIdentifierName(IdentifierNameSyntax node)
+    {
+        var properties = chain.SelectMany(c => c.Members.OfType<PropertyDeclarationSyntax>())
+            .Where(p => p.Identifier.Text == node.Identifier.Text && p.Type.ToString() == "bool").ToArray();
+        if (properties.Length == 1 && properties[0].ExpressionBody?.Expression is { } body)
+        {
+            var lambdas = body.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().ToArray();
+            if (lambdas.Length == 1 && lambdas[0].ParameterList.Parameters.Count == 1
+                && lambdas[0].ParameterList.Parameters[0].Type?.ToString() == "CardExhaustedEntry")
+            {
+                string entry = lambdas[0].ParameterList.Parameters[0].Identifier.Text;
+                string expected = $"CombatManager.Instance.History.Entries.OfType<CardExhaustedEntry>().Any((CardExhaustedEntry {entry})=>{entry}.HappenedThisTurn(base.CombatState)&&{entry}.Actor==base.Owner.Creature)";
+                if (Compact(body) == string.Concat(expected.Where(c => !char.IsWhiteSpace(c))))
+                    return SyntaxFactory.IdentifierName("__humilityOwnerExhaustedThisTurn");
+            }
+        }
+        return base.VisitIdentifierName(node);
+    }
+
     public override SyntaxNode? VisitInvocationExpression(InvocationExpressionSyntax node)
     {
         if (node.Expression is IdentifierNameSyntax helper && node.ArgumentList.Arguments.Count == 1

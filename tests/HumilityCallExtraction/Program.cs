@@ -25,6 +25,24 @@ if (args.SequenceEqual(new[] { "--self-test" }))
     Check(mixed.Program?.Effects.Select(e => e.Kind).SequenceEqual(new[] { HumilityEffectKind.Block, HumilityEffectKind.Damage }) == true,
         "source order and direct block retained");
     var calculated = Extract("await CreatureCmd.GainBlock(Owner.Creature, ((CalculatedVar)DynamicVars[\"CalculatedBlock\"]).Calculate(play.Target), props, play);");
+    string blockCall = "await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);";
+    var countedBlock = Extract("int count = CombatState.HittableEnemies.Count; for (int i = 0; i < count; i++) " + blockCall);
+    Check(countedBlock.Program?.Effects.Single().Repeats.Name == "$enemies",
+        "plain counted block retains live enemy count rather than flattening to one");
+    var countedSink = new RecordedEffects();
+    await countedBlock.Program!.DoubleAmounts().Execute(default, key => key == "$enemies" ? 3 : 7, countedSink);
+    Check(countedSink.Blocks.SequenceEqual(new[] { (14m, HumilityTarget.Self, 3) }),
+        "counted block doubles amount only and passes repeat count to native block sink");
+    var zeroCountSink = new RecordedEffects();
+    await countedBlock.Program.DoubleAmounts().Execute(default, key => key == "$enemies" ? 0 : 7, zeroCountSink);
+    Check(zeroCountSink.Blocks.Count == 0, "zero counted block gives no block");
+    Check(Extract("for (int i = 0; i < ResolveEnergyXValue(); i++) { if (ready) { " + blockCall + " } }")
+        .Program?.Effects.Single().Repeats.Kind == HumilityValueKind.EnergyX,
+        "counted block retains X while deleting the block trigger");
+    Check(Extract("for (int i = 0; i < 3; i += 2) " + blockCall).Program == null,
+        "unrecognized block counter is not silently reduced to one");
+    Check(Extract("int count = 3; for (int i = 0; i < count; i++) { count += 1; " + blockCall + " }").Program == null,
+        "mutating counted block body cannot masquerade as a fixed count");
     Check(calculated.Program?.Effects[0].Amount.Name == "CalculatedBlock", "native calculated variable binding retained");
     var failed = Extract("decimal damage = await SideEffect(); " + attack.Replace("DynamicVars.Damage.BaseValue", "damage"));
     Check(failed.Program == null && failed.Error != null, "side-effectful numeric dependency rejected as whole card, never run");
@@ -406,6 +424,21 @@ if (args.SequenceEqual(new[] { "--self-test" }))
         && CallExtractor.Extract(historyQuery.Replace("return CombatManager", "MutateState(); return CombatManager")).Single().Program == null,
         "different history predicate and side-effectful helper are not mistaken for pure loss query");
     string resultBody = "var hit = " + attack + " await CreatureCmd.GainBlock(Owner.Creature, hit.Results.SelectMany((List<DamageResult> rows) => rows).Sum((DamageResult item) => item.TotalDamage + item.OverkillDamage), props, play);";
+    const string exhaustHistory = """
+        class CountedDefense {
+          private bool UsedExhaust => CombatManager.Instance.History.Entries.OfType<CardExhaustedEntry>().Any((CardExhaustedEntry record) => record.HappenedThisTurn(base.CombatState) && record.Actor == base.Owner.Creature);
+          async Task OnPlay(Context context, Play play) {
+            int count = !UsedExhaust ? 1 : 2;
+            for (int i = 0; i < count; i++) { await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play); }
+          }
+        }
+        """;
+    var exhaustProgram = CallExtractor.Extract(exhaustHistory).Single().Program;
+    Check(exhaustProgram?.Effects.Single().Repeats.Evaluate(default, _ => 0) == 1
+        && exhaustProgram.Effects.Single().Repeats.Evaluate(default, _ => 1) == 2,
+        "source-proven exhaust history retains the native block count");
+    Check(CallExtractor.Extract(exhaustHistory.Replace("record.Actor ==", "record.Actor !=")).Single().Program == null,
+        "another actor query is not mistaken for own exhaust history");
     var dependent = Extract(resultBody);
     Check(dependent.Program?.Effects.Count == 2 && dependent.Program.Effects[1].Amount.Name == "$effectDamage:0",
         "attack result sum binds to prior native damage effect");
@@ -571,6 +604,7 @@ internal sealed class RecordedEffects : IHumilityEffectSink
 {
     public bool CanContinue => true;
     internal List<(decimal Amount, HumilityTarget Target, int Hits)> Attacks { get; } = [];
+    internal List<(decimal Amount, HumilityTarget Target, int Repeats)> Blocks { get; } = [];
     internal List<HumilityAttackSource> Sources { get; } = [];
     internal List<string> Order { get; } = [];
     internal List<int> Begun { get; } = [];
@@ -584,6 +618,7 @@ internal sealed class RecordedEffects : IHumilityEffectSink
     }
     public Task Block(decimal amount, HumilityTarget target, int repeats)
     {
+        Blocks.Add((amount, target, repeats));
         Order.Add("Block:" + amount.ToString(System.Globalization.CultureInfo.InvariantCulture));
         return Task.CompletedTask;
     }

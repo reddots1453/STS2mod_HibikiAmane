@@ -96,6 +96,9 @@ internal sealed class HumilityNativeEffects(PlayerChoiceContext context, CardPla
             && CombatManager.Instance.History.Entries.OfType<DamageReceivedEntry>()
                 .Any(entry => entry.HappenedThisTurn(card.CombatState) && entry.Receiver == card.Owner.Creature
                     && entry.Result.UnblockedDamage > 0) ? 1 : 0;
+        if (name == "$ownerExhaustedThisTurn") return card.CombatState != null
+            && CombatManager.Instance.History.Entries.OfType<CardExhaustedEntry>()
+                .Any(entry => entry.HappenedThisTurn(card.CombatState) && entry.Actor == card.Owner.Creature) ? 1 : 0;
         if (name == "$block") return card.Owner.Creature.Block;
         if (name == "$hp") return card.Owner.Creature.CurrentHp;
         if (name == "$enemies") return card.CombatState?.HittableEnemies.Count ?? 0;
