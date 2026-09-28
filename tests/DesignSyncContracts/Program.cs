@@ -585,3 +585,16 @@ for (int flags = 0; flags < 4096; flags++)
         "idle gates; victory boundary bypasses executor only, never other safety checks");
 }
 Console.WriteLine($"PASS DS27 production reward presentation: {checks - beforeReward} assertions; {checks} total.");
+
+int beforeNecklace = checks;
+int[] clearDeltas = [0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1];
+int[] murkyDeltas = [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0];
+foreach (int corruption in Enumerable.Range(-5, 11))
+{
+    bool murky = corruption is 3 or 4 or 5;
+    Equal(murky, HeartNecklaceRules.IsMurky(corruption), "necklace variation inclusive boundary");
+    for (int desire = 0; desire <= 10; desire++)
+        Equal((murky ? murkyDeltas : clearDeltas)[desire], HeartNecklaceRules.TurnDelta(corruption, desire),
+            $"necklace {corruption}/{desire}: literal table covers five on both branches");
+}
+Console.WriteLine($"PASS DS27 production necklace rules: {checks - beforeNecklace} assertions; {checks} total.");

@@ -24,6 +24,12 @@ public static class TwinSoulChaliceDescriptionPatch
         Safe.Run(
             () =>
             {
+                if (__instance is HeartNecklace necklace)
+                {
+                    result = new LocString("relics", necklace.ActiveEntry + ".description");
+                    return;
+                }
+
                 if (__instance is FourthRouteRelic routeRelic)
                 {
                     LocString effect = new("relics", routeRelic.Stage == 0

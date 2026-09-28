@@ -6,9 +6,9 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-04D：清心／浊心项链（READY）
+## DS27-04D：清心／浊心项链（IMPLEMENTED，游戏内待验）
 
-`RELIC-CHAR-005`→实时变奏共用模型、稀有度与唯一获取候选、旧ID兼容→DS27-CARD-TEXT/COMPAT/GATES。Q10授权正式化完整条目；不改设计数值。前置`108cdc45`；边界与实际回合/保存脚本待实施，未部署。
+`RELIC-CHAR-005`→实时变奏共用模型、稀有度与单一正常获取候选、旧ID兼容→DS27文本/COMPAT/GATES。Q10授权正式化完整条目；不改设计数值。前置`108cdc45`，需求/Plan同步`8802aebc`。132新增生产断言累计12885、8新增静态累计315、33编码及Debug/Release和四内容门通过；`ms_test_necklace confirm`已编译未执行，实际回合/资源/模型重建脚本不等于实机和完整存档验收。视觉317和全卡旧差异保留；既有存档抓取袋不整表迁移，未部署，见`DESIGN_SYNC_20260927_BATCH37.md`。
 
 ## DS27-05O：正式领奖与末战安全时序（单人IMPLEMENTED，游戏内待验）
 

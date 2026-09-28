@@ -151,9 +151,9 @@
   "MAIDEN_SUCCUBUS_RELIC_FOURTH_ROUTE_FRAGMENT_RELIC.routeTitle": "{Relic}碎片",
   "MAIDEN_SUCCUBUS_RELIC_FOURTH_ROUTE_FRAGMENT_RELIC.description": "取得后开启第二试炼，路线遗物保持原有效果。完成第二试炼并领取奖励时，碎片融入路线遗物。",
   "MAIDEN_SUCCUBUS_RELIC_CLEAR_HEART_NECKLACE.title": "清心项链",
-  "MAIDEN_SUCCUBUS_RELIC_CLEAR_HEART_NECKLACE.description": "回合开始时，如果[pink]欲望[/pink]大于等于5点，失去1点[pink]欲望[/pink]。[purple]堕落值[/purple]≥3：[gold]变奏[/gold]。",
-  "MAIDEN_SUCCUBUS_RELIC_CLEAR_HEART_NECKLACE.flavor": "回合开始时，如果欲望大于等于5点，失去1点欲望值。堕落值≥3：变奏。",
+  "MAIDEN_SUCCUBUS_RELIC_CLEAR_HEART_NECKLACE.description": "回合开始时，如果≥5点[pink]欲望[/pink]，失去1点[pink]欲望值[/pink]。[purple]堕落值[/purple]≥3：[gold]变奏[/gold]。",
+  "MAIDEN_SUCCUBUS_RELIC_CLEAR_HEART_NECKLACE.flavor": "回合开始时，如果≥5点欲望，失去1点欲望值。堕落值≥3：变奏。",
   "MAIDEN_SUCCUBUS_RELIC_MURKY_HEART_NECKLACE.title": "浊心项链",
-  "MAIDEN_SUCCUBUS_RELIC_MURKY_HEART_NECKLACE.description": "回合开始时，如果[pink]欲望[/pink]小于5点，获得1点[pink]欲望[/pink]。[purple]堕落值[/purple]＜3：[gold]变奏[/gold]。",
-  "MAIDEN_SUCCUBUS_RELIC_MURKY_HEART_NECKLACE.flavor": "回合开始时，如果欲望小于5点，获得1点欲望值。堕落值＜3：变奏。"
+  "MAIDEN_SUCCUBUS_RELIC_MURKY_HEART_NECKLACE.description": "回合开始时，如果≤5点[pink]欲望[/pink]，获得1点[pink]欲望值[/pink]。[purple]堕落值[/purple]＜3：[gold]变奏[/gold]。",
+  "MAIDEN_SUCCUBUS_RELIC_MURKY_HEART_NECKLACE.flavor": "回合开始时，如果≤5点欲望，获得1点欲望值。堕落值＜3：变奏。"
 }
