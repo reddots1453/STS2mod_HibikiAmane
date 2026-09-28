@@ -6,6 +6,10 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-02AD：有符号状态层数（READY）
+
+正式负力量备注及CARD-N/H/C按正负状态层数公式→DS27-02AD→PowerLayerQuery按TypeForCurrentAmount和可见性选取后累加绝对值→DS27-CARD-EFFECT/TEXT/COMPAT/GATES。前置`2fcf8357`；不修改原版正负分类或卡牌基值，纯聚合离线执行与实际Power/命令测试分开报告，未部署。
+
 ## DS27-02AC：理外锻成九附魔选择（IMPLEMENTED，游戏内待验）
 
 CARD-N-150～299理外锻成/SYS-ENC-001→DS27-02AC→两阶段选择返回守卫、原九项合法候选和数值、临时附魔/永久隔离→DS27-CARD-EFFECT/META/TEXT/COMPAT/GATES。前置`60b3be08`；不改变附魔规则或随机选择概率，不部署。
