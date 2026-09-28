@@ -116,6 +116,8 @@ class CombatTextContracts(unittest.TestCase):
             (r'伤害。{InCombat:（总数{Hits}）|}', r'伤害。\n{InCombat:（总数{Hits}）|}'),
             (r'伤害。{Damage:diff()}', r'伤害。\n{Damage:diff()}'),
             ('伤害。', '伤害。'),
+            (r'伤害。{ShowRemaining:\n（还剩{Remaining}场战斗）|}', r'伤害。{ShowRemaining:\n（还剩{Remaining}场战斗）|}'),
+            (r'伤害。{ShowRemaining:（还剩{Remaining}场战斗）|}', r'伤害。\n{ShowRemaining:（还剩{Remaining}场战斗）|}'),
             (r'伤害。{InCombat:\n（总数{Hits}）|}后句。再一句。',
              r'伤害。{InCombat:\n（总数{Hits}）|}后句。\n再一句。'),
         ]

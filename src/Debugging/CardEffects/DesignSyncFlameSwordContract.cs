@@ -50,6 +50,7 @@ internal static class DesignSyncFlameSwordContract
                 ctx.AssertEqual("duplicate room callback is idempotent", completed, deck.CompletedCombats);
                 ctx.AssertEqual("remaining actual battles", 5 - completed, deck.DynamicVars["Remaining"].IntValue);
                 ctx.AssertTrue("only fifth victory enchants permanent card", (deck.Enchantment is TezcatarasEmber) == (completed == 5));
+                DesignSyncRemainingTextContract.FlameProgress(ctx, deck, PileType.Deck, upgraded, completed);
                 var loaded = (FlameSword)CardModel.FromSerializable(deck.ToSerializable());
                 ctx.AssertEqual("completed battle count survives save/load", completed, loaded.CompletedCombats);
                 ctx.AssertEqual("upgrade survives save/load", upgraded, loaded.IsUpgraded);
@@ -84,6 +85,7 @@ internal static class DesignSyncFlameSwordContract
                 !ReferenceEquals(nextCombat.Enchantment, deck.Enchantment)
                 && ReferenceEquals(nextCombat.Enchantment!.Card, nextCombat));
             ctx.AssertTrue("next combat suffix remains hidden", !Text(nextCombat).Contains("还剩"));
+            DesignSyncRemainingTextContract.FlameProgress(ctx, nextCombat, PileType.Hand, upgraded, 5);
         }
         finally
         {

@@ -29,9 +29,11 @@ class CardTextInventoryTests(unittest.TestCase):
 
     def test_partial_and_same_combat_instance_none_are_not_double_scene_full_text(self):
         for model in ('DarkStorm', 'CurseInfection'):
-            self.assertEqual(self.rows[model]['textEvidence'], coverage.PARTIAL)
+            self.assertIn(coverage.PARTIAL, [item['scope'] for item in self.rows[model]['providers']])
+            self.assertEqual(self.rows[model]['textEvidence'], coverage.BOTH)
         for model in ('FlameSword', 'WindGodCloak', 'BeyondReasonForge', 'SuperRegeneration', 'GagCurse'):
-            self.assertEqual(self.rows[model]['textEvidence'], coverage.COMBAT)
+            self.assertIn(coverage.COMBAT, [item['scope'] for item in self.rows[model]['providers']])
+            self.assertEqual(self.rows[model]['textEvidence'], coverage.BOTH)
         for model in ('CalmMind', 'GoddessOfIce', 'AcceleratedMotion', 'InsatiableGreed', 'ResistanceGloves'):
             self.assertEqual(self.rows[model]['textEvidence'], coverage.BOTH)
 
@@ -41,6 +43,15 @@ class CardTextInventoryTests(unittest.TestCase):
         self.assertEqual(self.rows['MaidenStrike']['category'], 'current_card_or_derivative')
         self.assertEqual(self.rows['MaidenStrike']['textEvidence'], coverage.MISSING)
         self.assertEqual(self.report['summary']['current'], 215)
+
+    def test_new_provider_disconnect_restores_partial_not_false_full_coverage(self):
+        report = self.mutated(coverage.RUNNER, 'DesignSyncRemainingTextContract.Validate(context, card, scenario.Upgraded);', '')
+        self.assertTrue(report['integrityErrors'])
+        rows = {row['model']: row for row in report['cards']}
+        for model in ('DarkStorm', 'CurseInfection'):
+            self.assertEqual(rows[model]['textEvidence'], coverage.PARTIAL)
+        for model in ('FlameSword', 'WindGodCloak', 'BeyondReasonForge', 'SuperRegeneration', 'GagCurse'):
+            self.assertEqual(rows[model]['textEvidence'], coverage.COMBAT)
 
     def mutated(self, path, old, new):
         def read(file):

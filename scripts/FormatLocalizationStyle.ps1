@@ -108,7 +108,7 @@ foreach ($path in $paths) {
         if ($isCardFile -and $key.EndsWith(".description")) {
             # A combat-only suffix owns its newline; adding another outside the
             # condition creates an empty line in combat and a trailing line in Deck.
-            $sentencePattern = [regex]::Escape($fullStop) + '(?!\\n|\{InCombat:\\n)(?=.)'
+            $sentencePattern = [regex]::Escape($fullStop) + '(?!\\n|\{(?:InCombat|ShowRemaining):\\n)(?=.)'
             $value = [regex]::Replace($value, $sentencePattern, $fullStop + '\n')
         }
 

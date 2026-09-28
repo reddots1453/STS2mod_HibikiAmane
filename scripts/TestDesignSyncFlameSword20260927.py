@@ -54,7 +54,7 @@ class FlameSwordContracts(unittest.TestCase):
     def test_exact_text_conditional_is_not_combat_only(self):
         loc = json.loads(read("MaidenSuccubus/localization/zhs/cards.json"))
         self.assertEqual(loc["MAIDEN_SUCCUBUS_CARD_FLAME_SWORD.description"],
-            "造成{Damage:diff()}点伤害。\n完成5场战斗后，为这张牌[gold]附魔[/gold]：[purple]特兹卡塔拉的余烬[/purple]。\n{ShowRemaining:（还剩{Remaining:diff()}场战斗）|}")
+            "造成{Damage:diff()}点伤害。\n完成5场战斗后，为这张牌[gold]附魔[/gold]：[purple]特兹卡塔拉的余烬[/purple]。{ShowRemaining:\n（还剩{Remaining:diff()}场战斗）|}")
         self.assertIn('description.Add("ShowRemaining", Enchantment is not TezcatarasEmber)', self.card())
 
     def test_native_contract_registered_and_old_probe_removed(self):
