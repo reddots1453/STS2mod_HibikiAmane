@@ -6,6 +6,10 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-02Q：索引与拾取附魔三剑（READY）
+
+`CARD-N-150～299`完整四牌条目→DS27-02Q→原生连续抽牌/Power有效性、精确文本与真实拾取附魔/首次收益测试→DS27效果/文本/COMPAT/GATES。前置`19229c1e`。保留正确递归抽牌顺序和三剑规则，不改变设计，待实现验证，未部署。
+
 ## DS27-02P：冰界的女神（IMPLEMENTED，游戏内待验）
 
 `CARD-N-150～299`完整条目→DS27-02P→`GoddessOfIcePower/GoddessOfIce`逐CardPlay资格快照/原生生成命令、升级状态文本/衍生悬停→`DesignSyncIceGoddessContract`及7静态检查→DS27效果/文本/COMPAT/GATES。前置`5bb83c8b`、同步`83b1a202`；不改Single堆叠及1张生成数值。319同步+19审计、13540生产规则、33编码、Debug/Release及四门通过。`ms_test_cards confirm GoddessOfIce`脚本编译未运行；每个基础/升级场景至少20效果断言。自然时序/完整存读档/联网/视觉待验，旧失败保留，未部署；见`DESIGN_SYNC_20260927_BATCH40.md`。
