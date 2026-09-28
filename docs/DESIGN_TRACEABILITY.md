@@ -6,6 +6,10 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-07B：统一离线验证证据（READY）
+
+DS27-GATES→DS27-07B→固定无部署验证计划/独立日志/JSON/HEAD及源码漂移/严格状态→验证脚本自测和真实全量运行。前置`9fbbad9f`；不执行游戏内破坏性命令、不导入旧报告、不把部分检查或构建成功当全范围通过。
+
 ## DS27-01B：封印与献祭正式展示（IMPLEMENTED，游戏内待验）
 
 SYS-SEA-001/ACT4-001→DS27-01B→封印方向悬停、实际永久实例/拥有者隔离、原牌升级预览、染色生命周期及献祭原文→DS27-CARD-TEXT/COMPAT/ACT4/GATES。前置`1d3f4daa`，不改封印/移除/试炼实际规则；未部署。RELIC-EVENT-004另列DS27-04J-Q20 OPEN，随机池范围待确认。
