@@ -105,8 +105,14 @@ public sealed class MagicIndexPower : MaidenSuccubusPowerTemplate
     public override PowerStackType StackType => PowerStackType.Counter;
     public override async Task AfterCardDrawnEarly(PlayerChoiceContext context, CardModel card, bool fromHandDraw)
     {
-        if (card.Owner.Creature == Owner && card.Enchantment != null)
-            await CardPileCmd.Draw(context, (int)Amount, card.Owner);
+        if (Owner is not { Player: not null, CombatState: not null, IsAlive: true }
+            || !ReferenceEquals(Owner.GetPower<MagicIndexPower>(), this)
+            || card.Owner != Owner.Player || card.Enchantment == null
+            || !ReferenceEquals(card.CombatState, Owner.CombatState))
+            return;
+        // The native draw command has already moved this card into the hand.
+        // Keep its recursive hook order and native draw/hand-limit restrictions.
+        await CardPileCmd.Draw(context, Amount, Owner.Player);
     }
 }
 

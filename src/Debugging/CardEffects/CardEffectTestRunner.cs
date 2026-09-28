@@ -84,6 +84,7 @@ internal static class CardEffectTestRunner
                         DesignSyncHolyContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncCardBatchSixContract.Validate(context, card, scenario.Upgraded);
                         DesignSyncTextBatchContract.Validate(context, card, scenario.Upgraded);
+                        DesignSyncEnchantmentInputContract.Validate(context, card, scenario.Upgraded);
                         await scenario.Execute(context, card);
 
                         if (scenarioResult.EffectAssertionCount < scenario.MinimumEffectAssertions)
@@ -183,6 +184,13 @@ internal static class CardEffectTestRunner
                 .Where(spec => DesignSyncTextBatchContract.Types.Contains(spec.CardType)).ToArray();
             if (batch.Length != 12)
                 throw new InvalidOperationException("DS27 text suite must cover all 12 design entries.");
+            return batch;
+        }
+
+        if (string.Equals(requestedCard, "ds27-enchantment-input", StringComparison.OrdinalIgnoreCase))
+        {
+            var batch = CardEffectTestCatalog.All.Where(spec => DesignSyncEnchantmentInputContract.Types.Contains(spec.CardType)).ToArray();
+            if (batch.Length != 4) throw new InvalidOperationException("DS27 enchantment input requires all four cards.");
             return batch;
         }
 

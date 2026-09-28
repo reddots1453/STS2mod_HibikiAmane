@@ -500,64 +500,10 @@ internal static class CardEffectTestCatalog
         }, 1);
 
     private static void GaleSwordProbe() =>
-        CustomVariants<GaleSword>(async (ctx, card, upgraded) =>
-        {
-            CardCmd.Enchant<Swift>(card, 2);
-            await ctx.AddFillerCards(PileType.Draw, 2);
-            int hp = ctx.PrimaryEnemy.CurrentHp;
-            int hand = ctx.CountCards<StrikeIronclad>(PileType.Hand);
-            await ctx.Play(card, ctx.PrimaryEnemy);
-            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, upgraded ? 14 : 11);
-            ctx.AssertPileDelta<StrikeIronclad>(
-                "Swift draws two cards", PileType.Hand, hand, 2);
-            ctx.AssertEqual("pickup enchantment amount", 2,
-                card.Enchantment?.Amount ?? 0);
-
-            GaleSword deckCard = ctx.Player.RunState.CreateCard<GaleSword>(ctx.Player);
-            try
-            {
-                await CardPileCmd.Add(deckCard, PileType.Deck);
-                ctx.AssertEqual("pickup applies Swift", nameof(Swift),
-                    deckCard.Enchantment?.GetType().Name ?? "none");
-            }
-            finally
-            {
-                if (!deckCard.HasBeenRemovedFromState
-                    && deckCard.Pile?.Type == PileType.Deck)
-                {
-                    await CardPileCmd.RemoveFromDeck(deckCard, showPreview: false);
-                }
-            }
-        }, 4);
+        CustomVariants<GaleSword>((ctx, card, upgraded) => DesignSyncEnchantmentInputContract.Sword(ctx, card, upgraded), 17);
 
     private static void ShiningSwordProbe() =>
-        CustomVariants<ShiningSword>(async (ctx, card, upgraded) =>
-        {
-            CardCmd.Enchant<Vigorous>(card, 3);
-            int hp = ctx.PrimaryEnemy.CurrentHp;
-            await ctx.Play(card, ctx.PrimaryEnemy);
-            ctx.AssertDamage("two Vigorous-boosted hits", ctx.PrimaryEnemy, hp,
-                upgraded ? 18 : 14);
-            ctx.AssertEqual("pickup enchantment amount", 3,
-                card.Enchantment?.Amount ?? 0);
-
-            ShiningSword deckCard =
-                ctx.Player.RunState.CreateCard<ShiningSword>(ctx.Player);
-            try
-            {
-                await CardPileCmd.Add(deckCard, PileType.Deck);
-                ctx.AssertEqual("pickup applies Vigorous", nameof(Vigorous),
-                    deckCard.Enchantment?.GetType().Name ?? "none");
-            }
-            finally
-            {
-                if (!deckCard.HasBeenRemovedFromState
-                    && deckCard.Pile?.Type == PileType.Deck)
-                {
-                    await CardPileCmd.RemoveFromDeck(deckCard, showPreview: false);
-                }
-            }
-        }, 3);
+        CustomVariants<ShiningSword>((ctx, card, upgraded) => DesignSyncEnchantmentInputContract.Sword(ctx, card, upgraded), 17);
 
     private static void FlameSwordProbe() =>
         CustomVariants<FlameSword>(DesignSyncFlameSwordContract.Run, 35);
@@ -1282,19 +1228,7 @@ internal static class CardEffectTestCatalog
         }, 2);
 
     private static void MagicIndexProbe() =>
-        CustomVariants<MagicIndex>(async (ctx, card, _) =>
-        {
-            await ctx.Play(card);
-            await ctx.AddFillerCards(PileType.Draw, 1);
-            StrikeIronclad enchanted = ctx.Create<StrikeIronclad>();
-            await CardPileCmd.Add(enchanted, PileType.Draw, CardPilePosition.Top,
-                skipVisuals: true);
-            CombatEnchantmentCmd.ApplyVanilla<Sharp>(enchanted, 1);
-            await CardPileCmd.Draw(new BlockingPlayerChoiceContext(), 1, ctx.Player);
-            ctx.AssertPower("index amount", ctx.Self, "MagicIndexPower", 1);
-            ctx.AssertEqual("enchanted draw plus one extra card", 2,
-                ctx.CountCards<StrikeIronclad>(PileType.Hand));
-        }, 2);
+        CustomVariants<MagicIndex>(DesignSyncEnchantmentInputContract.Index, 25);
 
     private static void DreamPigmentProbe() =>
         CustomVariants<DreamPigment>(async (ctx, _, upgraded) =>
@@ -2466,29 +2400,7 @@ internal static class CardEffectTestCatalog
         }, 4);
 
     private static void MagicSwordProbe() =>
-        CustomVariants<MagicSword>(async (ctx, card, upgraded) =>
-        {
-            MagicSword deckCard = ctx.Player.RunState.CreateCard<MagicSword>(ctx.Player);
-            if (upgraded)
-                CardCmd.Upgrade(deckCard);
-            await CardPileCmd.Add(deckCard, PileType.Deck, skipVisuals: true);
-            try
-            {
-                ctx.AssertEqual("pickup charge enchantment type", "ChargeEnchantment",
-                    deckCard.Enchantment?.GetType().Name ?? "none");
-                ctx.AssertEqual("pickup charge amount", 2,
-                    deckCard.Enchantment?.Amount ?? 0);
-            }
-            finally
-            {
-                if (!deckCard.HasBeenRemovedFromState && deckCard.Pile?.Type == PileType.Deck)
-                    await CardPileCmd.RemoveFromDeck(deckCard, showPreview: false);
-            }
-
-            int hp = ctx.PrimaryEnemy.CurrentHp;
-            await ctx.Play(card, ctx.PrimaryEnemy);
-            ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, upgraded ? 18 : 12);
-        }, 3);
+        CustomVariants<MagicSword>((ctx, card, upgraded) => DesignSyncEnchantmentInputContract.Sword(ctx, card, upgraded), 17);
 
     private static void JudgmentBladeProbe() =>
         CustomVariants<JudgmentBlade>(async (ctx, card, upgraded) =>

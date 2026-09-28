@@ -6,9 +6,9 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-02Q：索引与拾取附魔三剑（READY）
+## DS27-02Q：索引与拾取附魔三剑（IMPLEMENTED，游戏内待验）
 
-`CARD-N-150～299`完整四牌条目→DS27-02Q→原生连续抽牌/Power有效性、精确文本与真实拾取附魔/首次收益测试→DS27效果/文本/COMPAT/GATES。前置`19229c1e`。保留正确递归抽牌顺序和三剑规则，不改变设计，待实现验证，未部署。
+`CARD-N-150～299`完整四牌条目→DS27-02Q→`MagicIndexPower`有效性/状态文本、`DesignSyncEnchantmentInputContract`精确卡面/原生连续抽牌/真实拾取附魔及首次后续收益→DS27效果/文本/COMPAT/GATES。前置`19229c1e`，同步`c323a201`。保留正确递归抽牌顺序和三剑规则。7新增静态累计345，既有13540生产断言、33编码、Debug/Release及四内容门通过。`ms_test_cards confirm ds27-enchantment-input`编译未游戏执行；三剑每变体至少17效果断言、索引至少25；自然时序/视觉/完整存读档/多人待验。旧视觉和全卡审计失败保留，未部署，见`DESIGN_SYNC_20260927_BATCH41.md`。
 
 ## DS27-02P：冰界的女神（IMPLEMENTED，游戏内待验）
 
