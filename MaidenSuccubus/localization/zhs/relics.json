@@ -1,4 +1,7 @@
 {
+  "MAIDEN_SUCCUBUS_RELIC_REFRESHED.title": "神清气爽",
+  "MAIDEN_SUCCUBUS_RELIC_REFRESHED.description": "拾起时，在接下来的3场战斗开始时，额外抽2张牌。",
+  "MAIDEN_SUCCUBUS_RELIC_REFRESHED.flavor": "效果用完，卡片会自己消失。",
   "MAIDEN_GENEROSITY_OFFER.title": "慷慨供奉",
   "MAIDEN_GENEROSITY_OFFER.description": "慷慨供奉",
   "MAIDEN_GENEROSITY_OFFER.progress": "放弃关联的遗物，推进慷慨试炼。与领取该遗物只能选择一项。",

@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.DevConsole;
 using MegaCrit.Sts2.Core.DevConsole.ConsoleCommands;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Relics;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Hooks;
@@ -157,6 +158,56 @@ public sealed class DesignMagicRelicTestConsoleCmd : AbstractConsoleCmd
             int removedCount = barrier.TurnsSeen;
             await barrier.AfterSideTurnStartLate(CombatSide.Player, [ctx.Self], combat);
             Check(barrier.TurnsSeen == removedCount, "removed barrier cannot count or grant");
+            // These are simulated combat boundaries, not natural travel/save acceptance.
+            var turnProperty = typeof(PlayerCombatState).GetProperty(nameof(PlayerCombatState.TurnNumber))!;
+            int originalTurn = player.PlayerCombatState!.TurnNumber;
+            var refreshed = (Refreshed)ModelDb.Relic<Refreshed>().ToMutable();
+            await RelicCmd.Obtain(refreshed, player);
+            try
+            {
+                Check(Plain(refreshed.DynamicDescription.GetFormattedText()) == "拾起时，在接下来的3场战斗开始时，额外抽2张牌。",
+                    "refreshed description matches design");
+                for (int battle = 1; battle <= 3; battle++)
+                {
+                    await ctx.Reset();
+                    turnProperty.SetValue(player.PlayerCombatState, 1);
+                    await refreshed.BeforeCombatStart();
+                    await refreshed.BeforeCombatStart();
+                    Check(refreshed.RemainingCombats == 3 - battle && refreshed.DisplayAmount == 3 - battle,
+                        "opening receipt spends exactly one battle despite duplicate setup");
+                    decimal draw = Hook.ModifyHandDraw(combat, player, 5, out _);
+                    Check(draw == 7 && Hook.ModifyHandDraw(combat, player, 5, out _) == 7
+                        && refreshed.RemainingCombats == 3 - battle, "native opening draw query adds two without spending again");
+                    Check(refreshed.ModifyHandDraw(foreign, 5) == 5, "another player's hand is unchanged");
+                    var restored = (Refreshed)RelicModel.FromSerializable(refreshed.ToSerializable());
+                    restored.Owner = player;
+                    await restored.BeforeCombatStart();
+                    Check(restored.RemainingCombats == 3 - battle && restored.ModifyHandDraw(player, 5) == 7,
+                        "restored pending opening retains charge receipt and bonus");
+                    await ctx.AddFillerCards(MegaCrit.Sts2.Core.Entities.Cards.PileType.Draw, 10);
+                    if (battle == 2) await ctx.ApplyPower<MegaCrit.Sts2.Core.Models.Powers.NoDrawPower>(ctx.Self, 1);
+                    await CardPileCmd.Draw(choice, draw, player, fromHandDraw: true);
+                    await Hook.AfterPlayerTurnStart(combat, choice, player);
+                    Check(MegaCrit.Sts2.Core.Entities.Cards.PileType.Hand.GetPile(player).Cards.Count == (battle == 2 ? 0 : 7),
+                        "real opening draw respects native no-draw effect");
+                    Check(!refreshed.OpeningPending && refreshed.ModifyHandDraw(player, 5) == 5,
+                        "completed opening cannot grant bonus again");
+                    player.PlayerCombatState.IncrementTurnNumber();
+                    Check(refreshed.ModifyHandDraw(player, 5) == 5, "later turn receives no opening bonus");
+                    await refreshed.AfterCombatEnd(null!);
+                    Check(player.Relics.Contains(refreshed) == (battle < 3), "third use removes event relic only after opening draw");
+                }
+                var foreignRefreshed = (Refreshed)ModelDb.Relic<Refreshed>().ToMutable();
+                foreignRefreshed.Owner = foreign;
+                await foreignRefreshed.BeforeCombatStart();
+                Check(foreignRefreshed.RemainingCombats == 3 && !foreignRefreshed.OpeningPending,
+                    "another character cannot activate the event reward");
+            }
+            finally
+            {
+                turnProperty.SetValue(player.PlayerCombatState, originalTurn);
+                if (player.Relics.Contains(refreshed)) await RelicCmd.Remove(refreshed);
+            }
             MaidenSuccubusMod.Logger.Info($"[DS27MagicRelicTest] PASS {checks} assertions; disposable combat modified.");
         }
         catch (Exception ex)

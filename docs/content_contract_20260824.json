@@ -81,6 +81,7 @@
   "derivativeCardPools": ["MSGeneratedCardPool", "MSInvasionCursePool"],
   "rewardCardPools": ["MSNeutralCardPool", "MSCorruptCardPool", "MSHolyCardPool"],
   "relics": [
+    "Refreshed",
     "TonysCharm",
     "CounterCurseMirror", "DivineStardust",
     "PrayerEarrings", "BarrierGenerator",

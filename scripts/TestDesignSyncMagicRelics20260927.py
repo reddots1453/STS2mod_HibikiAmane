@@ -10,6 +10,27 @@ from TestDesignSyncNeutral20260927 import read
 
 
 class MagicRelicContracts(unittest.TestCase):
+    def test_refreshed_uses_native_opening_draw_and_saved_three_battle_receipt(self):
+        source = read("src/Relics/Refreshed.cs")
+        for token in ("RelicRarity.Event", "RemainingCombats { get; set; } = 3", "[SavedProperty] public bool CombatPrepared",
+                      "[SavedProperty] public bool OpeningPending", "CombatPrepared || RemainingCombats <= 0",
+                      "RemainingCombats--", "ModifyHandDraw(Player player, decimal count)", "TurnNumber == 1",
+                      "? count + 2 : count", "AfterPlayerTurnStart", "await RelicCmd.Remove(this)",
+                      "Character: MaidenSuccubusCharacter", "!HasBeenRemovedFromState"):
+            self.assertIn(token, source)
+        query = source.split("public override decimal ModifyHandDraw", 1)[1].split("public override async Task", 1)[0]
+        self.assertNotIn("RemainingCombats--", query)
+        self.assertNotIn("CardPileCmd.Draw", source)
+        self.assertEqual(json.loads(read("docs/content_contract_20260824.json"))["relics"].count("Refreshed"), 1)
+        expected = "拾起时，在接下来的3场战斗开始时，额外抽2张牌。"
+        self.assertIn(expected, read("DesignDoc.md"))
+        self.assertEqual(json.loads(read("MaidenSuccubus/localization/zhs/relics.json"))["MAIDEN_SUCCUBUS_RELIC_REFRESHED.description"], expected)
+        game = read("src/ConsoleCommands/DesignMagicRelicTestConsoleCmd.cs")
+        for token in ("battle <= 3", "Hook.ModifyHandDraw(combat, player, 5", "fromHandDraw: true",
+                      "RelicModel.FromSerializable(refreshed.ToSerializable())", "NoDrawPower", "foreignRefreshed",
+                      "third use removes event relic only after opening draw"):
+            self.assertIn(token, game)
+
     def test_approved_requirements_and_exact_descriptions(self):
         design = read("DesignDoc.md")
         for heading in ("祈祷耳环 `[RELIC-CHAR-001 · READY]`", "结界生成装置 `[RELIC-CHAR-004 · READY]`"):
@@ -31,7 +52,7 @@ class MagicRelicContracts(unittest.TestCase):
         for name in ("PrayerEarrings", "BarrierGenerator"):
             self.assertEqual(contract["relics"].count(name), 1)
             self.assertIn(f"[RegisterRelic(typeof(MSRelicPool))]\npublic sealed class {name}", source)
-        self.assertEqual(len(contract["relics"]), 33)  # Includes the approved TonysCharm addition.
+        self.assertEqual(len(contract["relics"]), 34)  # Includes TonysCharm and Refreshed.
         self.assertIn("RelicRarity.Common", source)
         self.assertIn("RelicRarity.Rare", source)
         self.assertIn("HoverTipFactory.FromPower<MagicAmplificationPower>()", source)
