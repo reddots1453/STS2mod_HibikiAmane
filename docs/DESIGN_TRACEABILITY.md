@@ -6,6 +6,14 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-02P：冰界的女神（READY）
+
+`CARD-N-150～299`完整条目→DS27-02P→逐CardPlay资格快照/原生生成命令、升级状态文本/衍生悬停→DS27效果/文本/COMPAT/GATES。前置`5bb83c8b`；不改Single堆叠及1张生成数值，待实现测试，未部署。
+
+## DS27-04G：东尼的咒符（OPEN）
+
+角色专属商店遗物→DS27-04G→Q18随机稀有牌卡池范围待用户明确。已只读核验原生CardPool仅中立、三路线合并服务和永久删牌钩子；不自行固化卡池规则。未实现、未部署。
+
 ## DS27-04F：反咒镜与神界星尘（IMPLEMENTED，游戏内待验）
 
 前置`17284731`，同步`dea193fd`；Q10→`RELIC-CHAR-003/006`→DS27-04F→`ReactiveMagicRelics/ReactiveMagicRelicRules`、安全描述分支、原生负面变化/反应防递归、原生生成/每次实际出牌/计数保存→DS27效果/文本/COMPAT/GATES。数值原文不变；338新增生产断言累计13540、8新增静态累计331、33保存编码、Debug/Release和四内容门通过。`ms_test_reactive_relics confirm`编译未运行，复制品/神器/审判/重放/生成及保存用例待游戏执行。专用美术尚未映射，显式原版占位；自然时序/完整存读档/联网待验。视觉317及全卡旧差异保留，未部署，见`DESIGN_SYNC_20260927_BATCH39.md`。
