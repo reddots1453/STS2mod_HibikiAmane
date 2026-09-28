@@ -82,6 +82,15 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
                 Check(enemyHp.All(pair => pair.Value - pair.Key.CurrentHp == 8)
                     && PileType.Draw.GetPile(player).Cards.Count == 6 && PileType.Hand.GetPile(player).Cards.Count == 0,
                     "generated Surf executes one doubled all-enemy attack without drawing or simulating draw loop");
+
+                await ctx.Reset();
+                var helperAttack = await ctx.Add<BurningBracelet>(PileType.Hand, upgraded);
+                HumilityExtractedCards.Apply(helperAttack);
+                int hpBefore = ctx.PrimaryEnemy.CurrentHp;
+                decimal amount = helperAttack.DynamicVars.Damage.BaseValue * 2;
+                await ctx.Play(helperAttack, ctx.PrimaryEnemy);
+                Check(hpBefore - ctx.PrimaryEnemy.CurrentHp == amount,
+                    "generated helper expansion executes damage through original card/native modifiers");
             }
             await ctx.Reset();
             foreach (Type type in HumilityCardProfiles.SupportedTypes)

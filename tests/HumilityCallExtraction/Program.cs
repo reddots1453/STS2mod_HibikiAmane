@@ -59,6 +59,46 @@ if (args.SequenceEqual(new[] { "--self-test" }))
     rejected = false;
     try { _ = new HumilityExtractedCatalog(document.ToJsonString()); } catch (FormatException) { rejected = true; }
     Check(rejected, "inconsistent generated status cannot load as an empty effect");
+    const string helperSource = """
+        namespace Fixture;
+        static class Effects {
+          static Task Hit(CardModel card, Context context, Play play, decimal amount, int hits = 1) {
+            decimal doubled = amount * 2;
+            return DamageCmd.Attack(doubled).FromCard(card, play).WithHitCount(hits).Targeting(play.Target).Execute(context);
+          }
+        }
+        class ThroughHelper {
+          Task OnPlay(Context context, Play play) {
+            int count = ResolveEnergyXValue();
+            Effects.Hit(this, context, play, 3);
+            Effects.Hit(this, context, play, hits: count, amount: 4);
+            return Task.CompletedTask;
+          }
+        }
+        """;
+    var helper = CallExtractor.Extract(helperSource).Single();
+    Check(helper.Program?.Effects.Count == 2 && helper.Program.Effects[0].Amount.Evaluate(default, _ => 0) == 6
+        && helper.Program.Effects[1].Amount.Evaluate(default, _ => 0) == 8
+        && helper.Program.Effects[0].Repeats.Evaluate(default, _ => 0) == 1
+        && helper.Program.Effects[1].Repeats.Evaluate(new(3,0,0), _ => 0) == 3,
+        "source helper expansion preserves defaults, named arguments, caller X and independent local scopes");
+    const string recursive = "class Recursive { Task OnPlay(Context c, Play p) => Loop(); Task Loop() { Loop(); return Task.CompletedTask; } }";
+    Check(CallExtractor.Extract(recursive).Single().Error?.Contains("Recursive helper") == true,
+        "recursive helpers rejected without execution or infinite expansion");
+    const string overloads = "class Ambiguous { Task OnPlay(Context c, Play p) => Hit(1); Task Hit(int a) => Task.CompletedTask; Task Hit(decimal a) => Task.CompletedTask; }";
+    Check(CallExtractor.Extract(overloads).Single().Error?.Contains("Ambiguous helper") == true,
+        "overload ambiguity is reported rather than selecting a different effect");
+    const string instance = "class LocalHelper { Task OnPlay(Context context, Play play) => Hit(context, play); Task Hit(Context context, Play play) { return CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play); } }";
+    Check(CallExtractor.Extract(instance).Single().Program?.Effects.Single().Kind == HumilityEffectKind.Block,
+        "expression-bodied local helper resolves retained block");
+    var visual = Extract(attack.Replace(".Execute(context)", ".WithHitVfxSpawnedAtBase().WithNoAttackerAnim().Execute(context)") + " await VfxCmd.PlayOnCreatureCenter(Owner.Creature, effect);");
+    Check(visual.Program?.Effects.Count == 1, "visual modifiers and standalone visual command do not block extraction");
+    var foreignSource = Extract(attack.Replace(".FromCard(this, play)", ".FromOsty(Owner.Osty, this, play)"));
+    Check(foreignSource.Program == null, "different attacker source is not incorrectly discarded as a visual setting");
+    var extraEffects = Extract(attack + " await CombatEnchantmentCmd.Apply<AnyEnchant>(card, 1); await ForgeCmd.Forge(3, Owner, this); await OstyCmd.Summon(context, Owner, 3, this);");
+    Check(extraEffects.Program?.Effects.Count == 1, "new enchantment, forging and summoning are removed rather than extra damage");
+    Check(CallExtractor.Extract("class Returned { Task OnPlay(Context c, Play p) { return Hidden(); } }").Single().Program == null,
+        "unresolved returned helper is not silently treated as empty");
     return 0;
 }
 if (args.Length == 2 && args[0] == "--verify-assembly")
@@ -100,12 +140,14 @@ if (output != null && sources.Contains(output)) throw new ArgumentException("Out
 var cards = new JsonArray();
 var hashes = new JsonArray();
 bool unsupported = false;
+var sourceTexts = sources.ToDictionary(path => path, File.ReadAllText, StringComparer.Ordinal);
+var methodIndex = HelperExpansion.Index(sourceTexts.Values);
 foreach (string path in sources)
 {
-    string source = File.ReadAllText(path);
+    string source = sourceTexts[path];
     string hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(source)));
     hashes.Add(new JsonObject { ["file"] = Path.GetFileName(path), ["sha256"] = hash });
-    foreach (var card in CallExtractor.Extract(source))
+    foreach (var card in CallExtractor.Extract(source, methodIndex))
     {
         unsupported |= card.Program == null;
         cards.Add(new JsonObject { ["source"] = Path.GetFileName(path), ["sourceHash"] = hash, ["card"] = card.Card, ["line"] = card.Line,

@@ -10,7 +10,7 @@ internal sealed record Extraction(string Card, HumilityEffectProgram? Program, s
 /// <summary>Static call slicing only: never invokes card methods or removed effects.</summary>
 internal static class CallExtractor
 {
-    internal static IReadOnlyList<Extraction> Extract(string source)
+    internal static IReadOnlyList<Extraction> Extract(string source, IReadOnlyList<MethodDeclarationSyntax>? methods = null)
     {
         var tree = CSharpSyntaxTree.ParseText(source);
         var root = tree.GetRoot();
@@ -25,7 +25,15 @@ internal static class CallExtractor
             string ns = string.Join(".", type.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().Reverse().Select(n => n.Name.ToString()));
             string name = string.IsNullOrEmpty(ns) ? type.Identifier.Text : ns + "." + type.Identifier.Text;
             int line = tree.GetLineSpan(method.Span).StartLinePosition.Line + 1;
-            try { results.Add(new(name, Slice(method), null, line)); }
+            try
+            {
+                var expanded = (MethodDeclarationSyntax)new HelperExpansion(methods ?? HelperExpansion.Index([source]), method).Visit(method)!;
+                // Expression-bodied OnPlay must also be exposed to statement expansion.
+                if (expanded.ExpressionBody != null)
+                    expanded = expanded.WithBody(SyntaxFactory.Block(SyntaxFactory.ExpressionStatement(expanded.ExpressionBody.Expression))).WithExpressionBody(null);
+                expanded = (MethodDeclarationSyntax)new HelperExpansion(methods ?? HelperExpansion.Index([source]), method).Visit(expanded)!;
+                results.Add(new(name, Slice(expanded), null, line));
+            }
             catch (NotSupportedException error) { results.Add(new(name, null, error.Message, line)); }
         }
         return results;
@@ -80,6 +88,7 @@ internal static class CallExtractor
                     case "TargetingRandomOpponents": attackTarget = HumilityTarget.RandomEnemy; break;
                     case "Execute": execute = true; break;
                     case "FromCard": case "WithHitFx": case "WithAttackerAnim": case "WithHitVfxNode":
+                    case "WithHitVfxSpawnedAtBase": case "SpawningHitVfxOnEachCreature": case "WithNoAttackerAnim": case "WithAttackerFx":
                         break; // Visual callbacks are not executed by the rewritten program.
                     default: throw Unsupported(next, "unsupported attack-chain method " + member.Name.Identifier.Text);
                 }
@@ -91,6 +100,7 @@ internal static class CallExtractor
         // Unknown helpers may contain a hidden attack. Do not silently label them an
         // empty program, or keep only a direct attack while dropping a helper's damage.
         IEnumerable<ExpressionSyntax> statements = method.DescendantNodes().OfType<ExpressionStatementSyntax>().Select(s => s.Expression);
+        statements = statements.Concat(method.DescendantNodes().OfType<ReturnStatementSyntax>().Where(s => s.Expression != null).Select(s => s.Expression!));
         if (method.ExpressionBody != null) statements = statements.Append(method.ExpressionBody.Expression);
         foreach (var statement in statements)
         {
@@ -98,7 +108,8 @@ internal static class CallExtractor
             var expression = statement is AwaitExpressionSyntax awaitExpression ? awaitExpression.Expression : statement;
             if (expression is not InvocationExpressionSyntax invocation || invocation.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().Any(IsEffect)) continue;
             if (invocation.Expression is MemberAccessExpressionSyntax member
-                && member.Expression.ToString() is "CardPileCmd" or "CardCmd" or "PowerCmd" or "PlayerCmd" or "OrbCmd" or "CreatureCmd" or "ArgumentNullException" or "Cmd" or "SfxCmd") continue;
+                && member.Expression.ToString() is "CardPileCmd" or "CardCmd" or "PowerCmd" or "PlayerCmd" or "OrbCmd" or "CreatureCmd" or "ArgumentNullException" or "Cmd" or "SfxCmd" or "VfxCmd" or "CombatEnchantmentCmd") continue;
+            if (IsCall(invocation, "ForgeCmd", "Forge") || IsCall(invocation, "OstyCmd", "Summon")) continue;
             throw Unsupported(invocation, "helper statement may hide damage/block: " + MethodName(invocation));
         }
         return new(effects);
