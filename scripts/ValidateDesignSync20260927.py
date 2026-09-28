@@ -37,6 +37,7 @@ def plan() -> list[Suite]:
         Suite("audit_self_tests", "static", (sys.executable, "scripts/TestCardLocalizationAudit.py")),
         Suite("production_rules", "pure_production", ("dotnet", "run", "--project", "tests/DesignSyncContracts", "--no-restore")),
         Suite("humility_effects", "pure_production", ("dotnet", "run", "--project", "tests/HumilityEffectContracts", "--no-restore")),
+        Suite("humility_call_extraction", "source_extraction", ("dotnet", "run", "--project", "tests/HumilityCallExtraction", "--no-restore", "--", "--self-test")),
         Suite("generosity_offering", "pure_production", ("dotnet", "run", "--project", "tests/GenerosityOfferingContracts", "--no-restore")),
         Suite("save_codec", "codec_no_engine", ("dotnet", "run", "--project", "tests/LayeredSaveContracts", "--no-restore")),
         Suite("release_build", "compile_only", ("dotnet", "build", "MaidenSuccubus.csproj", "-c", "Release", "-p:DeployMod=false", "--no-restore")),

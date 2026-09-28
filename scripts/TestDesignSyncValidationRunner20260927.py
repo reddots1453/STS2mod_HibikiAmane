@@ -20,11 +20,11 @@ class ValidationRunnerContracts(unittest.TestCase):
 
     def test_fixed_plan_no_deployment_game_launch_or_shared_report_writes(self):
         suites = runner.plan()
-        self.assertEqual(len(suites), 14)
-        self.assertEqual(len({s.id for s in suites}), 14)
+        self.assertEqual(len(suites), 15)
+        self.assertEqual(len({s.id for s in suites}), 15)
         projects = {s.argv[s.argv.index("--project") + 1] for s in suites if "--project" in s.argv}
         self.assertEqual(projects, {"tests/DesignSyncContracts", "tests/LayeredSaveContracts",
-                                    "tests/HumilityEffectContracts", "tests/GenerosityOfferingContracts"})
+                                    "tests/HumilityEffectContracts", "tests/GenerosityOfferingContracts", "tests/HumilityCallExtraction"})
         builds = [s for s in suites if s.kind == "compile_only"]
         self.assertEqual([s.argv[s.argv.index("-c") + 1] for s in builds], ["Release", "Debug"])
         for suite in builds:
