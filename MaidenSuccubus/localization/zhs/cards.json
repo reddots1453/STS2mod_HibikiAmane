@@ -127,7 +127,7 @@
   "MAIDEN_SUCCUBUS_CARD_NIMBLE_SCRIPTURE.title": "轻灵圣言",
   "MAIDEN_SUCCUBUS_CARD_NIMBLE_SCRIPTURE.description": "持续{Duration:diff()}回合。\n获得2层临时[gold]敏捷[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_PUNISHMENT_SCRIPTURE.title": "惩戒圣言",
-  "MAIDEN_SUCCUBUS_CARD_PUNISHMENT_SCRIPTURE.description": "持续{Duration:diff()}回合。\n每回合结束时对随机1名敌人给予1层[gold]断罪[/gold]。",
+  "MAIDEN_SUCCUBUS_CARD_PUNISHMENT_SCRIPTURE.description": "持续{Duration:diff()}回合。\n每回合结束时对随机敌人给予1层[gold]断罪[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_WISDOM_SCRIPTURE.title": "睿智圣言",
   "MAIDEN_SUCCUBUS_CARD_WISDOM_SCRIPTURE.description": "持续{Duration:diff()}回合。\n每回合开始时获得抽{Cards:diff()}张牌。",
   "MAIDEN_SUCCUBUS_CARD_VITALITY_SCRIPTURE.title": "活力圣言",

@@ -32,23 +32,28 @@ public abstract class ScripturePowerTemplate : MaidenSuccubusPowerTemplate
 
     protected abstract Task TriggerEffect(PlayerChoiceContext choiceContext);
 
+    private bool IsActive => IsMutable && Amount > 0 && Owner.IsAlive
+        && Owner.Powers.Contains(this);
+
     public override async Task AfterApplied(
         Creature? applier,
         MegaCrit.Sts2.Core.Models.CardModel? cardSource)
     {
-        if (Timing != ScriptureTriggerTiming.OnApply)
+        if (!IsActive || Timing != ScriptureTriggerTiming.OnApply)
         {
             return;
         }
 
-        await TriggerAndPublish(new ThrowingPlayerChoiceContext());
+        // Nimble grants Dexterity now, but its Scripture event is the turn-end
+        // duration tick (DesignDoc SYS-SCR-001 / Holy Resonance).
+        await TriggerEffect(new ThrowingPlayerChoiceContext());
     }
 
     public override async Task AfterPlayerTurnStart(
         PlayerChoiceContext choiceContext,
         Player player)
     {
-        if (Timing == ScriptureTriggerTiming.TurnStart
+        if (IsActive && Timing == ScriptureTriggerTiming.TurnStart
             && player.Creature == Owner)
         {
             await TriggerPublishAndTick(choiceContext);
@@ -60,7 +65,7 @@ public abstract class ScripturePowerTemplate : MaidenSuccubusPowerTemplate
         CombatSide side,
         IEnumerable<Creature> participants)
     {
-        if (!participants.Contains(Owner))
+        if (!IsActive || side != Owner.Side || !participants.Contains(Owner))
         {
             return;
         }
@@ -71,6 +76,8 @@ public abstract class ScripturePowerTemplate : MaidenSuccubusPowerTemplate
         }
         else if (Timing == ScriptureTriggerTiming.OnApply)
         {
+            Flash();
+            await ScriptureCmd.Publish(new ScriptureTriggered(this, Owner));
             await Tick(choiceContext);
         }
     }
@@ -90,7 +97,7 @@ public abstract class ScripturePowerTemplate : MaidenSuccubusPowerTemplate
 
     private async Task Tick(PlayerChoiceContext choiceContext)
     {
-        if (Amount > 0)
+        if (IsActive)
         {
             await PowerCmd.ModifyAmount(
                 choiceContext,

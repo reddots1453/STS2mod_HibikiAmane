@@ -129,7 +129,10 @@ Assert-Contains "guardian scripture powered block var" $scripturePowers 'Guardia
 Assert-Contains "guardian scripture canonical gain path" $scripturePowers 'GuardianScripturePower[\s\S]*?CreatureCmd\.GainBlock\(Owner,\s*DynamicVars\.Block,\s*null\)'
 Assert-Contains "guardian scripture dynamic hook preview" $guardianScriptureBlock 'Hook\.ModifyBlock\('
 Assert-Contains "guardian scripture powered move property" $guardianScriptureBlock 'ValueProp\.Move'
-Assert-Contains "guardian scripture dexterity effect test" $cardEffectCatalog 'GuardianScripture[\s\S]*?ApplyPower<DexterityPower>\(ctx\.Self,\s*2\)[\s\S]*?GuardianScriptureBlockVar\.BaseBlock\s*\+\s*2'
+$scriptureContract = Read-Text "src\Debugging\CardEffects\DesignSyncScriptureContract.cs"
+Assert-Contains "scripture lifecycle test registration" $cardEffectCatalog 'CustomVariants<T>\(DesignSyncScriptureContract\.Run,\s*20\)'
+Assert-Contains "guardian scripture dexterity effect test" $scriptureContract 'ApplyPower<DexterityPower>\(ctx\.Self,\s*1\)[\s\S]*?ApplyPower<HolyResonancePower>\(ctx\.Self,\s*2\)[\s\S]*?ctx\.AssertBlock\("actual effect plus resonance block per tick",\s*block,[\s\S]*?card is GuardianScripture\s*\?\s*7'
+Assert-Contains "guardian scripture dynamic preview test" $scriptureContract 'power\.SmartDescription[\s\S]*?ctx\.AssertEqual\("guardian power includes current Dexterity"'
 Assert-Contains "guardian scripture dynamic power text" $powerLocalization 'GUARDIAN_SCRIPTURE_POWER\.smartDescription"\s*:\s*"[^"]*\{Block\}'
 Assert-NotContains "guardian scripture hard-coded power text" $powerLocalization 'GUARDIAN_SCRIPTURE_POWER\.(description|smartDescription)"\s*:\s*"[^"]*\u83B73\u70B9'
 
@@ -147,7 +150,7 @@ Assert-Contains "guardian scripture powered block var" $scripturePowers 'Guardia
 Assert-Contains "guardian scripture canonical gain path" $scripturePowers 'GuardianScripturePower[\s\S]*?CreatureCmd\.GainBlock\(Owner,\s*DynamicVars\.Block,\s*null\)'
 Assert-Contains "guardian scripture dynamic hook preview" $guardianScriptureBlock 'Hook\.ModifyBlock\('
 Assert-Contains "guardian scripture powered move property" $guardianScriptureBlock 'ValueProp\.Move'
-Assert-Contains "guardian scripture dexterity effect test" $cardEffectCatalog 'GuardianScripture[\s\S]*?ApplyPower<DexterityPower>\(ctx\.Self,\s*2\)[\s\S]*?GuardianScriptureBlockVar\.BaseBlock\s*\+\s*2'
+Assert-Contains "guardian scripture per-turn execution" $scriptureContract 'turn <= duration[\s\S]*?await power\.AfterSideTurnEnd\(choice,\s*ctx\.Self\.Side,\s*\[ctx\.Self\]\)[\s\S]*?ctx\.AssertBlock\("actual effect plus resonance block per tick"'
 Assert-Contains "guardian scripture dynamic power text" $powerLocalization 'GUARDIAN_SCRIPTURE_POWER\.smartDescription"\s*:\s*"[^"]*\{Block\}'
 Assert-NotContains "guardian scripture hard-coded power text" $powerLocalization 'GUARDIAN_SCRIPTURE_POWER\.(description|smartDescription)"\s*:\s*"[^"]*\u83B73\u70B9'
 

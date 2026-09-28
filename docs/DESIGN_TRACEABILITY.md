@@ -6,9 +6,11 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-02X：圣言时点与生命周期（READY）
+## DS27-02X：圣言时点与生命周期（IMPLEMENTED，游戏内待验）
 
 `SYS-SCR-001`六种圣言及圣光共鸣完整说明→DS27-02X→轻灵事件改为回合末/失效回调隔离/六牌全文及逐回合收益契约→WORD-1～4、LAYER-1、DS27-CARD-TEXT/GATES。前置`39dfee48`，无设计漂移；六独立图标现有映射保留，不改数值，不部署。
+
+同步`a1f3dc10`；模板/惩戒文本→`DesignSyncScriptureContract`和`ds27-scriptures`入口、8静态、迁移后的结构门。累计421静态、13540/33既有断言、双构建四门通过。引擎内脚本仅编译，逐回合回调手动驱动；自然回合、多人、存读档仍待验，不标VERIFIED，见`DESIGN_SYNC_20260927_BATCH50.md`。
 
 ## DS27-02W：圣洁路线全文（IMPLEMENTED，游戏内待验）
 

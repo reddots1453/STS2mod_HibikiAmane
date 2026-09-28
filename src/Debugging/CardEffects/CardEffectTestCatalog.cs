@@ -272,7 +272,7 @@ internal static class CardEffectTestCatalog
         DrawTriggerDesire<ArousalStatus>(1);
         PlayedArmorLoss<BarbedHookStatus>(1);
         EndTurnArmorLoss<BitingPaperStatus>(1, CardKeyword.Exhaust);
-        Scripture<BlissScripture>("BlissScripturePower", 2, 3);
+        Scripture<BlissScripture>();
         EndTurnArmorLoss<ClothingBurnStatus>(1, CardKeyword.Ethereal, CardKeyword.Exhaust);
         ConditionalDrawEnergy<CalmMind>(2, 3, 2, 3, minimumHand: 6);
         Pending<ClimaxBanCurse>("DesignDoc: 效果待后续设计");
@@ -285,7 +285,7 @@ internal static class CardEffectTestCatalog
         ConfigureQuestChoice();
         LibraryPileChoiceProbe();
         HandCostRestriction<GagCurse>(CardType.Skill, 1);
-        Scripture<GuardianScripture>("GuardianScripturePower", 2, 3);
+        Scripture<GuardianScripture>();
         SelectedCardDouble<HumilityLesson>();
         Pending<HypnosisCurse>("DesignDoc: 效果待后续设计");
         IceMistProbe();
@@ -297,16 +297,16 @@ internal static class CardEffectTestCatalog
         Block<MaidenDefend>(5, 8);
         Damage<MaidenStrike>(6, 9);
         EndTurnArmorLoss<NakedDesireStatus>(1);
-        Scripture<NimbleScripture>("NimbleScripturePower", 2, 3);
+        Scripture<NimbleScripture>();
         ConfigureOverdraftChoice<OverdraftAcceptChoice>(accept: true);
         ConfigureOverdraftChoice<OverdraftDeclineChoice>(accept: false);
-        Scripture<PunishmentScripture>("PunishmentScripturePower", 2, 3);
+        Scripture<PunishmentScripture>();
         ConfigureStigmaChoice<StigmaCondemnationChoice>("CondemnationPower");
         ConfigureStigmaChoice<StigmaTargetChoice>("target");
         ConfigureStigmaChoice<StigmaWeakChoice>("WeakPower");
         HandTemptation<TransparentOutfitCurse>(30);
-        Scripture<VitalityScripture>("VitalityScripturePower", 2, 3);
-        Scripture<WisdomScripture>("WisdomScripturePower", 2, 3);
+        Scripture<VitalityScripture>();
+        Scripture<WisdomScripture>();
     }
 
     // Generic executable probes -------------------------------------------------
@@ -1075,70 +1075,8 @@ internal static class CardEffectTestCatalog
                 ctx.Player.PlayerCombatState.Energy - energy);
         }, 3);
 
-    private static void Scripture<T>(string powerName, int baseDuration, int upgradedDuration)
-        where T : CardModel => CustomVariants<T>(async (ctx, card, upgraded) =>
-        {
-            int duration = upgraded ? upgradedDuration : baseDuration;
-            if (card is WisdomScripture or BlissScripture)
-                await ctx.AddFillerCards(PileType.Draw, duration + 1);
-            if (card is BlissScripture)
-                await MaidenSuccubus.Data.Desire.Set(ctx.Player, 1);
-            if (card is GuardianScripture)
-                await ctx.ApplyPower<DexterityPower>(ctx.Self, 2);
-
-            int block = ctx.Self.Block;
-            int energy = ctx.Player.PlayerCombatState!.Energy;
-            int hand = ctx.CountCards<StrikeIronclad>(PileType.Hand);
-            await ctx.Play(card);
-            PowerModel power = ctx.Self.Powers.Single(candidate =>
-                candidate.GetType().Name == powerName);
-            ctx.AssertEqual("scripture duration", duration, power.Amount);
-
-            if (card is NimbleScripture)
-            {
-                ctx.AssertPower("temporary dexterity applied", ctx.Self,
-                    "DexterityPower", 2);
-                for (int turn = 0; turn < duration; turn++)
-                    await power.AfterSideTurnEnd(new BlockingPlayerChoiceContext(),
-                        ctx.Self.Side, [ctx.Self]);
-                ctx.AssertPower("temporary dexterity removed after duration", ctx.Self,
-                    "DexterityPower", 0);
-                return;
-            }
-
-            for (int turn = 0; turn < duration; turn++)
-            {
-                if (card is GuardianScripture or PunishmentScripture)
-                    await power.AfterSideTurnEnd(new BlockingPlayerChoiceContext(),
-                        ctx.Self.Side, [ctx.Self]);
-                else
-                    await power.AfterPlayerTurnStart(new BlockingPlayerChoiceContext(), ctx.Player);
-            }
-
-            if (card is GuardianScripture)
-                ctx.AssertBlock(
-                    "three base block plus dexterity per duration",
-                    block,
-                    (GuardianScriptureBlockVar.BaseBlock + 2) * duration);
-            else if (card is PunishmentScripture)
-                ctx.AssertEqual("one condemnation per duration", duration,
-                    ctx.Enemies.Sum(enemy => ctx.PowerAmount(enemy, "CondemnationPower")));
-            else if (card is WisdomScripture)
-                ctx.AssertPileDelta<StrikeIronclad>("one draw per duration",
-                    PileType.Hand, hand, duration);
-            else if (card is VitalityScripture)
-                ctx.AssertEqual("one energy per duration", duration,
-                    ctx.Player.PlayerCombatState.Energy - energy);
-            else if (card is BlissScripture)
-            {
-                ctx.AssertEqual("desire reduced to zero", 0,
-                    MaidenSuccubus.Data.Desire.Get(ctx.Player));
-                ctx.AssertEqual("zero-desire energy per duration", duration,
-                    ctx.Player.PlayerCombatState.Energy - energy);
-                ctx.AssertPileDelta<StrikeIronclad>("zero-desire draw per duration",
-                    PileType.Hand, hand, duration);
-            }
-        }, typeof(T) == typeof(NimbleScripture) || typeof(T) == typeof(BlissScripture) ? 3 : 2);
+    private static void Scripture<T>()
+        where T : CardModel => CustomVariants<T>(DesignSyncScriptureContract.Run, 20);
 
     // Specialized probes.  Each one performs at least one observable assertion;
     // they are intentionally named after the unabridged description clause.
