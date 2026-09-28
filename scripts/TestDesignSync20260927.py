@@ -94,7 +94,7 @@ class DesignSyncBatchOne(unittest.TestCase):
         self.assertIn("PileType.Draw, PileType.Discard, PileType.Exhaust", source)
         self.assertIn("cards.StableShuffle(player.RunState.Rng.CombatCardGeneration)", source)
         self.assertIn("cards.Take(10)", source)
-        self.assertIn("ShouldDraw(Player player, bool fromHandDraw) => player.Creature != Owner", source)
+        self.assertIn("ShouldDraw(Player player, bool fromHandDraw) => !IsActive || player.Creature != Owner", source)
 
     def test_library_choice_title_uses_dynamic_contributor(self):
         source = read("src/Cards/LibraryPileChoice.cs")

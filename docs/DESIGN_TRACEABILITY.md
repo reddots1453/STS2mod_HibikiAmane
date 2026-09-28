@@ -6,9 +6,11 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-02AA：先古书库完整回归（READY）
+## DS27-02AA：先古书库完整回归（IMPLEMENTED，游戏内待验）
 
 先古卡“娅露丝的书库”→DS27-02AA→InsatiableGreed/YarusLibraryPower→三牌堆实际选项、随机十张身份/顺序/上限、抽牌禁止及状态生命周期→DS27-CARD-EFFECT/META/COMPAT/GATES。前置`aa69ce99`，不变更随机流或规则，保留旧序列化ID；补选择返回守卫和独立期望的真实命令测试。未部署。
+
+同步`266420e6`；`DesignSyncLibraryContract`接入原两变体，每个最低200效果断言，真实CardPlayStarted/Drawn历史和随机副本检查；15种牌堆/数量组合、不可打出牌及选择失败/取消/移除编译完成。8新增静态累计451、双构建四门与13540/33通过；自然回合/多人/存读档未验，旧失败未解除。见`DESIGN_SYNC_20260927_BATCH54.md`。
 
 ## DS27-02Z：圣言生成变化链（IMPLEMENTED，游戏内待验）
 

@@ -1436,36 +1436,7 @@ internal static class CardEffectTestCatalog
         }, 2);
 
     private static void InsatiableGreedProbe() =>
-        CustomVariants<InsatiableGreed>(async (ctx, card, upgraded) =>
-        {
-            ctx.AssertEqual("library ancient rarity", CardRarity.Ancient, card.Rarity, effect: false);
-            ctx.AssertEqual("library cost", 2, card.EnergyCost.GetWithModifiers(CostModifiers.All), effect: false);
-            ctx.AssertEqual("library upgraded retain", upgraded, card.Keywords.Contains(CardKeyword.Retain), effect: false);
-            var tome = ModelDb.Relic<MegaCrit.Sts2.Core.Models.Relics.DustyTome>().ToMutable()
-                as MegaCrit.Sts2.Core.Models.Relics.DustyTome;
-            tome!.SetupForPlayer(ctx.Player);
-            ctx.AssertEqual("Dusty Tome selects library", card.Id, tome.AncientCard!, effect: false);
-            foreach (PileType pile in new[] { PileType.Draw, PileType.Discard, PileType.Exhaust })
-            foreach (int count in new[] { 0, 1, 12 })
-            {
-                await ctx.Reset();
-                await ctx.Play(ctx.Create<InsatiableGreed>(upgraded));
-                await ctx.AddFillerCards(pile, count);
-                YarusLibraryPower power = ctx.Self.GetPower<YarusLibraryPower>()!;
-                ctx.AssertTrue("library blocks ordinary and turn-start draw",
-                    !power.ShouldDraw(ctx.Player, false) && !power.ShouldDraw(ctx.Player, true));
-                await CardPileCmd.Draw(new BlockingPlayerChoiceContext(), 1, ctx.Player);
-                ctx.AssertEqual("actual Draw does not add a card", 0,
-                    PileType.Hand.GetPile(ctx.Player).Cards.Count);
-                int hpBefore = ctx.Enemies.Sum(enemy => enemy.CurrentHp);
-                TestCardSelector selector = new();
-                selector.PrepareToSelect([pile == PileType.Draw ? 0 : pile == PileType.Discard ? 1 : 2]);
-                using (CardSelectCmd.UseSelector(selector))
-                    await power.AfterPlayerTurnStart(new BlockingPlayerChoiceContext(), ctx.Player);
-                ctx.AssertEqual($"library {pile} count={count} plays distinct cards up to ten",
-                    Math.Min(10, count) * 6, hpBefore - ctx.Enemies.Sum(enemy => enemy.CurrentHp));
-            }
-        }, 27);
+        CustomVariants<InsatiableGreed>(DesignSyncLibraryContract.Run, 200);
 
     private static void LibraryPileChoiceProbe() =>
         CustomVariants<LibraryPileChoice>((ctx, card, _) =>

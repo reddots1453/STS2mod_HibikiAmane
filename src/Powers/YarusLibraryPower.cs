@@ -17,13 +17,15 @@ public sealed class YarusLibraryPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
-    public override bool ShouldDraw(Player player, bool fromHandDraw) => player.Creature != Owner;
+    private bool IsActive => IsMutable && Amount > 0 && Owner.IsAlive && Owner.Powers.Contains(this);
+    public override bool ShouldDraw(Player player, bool fromHandDraw) => !IsActive || player.Creature != Owner;
 
     public override async Task AfterPlayerTurnStart(PlayerChoiceContext context, Player player)
     {
-        if (player.Creature != Owner || Owner.CombatState == null
+        if (!IsActive || player.Creature != Owner || Owner.CombatState == null
             || CombatManager.Instance.IsOverOrEnding)
             return;
+        var combat = Owner.CombatState;
 
         LibraryPileChoice[] choices = new[] { PileType.Draw, PileType.Discard, PileType.Exhaust }
             .Select(pile =>
@@ -35,6 +37,9 @@ public sealed class YarusLibraryPower : MaidenSuccubusPowerTemplate
         if (await CardSelectCmd.FromChooseACardScreen(context, choices, player, canSkip: false)
             is not LibraryPileChoice selected)
             return;
+        if (!IsActive || Owner.CombatState != combat || CombatManager.Instance.IsOverOrEnding
+            || !choices.Contains(selected))
+            return;
 
         // Snapshot the selected pile: cards returned by their own effects cannot
         // be replayed repeatedly to turn a one-card discard pile into ten plays.
@@ -42,8 +47,8 @@ public sealed class YarusLibraryPower : MaidenSuccubusPowerTemplate
         cards.StableShuffle(player.RunState.Rng.CombatCardGeneration);
         foreach (CardModel card in cards.Take(10))
         {
-            if (CombatManager.Instance.IsOverOrEnding) break;
-            if (card.Pile?.Type == selected.SelectedPile)
+            if (Owner.CombatState != combat || !Owner.IsAlive || CombatManager.Instance.IsOverOrEnding) break;
+            if (card.Owner == player && card.Pile == selected.SelectedPile.GetPile(player))
                 await CardCmd.AutoPlay(context, card, target: null);
         }
     }
