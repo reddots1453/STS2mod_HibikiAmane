@@ -40,6 +40,7 @@ public sealed class DesignEventTestConsoleCmd : AbstractConsoleCmd
     private static async Task Run(Player player)
     {
         _running = true;
+        bool previousTestMode = TestMode.IsOn;
         int checks = 0;
         void Check(bool condition, string name)
         {
@@ -54,6 +55,7 @@ public sealed class DesignEventTestConsoleCmd : AbstractConsoleCmd
         }
         try
         {
+            TestMode.IsOn = true;
             var run = (RunState)player.RunState;
             foreach (RelicModel relic in player.Relics.ToArray())
                 await RelicCmd.Remove(relic);
@@ -106,6 +108,7 @@ public sealed class DesignEventTestConsoleCmd : AbstractConsoleCmd
             Check(enchantTarget.Enchantment is NecromancyEnchantment, "necromancy applied");
             Check(player.Deck.Cards.OfType<Normality>().Count() == cursesBefore + 1, "normality added");
             Check(CorruptionQuery.Get(run) == 4, "learning adds corruption");
+            await DesignUndeadEventContract.Run(player, Check);
             MaidenSuccubusMod.Logger.Info($"[DS27EventTest] PASS {checks} assertions; disposable run was modified.");
         }
         catch (Exception ex)
@@ -113,7 +116,7 @@ public sealed class DesignEventTestConsoleCmd : AbstractConsoleCmd
             MaidenSuccubusMod.Logger.Error("[DS27EventTest] FAIL " + ex);
             throw;
         }
-        finally { _running = false; }
+        finally { TestMode.IsOn = previousTestMode; _running = false; }
     }
 }
 #endif
