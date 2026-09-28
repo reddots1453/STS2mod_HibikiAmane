@@ -6,9 +6,11 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-02V：中立牌全文（READY）
+## DS27-02V：中立牌全文（IMPLEMENTED，游戏内待验）
 
 `CARD-N-100～399`本批26牌及冰晶碎片/功性魔防壁II～IV这4张衍生（共30牌）→DS27-02V→独立基础/升级Run与战斗全文断言/图标计数/梦色圣洁颜色修复→DS27-CARD-TEXT/GATES。前置`5da574c7`，无设计漂移；原效果测试保留，不据静态通过冒称渲染验收，不部署。
+
+同步`68827522`；`DesignSyncNeutralTextContract`与`ds27-neutral-text`选择器完成，新增8静态、累计399通过，既有13540纯规则/33编码、双构建四门通过。游戏内60变体×Run/Hand全文及原效果场景尚未运行；旧审计问题保留，见`DESIGN_SYNC_20260927_BATCH47.md`。
 
 ## DS27-04H：眼罩（IMPLEMENTED，游戏内待验）
 

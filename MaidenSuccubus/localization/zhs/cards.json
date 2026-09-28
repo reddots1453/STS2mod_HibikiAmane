@@ -29,7 +29,7 @@
   "MAIDEN_SUCCUBUS_CARD_LAST_STAND.title": "背水一战",
   "MAIDEN_SUCCUBUS_CARD_LAST_STAND.description": "造成{CalculationBase:diff()}点伤害。\n每有1层负面状态，额外造成{ExtraDamage:diff()}点伤害。\n{InCombat:\n（造成{CalculatedDamage:diff()}点伤害）|}",
   "MAIDEN_SUCCUBUS_CARD_DREAM_PIGMENT.title": "梦色的颜料",
-  "MAIDEN_SUCCUBUS_CARD_DREAM_PIGMENT.description": "从[gold]抽牌堆[/gold]中抽取[purple]堕落牌[/purple]、[purple]圣洁牌[/purple]和[gold]中立牌[/gold]各1张。",
+  "MAIDEN_SUCCUBUS_CARD_DREAM_PIGMENT.description": "从[gold]抽牌堆[/gold]中抽取[purple]堕落牌[/purple]、[gold]圣洁牌[/gold]和[gold]中立牌[/gold]各1张。",
   "MAIDEN_SUCCUBUS_CARD_LIGHTNING_KICK.title": "闪电踢击",
   "MAIDEN_SUCCUBUS_CARD_LIGHTNING_KICK.description": "造成{Damage:diff()}点伤害。\n给予{ShatterPower:diff()}层[gold]破碎[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_CALMING_MIST.title": "镇静之雾",
