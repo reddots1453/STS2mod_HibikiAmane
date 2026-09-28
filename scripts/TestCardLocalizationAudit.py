@@ -149,6 +149,23 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn("ScriptureCardTemplate`1", self.classes)
         self.assertIn("ScriptureCardTemplate", self.classes)
 
+    def test_actual_forwarded_status_keywords_match_independent_design_expectations(self):
+        expectations = {
+            "BarbedHookStatus": ("倒刺钩", ["Exhaust"]),
+            "ClothingBurnStatus": ("衣物燃烧", ["Ethereal", "Exhaust"]),
+            "BitingPaperStatus": ("咬衣纸片", ["Exhaust"]),
+            "DissolvingFluidStatus": ("溶解液", ["Exhaust", "Retain"]),
+        }
+        for name, (title, keywords) in expectations.items():
+            with self.subTest(name=name):
+                data = audit.source_metadata(name, self.classes)
+                design = audit.design_metadata(title, self.lines)
+                self.assertEqual(data["keywords"], keywords)
+                self.assertEqual(design["baseKeywords"], keywords)
+                self.assertEqual((data["cost"], data["upgradedCost"], data["type"], data["rarity"], data["target"]),
+                                 (1, 1, "Status", "Status", "Self"))
+                self.assertEqual(data["unresolvedFields"], [])
+
     def test_no_write_and_strict_review_refuses_false_completion(self):
         # Running the real audit must not touch another agent's report. A strict
         # review cannot go green merely because a similarity score is high.
@@ -158,6 +175,94 @@ class RepositoryTests(unittest.TestCase):
             self.assertEqual(audit.main(["--no-write", "--strict-review"]), 1)
         self.assertIn("full review incomplete", output.getvalue())
         self.assertIn("audited=225", output.getvalue())
+
+
+class ForwardedKeywordTests(unittest.TestCase):
+    BASE = """{
+        protected Base(IEnumerable<CardKeyword> keywords)
+            : base(1, CardType.Status, CardRarity.Status, TargetType.Self)
+        { _keywords = keywords.ToArray(); }
+        private readonly IReadOnlyList<CardKeyword> _keywords;
+        public override IEnumerable<CardKeyword> CanonicalKeywords => _keywords;
+    }"""
+
+    def metadata(self, expression, base=None, extra="", leaf_body=""):
+        leaf = "{ public Leaf() : base(" + expression + ") { " + leaf_body + " } " + extra + " }"
+        return SourceTests().source(leaf, self.BASE if base is None else base)
+
+    def test_single_multiple_and_empty_literal_collections(self):
+        for expression, expected in (("[CardKeyword.Exhaust]", ["Exhaust"]),
+                                     ("[CardKeyword.Retain, CardKeyword.Exhaust,]", ["Exhaust", "Retain"]),
+                                     ("[]", [])):
+            with self.subTest(expression=expression):
+                result = self.metadata(expression)
+                self.assertEqual(result["keywords"], expected)
+                self.assertEqual(result["unresolvedFields"], [])
+
+    def test_argument_separator_preserves_collection_and_nested_commas(self):
+        self.assertEqual(audit.split_source_arguments('[A, B], Call(1, 2), new[] {3, 4}, "x,y"'),
+                         ['[A, B]', 'Call(1, 2)', 'new[] {3, 4}', '"x,y"'])
+        for text in ('[A, B', 'A], B', '[A), B]'):
+            self.assertIsNone(audit.split_source_arguments(text))
+
+    def test_literal_parser_rejects_dynamic_spread_and_strings_instead_of_partial_success(self):
+        for expression in ('[CardKeyword.Exhaust, Extra]', '[..OtherKeywords]',
+                           '[CardKeyword.Exhaust, Compute()]', '["CardKeyword.Exhaust"]',
+                           '[CardKeyword.Exhaust, Flag ? CardKeyword.Retain : CardKeyword.Ethereal]',
+                           '[CardKeyword.Exhaust].Concat([CardKeyword.Retain])'):
+            with self.subTest(expression=expression):
+                self.assertIsNone(audit.literal_keywords(expression))
+                result = self.metadata(expression)
+                self.assertIn("keywords", result["unresolvedFields"])
+        self.assertEqual(audit.literal_keywords('[PortableKeyword.Value, SinkingKeyword.Value, CardKeyword.Exhaust]'),
+                         ['Exhaust', 'PortableKeyword', 'SinkingKeyword'])
+
+    def test_direct_getter_dynamic_values_also_remain_unknown(self):
+        for expression in ('[CardKeyword.Exhaust, Extra]', '["x"]', 'Flag ? [CardKeyword.Exhaust] : []'):
+            base = self.BASE.replace('CanonicalKeywords => _keywords;', 'CanonicalKeywords => ' + expression + ';')
+            self.assertIn("keywords", self.metadata('[]', base)["unresolvedFields"])
+
+    def test_known_fully_qualified_enums_and_keyword_values(self):
+        result = audit.literal_keywords('[MegaCrit.Sts2.Core.Entities.Cards.CardKeyword.Exhaust, MaidenSuccubus.Keywords.SinkingKeyword.Value]')
+        self.assertEqual(result, ['Exhaust', 'SinkingKeyword'])
+        self.assertIsNone(audit.literal_keywords('[Unknown.CardKeyword.Exhaust]'))
+        self.assertIsNone(audit.literal_keywords('[Unknown.SinkingKeyword.Value]'))
+
+    def test_conditional_assignment_mutability_and_field_escape_are_not_certified(self):
+        changes = (
+            ('{ _keywords = keywords.ToArray(); }', '{ if (Flag) _keywords = keywords.ToArray(); }'),
+            ('private readonly', 'private'),
+            ('private readonly', 'public readonly'),
+            ('_keywords = keywords.ToArray();', '_keywords = Transform(keywords);'),
+            ('_keywords = keywords.ToArray();', '_keywords = keywords.ToArray(); _keywords = [];'),
+            ('CanonicalKeywords => _keywords;', 'CanonicalKeywords => _keywords; void Mutate() { _keywords[0] = CardKeyword.Retain; }'),
+            ('CanonicalKeywords => _keywords;', 'CanonicalKeywords => _keywords; void Escape() { Use(_keywords); }'),
+        )
+        for old, new in changes:
+            with self.subTest(new=new):
+                self.assertIn("keywords", self.metadata('[CardKeyword.Exhaust]', self.BASE.replace(old, new))["unresolvedFields"])
+
+    def test_forwarder_side_effects_and_overloaded_constructor_remain_unknown(self):
+        result = self.metadata('[CardKeyword.Exhaust]', leaf_body='Configure();')
+        self.assertIn("keywords", result["unresolvedFields"])
+        result = self.metadata('[CardKeyword.Exhaust]', extra='public Leaf(int x) : base([]) {}')
+        self.assertIn("keywords", result["unresolvedFields"])
+
+    def test_local_getter_override_takes_precedence(self):
+        result = self.metadata('[CardKeyword.Exhaust]', extra='public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Retain];')
+        self.assertEqual(result["keywords"], ["Retain"])
+        self.assertEqual(result["unresolvedFields"], [])
+
+    def test_multilevel_forwarding_and_comments_do_not_create_fake_keywords(self):
+        path = audit.ROOT / 'src/Cards/AuditFixture.cs'
+        classes = {
+            'Leaf': ('{ public Leaf() : base([CardKeyword.Exhaust, CardKeyword.Retain]) {} }', 'Middle', path),
+            'Middle': ('{ protected Middle(IEnumerable<CardKeyword> ks) : base(ks) {} /* CanonicalKeywords => [CardKeyword.Innate]; */ }', 'Base', path),
+            'Base': (self.BASE, None, path),
+        }
+        result = audit.source_metadata('Leaf', classes)
+        self.assertEqual(result['keywords'], ['Exhaust', 'Retain'])
+        self.assertEqual(result['unresolvedFields'], [])
 
 
 if __name__ == "__main__":

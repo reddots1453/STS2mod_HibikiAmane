@@ -551,6 +551,81 @@ def design_metadata(title: str, lines: list[str]) -> dict[str, object] | None:
     }
 
 
+def split_source_arguments(text: str) -> list[str] | None:
+    """Split only at top-level commas; unknown/unbalanced syntax stays unknown."""
+    code = mask_csharp_literals(text)
+    stack: list[str] = []
+    pairs = {')': '(', ']': '[', '}': '{'}
+    parts: list[str] = []
+    start = 0
+    for index, char in enumerate(code):
+        if char in '([{':
+            stack.append(char)
+        elif char in ')]}':
+            if not stack or stack.pop() != pairs[char]:
+                return None
+        elif char == ',' and not stack:
+            parts.append(text[start:index].strip())
+            start = index + 1
+    if stack:
+        return None
+    tail = text[start:].strip()
+    if tail:
+        parts.append(tail)
+    return parts
+
+
+def literal_keywords(expression: str) -> list[str] | None:
+    match = re.fullmatch(r'\s*\[([\s\S]*)\]\s*', expression)
+    if not match:
+        return None
+    parts = split_source_arguments(match.group(1))
+    if parts is None:
+        return None
+    keywords: set[str] = set()
+    for part in parts:
+        item = re.fullmatch(
+            r'(?:(?:MegaCrit\.Sts2\.Core\.Entities\.Cards\.)?CardKeyword\.(\w+)|'
+            r'(?:MaidenSuccubus\.Keywords\.)?(PortableKeyword|SinkingKeyword)\.Value)', part)
+        if not item:
+            return None  # Never certify only the recognizable subset.
+        keywords.add(item.group(1) or item.group(2))
+    return sorted(keywords)
+
+
+def canonical_keywords(names: list[str], blocks: list[str], constructors: dict) -> list[str] | None:
+    """Bounded literal or private-readonly constructor-copy recognition, not C# evaluation."""
+    for name, block in zip(names, blocks):
+        code = mask_csharp_literals(block)
+        if not re.search(r'\bCanonicalKeywords\b', code):
+            continue
+        getter = re.search(r'\bCanonicalKeywords\s*=>\s*(?P<value>[^;]+);', code)
+        if not getter:
+            return None
+        expression = block[getter.start('value'):getter.end('value')].strip()
+        if expression.startswith('['):
+            return literal_keywords(expression)
+        if not re.fullmatch(r'\w+', expression) or name not in constructors:
+            return None
+        field = re.escape(expression)
+        if not re.search(rf'private\s+readonly\s+IReadOnlyList<CardKeyword>\s+{field}\s*;', code):
+            return None
+        # Declaration, constructor assignment and getter only. Other reads can
+        # leak the array; writes or overloads cannot be proven by this reader.
+        if len(re.findall(rf'\b{field}\b', code)) != 3:
+            return None
+        constructor, bindings, safe_forwarding = constructors[name]
+        if not safe_forwarding:
+            return None
+        body = re.match(rf'\s*\{{\s*{field}\s*=\s*(\w+)\.ToArray\(\)\s*;\s*\}}',
+                        code[constructor.end():])
+        if not body:
+            return None
+        value = bindings.get(body.group(1))
+        return literal_keywords(value) if value is not None else None
+    return []
+
+
 def source_metadata(
     type_name: str,
     all_classes: dict[str, tuple[str, str | None, Path]],
@@ -571,6 +646,8 @@ def source_metadata(
     # Never take a convenient literal from an unrelated method or base class.
     arguments: list[str] = []
     bindings: dict[str, str] = {}
+    constructors: dict = {}
+    safe_forwarding = True
     for name, block in zip(names, blocks):
         constructor = re.search(
             rf"\b{re.escape(name.split('`')[0])}\s*\((?P<params>[^()]*)\)\s*"
@@ -593,8 +670,13 @@ def source_metadata(
                 bindings[parameter_name] = arguments[position]
             elif default:
                 bindings[parameter_name] = default.strip()
-        arguments = [bindings.get(arg.strip(), arg.strip())
-                     for arg in constructor.group("args").split(",")]
+        raw_arguments = split_source_arguments(block[constructor.start('args'):constructor.end('args')])
+        single_constructor = len(re.findall(rf"\b{re.escape(name.split('`')[0])}\s*\(",
+                                            mask_csharp_literals(block))) == 1
+        constructors[name] = (constructor, bindings.copy(), safe_forwarding and single_constructor)
+        safe_forwarding &= single_constructor and bool(re.match(
+            r'\s*\{\s*\}', mask_csharp_literals(block)[constructor.end():]))
+        arguments = [bindings.get(arg, arg) for arg in raw_arguments] if raw_arguments is not None else []
         if len(arguments) >= 4 and arguments[1].startswith("CardType."):
             break
     resolved = dict.fromkeys(("cost", "type", "rarity", "target"))
@@ -609,20 +691,7 @@ def source_metadata(
     # Conditional or other forms of mutation cannot be certified by a sum.
     unknown_cost_upgrade = "EnergyCost" in upgrade and (
         not cost_upgrades or bool(re.search(r"\b(?:if|switch)\b|\?", mask_csharp_literals(upgrade))))
-    keyword_source = next((block for block in blocks if "CanonicalKeywords" in block), "")
-    canonical_keyword_match = re.search(
-        r"CanonicalKeywords\s*=>\s*\[(?P<body>.*?)\]\s*;",
-        keyword_source,
-        re.S,
-    )
-    canonical_keyword_source = (
-        canonical_keyword_match.group("body") if canonical_keyword_match else ""
-    )
-    keywords = sorted(set(re.findall(
-        r"(?:CardKeyword\.(\w+)|(PortableKeyword|SinkingKeyword)\.Value)",
-        canonical_keyword_source,
-    )))
-    flat_keywords = sorted({first or second for first, second in keywords})
+    keywords = canonical_keywords(names, blocks, constructors)
     return {
         "source": paths[0] if paths else None,
         **resolved,
@@ -632,9 +701,9 @@ def source_metadata(
             if resolved["cost"] is not None else None
         ),
         "unresolvedFields": [key for key, value in resolved.items() if value is None]
-            + (["keywords"] if keyword_source and not canonical_keyword_match else [])
+            + (["keywords"] if keywords is None else [])
             + (["upgradedCost"] if unknown_cost_upgrade else []),
-        "keywords": flat_keywords,
+        "keywords": keywords if keywords is not None else [],
         "addsKeywords": sorted(set(re.findall(r"AddKeyword\(([^)]+)\)", upgrade))),
         "removesKeywords": sorted(set(re.findall(r"RemoveKeyword\(([^)]+)\)", upgrade))),
     }
