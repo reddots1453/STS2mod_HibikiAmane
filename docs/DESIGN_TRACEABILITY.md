@@ -18,6 +18,10 @@ Q12/Q13/Q19→DS27-02AR已IMPLEMENTED：独立计数/排队复读、分层生成
 
 前置`6ffb39e2`→DesignDoc九项规则说明→DS27-02AR/04G/04J/05F/05K/05M2。Q12/Q13/Q19为能力叠加和原生重放顺序；Q14谦逊改写；Q15/Q16供奉所有权与可见性；Q17原版免费X逻辑；Q18/Q20三路线合池逐牌等概率。全部已答，不沿用历史OPEN阻塞；代码完成分项登记、游戏未验不标VERIFIED，不部署。
 
+## DS27-05X：Q15/Q16慷慨供奉（READY）
+
+ACT4-001慷慨→限定试炼/觉醒资格、战斗奖励互斥组、宝箱分配后选择、原生网络子项适配→定向阶段/互斥/删牌/序列化/索引与多人归属脚本。前置`a7e25e36`。STS1实际jar中的RewardItem双向relicLink和选中后忽略另一项已核对；不把OnSkipped当供奉。原版LinkedRewardSet只有UI关联，网络顶层索引和父完成状态需本组专用适配。
+
 ## DS27-05W：Q17原版免费与X费用（IMPLEMENTED，游戏内待验）
 
 ACT4-001免费至打出及直接关联本回合免费→GeneratedCardCostCmd/原生SetToFreeThisTurn/Ritsu固定费用绑定→真实SpendResources＋OnPlayWrapper验证X/Y支付与重放效果。前置`63b15207`，不新增X特例；修正本回合包装把X副资源抹成0的旧代码，UntilPlayed保留现有原版规则。定向验证，不部署。
