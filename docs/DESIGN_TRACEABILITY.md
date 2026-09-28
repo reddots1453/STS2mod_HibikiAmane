@@ -6,6 +6,10 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
+## DS27-02S：加速运动拾取复制（READY）
+
+`CARD-N-150～299`完整条目→DS27-02S→Run作用域原生完整克隆/永久加入一次/战斗生成排除/保存标记→DS27效果/文本/COMPAT/GATES。前置`3441ef47`；现有新建牌只保留升级不保留附魔，需回修；测试使用真实永久入牌及模型加载，不以抽牌探针代替拾取验证。未部署。
+
 ## DS27-02R：雷击、耀斑与瞬闪刺（IMPLEMENTED，游戏内待验）
 
 `CARD-N-150～299`完整三牌条目→DS27-02R→`DesignSyncChainCopyContract`连锁/魔力解放与斩杀合并/仆从排除、战斗减费生命周期、原生复制继承与预览→DS27效果/文本/COMPAT/GATES。前置`5d27cd1d`，同步`dbacae2f`。保留符合设计的生产逻辑与正式卡面。定向入口`ms_test_cards confirm ds27-chain-copy`，每变体最低33/25/17效果断言，编译未运行；352静态、既有13540生产断言/33编码、Debug/Release及四门通过。自然回合/动画/完整存读档/多人未验；旧视觉317与全卡审计保留，未部署，见`DESIGN_SYNC_20260927_BATCH42.md`。
