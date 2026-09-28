@@ -6,9 +6,11 @@
 >
 > 更新流程以`DESIGN_CHANGE_PROTOCOL.md`为准。
 
-## DS27-02W：圣洁路线全文（READY）
+## DS27-02W：圣洁路线全文（IMPLEMENTED，游戏内待验）
 
 本批44张`CARD-H-*`正式条目→DS27-02W→7处逐字/标点回修、88基础/升级独立全文/资源图标计数及Run/Hand验证→DS27-CARD-TEXT/GATES。前置`2eba001c`，无设计漂移，既有效果场景保留，不改规则/数值，不部署。
+
+同步`3e0a0b9f`；`DesignSyncHolyTextContract`/选择器及7处正式文本完成。7新增静态累计413、13540/33既有断言、双构建四门通过；88变体的Run/Hand原生渲染及原卡效尚未执行，旧审计失败保留，见`DESIGN_SYNC_20260927_BATCH49.md`。
 
 ## DS27-04I：遗忘之魂（IMPLEMENTED，游戏内待验）
 
