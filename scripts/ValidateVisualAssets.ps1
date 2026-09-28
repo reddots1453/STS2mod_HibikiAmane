@@ -310,11 +310,11 @@ foreach ($binding in @(
         throw "Formal intent icon binding is missing: $binding"
     }
 }
-$temptationCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
-    Join-Path $ProjectDir "src\UI\TemptationMeter.cs")
-if ($temptationCode -notmatch 'ui/temptation/temptation_lipstick_64\.png' -or
-    $temptationCode -notmatch 'Position = new Vector2\(56f, 34f\)') {
-    throw "Temptation meter must use the formal lipstick with an independent value label."
+# The approved shared vertical rail replaced the former side-by-side (56,34)
+# label. Validate structural/layout invariants instead of pinning that old pixel.
+& python (Join-Path $ProjectDir "scripts\ValidateSidebarLayout20260927.py") --project-dir $ProjectDir
+if ($LASTEXITCODE -ne 0) {
+    throw "Vertical sidebar source contracts failed (exit $LASTEXITCODE)."
 }
 foreach ($scene in @("maiden_succubus_rest_site.tscn", "maiden_succubus_merchant.tscn")) {
     if (!(Test-Path -LiteralPath (Join-Path $ProjectDir "MaidenSuccubus\scenes\$scene") -PathType Leaf)) {
