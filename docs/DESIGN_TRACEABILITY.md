@@ -8,6 +8,10 @@
 
 > 当前汇总：[2026-09-28全范围状态核对](DESIGN_SYNC_20260927_CURRENT_STATUS.md)。旧批次段落是带日期的历史证据；不得用历史未实现项覆盖后续交付，也不得把局部IMPLEMENTED提升为全范围VERIFIED。
 
+## DS27-05AS：碎片商店真实入口脚本（READY）
+
+ACT4-001碎片仅下一商店出现/购买解锁第二试炼→现有商店Patch/原生PurchaseWrapper→路线奖励Runner的merchant子模式。前置`0b3016a6`；不以直接RelicCmd.Obtain替代购买，金币失败不改变试炼，未购买与已购买后续均不再出现；不部署。
+
 ## DS27-05AR：原版直接攻击与动态类型（IMPLEMENTED，游戏内待验）
 
 ACT4-001→原生AttackContext分组/直接伤害、结果扩散、CardType实例身份与次数枚举→通用抽取/保存/描述及正式选牌脚本。前置`8601704a`，不增加逐牌实现表，不把未知外部代码视为空效果，不部署。
