@@ -25,11 +25,19 @@ internal sealed class HumilityNativeEffects(PlayerChoiceContext context, CardPla
         foreach (HumilityEffect effect in program.Effects)
         {
             bool valid = effect.Kind == HumilityEffectKind.Damage
-                ? effect.Target is HumilityTarget.Selected or HumilityTarget.Self or HumilityTarget.AllEnemies or HumilityTarget.RandomEnemy
+                ? effect.Target is HumilityTarget.Selected or HumilityTarget.Self or HumilityTarget.AllEnemies or HumilityTarget.RandomEnemy or HumilityTarget.CurrentCardTarget
                 : effect.Target is HumilityTarget.Selected or HumilityTarget.Self or HumilityTarget.AllAllies;
             if (!valid) throw new ArgumentException("This humility target/operation needs a native adapter.", nameof(program));
         }
     }
+
+    internal static HumilityTarget ResolveTarget(CardModel card, HumilityTarget target) =>
+        target != HumilityTarget.CurrentCardTarget ? target : card.TargetType switch
+        {
+            TargetType.AnyEnemy => HumilityTarget.Selected,
+            TargetType.AllEnemies => HumilityTarget.AllEnemies,
+            _ => throw new InvalidOperationException($"Unsupported dynamic humility target for {card.Id}: {card.TargetType}."),
+        };
 
     internal static HumilityXValues XForPlay(CardPlay play) => new(
         play.Card.EnergyCost.CostsX ? play.Card.ResolveEnergyXValue() : play.Resources.EnergyValue,
@@ -58,6 +66,7 @@ internal sealed class HumilityNativeEffects(PlayerChoiceContext context, CardPla
     public async Task Damage(decimal baseAmount, HumilityTarget target, int hits)
     {
         if (!CanContinue) return;
+        target = ResolveTarget(play.Card, target);
         AttackCommand attack = DamageCmd.Attack(baseAmount).FromCard(play.Card, play).WithHitCount(hits);
         switch (target)
         {

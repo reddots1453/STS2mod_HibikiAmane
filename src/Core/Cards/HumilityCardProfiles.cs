@@ -39,7 +39,14 @@ internal static class HumilityCardProfiles
             typeof(BlackVortex), typeof(PlayingWithFire), typeof(TemperanceSignet), typeof(CalmMind), typeof(DreamPigment),
             typeof(HumilityLesson)];
         Type[] vanilla = [typeof(StrikeIronclad), typeof(PommelStrike), typeof(Uppercut), typeof(KinglyKick),
-            typeof(ShiningStrike), typeof(DefendIronclad), typeof(ShrugItOff), typeof(Whirlwind)];
+            typeof(ShiningStrike), typeof(DefendIronclad), typeof(ShrugItOff), typeof(Whirlwind),
+            typeof(Anger), typeof(Bash), typeof(Headbutt), typeof(Backstab), typeof(PoisonedStab), typeof(Slice),
+            typeof(StrikeSilent), typeof(StrikeDefect), typeof(StrikeRegent), typeof(StrikeNecrobinder),
+            typeof(Backflip), typeof(CloakAndDagger), typeof(LegSweep), typeof(Blur),
+            typeof(DefendSilent), typeof(DefendDefect), typeof(DefendRegent), typeof(DefendNecrobinder),
+            typeof(IronWave), typeof(Dash), typeof(TwinStrike), typeof(SwordBoomerang), typeof(Thunderclap),
+            typeof(BodySlam), typeof(Shiv), typeof(Acrobatics), typeof(Adrenaline), typeof(DeadlyPoison),
+            typeof(Expertise), typeof(Outmaneuver), typeof(Prepared), typeof(PiercingWail)];
         var bindings = maiden.ToDictionary(type => type, type => "maiden:" + type.Name);
         foreach (Type type in vanilla) bindings.Add(type, "vanilla:" + type.Name);
         if (bindings.Count != HumilityProfileDefinitions.All.Count

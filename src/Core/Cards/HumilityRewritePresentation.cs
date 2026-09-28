@@ -33,9 +33,10 @@ internal static class HumilityRewritePresentation
             var times = new LocString("cards", "MAIDEN_HUMILITY_REWRITE.times");
             times.Add("Times", repeats);
             line.Add("Repeats", repeats == 1 ? "" : times.GetFormattedText());
-            string targetKey = effect.Target == HumilityTarget.Self && effect.Kind == HumilityEffectKind.Damage
-                ? "DamageSelf" : effect.Target == HumilityTarget.Selected && effect.Kind == HumilityEffectKind.Block
-                    ? "BlockSelected" : effect.Target.ToString();
+            HumilityTarget effectTarget = HumilityNativeEffects.ResolveTarget(card, effect.Target);
+            string targetKey = effectTarget == HumilityTarget.Self && effect.Kind == HumilityEffectKind.Damage
+                ? "DamageSelf" : effectTarget == HumilityTarget.Selected && effect.Kind == HumilityEffectKind.Block
+                    ? "BlockSelected" : effectTarget.ToString();
             line.Add("Target", new LocString("cards", $"MAIDEN_HUMILITY_REWRITE.target_{targetKey}"));
             lines.Add(line.GetFormattedText());
         }

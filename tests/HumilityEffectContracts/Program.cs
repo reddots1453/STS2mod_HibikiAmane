@@ -142,7 +142,7 @@ for (int i = 0; i < 40; i++) deep = new JsonObject { ["kind"] = "Add", ["left"] 
 Reject(() => HumilityValue.Load(deep), "corrupt/deep expression rejected");
 // Exercise the actual production card definitions, not a test-only reconstruction.
 var profiles = HumilityProfileDefinitions.All;
-Check(profiles.Count == 109, "reviewed groups have 101 Maiden and 8 native profiles");
+Check(profiles.Count == 141, "reviewed groups have 101 Maiden and 40 native profiles");
 Check(!profiles.ContainsKey("maiden:Surf") && !profiles.ContainsKey("foreign:PommelStrike"),
     "unsupported formulas and foreign names cannot silently become single-hit damage");
 foreach (var pair in profiles)
@@ -152,7 +152,7 @@ foreach (var pair in profiles)
     Check(pair.Value.AmountMultiplier == 1, "shared base definition starts undoubled: " + pair.Key);
     var sink = new Sink();
     await pair.Value.DoubleAmounts().Execute(new(3, 0, 4), name => name switch
-    { "Damage" => 7, "Block" => 5, "Hits" or "Repeat" => 2, "$enemies" => 3, _ => throw new Exception("Unexpected variable " + name) }, sink);
+    { "Damage" or "CalculatedDamage" => 7, "Block" => 5, "Hits" or "Repeat" => 2, "$enemies" => 3, _ => throw new Exception("Unexpected variable " + name) }, sink);
     Check(pair.Value.AmountMultiplier == 1, "execution cannot mutate shared catalog: " + pair.Key);
 }
 async Task Profile(string key, HumilityXValues x, Func<string, decimal> vars,
@@ -239,6 +239,36 @@ foreach (string name in new[] { "SoulFuenika", "FamiliarContract", "OpeningPraye
     await profiles["maiden:" + name].DoubleAmounts().Execute(new(5, 0, 3), Missing, sink);
     Check(!profiles["maiden:" + name].HasDamageOrBlock && sink.Groups.Count == 0,
         "removed card-play/selection/generation effects do not synthesize an attack: " + name);
+}
+foreach (bool upgraded in new[] { false, true })
+{
+    foreach (string name in new[] { "IronWave", "Dash" })
+    {
+        int value = name == "IronWave" ? upgraded ? 7 : 5 : upgraded ? 13 : 10;
+        var sink = new Sink();
+        await profiles["vanilla:" + name].DoubleAmounts().Execute(default, _ => value, sink);
+        Check(sink.Calls.SequenceEqual(new[] {
+            (HumilityEffectKind.Block, value * 2m, HumilityTarget.Self),
+            (HumilityEffectKind.Damage, value * 2m, HumilityTarget.Selected) }),
+            "native mixed card keeps block-before-damage order: " + name);
+    }
+    await Profile("vanilla:TwinStrike", default, _ => upgraded ? 7 : 5, upgraded ? 14 : 10, 2,
+        HumilityEffectKind.Damage, HumilityTarget.Selected);
+    await Profile("vanilla:SwordBoomerang", default, name => name == "Repeat" ? upgraded ? 4 : 3 : 3,
+        6, upgraded ? 4 : 3, HumilityEffectKind.Damage, HumilityTarget.RandomEnemy);
+    await Profile("vanilla:Shiv", default, _ => upgraded ? 6 : 4, upgraded ? 12 : 8, 1,
+        HumilityEffectKind.Damage, HumilityTarget.CurrentCardTarget);
+}
+foreach (int block in new[] { 0, 7, 24 })
+    await Profile("vanilla:BodySlam", default, name => name == "CalculatedDamage" ? block : throw new Exception(name),
+        block * 2, 1, HumilityEffectKind.Damage, HumilityTarget.Selected);
+Check(HumilityEffectProgram.Load(profiles["vanilla:Shiv"].Save()).Effects.Single().Target == HumilityTarget.CurrentCardTarget,
+    "serialization retains live external-target marker, not a snapshotted enemy selection");
+foreach (string name in new[] { "Acrobatics", "Adrenaline", "DeadlyPoison", "Expertise", "Outmaneuver", "Prepared", "PiercingWail" })
+{
+    var sink = new Sink();
+    await profiles["vanilla:" + name].DoubleAmounts().Execute(default, Missing, sink);
+    Check(!profiles["vanilla:" + name].HasDamageOrBlock && sink.Groups.Count == 0, "native non-damage effects removed: " + name);
 }
 Console.WriteLine($"PASS {checks} humility program/profile assertions (production source linked; no game integration claim).");
 

@@ -305,6 +305,91 @@ public sealed class DesignHumilityRuntimeTestConsoleCmd : AbstractConsoleCmd
             }
 
             await ctx.Reset();
+            foreach (bool upgraded in new[] { false, true })
+            {
+                await ctx.Reset();
+                var anger = await ctx.Add<Anger>(PileType.Hand, upgraded);
+                HumilityCardProfiles.ApplyKnown(anger);
+                int angerBefore = ctx.PrimaryEnemy.CurrentHp;
+                await ctx.Play(anger, ctx.PrimaryEnemy);
+                Check(angerBefore - ctx.PrimaryEnemy.CurrentHp == (upgraded ? 16 : 12)
+                    && PileType.Discard.GetPile(player).Cards.Count == 1,
+                    "rewritten native Anger deals damage without creating a copy");
+
+                await ctx.Reset();
+                var poisoned = await ctx.Add<PoisonedStab>(PileType.Hand, upgraded);
+                HumilityCardProfiles.ApplyKnown(poisoned);
+                int poisonedBefore = ctx.PrimaryEnemy.CurrentHp;
+                await ctx.Play(poisoned, ctx.PrimaryEnemy);
+                Check(poisonedBefore - ctx.PrimaryEnemy.CurrentHp == (upgraded ? 16 : 12)
+                    && !ctx.PrimaryEnemy.HasPower<PoisonPower>(), "native attack damage remains but poison application is removed");
+
+                await ctx.Reset();
+                var backflip = await ctx.Add<Backflip>(PileType.Hand, upgraded);
+                HumilityCardProfiles.ApplyKnown(backflip);
+                await ctx.AddFillerCards(PileType.Draw, 5);
+                await ctx.Play(backflip);
+                Check(ctx.Self.Block == (upgraded ? 16 : 10) && PileType.Hand.GetPile(player).Cards.Count == 0
+                    && PileType.Draw.GetPile(player).Cards.Count == 5, "native block remains, draw removed");
+
+                await ctx.Reset();
+                var ironWave = await ctx.Add<IronWave>(PileType.Hand, upgraded);
+                HumilityCardProfiles.ApplyKnown(ironWave);
+                var waveProbe = ModelCapabilityRegistry.Create<HumilityAttackProbeCapability>();
+                ironWave.AddCapability(waveProbe, allowMerge: false);
+                int waveBefore = ctx.PrimaryEnemy.CurrentHp;
+                await ctx.Play(ironWave, ctx.PrimaryEnemy);
+                Check(waveBefore - ctx.PrimaryEnemy.CurrentHp == (upgraded ? 14 : 10)
+                    && waveProbe.BlockAtAttackStart == (upgraded ? 14 : 10), "native IronWave block resolves before attack");
+
+                await ctx.Reset();
+                var boomerang = await ctx.Add<SwordBoomerang>(PileType.Hand, upgraded);
+                HumilityCardProfiles.ApplyKnown(boomerang);
+                int boomerangBefore = ctx.Enemies.Sum(enemy => enemy.CurrentHp);
+                await ctx.Play(boomerang);
+                Check(boomerangBefore - ctx.Enemies.Sum(enemy => enemy.CurrentHp) == (upgraded ? 24 : 18),
+                    "native upgrade increases random hit count, not the per-hit amount");
+
+                await ctx.Reset();
+                var adrenaline = await ctx.Add<Adrenaline>(PileType.Hand, upgraded);
+                HumilityCardProfiles.ApplyKnown(adrenaline);
+                await ctx.AddFillerCards(PileType.Draw, 5);
+                int energyBefore = player.PlayerCombatState!.Energy;
+                await Pay(adrenaline);
+                Check(player.PlayerCombatState.Energy == energyBefore && PileType.Hand.GetPile(player).Cards.Count == 0
+                    && adrenaline.Pile?.Type == PileType.Discard, "empty native skill no longer grants energy/draw/exhaust");
+            }
+
+            await ctx.Reset();
+            var bodySlam = await ctx.Add<BodySlam>(PileType.Hand);
+            HumilityCardProfiles.ApplyKnown(bodySlam);
+            await CreatureCmd.GainBlock(ctx.Self, 7, MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered, null);
+            await ctx.ApplyPower<StrengthPower>(ctx.Self, 3);
+            Check(Text(bodySlam).Contains("造成17点伤害"), "native calculated damage preview doubles current block before Strength");
+            await CreatureCmd.GainBlock(ctx.Self, 5, MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered, null);
+            Check(Text(bodySlam).Contains("造成27点伤害"), "calculated damage is live, not frozen at rewrite time");
+            int slamBefore = ctx.PrimaryEnemy.CurrentHp;
+            await ctx.Play(bodySlam, ctx.PrimaryEnemy);
+            Check(slamBefore - ctx.PrimaryEnemy.CurrentHp == 27, "native calculated damage execution matches preview");
+
+            await ctx.Reset();
+            var shiv = await ctx.Add<Shiv>(PileType.Hand);
+            HumilityCardProfiles.ApplyKnown(shiv);
+            Check(!Text(shiv).Contains("所有敌人"), "initial rewritten Shiv remains single target");
+            await ctx.ApplyPower<FanOfKnivesPower>(ctx.Self, 1);
+            Check(Text(shiv).Contains("对所有敌人造成8点伤害"), "external FanOfKnives updates rewritten description");
+            var shivHp = ctx.Enemies.ToDictionary(enemy => enemy, enemy => enemy.CurrentHp);
+            await ctx.Play(shiv);
+            Check(shivHp.All(pair => pair.Value - pair.Key.CurrentHp == 8), "external power changes rewritten Shiv to all enemies");
+            await PowerCmd.Remove(ctx.Self.GetPower<FanOfKnivesPower>()!);
+            await CardPileCmd.Add(shiv, PileType.Hand, skipVisuals: true);
+            Check(!Text(shiv).Contains("所有敌人"), "removing external power restores single-target description");
+            shivHp = ctx.Enemies.ToDictionary(enemy => enemy, enemy => enemy.CurrentHp);
+            await ctx.Play(shiv, ctx.PrimaryEnemy);
+            Check(shivHp.All(pair => pair.Value - pair.Key.CurrentHp == (pair.Key == ctx.PrimaryEnemy ? 8 : 0)),
+                "same rewritten instance returns to single-target damage after power removal");
+
+            await ctx.Reset();
             var kick = await ctx.Add<KinglyKick>(PileType.Draw);
             HumilityCardProfiles.ApplyKnown(kick);
             int oldCost = kick.EnergyCost.GetWithModifiers(CostModifiers.Local);
@@ -417,11 +502,13 @@ public sealed class HumilityAttackProbeCapability : CardCapability
     internal int BeforeCount { get; private set; }
     internal int AfterCount { get; private set; }
     internal decimal? DelayedAmplificationSample { get; private set; }
+    internal int? BlockAtAttackStart { get; private set; }
     public override Task BeforeAttack(AttackCommand command)
     {
         if (Owner != null && command.CardPlay?.Card == Owner)
         {
             BeforeCount++;
+            BlockAtAttackStart = Owner.Owner.Creature.Block;
             DelayedAmplificationSample = MaidenSuccubus.Core.Transformation.TransformationCmd
                 .ApplyAmplificationToDelayedValue(Owner.Owner.Creature, Owner, 10);
         }

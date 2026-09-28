@@ -81,6 +81,19 @@ internal static class HumilityProfileDefinitions
         Group("maiden", new([]), "SoulFuenika", "FamiliarContract", "OpeningPrayer", "IceMist", "CurseWedge",
             "MimicProliferation", "DestructionReaction", "SuperRegeneration", "Ignite", "BlackVortex",
             "PlayingWithFire", "TemperanceSignet", "CalmMind", "DreamPigment", "HumilityLesson");
+
+        Group("vanilla", new([D()]), "Anger", "Bash", "Headbutt", "Backstab", "PoisonedStab", "Slice",
+            "StrikeSilent", "StrikeDefect", "StrikeRegent", "StrikeNecrobinder");
+        Group("vanilla", new([B()]), "Backflip", "CloakAndDagger", "LegSweep", "Blur",
+            "DefendSilent", "DefendDefect", "DefendRegent", "DefendNecrobinder");
+        Group("vanilla", new([B(), D()]), "IronWave", "Dash");
+        Group("vanilla", new([D(hits: N(2))]), "TwinStrike");
+        Group("vanilla", new([D(HumilityTarget.RandomEnemy, V("Repeat"))]), "SwordBoomerang");
+        Group("vanilla", new([D(HumilityTarget.AllEnemies)]), "Thunderclap");
+        Group("vanilla", new([new(HumilityEffectKind.Damage, HumilityTarget.Selected, V("CalculatedDamage"), N(1))]), "BodySlam");
+        // FanOfKnives is an external power. Its live target change survives rewriting.
+        Group("vanilla", new([D(HumilityTarget.CurrentCardTarget)]), "Shiv");
+        Group("vanilla", new([]), "Acrobatics", "Adrenaline", "DeadlyPoison", "Expertise", "Outmaneuver", "Prepared", "PiercingWail");
         return new ReadOnlyDictionary<string, HumilityEffectProgram>(profiles);
     }
 }

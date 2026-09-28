@@ -5,6 +5,23 @@ from TestDesignSyncNeutral20260927 import read
 
 
 class HumilityRuntime(unittest.TestCase):
+    def test_live_card_target_shared_between_execution_and_description(self):
+        native = read('src/Core/Cards/HumilityNativeEffects.cs')
+        for text in ('HumilityTarget.CurrentCardTarget', 'TargetType.AnyEnemy => HumilityTarget.Selected',
+                     'TargetType.AllEnemies => HumilityTarget.AllEnemies', 'target = ResolveTarget(play.Card, target)',
+                     'Unsupported dynamic humility target'):
+            self.assertIn(text, native)
+        self.assertIn('HumilityNativeEffects.ResolveTarget(card, effect.Target)',
+                      read('src/Core/Cards/HumilityRewritePresentation.cs'))
+
+    def test_native_cards_use_game_play_and_external_power_changes(self):
+        code = read('src/ConsoleCommands/DesignHumilityRuntimeTestConsoleCmd.cs')
+        for text in ('ctx.Add<Anger>', 'ctx.Add<Backflip>', 'ctx.Add<IronWave>', 'waveProbe.BlockAtAttackStart',
+                     'ctx.Add<SwordBoomerang>', 'Pay(adrenaline)', 'ctx.Add<BodySlam>',
+                     'ctx.ApplyPower<FanOfKnivesPower>', 'PowerCmd.Remove(ctx.Self.GetPower<FanOfKnivesPower>()!)',
+                     'await ctx.Play(shiv, ctx.PrimaryEnemy)'):
+            self.assertIn(text, code)
+
     def test_intrinsic_amplification_marker_has_shared_runtime_gate(self):
         rules = read('src/Core/Transformation/IDoubleMagicAmplification.cs')
         self.assertIn('card is IDoubleMagicAmplification && HumilityRewriteCapability.Find(card) == null', rules)
