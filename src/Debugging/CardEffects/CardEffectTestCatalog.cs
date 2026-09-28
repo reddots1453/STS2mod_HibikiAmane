@@ -1386,22 +1386,7 @@ internal static class CardEffectTestCatalog
         }, 5);
 
     private static void DarkFlameBarrierProbe() =>
-        CustomVariants<DarkFlameBarrier>(async (ctx, card, upgraded) =>
-        {
-            await ctx.ApplyPower<MagicAmplificationPower>(ctx.Self, 1);
-            int block = ctx.Self.Block;
-            await ctx.Play(card);
-            ctx.AssertBlock("amplified magic-release block", block, upgraded ? 13 : 9);
-            ctx.AssertPower("barrier duration", ctx.Self,
-                "DarkFlameBarrierPower", 2);
-            await ctx.ApplyPower<BurningPower>(ctx.PrimaryEnemy, 1);
-            await CreatureCmd.LoseBlock(new BlockingPlayerChoiceContext(), ctx.Self,
-                ctx.Self.Block, null);
-            int hp = ctx.Self.CurrentHp;
-            await CreatureCmd.Damage(new BlockingPlayerChoiceContext(), ctx.Self,
-                10, ValueProp.Move, ctx.PrimaryEnemy);
-            ctx.AssertDamage("burning-enemy damage halved", ctx.Self, hp, 5);
-        }, 3);
+        CustomVariants<DarkFlameBarrier>(DesignSyncDarkBarrierContract.Run, 100);
 
     private static void DesireRecycleProbe() =>
         CustomVariants<DesireRecycle>(async (ctx, card, _) =>

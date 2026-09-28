@@ -85,18 +85,20 @@ public sealed class DarkFlameBarrier : MSCorruptCard
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new BlockVar(6, ValueProp.Move), new DynamicVar("Turns", 2)];
+        [new BlockVar(6, ValueProp.Move), new DynamicVar("Turns", 1)];
 
     public DarkFlameBarrier()
-        : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
+        : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) =>
+        this.SecondaryCosts().Set(DesireResource.Id, 1);
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
+        await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
         await PowerCmd.Apply<DarkFlameBarrierPower>(
             context, Owner.Creature, DynamicVars["Turns"].BaseValue, Owner.Creature, this);
         if (await TransformationCmd.PayOverdraft(context, Owner.Creature, this))
         {
-            await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
+            await PowerCmd.Apply<DarkFlameBarrierPower>(context, Owner.Creature, 1, Owner.Creature, this);
         }
     }
 

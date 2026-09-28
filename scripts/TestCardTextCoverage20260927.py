@@ -61,6 +61,14 @@ class CardTextInventoryTests(unittest.TestCase):
             self.assertEqual(self.rows[model]['textEvidence'], coverage.BOTH)
             self.assertEqual(rows[model]['textEvidence'], coverage.MISSING)
 
+    def test_corrupt_provider_disconnect_never_leaves_false_full_coverage(self):
+        report = self.mutated(coverage.RUNNER, 'DesignSyncCorruptTextContract.Validate(context, card, scenario.Upgraded);', '')
+        self.assertTrue(report['integrityErrors'])
+        rows = {row['model']: row for row in report['cards']}
+        for model in ('DarkFlameBarrier', 'FleetingYears', 'WinterHolly', 'DemonStaff', 'AllCurseBite'):
+            self.assertEqual(self.rows[model]['textEvidence'], coverage.BOTH)
+            self.assertEqual(rows[model]['textEvidence'], coverage.MISSING)
+
     def mutated(self, path, old, new):
         def read(file):
             text = coverage.read(file)

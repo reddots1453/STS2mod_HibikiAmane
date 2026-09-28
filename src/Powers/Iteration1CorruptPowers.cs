@@ -46,6 +46,7 @@ public sealed class DarkFlameBarrierPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
+    private bool IsActive => IsMutable && Amount > 0 && Owner.IsAlive && Owner.Powers.Contains(this);
 
     public override decimal ModifyDamageMultiplicative(
         Creature? target,
@@ -54,15 +55,18 @@ public sealed class DarkFlameBarrierPower : MaidenSuccubusPowerTemplate
         Creature? dealer,
         CardModel? cardSource,
         CardPlay? cardPlay) =>
-        target == Owner && dealer?.HasPower<BurningPower>() == true
+        IsActive && target == Owner && props.IsPoweredAttack()
+            && dealer != null && dealer.Side != Owner.Side && dealer.HasPower<BurningPower>()
             ? 0.5m
             : 1m;
 
-    public override async Task AfterPlayerTurnStart(
+    public override async Task AfterSideTurnEnd(
         PlayerChoiceContext context,
-        Player player)
+        CombatSide side,
+        IEnumerable<Creature> participants)
     {
-        if (player.Creature == Owner)
+        // Native Colossus lifetime boundary, not each individual player's turn.
+        if (IsActive && side == CombatSide.Enemy)
         {
             await PowerCmd.Decrement(this);
         }
