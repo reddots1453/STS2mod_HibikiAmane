@@ -357,13 +357,12 @@ internal static class CardEffectTestRunner
             .Select(spec => spec.CardId).Order(StringComparer.Ordinal).ToArray();
         string[] expectedPending =
         [
-            nameof(Cards.Curses.ClimaxBanCurse),
             nameof(Cards.Curses.HypnosisCurse),
         ];
         Array.Sort(expectedPending, StringComparer.Ordinal);
         if (!pending.SequenceEqual(expectedPending, StringComparer.Ordinal))
             throw new InvalidOperationException(
-                "Only ClimaxBanCurse and HypnosisCurse may be DESIGN_PENDING.");
+                "Only HypnosisCurse may be DESIGN_PENDING.");
 
         if (Iteration2CardEffectContract.CardTypes.Count
                 != Iteration2CardEffectContract.ExpectedCardCount)

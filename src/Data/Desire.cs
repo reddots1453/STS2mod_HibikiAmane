@@ -101,19 +101,12 @@ public static class Desire
         bool pending = state.PendingClimaxResolution
             || state.PendingClimaxResolutions > 0
             || state.PendingFirstTurnStun;
-        if (!pending)
+        if (!pending || !DesireRuleModifiers.ShouldTriggerPenalty(player))
         {
             return;
         }
 
-        Handle.Modify(
-            runState,
-            saved =>
-            {
-                saved.PendingFirstTurnStun = false;
-                saved.PendingClimaxResolution = false;
-                saved.PendingClimaxResolutions = 0;
-            });
+        ClearPendingResolutions(runState);
         await SecondaryResourceCmd.Set(
             player,
             DesireResource.Id,
@@ -126,6 +119,16 @@ public static class Desire
             null);
         DesireResourceRules.GrantFirstMaximumCorruption(runState);
     }
+
+    internal static void ClearPendingResolutions(RunState runState) =>
+        Handle.Modify(
+            runState,
+            saved =>
+            {
+                saved.PendingFirstTurnStun = false;
+                saved.PendingClimaxResolution = false;
+                saved.PendingClimaxResolutions = 0;
+            });
 
     internal static void RememberCombatValue(Player player, int value)
     {

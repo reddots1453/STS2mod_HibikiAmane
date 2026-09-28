@@ -90,9 +90,9 @@ if ($actual.Count -ne $expected.Count -or $duplicates.Count -gt 0 -or
 $pending = @([regex]::Matches($registration, 'Pending<(?<card>[A-Za-z0-9_.]+)>') |
     ForEach-Object { $_.Groups['card'].Value.Split('.')[-1] } |
     Sort-Object)
-$expectedPending = @('ClimaxBanCurse', 'HypnosisCurse')
+$expectedPending = @('HypnosisCurse')
 if (($pending -join ',') -ne ($expectedPending -join ',')) {
-    throw "Only ClimaxBanCurse and HypnosisCurse may be DESIGN_PENDING; found [$($pending -join ',')]."
+    throw "Only HypnosisCurse may be DESIGN_PENDING; found [$($pending -join ',')]."
 }
 
 $forbidden = @(
@@ -194,4 +194,4 @@ if ($holyPowers -notmatch '_pendingRestores' -or
     throw "BattleTechniqueReplay must restore only after the played projection leaves PileType.Play."
 }
 
-Write-Host "Validated card-effect tests: 227 exact registrations, 225 executable cards, 2 DESIGN_PENDING cards, 68-card iteration-two numeric suite, guarded manual-entry F10 trigger, no method-presence placeholders."
+Write-Host "Validated card-effect tests: 227 exact registrations, 226 executable cards, 1 DESIGN_PENDING card, 68-card iteration-two numeric suite, guarded manual-entry F10 trigger, no method-presence placeholders."

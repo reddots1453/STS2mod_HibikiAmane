@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Entities.Cards;
 
 namespace MaidenSuccubus.Core.Desire;
 
@@ -28,6 +29,15 @@ public static class DesireRuleModifiers
 
     private static IEnumerable<IDesireRuleModifier> Enumerate(Player player)
     {
+        if (player.PlayerCombatState != null)
+        {
+            foreach (var card in PileType.Hand.GetPile(player).Cards)
+            {
+                if (card is IDesireRuleModifier modifier)
+                    yield return modifier;
+            }
+        }
+
         foreach (var relic in player.Relics)
         {
             if (relic is IDesireRuleModifier modifier)

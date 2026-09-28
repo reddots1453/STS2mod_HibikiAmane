@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Runs;
+using MegaCrit.Sts2.Core.Models;
 using STS2RitsuLib.Combat.SecondaryResources;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Data;
@@ -92,52 +93,58 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
             await PowerCmd.Remove(wet);
         }
 
-        if (context.NewAmount < Data.Desire.Max
-            || !DesireRuleModifiers.ShouldTriggerPenalty(context.Player)
-            || !ResolvingPlayers.Add(context.Player))
+        await RecheckMaximum(context.Player, context.Source);
+    }
+
+    internal static async Task RecheckMaximum(Player player, AbstractModel? source)
+    {
+        if (Data.Desire.Get(player) < Data.Desire.Max
+            || !DesireRuleModifiers.ShouldTriggerPenalty(player)
+            || !ResolvingPlayers.Add(player))
         {
             return;
         }
 
         try
         {
-            if (context.Player.RunState is not RunState runState)
+            if (player.RunState is not RunState runState)
             {
                 return;
             }
 
             bool inCombat = CombatManager.Instance.IsInProgress
                 && !CombatManager.Instance.IsEnding
-                && context.Player.Creature.CombatState != null;
+                && player.Creature.CombatState != null;
             bool isPlayerTurn = inCombat
-                && context.Player.Creature.CombatState!.CurrentSide
+                && player.Creature.CombatState!.CurrentSide
                     == CombatSide.Player;
             if (!isPlayerTurn)
             {
                 Data.Desire.Handle.Modify(
                     runState,
                     state => state.PendingClimaxResolution = true);
-                PlayDesireFull(context.Player);
+                PlayDesireFull(player);
                 return;
             }
 
-            PlayDesireFull(context.Player);
+            Data.Desire.ClearPendingResolutions(runState);
+            PlayDesireFull(player);
             await SecondaryResourceCmd.Set(
-                context.Player,
+                player,
                 DesireResource.Id,
                 Data.Desire.ValueAfterOverflow,
-                context.Source);
+                source);
             await PowerCmd.Apply<DesireStunPower>(
                 new ThrowingPlayerChoiceContext(),
-                context.Player.Creature,
+                player.Creature,
                 1m,
-                context.Player.Creature,
+                player.Creature,
                 null);
             GrantFirstMaximumCorruption(runState);
         }
         finally
         {
-            ResolvingPlayers.Remove(context.Player);
+            ResolvingPlayers.Remove(player);
         }
     }
 

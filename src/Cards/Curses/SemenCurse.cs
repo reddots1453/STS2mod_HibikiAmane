@@ -15,6 +15,9 @@ using MaidenSuccubus.Pools;
 using MaidenSuccubus.Core.Invasion;
 using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Core.Temptation;
+using MaidenSuccubus.Core.Desire;
+using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Combat;
 using MaidenSuccubus.Powers;
 using MaidenSuccubus.UI;
 
@@ -377,4 +380,21 @@ public sealed class GagCurse : MSEventCurseTemplate
         return true;
     }
 }
-[RegisterCard(typeof(MSGeneratedCardPool))] public sealed class ClimaxBanCurse : MSEventCurseTemplate;
+[RegisterCard(typeof(MSGeneratedCardPool))]
+public sealed class ClimaxBanCurse : MSEventCurseTemplate, IDesireRuleModifier
+{
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Ethereal];
+
+    public bool ShouldTriggerDesirePenalty(Player player) =>
+        player != Owner || Pile?.Type != PileType.Hand;
+
+    public override Task AfterCardChangedPiles(
+        CardModel card, PileType oldPileType, AbstractModel? source) =>
+        ReferenceEquals(card, this)
+        && oldPileType == PileType.Hand
+        && Pile?.Type != PileType.Hand
+        && CombatManager.Instance.IsInProgress
+        && !CombatManager.Instance.IsEnding
+            ? DesireResourceRules.RecheckMaximum(Owner, this)
+            : Task.CompletedTask;
+}

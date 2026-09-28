@@ -275,7 +275,7 @@ internal static class CardEffectTestCatalog
         Scripture<BlissScripture>();
         EndTurnArmorLoss<ClothingBurnStatus>(1, CardKeyword.Ethereal, CardKeyword.Exhaust);
         CustomVariants<CalmMind>(DesignSyncCalmMindContract.Run, 90);
-        Pending<ClimaxBanCurse>("DesignDoc: 效果待后续设计");
+        BaseOnly<ClimaxBanCurse>(DesignSyncHandProtectionContract.Run, 15);
         CounterBarrierTokenProbe<CounterBarrierII, CounterBarrierIII>(3);
         CounterBarrierTokenProbe<CounterBarrierIII, CounterBarrierIV>(5);
         CounterBarrierFinalProbe();
