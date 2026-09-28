@@ -24,6 +24,12 @@ public static class TwinSoulChaliceDescriptionPatch
         Safe.Run(
             () =>
             {
+                if (__instance is CounterCurseMirror { HolyVariation: true } mirror)
+                {
+                    result = new LocString("relics", mirror.Id.Entry + ".descriptionHoly");
+                    return;
+                }
+
                 if (__instance is PrayerEarrings { HolyVariation: true } earrings)
                 {
                     result = new LocString("relics", earrings.Id.Entry + ".descriptionHoly");

@@ -98,7 +98,7 @@ class DarvCompassContract(unittest.TestCase):
         content = json.loads(read("docs/content_contract_20260824.json"))
         self.assertEqual(content["relics"].count("SoulCompass"), 1)
         self.assertIn("BalancedLens", content["relics"])
-        self.assertEqual(len(content["relics"]), 30)
+        self.assertEqual(len(content["relics"]), 32)
         self.assertIn('Compile Remove="tests/**/*.cs"', read("MaidenSuccubus.csproj"))
 
 

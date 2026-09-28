@@ -1,4 +1,11 @@
 {
+  "MAIDEN_SUCCUBUS_RELIC_COUNTER_CURSE_MIRROR.title": "反咒镜",
+  "MAIDEN_SUCCUBUS_RELIC_COUNTER_CURSE_MIRROR.description": "给予敌人负面状态时，额外给予1层[gold]燃烧[/gold]。[purple]堕落值[/purple]≤-3：[gold]变奏[/gold]。",
+  "MAIDEN_SUCCUBUS_RELIC_COUNTER_CURSE_MIRROR.descriptionHoly": "给予敌人负面状态时，额外给予1层[gold]断罪[/gold]。[purple]堕落值[/purple]＞-3：[gold]变奏[/gold]。",
+  "MAIDEN_SUCCUBUS_RELIC_COUNTER_CURSE_MIRROR.flavor": "给予敌人负面状态时，额外给予1层燃烧。堕落值≤-3：变奏。",
+  "MAIDEN_SUCCUBUS_RELIC_DIVINE_STARDUST.title": "神界星尘",
+  "MAIDEN_SUCCUBUS_RELIC_DIVINE_STARDUST.description": "你每生成或打出7张[gold]附魔[/gold]牌，获得2层[gold]魔力增幅[/gold]。",
+  "MAIDEN_SUCCUBUS_RELIC_DIVINE_STARDUST.flavor": "你每生成或打出7张附魔牌，获得2层魔力增幅。",
   "MAIDEN_SUCCUBUS_RELIC_PRAYER_EARRINGS.title": "祈祷耳环",
   "MAIDEN_SUCCUBUS_RELIC_PRAYER_EARRINGS.description": "战斗开始时，获得1层[gold]魔力增幅[/gold]。[purple]堕落值[/purple]≤-2：[gold]变奏[/gold]。",
   "MAIDEN_SUCCUBUS_RELIC_PRAYER_EARRINGS.descriptionHoly": "战斗开始时和进入[gold]变身[/gold]时，获得1层[gold]魔力增幅[/gold]。",

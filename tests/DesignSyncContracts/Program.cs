@@ -624,3 +624,28 @@ for (int initial = 0; initial < 5; initial++)
 Equal(1, MagicSupportRelicRules.NextBarrierTurn(-1), "barrier invalid negative state recovers safely");
 Equal(0, MagicSupportRelicRules.NextBarrierTurn(int.MaxValue), "barrier invalid huge state cannot overflow");
 Console.WriteLine($"PASS DS27 production magic support relics: {checks - beforeMagicRelics} assertions; {checks} total.");
+
+int beforeReactiveRelics = checks;
+foreach (int corruption in Enumerable.Range(-5, 11))
+    Equal(corruption is -5 or -4 or -3, ReactiveMagicRelicRules.MirrorVariation(corruption), "mirror inclusive minus three");
+for (int flags = 0; flags < 16; flags++)
+foreach (decimal change in new decimal[] { -3, -1, 0, 1, 3 })
+{
+    bool Flag(int bit) => (flags & (1 << bit)) != 0;
+    Equal(flags == 7 && change != 0,
+        ReactiveMagicRelicRules.ShouldReflect(Flag(0), Flag(1), change, Flag(2), Flag(3)),
+        "mirror excludes foreign, non-enemy, unchanged, helpful and recursive events");
+}
+int[] stardustSequence = [1, 2, 3, 4, 5, 6, 0];
+for (int initial = 0; initial < 7; initial++)
+{
+    int progress = initial;
+    for (int card = 0; card < 35; card++)
+    {
+        progress = ReactiveMagicRelicRules.NextStardust(progress);
+        Equal(stardustSequence[(initial + card) % 7], progress, "stardust every seventh from each saved state");
+    }
+}
+Equal(1, ReactiveMagicRelicRules.NextStardust(int.MinValue), "negative progress recovers safely");
+Equal(0, ReactiveMagicRelicRules.NextStardust(int.MaxValue), "huge progress cannot overflow");
+Console.WriteLine($"PASS DS27 production reactive magic relics: {checks - beforeReactiveRelics} assertions; {checks} total.");
