@@ -25,6 +25,7 @@ $scenarioNames = @(
     "lifecycle_threshold_dispatch",
     "forced_intent_ignores_natural_cooldown",
     "natural_consecutive_limit_and_saved_state",
+    "default_invasion_curse",
     "desire_intent_visual_deduplication",
     "intent_metadata_and_exact_block",
     "insufficient_block_stress_projection",
@@ -73,4 +74,4 @@ if ((-not $console.Contains('CmdName => "ms_test_control"')) -or (-not $console.
     throw "Control-intent console command lost its explicit destructive confirmation gate."
 }
 
-Write-Host "Control-intent test contract: 13 exact runtime scenarios passed structural validation."
+Write-Host "Control-intent test contract: 14 exact runtime scenarios passed structural validation."

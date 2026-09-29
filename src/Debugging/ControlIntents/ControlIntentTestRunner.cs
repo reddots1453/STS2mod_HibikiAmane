@@ -16,6 +16,7 @@ using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.MonsterMoves.MonsterMoveStateMachine;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Cards;
+using MaidenSuccubus.Cards.Curses;
 using MaidenSuccubus.Commands;
 using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Core.Intents;
@@ -44,6 +45,7 @@ internal static class ControlIntentTestRunner
         new("lifecycle_threshold_dispatch", "SYS-DES-INTENT-001", LifecycleThresholdDispatch),
         new("forced_intent_ignores_natural_cooldown", "SYS-DES-INTENT-001", ForcedIntentIgnoresNaturalCooldown),
         new("natural_consecutive_limit_and_saved_state", "SYS-DES-INTENT-001", NaturalConsecutiveLimitAndSavedState),
+        new("default_invasion_curse", "SYS-INV-001", DefaultInvasionCurse),
         new("desire_intent_visual_deduplication", "SYS-DES-INTENT-001", DesireIntentVisualDeduplication),
         new("intent_metadata_and_exact_block", "SYS-CTL-001", IntentMetadataAndExactBlock),
         new("insufficient_block_stress_projection", "SYS-CTL-001", InsufficientBlockStressProjection),
@@ -215,6 +217,28 @@ internal static class ControlIntentTestRunner
         {
             ctx.Combat.RoundNumber = originalRound;
         }
+    }
+
+    private static async Task DefaultInvasionCurse(
+        ControlIntentTestContext ctx)
+    {
+        MonsterModel monster = (await ctx.AddByrdonis()).Monster!;
+        HashSet<CardModel> deckBefore = ctx.Player.Deck.Cards.ToHashSet();
+        bool applied = await InvasionCmd.Resolve(
+            new BlockingPlayerChoiceContext(),
+            monster,
+            ctx.Player,
+            new InvasionIntentSpec(1),
+            deferCompletion: true);
+        ctx.AssertTrue("default invasion resolves", applied);
+        ctx.AssertEqual("default invasion adds one curse", deckBefore.Count + 1,
+            ctx.Player.Deck.Cards.Count);
+        SemenCurse curse = ctx.Player.Deck.Cards
+            .Where(card => !deckBefore.Contains(card))
+            .OfType<SemenCurse>()
+            .Single();
+        ctx.AssertEqual("default curse keeps source monster", monster.Id.Entry,
+            curse.SourceMonsterId);
     }
 
     public static async Task<string> Run(Player player)
@@ -686,6 +710,7 @@ internal static class ControlIntentTestRunner
         ControlIntentTestContext context)
     {
         Creature source = await context.AddByrdonis();
+        MoveState original = source.Monster!.NextMove;
         bool forced = IntentMoveFactory.TryForceControl(
             source.Monster!, context.Player, escape: 3);
         context.AssertTrue("catalog control can be forced", forced);
@@ -729,6 +754,12 @@ internal static class ControlIntentTestRunner
             TargetType.AnyEnemy, oneCost.TargetType);
         context.AssertTrue("played card no longer has escape projection",
             ControlQuery.GetProjection(oneCost) == null);
+
+        context.Checkpoint("before recovery move and original intent pop");
+        await source.Monster.PerformMove();
+        source.Monster.RollMove(context.Combat.PlayerCreatures);
+        context.AssertReference("original intent resumes after recovery",
+            original, source.Monster.NextMove);
     }
 
     private static async Task<string> WriteReport(ControlIntentTestReport report)

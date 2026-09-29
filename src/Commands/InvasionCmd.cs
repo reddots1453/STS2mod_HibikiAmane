@@ -81,6 +81,7 @@ public static class InvasionCmd
         Player target,
         string name) => name switch
         {
+            "精液" => await Add<SemenCurse>(target),
             "腥臭黏液" or "腥臭粘液" =>
                 await Add<FoulSlimeCurse>(target),
             "催情液" => await Add<AphrodisiacCurse>(target),

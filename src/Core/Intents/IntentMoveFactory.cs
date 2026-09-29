@@ -26,8 +26,7 @@ public static class IntentMoveFactory
         {
             return false;
         }
-        IntentAdapterRegistry.GetRuntime(monster)
-            .Increment(EroticIntentKind.Control);
+        MarkSelected(monster, EroticIntentKind.Control);
         SetTransient(
             monster,
             CreateControl(monster, spec with { EscapeRequired = escape }));

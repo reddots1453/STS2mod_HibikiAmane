@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ASSIGNMENTS = (ROOT / "docs/EROTIC_ATTACK_ASSIGNMENTS.md").read_text(encoding="utf-8")
 INTENTS = (ROOT / "docs/EROTIC_ATTACK_INTENTS.md").read_text(encoding="utf-8")
 CATALOG = (ROOT / "src/Core/Intents/EroticAttackCatalog.cs").read_text(encoding="utf-8")
+INVASION = (ROOT / "src/Commands/InvasionCmd.cs").read_text(encoding="utf-8")
 IDS = re.compile(r"`([A-Z0-9_]+)`")
 SINGLE_ID = re.compile(r"`([A-Z0-9_]+)`(?:（.+）)?\Z")
 
@@ -86,6 +87,10 @@ class MonsterRosterContract(unittest.TestCase):
         self.assertEqual(int(roster_match.group(1)), len(roster))
         self.assertEqual(int(steadfast_match.group(1)), len(steadfast))
         self.assertIn(r'^`([A-Z0-9_]+)`(?:（.+）)?$', CATALOG)
+
+    def test_default_invasion_curse_is_resolved_to_registered_card(self):
+        self.assertIn('CurseName: curse.Success ? curse.Groups[1].Value : "精液"', CATALOG)
+        self.assertIn('"精液" => await Add<SemenCurse>(target)', INVASION)
 
 
 if __name__ == "__main__":

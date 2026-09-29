@@ -1,5 +1,11 @@
 # DesignDoc需求追踪矩阵
 
+## DS27-03C：默认侵犯诅咒与强制拘束续接（IMPLEMENTED，游戏内待验）
+
+`SYS-INV-001`、`SYS-DES-INTENT-001`、`MON-ERO-CATALOG-001` → DesignDoc 3.2～3.5及怪物详细表 → Plan `DS27-03C` → `InvasionCmd` 默认“精液”映射、`IntentMoveFactory.TryForceControl` 连续回合记录、`CatalogIntentToRecovery` 原意图真实出栈场景 → DS27-MON/COMPAT/GATES。当前目录承认“精液”但侵犯结算缺分支；强制拘束只计总次数；原有测试停在恢复意图出现，尚未证明原意图顺延。设计无漂移，不修改怪物数值或意图次数。
+
+上述缺口已接入并补 `default_invasion_curse` 游戏场景及目录静态映射检查。14场景结构、628静态和Debug无部署构建通过；游戏内场景仅编译，真实战斗/存读档仍待验，整组怪物行动不能标VERIFIED。
+
 ## DS27-03B：Q1/Q6已确认规则统一（READY，代码回修与游戏验证未完成）
 
 `SYS-TRF-001`、`SYS-INV-001`、`SYS-DES-INTENT-001`、`MON-ERO-CATALOG-001` → DesignDoc/怪物表 `7f87016d` → Plan `DS27-03B` → 正数降0保持、0层再损失解除、侵犯耐久≤1、成功后无例外禁用、原意图入栈顺延 → DS27-MON/TRF/COMPAT。此次是已答问题的文档矛盾修正；现有耐久合法性与后继保存代码需回归，自然连续上限及强制改意图冷却过滤仍待代码修复。没有新增怪物数值或游戏验收证据。
