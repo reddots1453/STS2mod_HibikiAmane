@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## 2026-09-30 百科全书响木天音路线筛选（IMPLEMENTED，待游戏复验）
+
+`CARD-POOL-001` → Plan百科路线筛选 → `CardLibraryRoutePoolPatch`保持原三路线合池角色谓词，并添加原生风格的三项路线复选框；`MaidenRouteFilterRules`处理单/多选与全不选，原生费用/稀有度/类型/搜索仍叠加 → `TestCardLibraryRouteFilters20260930.ps1` 24/24、中文本地化6/6及Debug完整内容门。游戏内需验证布局无重叠、鼠标/手柄焦点、切换角色隐藏与重开重置；不标记`VERIFIED`。
+
 ## 2026-09-30 女神试炼可选与跨幕二选一（IMPLEMENTED，待游戏复验）
 
 用户2026-09-30明确变更`ACT4-001/SYS-COR-002`的可选流程 → Plan“女神试炼开关与跨幕堕落值选择” → `GoddessTrialMode`注册RitsuLib主菜单设置、捕获每Run模式及幕索引收据；`FourthRouteOpeningPatch`/`FourthRouteQuestSelectionPatch`/`FourthRouteLifecycle`关闭试炼入口和监听；`ActAlignmentChoiceScreen`在第二/第三幕地图强制二选一，`CorruptionCmd`结算±2 → `TestGoddessTrialMode20260930.ps1`生产规则10/10、`FrameworkSelfTests.AssertActAlignmentChoices`、Debug无部署构建；游戏内主菜单设置、Neow、两次自然跨幕、退出读档、其他角色待验。旧档缺模式字段保留原试炼流程；不对第四幕追加一次选择。该明确用户增量需设计工作树回填DesignDoc稳定ID，代码不宣称第四层完整验收。
