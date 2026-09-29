@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## DS27-03A：怪物目录基数与表间覆盖（READY，待修复）
+
+`MON-ERO-CATALOG-001` → DesignDoc 3.3～3.5与两份怪物表 → Plan `DS27-03A` → `EroticAttackCatalog.Build` 基数校验及定向离线表间集合测试 → DS27-MON/GATES。当前设计表101个ID、代码要求102个；测试应先复现失败，再按正式表修正。此项仅修目录初始化与表间覆盖，不代表逐怪物效果及游戏内行动已验收。
+
 ## DS27-06F：可疑的商店与榨乳器（IMPLEMENTED，游戏内待验）
 
 `EVENT-NEW-001`、`RELIC-EVENT-003` → DesignDoc `4bd0d08d` → Plan `b8003248` 的 `DS27-06F` → `SuspiciousShop`、`Milker`、`Milk`、中文文本与事件/遗物/卡牌定向脚本 → DS27-EVENT/RELIC/CARD/GATES。门槛、RNG区间、三个限定遗物、每战开场伤害与生成两牌进入离线与游戏内验收。229张牌、35件遗物；625项定向静态单测通过，统一选定5组离线门通过。游戏脚本只编译未执行，未标 VERIFIED；未部署。
