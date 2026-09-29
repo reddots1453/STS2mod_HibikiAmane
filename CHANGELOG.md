@@ -3,7 +3,8 @@
 ## 2026-09-30 — 顶栏资源遮挡试炼与侧栏布局修复（待实机复验）
 
 - 变更前快照：`568dfff5`；DesignDoc逐行、词级无漂移。修正天平/欲望/诱惑度在Neow试炼与全屏弹窗上的生命周期和过高绘制层级；侧栏去掉“诱惑度”标题，将数字置于口红中下方，欲望显示裁去底部内嵌方框并保留纯数字。原始素材及数值规则不变。
-- 验证：侧栏变异测试21/21、Debug/Release无部署构建均0警告0错误、完整离线15/15套通过（`obj/design-sync-validation/20260929T172047Z-5bb2118b0d52/report.json`）。验证器仍因游戏运行组未执行而标`incomplete`。实机试炼遮挡和数字排版待复验；部署结果另记。
+- 验证：侧栏变异测试21/21、Debug/Release无部署构建均0警告0错误、完整离线15/15套通过（`obj/design-sync-validation/20260929T172047Z-5bb2118b0d52/report.json`）。验证器仍因游戏运行组未执行而标`incomplete`。修复提交`953cebb4`；实机试炼遮挡和数字排版待复验。
+- 游戏进程退出后，仅部署本Mod的Debug DLL/PDB，不复制并行素材。旧文件备份`obj/deployment-backups/sidebar-lifecycle-20260930T012410`；源/目标SHA256一致：DLL `8BBDE12EE283B5F0EDF1EC3658DD43577F90C4704B7E9C77196FC72D37D9231F`，PDB `DEAA2603E41325D5021FF2BF5436852C5CB14B5F0C9DF39B070D3D40F28DFF00`。
 
 ## 2026-09-30 — 遗物按钮高亮与复读暗边修复（待实机复验）
 
