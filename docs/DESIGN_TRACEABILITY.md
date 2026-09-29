@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## DS27-06E：择祸从轻事件（READY，待实现）
+
+`EVENT-NEW-007` → DesignDoc `2f7d77e6` 成熟度同步 → Plan `DS27-06E` → 待接入事件类、本地化与 `ms_test_events confirm` → DS27-EVENT/COMPAT/GATES。验收包括限定诅咒池、原生随机稀有遗物、欲望+6、放弃无变化、选项只结算一次及其他角色隔离；本轮当前仅完成设计与技术计划，游戏尚未测试。
+
 > 接续入口：[2026-09-29 未完成项交接](DESIGN_SYNC_20260927_UNFINISHED_HANDOFF_20260929.md)。实现快照 `aaf29d57`；保留原未完成状态，不以文档交接提升为 VERIFIED。
 
 > 本文件记录DesignDoc需求、Plan阶段、实现状态和验收入口之间的映射。

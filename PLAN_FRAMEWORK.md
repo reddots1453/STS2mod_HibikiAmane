@@ -1,5 +1,11 @@
 # PLAN：Maiden & Succubus 角色MVP与第一轮迭代
 
+### DS27-06E：择祸从轻事件（READY，待实现）
+
+前置 `2f7d77e6`：用户已批准写完整的新增事件，`EVENT-NEW-007` 已在 DesignDoc 标为 READY。本批接入角色专属问号事件，按原文提供“咒具盒／媚毒室／放弃”三项；前者从限定五张事件诅咒中等概率加入一张牌组，后者获得6点欲望，两项各获得1件原生随机稀有遗物。放弃无资源变化。事件RNG、原生奖励池、一次结算、角色隔离和准确页面文本进入验收；不触碰其余四个缺失事件或怪物表。
+
+技术入口：`src/Events/` 新事件、`MaidenSuccubus/localization/zhs/events.json`、现有 `ms_test_events confirm` 实际事件测试，以及定向静态和无部署Debug构建。新增运行时场景仅在用户提供可丢弃存档后执行，结果保持 IMPLEMENTED 待验。
+
 > 接续入口：[2026-09-29 未完成项交接](docs/DESIGN_SYNC_20260927_UNFINISHED_HANDOFF_20260929.md)，以 `aaf29d57` 为实现快照，区分缺实现、缺实机验证与待替代设计；本次仅文档整理，不恢复阻塞目标或部署。
 
 > 版本：2.0（第一轮迭代）
