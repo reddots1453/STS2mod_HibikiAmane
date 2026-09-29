@@ -38,7 +38,23 @@ class SidebarLayoutTests(unittest.TestCase):
         self.reject('TemptationMeter', 'badge.AddChild(_value);', 'AddChild(_value);')
 
     def test_badge_clipped(self):
-        self.reject('TemptationMeter', 'new Vector2(35f, 29f)', 'new Vector2(56f, 34f)')
+        self.reject('TemptationMeter', 'new Vector2(18f, 38f)', 'new Vector2(56f, 34f)')
+
+    def test_badge_not_over_lipstick(self):
+        self.reject('TemptationMeter', 'new Vector2(18f, 38f)', 'new Vector2(35f, 29f)')
+
+    def test_trial_modal_does_not_show_resources(self):
+        self.reject('MaidenSidebarRail', 'NModalContainer.Instance?.OpenModal == null', 'true')
+        self.setUp()
+        self.reject('CorruptionMeter', 'NModalContainer.Instance?.OpenModal != null', 'false')
+
+    def test_native_topbar_visibility_is_authoritative(self):
+        self.reject('MaidenSidebarRail', '_topBar.Map?.IsVisibleInTree() == true', 'true')
+        self.setUp()
+        self.reject('CorruptionMeter', '_topBar.Deck?.IsVisibleInTree() != true', 'false')
+
+    def test_desire_frame_is_cropped(self):
+        self.reject('DesireMeter', 'MeterArtworkHeight = 344f', 'MeterArtworkHeight = 416f')
 
     def test_vertical_overlap(self):
         self.reject('MaidenSidebarRail', 'new(7f, 88f)', 'new(7f, 70f)')

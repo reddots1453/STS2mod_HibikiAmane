@@ -4,6 +4,8 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
+using MegaCrit.Sts2.Core.Models.Events;
+using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using STS2RitsuLib.Interop.AutoRegistration;
 using STS2RitsuLib.Scaffolding.Godot.NodeAttachments;
@@ -69,7 +71,7 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
         CustomMinimumSize = new Vector2(MeterWidth, MeterHeight);
         Size = CustomMinimumSize;
         MouseFilter = MouseFilterEnum.Stop;
-        ZIndex = 100;
+        ZIndex = 0;
         MouseEntered += ShowHoverTip;
         MouseExited += ClearHoverTip;
 
@@ -142,7 +144,11 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
         if (player?.Character is not MaidenSuccubusCharacter
             || !runState.CurrentMapCoord.HasValue
             || _topBar == null || !_topBar.IsVisibleInTree()
-            || _topBar.Position.Y < -0.5f)
+            || _topBar.Position.Y < -0.5f
+            || _topBar.Deck?.IsVisibleInTree() != true
+            || _topBar.Map?.IsVisibleInTree() != true
+            || NModalContainer.Instance?.OpenModal != null
+            || runState.CurrentRoom is EventRoom { CanonicalEvent: Neow })
         {
             HideIfNeeded();
             return;

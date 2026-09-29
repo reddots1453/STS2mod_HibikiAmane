@@ -39,12 +39,13 @@ def has(source, expression, message):
 
 
 def validate(sources):
-    rail, temptation, desire = (code_only(sources[name]) for name in
-                               ('MaidenSidebarRail', 'TemptationMeter', 'DesireMeter'))
+    rail, temptation, desire, corruption = (code_only(sources[name]) for name in
+        ('MaidenSidebarRail', 'TemptationMeter', 'DesireMeter', 'CorruptionMeter'))
     icon = initializer(temptation, 'icon', 'TextureRect')
     has(icon, r'Texture\s*=\s*RuntimeTextureAssets.Load\(\s*"ui/temptation/temptation_lipstick_64\.png"\s*\)',
         'Formal sidebar icon is not loaded')
     has(temptation, r'\bAddChild\(icon\)', 'Icon is not attached')
+    require('Name = "Title"' not in temptation, 'Temptation title must not occupy sidebar space')
     value = initializer(temptation, '_value', 'Label')
     for axis in ('Horizontal', 'Vertical'):
         has(value, axis + r'Alignment\s*=\s*' + axis + r'Alignment.Center',
@@ -58,6 +59,11 @@ def validate(sources):
     tw, th = vector(temptation, 'MeterSize')
     require(bw > 0 and bh > 0 and bx >= 0 and by >= 0 and bx + bw <= tw and by + bh <= th,
             'Value badge must fit inside its meter')
+    ix, iy = vector(icon, 'Position') if 'Position = Vector2.Zero' not in icon else (0, 0)
+    iw, ih = vector(icon, 'Size')
+    require(abs((bx + bw / 2) - (ix + iw / 2)) <= 3
+            and by >= iy + ih / 2 and by + bh <= iy + ih + 4,
+            'Temptation value must sit at the lower center of the lipstick')
     rw, rh = vector(rail, 'RailSize')
     tx, ty = vector(rail, 'TemptationPosition')
     dx, dy = vector(rail, 'DesirePosition')
@@ -82,13 +88,20 @@ def validate(sources):
     has(rail, r'bool shouldShow\s*=\s*!_settingsOpen\s*&&', 'Open settings must hide rail')
     has(rail, r'Visible\s*=\s*shouldShow\s*;', 'Rail must apply combined lifecycle visibility')
     has(rail, r'CurrentMapCoord\.HasValue', 'Rail must wait for map entry')
+    for name, code in (('Rail', rail), ('Balance', corruption)):
+        for term in ('Deck?.IsVisibleInTree()', 'Map?.IsVisibleInTree()',
+                     'NModalContainer.Instance?.OpenModal', 'CanonicalEvent: Neow'):
+            require(term in code, f'{name} must share native top-bar/modal lifecycle: {term}')
+        require('ZIndex = 100' not in code, f'{name} must not float over full-screen UI')
+    require('new AtlasTexture' in desire and 'MeterArtworkHeight = 344f' in desire,
+            'Desire artwork must crop the baked-in numeric frame')
     has(rail, r'SetSettingsOpen\(settings.IsVisibleInTree\(\)\)', 'Initial settings visibility missing')
     has(rail, r'NHoverTipSet.Remove\(child\)', 'Settings must clear child hover tips')
 
 
 def read_sources(project):
     return {name: (project / 'src' / 'UI' / (name + '.cs')).read_text(encoding='utf-8-sig')
-            for name in ('MaidenSidebarRail', 'TemptationMeter', 'DesireMeter')}
+            for name in ('MaidenSidebarRail', 'TemptationMeter', 'DesireMeter', 'CorruptionMeter')}
 
 
 def main():

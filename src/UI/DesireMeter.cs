@@ -25,6 +25,7 @@ namespace MaidenSuccubus.UI;
 public sealed partial class DesireMeter : Control, INodeAttachmentSetup
 {
     private static readonly Vector2 MeterSize = new(64f, 208f);
+    private const float MeterArtworkHeight = 344f;
 
     private TextureRect? _meterTexture;
     private CpuParticles2D? _bubbles;
@@ -78,7 +79,7 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
         _meterTexture = new TextureRect
         {
             Name = "MeterTexture",
-            Size = MeterSize,
+            Size = new Vector2(MeterSize.X, MeterArtworkHeight / 2f),
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
             StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
             MouseFilter = MouseFilterEnum.Ignore,
@@ -210,8 +211,15 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
             return;
         }
         int state = Math.Clamp(value, 0, 10);
-        _meterTexture.Texture = RuntimeTextureAssets.Load(
+        Texture2D? artwork = RuntimeTextureAssets.Load(
             $"ui/desire_meter/desire_meter_{state:00}.png");
+        // The reviewed 128x416 artwork includes a baked-in empty value frame
+        // below y=344. Show only the gauge; the plain numeric label remains.
+        _meterTexture.Texture = artwork == null ? null : new AtlasTexture
+        {
+            Atlas = artwork,
+            Region = new Rect2(0f, 0f, artwork.GetWidth(), MeterArtworkHeight),
+        };
     }
 
     private void ShowHoverTip() => ShowHoverTipForValue(null);

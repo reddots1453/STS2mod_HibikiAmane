@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## 2026-09-30 顶栏资源生命周期及侧栏文字布局（IMPLEMENTED，待游戏复验）
+
+`SYS-COR-001/SYS-DES-001` → Plan“顶栏资源生命周期与侧栏精简” → `CorruptionMeter`、`MaidenSidebarRail`以原生牌组/地图按钮、Neow初始房间、全屏Modal和顶栏位置为共同显隐门，降低Z层避免遮挡女神试炼；`TemptationMeter`移除标题并居中下移数字，`DesireMeter`裁去贴图自带数值框 → `TestSidebarLayout20260927.py`变异测试及双配置构建；第四层试炼打开/关闭、地图与设置切换、欲望数值视觉待游戏复验。
+
 ## 2026-09-30 遗物箭头与战技复读暗边（IMPLEMENTED，待游戏复验）
 
 `START-002/RELIC-START-002` → `StarterRelicSelector`原生按钮运行时副本、独立材质/信号、稳定图标锚点 → 选角切换遗物后箭头位置与进阶高亮互不干扰；`CARD-N-战技复读` → `BattleReplayOriginCapability`/`BattleReplayCardVisuals`显式300×422卡牌画布 → 复制牌边缘可见、打出后还原无残留。`TestUiVisualRegression20260930.py`覆盖结构回归；游戏内视觉仍待复验。

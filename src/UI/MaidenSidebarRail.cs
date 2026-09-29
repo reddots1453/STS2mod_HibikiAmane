@@ -3,7 +3,9 @@ using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
+using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Context;
+using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Characters;
 
@@ -42,7 +44,7 @@ internal sealed partial class MaidenSidebarRail : Control
             CustomMinimumSize = RailSize,
             Size = RailSize,
             MouseFilter = MouseFilterEnum.Ignore,
-            ZIndex = 100,
+            ZIndex = 0,
         };
         topBar.AddChild(rail);
         rail.Initialize(topBar);
@@ -176,6 +178,10 @@ internal sealed partial class MaidenSidebarRail : Control
         bool shouldShow = !_settingsOpen && _topBar != null
             && GodotObject.IsInstanceValid(_topBar) && _topBar.IsVisibleInTree()
             && _topBar.Position.Y >= -0.5f && run?.CurrentMapCoord.HasValue == true
+            && _topBar.Deck?.IsVisibleInTree() == true
+            && _topBar.Map?.IsVisibleInTree() == true
+            && NModalContainer.Instance?.OpenModal == null
+            && run.CurrentRoom is not EventRoom { CanonicalEvent: Neow }
             && LocalContext.GetMe(run)?.Character is MaidenSuccubusCharacter;
         if (Visible == shouldShow) return;
         Visible = shouldShow;

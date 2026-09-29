@@ -66,31 +66,13 @@ public sealed partial class TemptationMeter : Control, INodeAttachmentSetup
             return;
         }
 
-        var title = new Label
-        {
-            Name = "Title",
-            Text = new LocString(
-                "static_hover_tips",
-                "MAIDENSUCCUBUS_TEMPTATION.title").GetFormattedText(),
-            Position = Vector2.Zero,
-            Size = new Vector2(64f, 20f),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore,
-        };
-        title.AddThemeFontSizeOverride("font_size", 14);
-        title.AddThemeColorOverride("font_color", new Color(1f, 0.82f, 0.38f));
-        title.AddThemeColorOverride("font_outline_color", Colors.Black);
-        title.AddThemeConstantOverride("outline_size", 3);
-        AddChild(title);
-
         var icon = new TextureRect
         {
             Name = "TemptationIcon",
             Texture = RuntimeTextureAssets.Load(
                 "ui/temptation/temptation_lipstick_64.png"),
-            Position = new Vector2(-1f, 19f),
-            Size = new Vector2(48f, 48f),
+            Position = Vector2.Zero,
+            Size = new Vector2(64f, 64f),
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
             StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
             MouseFilter = MouseFilterEnum.Ignore,
@@ -100,8 +82,8 @@ public sealed partial class TemptationMeter : Control, INodeAttachmentSetup
         var badge = new Panel
         {
             Name = "ValueBadge",
-            Position = new Vector2(35f, 29f),
-            Size = new Vector2(29f, 29f),
+            Position = new Vector2(18f, 38f),
+            Size = new Vector2(28f, 28f),
             MouseFilter = MouseFilterEnum.Ignore,
         };
         var badgeStyle = new StyleBoxFlat
