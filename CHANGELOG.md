@@ -8,6 +8,7 @@
 - 验证：Debug/Release无部署编译0错误0警告；统一离线15/15组及本批定向3项通过，报告`obj/design-sync-validation/20260929T141033Z-b69c6c3cf215/report.json`。游戏内需在可丢弃存档逐项复测。部署状态以本批提交/安装哈希记录为准，不覆盖并行素材。
 - 提交`a2b15641`。游戏进程未运行时，仅将Debug DLL/PDB与`zhs/relics.json`复制到本Mod安装目录（文本同时同步资源镜像），源/目标SHA256一致：DLL `6757DB3FD00E0E329A1D48AB141DD45DEADE77DAF3100263B9E0E1A9F427595C`，PDB `85A9DAB348EA8DD86A261DB16DCD7B0DD43B6CE6F0199298A4B65EA537B8627E`，文本 `59859E98B9F3A53C0153B5BDCEFA340CF1447A290C4FBF67716EC25BCC9269BA`。旧文件保存在`obj/deployment-backups/ui-relic-tests-20260929T`子目录；未复制并行编辑中的其他资源。
 - 部署后复核Harmony参数名约束：百科遗物类别补丁改用位置参数`__0/__1/__3`，避免游戏DLL参数名与反编译文本不同导致补丁安装失败；无玩法改动。Debug重编译及定向3项通过，更新DLL/PDB后仍须实机复验。
+- 安全修正提交`f141d198`已仅更新安装DLL/PDB，SHA256分别为`5ADDFEF7FD1927F9BF53158DFCD65BE7E7249EEEA9235B7DCDBD51A420566A2D`和`E2EE5A5DAC16FBCE113D03B7B8F9B4572D26B7FF6BDCDE56A46E558AC96138C6`；上一版保存在`obj/deployment-backups/ui-relic-harmony-20260929T222804`，本地化未再次复制。
 
 ## 2026-09-29 — 选角贴图直接getter保护与逐角色诊断
 
