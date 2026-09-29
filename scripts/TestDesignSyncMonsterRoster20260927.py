@@ -88,6 +88,35 @@ class MonsterRosterContract(unittest.TestCase):
         self.assertEqual(int(steadfast_match.group(1)), len(steadfast))
         self.assertIn(r'^`([A-Z0-9_]+)`(?:（.+）)?$', CATALOG)
 
+    def test_each_candidate_agrees_across_caps_thresholds_and_details(self):
+        roster, steadfast, caps, thresholds, details, _ = catalog_sets()
+        detailed = {
+            SINGLE_ID.fullmatch(cells[0]).group(1): cells[1:4]
+            for cells in rows(INTENTS)
+            if len(cells) == 4 and SINGLE_ID.fullmatch(cells[0])
+        }
+        self.assertEqual(set(detailed), set(roster))
+        self.assertEqual(set(caps), set(roster) - steadfast)
+        for monster_id, cap_values in caps.items():
+            with self.subTest(monster=monster_id):
+                for cap, threshold, detail in zip(cap_values, thresholds[monster_id], detailed[monster_id]):
+                    present = cap != "—"
+                    self.assertEqual(threshold != "—", present)
+                    self.assertEqual(detail != "—", present)
+                    if present:
+                        self.assertGreater(int(cap), 0)
+                        self.assertGreater(int(threshold), 0)
+                        self.assertEqual(int(threshold) % 5, 0)
+
+    def test_later_intent_requires_same_monster_prerequisite(self):
+        _, _, caps, _, _, _ = catalog_sets()
+        for monster_id, (_, prerequisite, later) in caps.items():
+            with self.subTest(monster=monster_id):
+                if later != "—":
+                    self.assertNotEqual(prerequisite, "—")
+        self.assertIn("if (spec.Control is null)", CATALOG)
+        self.assertIn("Invasion intent requires this monster's control", CATALOG)
+
     def test_default_invasion_curse_is_resolved_to_registered_card(self):
         self.assertIn('CurseName: curse.Success ? curse.Groups[1].Value : "精液"', CATALOG)
         self.assertIn('"精液" => await Add<SemenCurse>(target)', INVASION)

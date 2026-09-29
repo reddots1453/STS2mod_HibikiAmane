@@ -128,6 +128,12 @@ public static partial class EroticAttackCatalog
             }
             if (spec.Invasion is { } invasion)
             {
+                if (spec.Control is null)
+                {
+                    throw new InvalidDataException(
+                        $"Invasion intent requires this monster's control "
+                        + $"intent: {spec.MonsterId}.");
+                }
                 ValidateCap(spec, EroticIntentKind.Invasion, invasion.MaxUsesPerCombat);
                 ValidateThreshold(spec, EroticIntentKind.Invasion, spec.InvasionThreshold);
                 if (string.IsNullOrWhiteSpace(invasion.CurseName))
