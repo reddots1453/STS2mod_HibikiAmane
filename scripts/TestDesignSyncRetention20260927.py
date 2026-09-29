@@ -86,7 +86,8 @@ class RetentionStarterContract(unittest.TestCase):
                      "lobby.LocalPlayer.character is not MaidenSuccubusCharacter", "_previous.IsVisibleInTree()",
                      "_previous.Connect(NClickableControl.SignalName.Released",
                      "_next.Connect(NClickableControl.SignalName.Released",
-                     "source.Duplicate((int)flags)", "Node.DuplicateFlags.UseInstantiation",
+                     "source.Duplicate((int)Node.DuplicateFlags.Scripts)",
+                     "canvas.Material.Duplicate(true)",
                      "FocusNeighborRight", "FocusNeighborLeft", "_closed = true", "_previous.Hide()",
                      "relic.DynamicDescription.GetFormattedText()"]:
             self.assertIn(term, code)

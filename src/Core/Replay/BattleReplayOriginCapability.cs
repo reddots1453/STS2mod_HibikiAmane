@@ -21,6 +21,6 @@ public sealed class BattleReplayOriginCapability :
                 "maiden_battle_replay_shadow",
                 _ => BattleReplayCardVisuals.CreateShadowOverlay(),
                 order: 1,
-                fullRect: true),
+                fullRect: false),
         ];
 }

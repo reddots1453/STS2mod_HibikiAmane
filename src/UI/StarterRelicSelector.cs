@@ -17,6 +17,7 @@ internal sealed class StarterRelicSelector
     private static readonly ConditionalWeakTable<NCharacterSelectScreen, StarterRelicSelector> Instances = new();
     private readonly NCharacterSelectScreen _screen;
     private readonly Control _relicPanel;
+    private readonly Control _relicIcon;
     private readonly NButton _previous;
     private readonly NButton _next;
     private bool _eligible;
@@ -26,12 +27,14 @@ internal sealed class StarterRelicSelector
     {
         _screen = screen;
         _relicPanel = screen.GetNode<Control>("InfoPanel/VBoxContainer/Relic");
+        _relicIcon = screen.GetNode<Control>("InfoPanel/VBoxContainer/Relic/Icon");
         NAscensionPanel ascension = screen.GetNode<NAscensionPanel>("%AscensionPanel");
         _previous = MakeArrow(ascension.GetNode<NButton>("HBoxContainer/LeftArrowContainer/LeftArrow"));
         _next = MakeArrow(ascension.GetNode<NButton>("HBoxContainer/RightArrowContainer/RightArrow"));
         screen.AddChild(_previous);
         screen.AddChild(_next);
         _relicPanel.Resized += PlaceArrows;
+        _relicIcon.Resized += PlaceArrows;
         _previous.Connect(NClickableControl.SignalName.Released, Callable.From<NButton>(_ => ToggleSafely()));
         _next.Connect(NClickableControl.SignalName.Released, Callable.From<NButton>(_ => ToggleSafely()));
         _previous.FocusNeighborRight = _next.GetPath();
@@ -40,28 +43,48 @@ internal sealed class StarterRelicSelector
 
     private static NButton MakeArrow(NButton source)
     {
-        // Clone the complete native control, including hover/press visuals.
-        // Exclude its existing Released connection, which changes ascension.
-        var flags = Node.DuplicateFlags.UseInstantiation | Node.DuplicateFlags.Scripts |
-            Node.DuplicateFlags.Groups;
-        var button = (NButton)source.Duplicate((int)flags);
+        // A scene re-instantiation can bring back the ascension scene's own
+        // connections. Copy the live control tree without its signal links.
+        var button = (NButton)source.Duplicate((int)Node.DuplicateFlags.Scripts);
         button.Name = "MaidenStarterRelicArrow";
         button.TooltipText = string.Empty;
         button.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopLeft);
-        button.CustomMinimumSize = source.Size;
+        button.CustomMinimumSize = Vector2.Zero;
         button.Size = source.Size;
+        // Ascension's parent scales the button. Keep its on-screen footprint
+        // after moving the copy to the character-select screen root.
+        Vector2 displayed = source.GetGlobalRect().Size;
+        button.Scale = new Vector2(
+            source.Size.X > 0f ? displayed.X / source.Size.X : 1f,
+            source.Size.Y > 0f ? displayed.Y / source.Size.Y : 1f);
+        IsolateMaterials(button);
         button.Visible = false;
         return button;
+    }
+
+    private static void IsolateMaterials(Node node)
+    {
+        // The native arrow's hover/press animation changes shader parameters.
+        // Godot duplicates nodes but otherwise shares their Material resources.
+        if (node is CanvasItem canvas && canvas.Material != null)
+            canvas.Material = (Material)canvas.Material.Duplicate(true);
+        foreach (Node child in node.GetChildren()) IsolateMaterials(child);
     }
 
     private void PlaceArrows()
     {
         Rect2 bounds = _relicPanel.GetGlobalRect();
-        _previous.GlobalPosition = new Vector2(bounds.Position.X - _previous.Size.X - 8f,
-            bounds.GetCenter().Y - _previous.Size.Y / 2f);
-        _next.GlobalPosition = new Vector2(bounds.End.X + 8f,
-            bounds.GetCenter().Y - _next.Size.Y / 2f);
+        float centerY = _relicIcon.GetGlobalRect().GetCenter().Y;
+        Vector2 previousSize = _previous.GetGlobalRect().Size;
+        Vector2 nextSize = _next.GetGlobalRect().Size;
+        MoveArrowTo(_previous, new Vector2(bounds.Position.X - previousSize.X - 8f,
+            centerY - previousSize.Y / 2f));
+        MoveArrowTo(_next, new Vector2(bounds.End.X + 8f,
+            centerY - nextSize.Y / 2f));
     }
+
+    private static void MoveArrowTo(NButton arrow, Vector2 desiredTopLeft) =>
+        arrow.GlobalPosition += desiredTopLeft - arrow.GetGlobalRect().Position;
 
     internal static void Selected(NCharacterSelectScreen screen, NCharacterSelectButton button, CharacterModel character)
     {
@@ -93,7 +116,6 @@ internal sealed class StarterRelicSelector
             && lobby.LocalPlayer.character is MaidenSuccubusCharacter;
         _previous.Visible = _next.Visible = visible;
         if (!visible || lobby == null) return;
-        PlaceArrows();
         _previous.SetEnabled(!lobby.LocalPlayer.isReady);
         _next.SetEnabled(!lobby.LocalPlayer.isReady);
         StarterRelicKind kind = StarterRelicChoice.Handle.Lobby.TryGet(lobby, lobby.LocalPlayer.id, out var data)
@@ -103,6 +125,8 @@ internal sealed class StarterRelicSelector
         _screen.GetNode<MegaRichTextLabel>("InfoPanel/VBoxContainer/Relic/Description").Text = relic.DynamicDescription.GetFormattedText();
         _screen.GetNode<TextureRect>("InfoPanel/VBoxContainer/Relic/Icon").Texture = relic.Icon;
         _screen.GetNode<TextureRect>("InfoPanel/VBoxContainer/Relic/Icon/Outline").Texture = relic.IconOutline;
+        PlaceArrows();
+        Callable.From(PlaceArrows).CallDeferred();
     }
 
     private void ToggleSafely() => Safe.Run(() =>

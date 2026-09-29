@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## 2026-09-30 遗物箭头与战技复读暗边（IMPLEMENTED，待游戏复验）
+
+`START-002/RELIC-START-002` → `StarterRelicSelector`原生按钮运行时副本、独立材质/信号、稳定图标锚点 → 选角切换遗物后箭头位置与进阶高亮互不干扰；`CARD-N-战技复读` → `BattleReplayOriginCapability`/`BattleReplayCardVisuals`显式300×422卡牌画布 → 复制牌边缘可见、打出后还原无残留。`TestUiVisualRegression20260930.py`覆盖结构回归；游戏内视觉仍待复验。
+
 ## 2026-09-30 游戏测试失败回修（IMPLEMENTED，待实机复验）
 
 `SYS-SCR-001/CARD-H-圣言` → `DesignSyncScriptureGenerationContract`原生手牌节点与`DesignSyncScriptureContract`动态变量绑定 → 重跑Consecration/Gospel/GuardianScripture；`SYS-ENC-001` → 战斗牌归属夹具、原版合法性与费用断言、`CurseInfectionSerializationPatch` → 重跑FlashStab/GoddessOfIce/MagicIndex/ForgeStrike/BeyondReasonForge/CurseInfection/LightWings；`SYS-CTL-001` → 挣脱文案按实际费用而非拘束层数验收 → 重跑MagicResonance；`CARD-N-娅露丝的书库` → 原生古书候选池检查 → 重跑InsatiableGreed；`CARD-N-节制之环` → `LibraryPileChoice`标题变量绑定 → 重跑LibraryPileChoice；`CARD-N-冲浪` → 实际抽牌/牌堆断言 → 重跑Surf；`EVENT-*` → 原版事件非空中间页夹具 → 重跑`ms_test_vanilla_events confirm`。其余CycloneRupture/LightningKick/Milk/Takemikazuchi由对应夹具、文案和预览回修覆盖。游戏旧报告210/18/1仍为旧DLL证据，新DLL完整结果未取得。

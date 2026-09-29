@@ -1,4 +1,5 @@
 using Godot;
+using MegaCrit.Sts2.Core.Nodes.Cards;
 
 namespace MaidenSuccubus.UI;
 
@@ -12,8 +13,12 @@ public static class BattleReplayCardVisuals
         {
             Name = OverlayName,
             MouseFilter = Control.MouseFilterEnum.Ignore,
+            // NCard's overlay container is a Node, not a Control. A full-rect
+            // anchor therefore resolves to zero size and hides all edge bands.
+            Position = -NCard.defaultSize / 2f,
+            Size = NCard.defaultSize,
+            ZIndex = 1,
         };
-        root.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
 
         Color outerShadow = new(0.025f, 0.035f, 0.065f, 0.64f);
         Color innerShadow = new(0.04f, 0.055f, 0.095f, 0.22f);
