@@ -20,6 +20,8 @@ public sealed class IntentRuntimeState
     private int _lastNaturalRollTurn = -1;
     private int _desireCooldownThroughTurn = -1;
     private int _controlCooldownThroughTurn = -1;
+    private int _lastEroticSelectionRound = -1;
+    private int _consecutiveEroticSelectionRounds;
 
     public bool ForceStun
     {
@@ -69,6 +71,18 @@ public sealed class IntentRuntimeState
         set { _controlCooldownThroughTurn = value; Sync(); }
     }
 
+    public int LastEroticSelectionRound
+    {
+        get => _lastEroticSelectionRound;
+        set { _lastEroticSelectionRound = value; Sync(); }
+    }
+
+    public int ConsecutiveEroticSelectionRounds
+    {
+        get => _consecutiveEroticSelectionRounds;
+        set { _consecutiveEroticSelectionRounds = value; Sync(); }
+    }
+
     public bool SteadfastScheduled { get; set; }
     public bool PersistenceScheduled { get; set; }
 
@@ -101,6 +115,8 @@ public sealed class IntentRuntimeState
         _lastNaturalRollTurn = carrier.LastNaturalRollTurn;
         _desireCooldownThroughTurn = carrier.DesireCooldownThroughTurn;
         _controlCooldownThroughTurn = carrier.ControlCooldownThroughTurn;
+        _lastEroticSelectionRound = carrier.LastEroticSelectionRound;
+        _consecutiveEroticSelectionRounds = carrier.ConsecutiveEroticSelectionRounds;
     }
 
     public void AttachNew(EroticIntentRuntimePower carrier)
@@ -121,6 +137,8 @@ public sealed class IntentRuntimeState
             _carrier.LastNaturalRollTurn = _lastNaturalRollTurn;
             _carrier.DesireCooldownThroughTurn = _desireCooldownThroughTurn;
             _carrier.ControlCooldownThroughTurn = _controlCooldownThroughTurn;
+            _carrier.LastEroticSelectionRound = _lastEroticSelectionRound;
+            _carrier.ConsecutiveEroticSelectionRounds = _consecutiveEroticSelectionRounds;
         }
     }
 }

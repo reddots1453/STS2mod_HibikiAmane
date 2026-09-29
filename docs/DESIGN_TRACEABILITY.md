@@ -4,6 +4,8 @@
 
 `SYS-TRF-001`、`SYS-INV-001`、`SYS-DES-INTENT-001`、`MON-ERO-CATALOG-001` → DesignDoc/怪物表 `7f87016d` → Plan `DS27-03B` → 正数降0保持、0层再损失解除、侵犯耐久≤1、成功后无例外禁用、原意图入栈顺延 → DS27-MON/TRF/COMPAT。此次是已答问题的文档矛盾修正；现有耐久合法性与后继保存代码需回归，自然连续上限及强制改意图冷却过滤仍待代码修复。没有新增怪物数值或游戏验收证据。
 
+局部实现：强制改意图绕过自然冷却但仍消耗总次数；新增持久化连续回合计数并限制第三次自然生成。`forced_intent_ignores_natural_cooldown`、`natural_consecutive_limit_and_saved_state` 两个游戏场景已编译，13场景结构门、627静态与Debug构建通过；尚无游戏执行结果，不将整个DS27-03B或逐怪物状态机标为VERIFIED。
+
 ## DS27-03A：怪物目录基数与表间覆盖（IMPLEMENTED，游戏内待验）
 
 `MON-ERO-CATALOG-001` → DesignDoc 3.3～3.5与两份怪物表 → Plan `a6ec931b` 的 `DS27-03A` → `EroticAttackCatalog.Build` 基数/ID解析修复及 `TestDesignSyncMonsterRoster20260927.py` → DS27-MON/GATES。正式表101个ID、17个意志坚定；修正代码原102/18硬编码和不能识别ID后中文名的正则。627项静态、11项控制意图结构与Debug无部署构建通过；未在游戏中验证目录初始化、逐怪物行动或完整战斗状态机。

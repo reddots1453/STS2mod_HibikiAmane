@@ -42,6 +42,8 @@ internal static class ControlIntentTestRunner
     private static readonly IReadOnlyList<Scenario> Scenarios =
     [
         new("lifecycle_threshold_dispatch", "SYS-DES-INTENT-001", LifecycleThresholdDispatch),
+        new("forced_intent_ignores_natural_cooldown", "SYS-DES-INTENT-001", ForcedIntentIgnoresNaturalCooldown),
+        new("natural_consecutive_limit_and_saved_state", "SYS-DES-INTENT-001", NaturalConsecutiveLimitAndSavedState),
         new("desire_intent_visual_deduplication", "SYS-DES-INTENT-001", DesireIntentVisualDeduplication),
         new("intent_metadata_and_exact_block", "SYS-CTL-001", IntentMetadataAndExactBlock),
         new("insufficient_block_stress_projection", "SYS-CTL-001", InsufficientBlockStressProjection),
@@ -127,6 +129,92 @@ internal static class ControlIntentTestRunner
         ctx.AssertEqual("direct tear has one tear icon", 1,
             directTear.Intents.Count(intent => intent is TearClothingIntent));
         await Task.Yield();
+    }
+
+    private static async Task ForcedIntentIgnoresNaturalCooldown(
+        ControlIntentTestContext ctx)
+    {
+        var choice = new BlockingPlayerChoiceContext();
+        await Core.Temptation.Temptation.Modify(choice, ctx.Player,
+            100 - Core.Temptation.Temptation.Get(ctx.Player));
+
+        MonsterModel desireMonster = (await ctx.AddByrdonis()).Monster!;
+        EroticMonsterSpec desireSpec = EroticAttackCatalog.Get(desireMonster)!;
+        IntentRuntimeState desireState = IntentAdapterRegistry.GetRuntime(desireMonster);
+        desireState.ControlIntentUses = desireSpec.Control!.MaxUsesPerCombat;
+        desireState.DesireCooldownThroughTurn = int.MaxValue;
+        ctx.AssertTrue("natural desire respects cooldown",
+            !IntentMoveFactory.TryApplyNaturalErotic(desireMonster, ctx.Player));
+        ctx.AssertTrue("forced desire bypasses natural cooldown",
+            IntentMoveFactory.TryForceErotic(desireMonster, ctx.Player));
+        ctx.AssertTrue("forced move is desire",
+            desireMonster.NextMove.StateId.StartsWith("MAIDENSUCCUBUS_DESIRE", StringComparison.Ordinal));
+        ctx.AssertEqual("forced desire still consumes one total use", 1,
+            desireState.DesireIntentUses);
+
+        MonsterModel controlMonster = (await ctx.AddByrdonis()).Monster!;
+        EroticMonsterSpec controlSpec = EroticAttackCatalog.Get(controlMonster)!;
+        IntentRuntimeState controlState = IntentAdapterRegistry.GetRuntime(controlMonster);
+        controlState.DesireIntentUses = controlSpec.Desire!.MaxUsesPerCombat;
+        controlState.ControlCooldownThroughTurn = int.MaxValue;
+        ctx.AssertTrue("natural control respects cooldown",
+            !IntentMoveFactory.TryApplyNaturalErotic(controlMonster, ctx.Player));
+        ctx.AssertTrue("forced control bypasses natural cooldown",
+            IntentMoveFactory.TryForceControl(controlMonster, ctx.Player, 3));
+        ctx.AssertEqual("forced control still consumes one total use", 1,
+            controlState.ControlIntentUses);
+        controlState.ControlIntentUses = controlSpec.Control!.MaxUsesPerCombat;
+        ctx.AssertTrue("forced control still respects total-use cap",
+            !IntentMoveFactory.TryForceControl(controlMonster, ctx.Player, 3));
+    }
+
+    private static async Task NaturalConsecutiveLimitAndSavedState(
+        ControlIntentTestContext ctx)
+    {
+        var choice = new BlockingPlayerChoiceContext();
+        await Core.Temptation.Temptation.Modify(choice, ctx.Player,
+            100 - Core.Temptation.Temptation.Get(ctx.Player));
+        Creature enemy = await ctx.AddByrdonis();
+        MonsterModel monster = enemy.Monster!;
+        await IntentAdapterRegistry.Initialize(monster);
+        MoveState original = monster.NextMove;
+        IntentRuntimeState runtime = IntentAdapterRegistry.GetRuntime(monster);
+        int originalRound = ctx.Combat.RoundNumber;
+        try
+        {
+            runtime.LastEroticSelectionRound = originalRound - 1;
+            runtime.ConsecutiveEroticSelectionRounds = 2;
+            ctx.AssertTrue("third consecutive natural intent is blocked",
+                !IntentMoveFactory.TryApplyNaturalErotic(monster, ctx.Player));
+            ctx.AssertReference("blocked natural leaves original move", original,
+                monster.NextMove);
+            ctx.AssertTrue("forced intent bypasses consecutive cap",
+                IntentMoveFactory.TryForceControl(monster, ctx.Player, 3));
+            ctx.AssertEqual("forced intent still consumes total use", 1,
+                runtime.ControlIntentUses);
+            ctx.AssertEqual("same-round selection capped at two", 2,
+                runtime.ConsecutiveEroticSelectionRounds);
+            ctx.AssertEqual("forced round saved on carrier", originalRound,
+                enemy.GetPower<EroticIntentRuntimePower>()?.LastEroticSelectionRound ?? -1);
+
+            IntentAdapterRegistry.ResetRuntimeForTests(monster);
+            runtime = IntentAdapterRegistry.GetRuntime(monster);
+            ctx.AssertEqual("consecutive count restored from carrier", 2,
+                runtime.ConsecutiveEroticSelectionRounds);
+            monster.SetMoveImmediate(original, forceTransition: true);
+            ctx.Combat.RoundNumber = originalRound + 1;
+            ctx.AssertTrue("natural still blocked after forced round",
+                !IntentMoveFactory.TryApplyNaturalErotic(monster, ctx.Player));
+            ctx.Combat.RoundNumber = originalRound + 2;
+            ctx.AssertTrue("natural resumes after a non-erotic round",
+                IntentMoveFactory.TryApplyNaturalErotic(monster, ctx.Player));
+            ctx.AssertEqual("gap resets consecutive count", 1,
+                runtime.ConsecutiveEroticSelectionRounds);
+        }
+        finally
+        {
+            ctx.Combat.RoundNumber = originalRound;
+        }
     }
 
     public static async Task<string> Run(Player player)

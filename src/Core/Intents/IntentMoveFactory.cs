@@ -303,6 +303,15 @@ public static class IntentMoveFactory
             return false;
         }
 
+        IntentRuntimeState runtime = IntentAdapterRegistry.GetRuntime(monster);
+        int round = monster.CombatState.RoundNumber;
+        if (runtime.LastEroticSelectionRound == round
+            || (runtime.LastEroticSelectionRound == round - 1
+                && runtime.ConsecutiveEroticSelectionRounds >= 2))
+        {
+            return false;
+        }
+
         int temptation = Core.Temptation.Temptation.Get(player);
         List<(EroticIntentKind Kind, int Threshold)> candidates =
             Enum.GetValues<EroticIntentKind>()
@@ -354,12 +363,12 @@ public static class IntentMoveFactory
             EroticIntentKind.Desire => spec.Desire is { } desire
                 && (!requireThreshold || spec.DesireThreshold > 0)
                 && runtime.DesireIntentUses < desire.MaxUsesPerCombat
-                && round > runtime.DesireCooldownThroughTurn,
+                && (!requireThreshold || round > runtime.DesireCooldownThroughTurn),
             EroticIntentKind.Control => spec.Control is { } control
                 && (!requireThreshold || spec.ControlThreshold > 0)
                 && !runtime.ControlDisabled
                 && runtime.ControlIntentUses < control.MaxUsesPerCombat
-                && round > runtime.ControlCooldownThroughTurn,
+                && (!requireThreshold || round > runtime.ControlCooldownThroughTurn),
             EroticIntentKind.Invasion => spec.Invasion is { } invasion
                 && (!requireThreshold || spec.InvasionThreshold > 0)
                 && !runtime.ControlDisabled
@@ -375,11 +384,20 @@ public static class IntentMoveFactory
     private static void MarkSelected(MonsterModel monster, EroticIntentKind kind)
     {
         IntentRuntimeState runtime = IntentAdapterRegistry.GetRuntime(monster);
+        int round = monster.CombatState.RoundNumber;
+        if (runtime.LastEroticSelectionRound != round)
+        {
+            runtime.ConsecutiveEroticSelectionRounds =
+                runtime.LastEroticSelectionRound == round - 1
+                    ? Math.Min(2, runtime.ConsecutiveEroticSelectionRounds + 1)
+                    : 1;
+            runtime.LastEroticSelectionRound = round;
+        }
         runtime.Increment(kind);
         if (kind == EroticIntentKind.Desire)
         {
             runtime.DesireCooldownThroughTurn =
-                monster.CombatState.RoundNumber + 1;
+                round + 1;
         }
     }
 
