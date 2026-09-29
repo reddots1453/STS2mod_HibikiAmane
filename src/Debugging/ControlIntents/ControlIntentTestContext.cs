@@ -83,6 +83,16 @@ internal sealed class ControlIntentTestContext
         return creature;
     }
 
+    public async Task<Creature> AddTerrorEel()
+    {
+        Creature creature = await CreatureCmd.Add<TerrorEel>(
+            Self.CombatState
+            ?? throw new InvalidOperationException("No active combat state."));
+        _addedEnemies.Add(creature);
+        await CreatureCmd.SetMaxAndCurrentHp(creature, 20_000);
+        return creature;
+    }
+
     public async Task<ControlPower> ApplyControl(
         Creature source,
         ControlType type,

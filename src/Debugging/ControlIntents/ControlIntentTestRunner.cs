@@ -13,6 +13,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Afflictions;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Enchantments;
+using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.MonsterMoves.MonsterMoveStateMachine;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Cards;
@@ -58,6 +59,7 @@ internal static class ControlIntentTestRunner
         new("multi_source_priority_and_no_overflow", "SYS-CTL-001", MultiSourcePriorityAndNoOverflow),
         new("source_death_releases_and_rebinds", "SYS-CTL-001", SourceDeathReleasesAndRebinds),
         new("catalog_intent_to_recovery", "SYS-CTL-001/002", CatalogIntentToRecovery),
+        new("terror_eel_recovery_state", "MON-ERO-CATALOG-001/SYS-CTL-001", TerrorEelRecoveryState),
     ];
 
     internal static int ScenarioCount => Scenarios.Count;
@@ -807,6 +809,37 @@ internal static class ControlIntentTestRunner
         source.Monster.RollMove(context.Combat.PlayerCreatures);
         context.AssertReference("original intent resumes after recovery",
             original, source.Monster.NextMove);
+    }
+
+    private static async Task TerrorEelRecoveryState(
+        ControlIntentTestContext context)
+    {
+        Creature source = await context.AddTerrorEel();
+        MonsterModel monster = source.Monster!;
+        MoveState original = monster.NextMove;
+        context.AssertEqual("Terror Eel begins on CRASH_MOVE",
+            "CRASH_MOVE", original.StateId);
+        await context.ApplyControl(source, ControlType.Attack, 1);
+
+        StrikeIronclad escape =
+            await context.AddCard<StrikeIronclad>(PileType.Hand);
+        context.Checkpoint("before Terror Eel paid escape");
+        await context.PlayPayingResources(escape);
+        context.AssertNoControl("paid escape removes Terror Eel control");
+        context.AssertEqual("recovery transient uses registered state",
+            "MAIDENSUCCUBUS_RECOVERY", monster.NextMove.StateId);
+        context.AssertEqual("recovery mirrors THRASH attack and buff",
+            2, monster.NextMove.Intents.Count);
+        context.AssertReference("recovery retains original intent",
+            original, monster.NextMove.FollowUpState);
+
+        context.Checkpoint("before Terror Eel recovery move");
+        await monster.PerformMove();
+        context.AssertEqual("original THRASH grants Vigor",
+            6m, source.GetPower<VigorPower>()?.Amount ?? -1m);
+        monster.RollMove(context.Combat.PlayerCreatures);
+        context.AssertReference("original CRASH resumes after recovery",
+            original, monster.NextMove);
     }
 
     private static async Task<string> WriteReport(ControlIntentTestReport report)

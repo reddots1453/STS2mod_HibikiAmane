@@ -37,6 +37,7 @@ $scenarioNames = @(
     "multi_source_priority_and_no_overflow",
     "source_death_releases_and_rebinds",
     "catalog_intent_to_recovery"
+    "terror_eel_recovery_state"
 )
 foreach ($name in $scenarioNames) {
     if (-not $runner.Contains('new("' + $name + '"')) {
@@ -49,6 +50,7 @@ $requiredTokens = @(
     "IntentMoveFactory.CreateInvasion",
     "IntentMoveFactory.ForceStun",
     "AddFossilStalker",
+    "AddTerrorEel",
     "PerformMove()",
     "ControlQuery.GetProjection",
     "ResistanceGloves",
