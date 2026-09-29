@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## DS27-06G：按摩店三段预约（READY，待实现）
+
+`EVENT-NEW-004～006`、`RELIC-EVENT-006`及相关淫纹诅咒 → 用户Q10确认 → DesignDoc成熟度修正 → Plan `DS27-06G` → 待接原生问号房间优先替换、跨幕持久预约、三段事件页面/结算、本地化与定向脚本 → DS27-EVENT/ACT4/COMPAT/GATES。事件规则和文字未修改；当前只有“神清气爽”遗物效果，事件来源及预约链尚缺。贪婪冲突依已确认的“预约优先、免费商店顺延”，不将模拟预约测试误计为正式实现。
+
 ## DS27-03C：默认侵犯诅咒与强制拘束续接（IMPLEMENTED，游戏内待验）
 
 `SYS-INV-001`、`SYS-DES-INTENT-001`、`MON-ERO-CATALOG-001` → DesignDoc 3.2～3.5及怪物详细表 → Plan `DS27-03C` → `InvasionCmd` 默认“精液”映射、`IntentMoveFactory.TryForceControl` 连续回合记录、`CatalogIntentToRecovery` 原意图真实出栈场景 → DS27-MON/COMPAT/GATES。当前目录承认“精液”但侵犯结算缺分支；强制拘束只计总次数；原有测试停在恢复意图出现，尚未证明原意图顺延。设计无漂移，不修改怪物数值或意图次数。
