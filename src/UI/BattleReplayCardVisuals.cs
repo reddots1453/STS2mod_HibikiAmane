@@ -15,10 +15,10 @@ public static class BattleReplayCardVisuals
         };
         root.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
 
-        Color outerShadow = new(0.025f, 0.035f, 0.065f, 0.46f);
-        Color innerShadow = new(0.04f, 0.055f, 0.095f, 0.15f);
-        AddEdgeBands(root, "Outer", 14f, outerShadow);
-        AddEdgeBands(root, "Inner", 34f, innerShadow);
+        Color outerShadow = new(0.025f, 0.035f, 0.065f, 0.64f);
+        Color innerShadow = new(0.04f, 0.055f, 0.095f, 0.22f);
+        AddEdgeBands(root, "Outer", 20f, outerShadow);
+        AddEdgeBands(root, "Inner", 48f, innerShadow);
         return root;
     }
 

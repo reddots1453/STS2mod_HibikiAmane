@@ -84,7 +84,9 @@ class RetentionStarterContract(unittest.TestCase):
         for term in ["ConditionalWeakTable<NCharacterSelectScreen, StarterRelicSelector>",
                      "!button.IsLocked && !button.IsRandom", "lobby.LocalPlayer.isReady",
                      "lobby.LocalPlayer.character is not MaidenSuccubusCharacter", "_previous.IsVisibleInTree()",
-                     "_previous.Pressed += ToggleSafely", "_next.Pressed += ToggleSafely",
+                     "_previous.Connect(NClickableControl.SignalName.Released",
+                     "_next.Connect(NClickableControl.SignalName.Released",
+                     "source.Duplicate((int)flags)", "Node.DuplicateFlags.UseInstantiation",
                      "FocusNeighborRight", "FocusNeighborLeft", "_closed = true", "_previous.Hide()",
                      "relic.DynamicDescription.GetFormattedText()"]:
             self.assertIn(term, code)

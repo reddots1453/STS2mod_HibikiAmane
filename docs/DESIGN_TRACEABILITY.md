@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## 2026-09-29 第二轮视觉反馈与测试结果（IMPLEMENTED，待复验）
+
+`START-002/RELIC-START-002` → `StarterRelicSelector`克隆原生`NButton`（不复制进阶信号）→ 选角双箭头尺寸/悬停/按压实机验收；`CARD-N-战技复读` → `BattleReplayOriginCapability`的全卡前景遮罩 → 复制/还原卡面验收；`SYS-ENC-001` → `EnchantmentRevealVisualPatch`在`NCard.UpdateVisuals`后排除揭示过场内重复原生标签 → 战斗和拾取附魔动画验收。游戏测试日志：`ms_test_events` PASS349，`ms_test_route_opening` PASS200，`ms_test_route_reward` PASS511及merchant21；`ms_test_vanilla_events` FAIL“non-bath intermediate page does not complete”；`ms_test_cards confirm all`报告210通过/18失败/1待设计，尚不能标VERIFIED。商店立绘继续由素材Agent负责。
+
 ## 2026-09-29 实机回归：选角、资源UI、遗物与测试命令（IMPLEMENTED，待复验）
 
 `START-002/RELIC-START-002/004` → Plan `UI-START/RELIC-CHAR-002/DS27-GAME-REGRESSION` → `StarterRelicSelector`复用进阶箭头贴图并在遗物两侧定位；`StarterRelicCollectionPatch`将可选英雄宝珠和先古永恒宝珠插入原版百科子类，不额外授予开局遗物。`SYS-COR-001/SYS-DES-001` → `MaidenSidebarRail`与`CorruptionMeter`按本地角色、已访问地图坐标、顶栏显隐及设置界面保持一致生命周期。`RELIC-CHAR-002`（DesignDoc内用套套罕见条目）→ `InternalCondom`/`InvasionCmd`/`InvasionCurseMerchantService`/本地化：原生入牌组前拦截、持久计数、堕落≥3最大生命及商店清空/退款；旧存档无此遗物则不影响。`DS27`命令日志显示入口已触发但书库候选零效果门、TestMode与真实UI冲突导致失败；修正测试边界后仅离线编译与结构验证，游戏重跑尚未完成。商店角色立绘过大交素材Agent，非本批实现范围。

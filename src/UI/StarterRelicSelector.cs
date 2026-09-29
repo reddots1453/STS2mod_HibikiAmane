@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using Godot;
-using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
@@ -18,8 +17,8 @@ internal sealed class StarterRelicSelector
     private static readonly ConditionalWeakTable<NCharacterSelectScreen, StarterRelicSelector> Instances = new();
     private readonly NCharacterSelectScreen _screen;
     private readonly Control _relicPanel;
-    private readonly Button _previous;
-    private readonly Button _next;
+    private readonly NButton _previous;
+    private readonly NButton _next;
     private bool _eligible;
     private bool _closed;
 
@@ -28,37 +27,30 @@ internal sealed class StarterRelicSelector
         _screen = screen;
         _relicPanel = screen.GetNode<Control>("InfoPanel/VBoxContainer/Relic");
         NAscensionPanel ascension = screen.GetNode<NAscensionPanel>("%AscensionPanel");
-        _previous = MakeArrow(ascension.GetNode<NButton>("HBoxContainer/LeftArrowContainer/LeftArrow"),
-            "MAIDEN_SUCCUBUS_STARTER_PREVIOUS");
-        _next = MakeArrow(ascension.GetNode<NButton>("HBoxContainer/RightArrowContainer/RightArrow"),
-            "MAIDEN_SUCCUBUS_STARTER_NEXT");
+        _previous = MakeArrow(ascension.GetNode<NButton>("HBoxContainer/LeftArrowContainer/LeftArrow"));
+        _next = MakeArrow(ascension.GetNode<NButton>("HBoxContainer/RightArrowContainer/RightArrow"));
         screen.AddChild(_previous);
         screen.AddChild(_next);
         _relicPanel.Resized += PlaceArrows;
-        _previous.Pressed += ToggleSafely;
-        _next.Pressed += ToggleSafely;
+        _previous.Connect(NClickableControl.SignalName.Released, Callable.From<NButton>(_ => ToggleSafely()));
+        _next.Connect(NClickableControl.SignalName.Released, Callable.From<NButton>(_ => ToggleSafely()));
         _previous.FocusNeighborRight = _next.GetPath();
         _next.FocusNeighborLeft = _previous.GetPath();
     }
 
-    private static Button MakeArrow(NButton source, string tooltip)
+    private static NButton MakeArrow(NButton source)
     {
-        // Borrow the actual ascension-arrow artwork; the original NButton keeps
-        // its own signals and is not moved or duplicated.
-        Texture2D? icon = source.FindChildren("*", "TextureRect", true, false)
-            .OfType<TextureRect>().Select(node => node.Texture).FirstOrDefault(texture => texture != null);
-        var button = new Button
-        {
-            Icon = icon, CustomMinimumSize = new Vector2(44, 40),
-            FocusMode = Control.FocusModeEnum.All,
-            TooltipText = new LocString("characters", tooltip).GetFormattedText(),
-            MouseFilter = Control.MouseFilterEnum.Stop,
-            Visible = false,
-        };
-        var transparent = new StyleBoxEmpty();
-        button.AddThemeStyleboxOverride("normal", transparent);
-        button.AddThemeStyleboxOverride("hover", transparent);
-        button.AddThemeStyleboxOverride("pressed", transparent);
+        // Clone the complete native control, including hover/press visuals.
+        // Exclude its existing Released connection, which changes ascension.
+        var flags = Node.DuplicateFlags.UseInstantiation | Node.DuplicateFlags.Scripts |
+            Node.DuplicateFlags.Groups;
+        var button = (NButton)source.Duplicate((int)flags);
+        button.Name = "MaidenStarterRelicArrow";
+        button.TooltipText = string.Empty;
+        button.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopLeft);
+        button.CustomMinimumSize = source.Size;
+        button.Size = source.Size;
+        button.Visible = false;
         return button;
     }
 
@@ -90,7 +82,8 @@ internal sealed class StarterRelicSelector
         selector._closed = true;
         selector._previous.Hide();
         selector._next.Hide();
-        selector._previous.Disabled = selector._next.Disabled = true;
+        selector._previous.SetEnabled(false);
+        selector._next.SetEnabled(false);
     }
 
     private void Refresh()
@@ -101,7 +94,8 @@ internal sealed class StarterRelicSelector
         _previous.Visible = _next.Visible = visible;
         if (!visible || lobby == null) return;
         PlaceArrows();
-        _previous.Disabled = _next.Disabled = lobby.LocalPlayer.isReady;
+        _previous.SetEnabled(!lobby.LocalPlayer.isReady);
+        _next.SetEnabled(!lobby.LocalPlayer.isReady);
         StarterRelicKind kind = StarterRelicChoice.Handle.Lobby.TryGet(lobby, lobby.LocalPlayer.id, out var data)
             ? StarterRelicChoice.Normalize(data.Kind) : StarterRelicKind.Omnipotent;
         RelicModel relic = StarterRelicSelection.Preview(kind);
