@@ -154,6 +154,45 @@ class MonsterRosterContract(unittest.TestCase):
                         self.assertGreater(int(threshold), 0)
                         self.assertEqual(int(threshold) % 5, 0)
 
+    def test_every_intent_has_core_values_consumed_by_runtime_parser(self):
+        _, steadfast, caps, _, _, _ = catalog_sets()
+        detailed = {
+            SINGLE_ID.fullmatch(cells[0]).group(1): cells[1:4]
+            for cells in rows(INTENTS)
+            if len(cells) == 4 and SINGLE_ID.fullmatch(cells[0])
+        }
+        registered = set(re.findall(
+            r'"([^"]+)"', INVASION.split("public static async Task<bool> Resolve")[0]
+        ))
+        counts = [0, 0, 0]
+        for monster_id, (a_cap, b_cap, i_cap) in caps.items():
+            if monster_id in steadfast:
+                continue
+            desire, control, invasion = detailed[monster_id]
+            with self.subTest(monster=monster_id):
+                if a_cap != "—":
+                    counts[0] += 1
+                    self.assertRegex(desire, r"欲望增加[1-9]\d*")
+                    if "造成" in desire:
+                        self.assertRegex(desire, r"造成[1-9]\d*点伤害")
+                    if "伤害" in desire and "次" in desire:
+                        hits = re.search(r"伤害(\d+)次", desire)
+                        self.assertIsNotNone(hits)
+                        self.assertGreater(int(hits.group(1)), 1)
+                if b_cap != "—":
+                    counts[1] += 1
+                    self.assertRegex(control, r"需要[1-9]\d*点格挡")
+                    self.assertRegex(control, r"拘束(?:攻击|技能|能力)牌")
+                    self.assertRegex(control, r"挣脱值[1-9]\d*")
+                if i_cap != "—":
+                    counts[2] += 1
+                    self.assertRegex(invasion, r"造成[1-9]\d*点伤害")
+                    curse = re.search(r"将(\d+)张“([^”]+)”加入牌组", invasion)
+                    self.assertIsNotNone(curse)
+                    self.assertEqual(curse.group(1), "1")
+                    self.assertIn(curse.group(2), registered)
+        self.assertEqual(counts, [84, 83, 72])
+
     def test_later_intent_requires_same_monster_prerequisite(self):
         _, _, caps, _, _, _ = catalog_sets()
         for monster_id, (_, prerequisite, later) in caps.items():

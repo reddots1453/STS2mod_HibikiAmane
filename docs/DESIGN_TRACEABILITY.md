@@ -866,3 +866,5 @@ SYS-SEA-001/ACT4-001→DS27-01B→封印方向悬停、实际永久实例/拥有
 `MON-ERO-CATALOG-001`/`SYS-CTL-001`→`DS27-03`→`ControlIntentTestRunner.terror_eel_recovery_state`：实际怪物、拘束、打牌挣脱、代理恢复动作和原意图顺延共16个控制场景；结构门及Debug编译通过，游戏运行未执行，故不标VERIFIED。
 
 `EVENT-NEW-004～006`→`DS27-06`→`DesignMassageEventContract.CheckAppointmentLifecycle`：隔离跑局依次验证第二幕/第三幕第二个问号预约与一次消费、访问历史、非本角色不触发。源码/编译门通过；自然地图与实际事件页面仍未运行，不当作VERIFIED。
+
+`MON-ERO-CATALOG-001`→`DS27-03`→`TestDesignSyncMonsterRoster20260927.test_every_intent_has_core_values_consumed_by_runtime_parser`：239个允许候选的核心欲望/伤害/次数、格挡/挣脱、侵犯诅咒格式均可被现有解析表达式读取，诅咒名称在运行时名单内；仅为静态正文契约，非全部附加效果的实战证明。
