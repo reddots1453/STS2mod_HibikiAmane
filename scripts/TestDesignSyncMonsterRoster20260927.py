@@ -17,6 +17,7 @@ CATALOG = (ROOT / "src/Core/Intents/EroticAttackCatalog.cs").read_text(encoding=
 INVASION = (ROOT / "src/Commands/InvasionCmd.cs").read_text(encoding="utf-8")
 IDS = re.compile(r"`([A-Z0-9_]+)`")
 SINGLE_ID = re.compile(r"`([A-Z0-9_]+)`(?:（.+）)?\Z")
+MOVE_ID = re.compile(r"`([A-Za-z0-9_]+)`\Z")
 
 
 def rows(document):
@@ -77,6 +78,39 @@ class MonsterRosterContract(unittest.TestCase):
             class_name = "".join(part.title() for part in monster_id.split("_"))
             with self.subTest(monster=monster_id):
                 self.assertTrue((GAME_MONSTERS / f"{class_name}.cs").is_file())
+
+    def test_recovery_moves_exist_in_versioned_state_machines(self):
+        strong_table = False
+        checked = 0
+        for line in ASSIGNMENTS.splitlines():
+            if line.startswith("### 强大怪物"):
+                strong_table = True
+                continue
+            if strong_table and line.startswith("## 3."):
+                break
+            if not strong_table or not line.startswith("|"):
+                continue
+            cells = [cell.strip() for cell in line.strip("|").split("|")]
+            if len(cells) != 4:
+                continue
+            monster = SINGLE_ID.fullmatch(cells[1])
+            move = MOVE_ID.fullmatch(cells[2])
+            if monster is None or move is None:
+                continue
+            checked += 1
+            class_name = "".join(part.title() for part in monster.group(1).split("_"))
+            with self.subTest(monster=monster.group(1), move=move.group(1)):
+                while (source_path := GAME_MONSTERS / f"{class_name}.cs").is_file():
+                    source = source_path.read_text(encoding="utf-8")
+                    if f'new MoveState("{move.group(1)}"' in source:
+                        break
+                    parent = re.search(rf"\bclass {class_name}\s*:\s*(\w+)", source)
+                    if parent is None:
+                        self.fail(f"{class_name} has no state {move.group(1)}")
+                    class_name = parent.group(1)
+                else:
+                    self.fail(f"{class_name} source missing for {move.group(1)}")
+        self.assertEqual(checked, 26)
 
     def test_embedded_tables_have_the_same_roster(self):
         roster, steadfast, caps, thresholds, details, recovery = catalog_sets()

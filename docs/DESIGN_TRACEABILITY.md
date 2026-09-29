@@ -860,3 +860,5 @@ SYS-SEA-001/ACT4-001→DS27-01B→封印方向悬停、实际永久实例/拥有
 未完成的新敌人、第三层替换Boss、第四层战斗及多人设计不因本轮审阅自动转为READY。澄清前不在程序中固化候选规则。
 
 `MON-ERO-CATALOG-001`→`DS27-03`→`TestDesignSyncMonsterRoster20260927.test_roster_ids_exist_in_declared_game_version`：101个分配ID与`v0.111.0`怪物类逐一对应，定向6项通过。正常遭遇额外出现未分配的`PARAFRIGHT`，分类待用户确认；未修改玩法、怪物数值或DesignDoc，游戏内覆盖仍未运行。
+
+`MON-ERO-CATALOG-001`→`DS27-03`→`EROTIC_ATTACK_ASSIGNMENTS.md`→`TestDesignSyncMonsterRoster20260927.test_recovery_moves_exist_in_versioned_state_machines`：骇鳗恢复键改用`THRASH_MOVE`而非方法名；26个指定恢复ID与版本化原版状态机对应。静态核验不替代实际挣脱和意图栈验证。

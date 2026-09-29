@@ -327,7 +327,7 @@
 | 暗港 | `PHANTASMAL_GARDENER`（花园幽灵鳗） | `FLAIL_MOVE` | 造成1点伤害3次。 |
 | 暗港 | `SKULKING_COLONY`（鬼祟珊瑚群） | `INERTIA_MOVE` | 获得格挡并结算该意图原有增益，不造成伤害。 |
 | 暗港 | `SOUL_FYSH`（灵魂异鱼） | `GAZE_MOVE` | 造成7点伤害并放入1张原版状态牌。 |
-| 暗港 | `TERROR_EEL`（骇鳗） | `ThrashMove` | 造成3点伤害3次并结算该意图原有增益。 |
+| 暗港 | `TERROR_EEL`（骇鳗） | `THRASH_MOVE` | 造成3点伤害3次并结算该意图原有增益。 |
 | 暗港 | `WATERFALL_GIANT`（瀑布巨兽） | `RAM_MOVE` | 造成一次较低伤害并结算该意图原有增益。 |
 
 表中的伤害仅用于说明所选意图为何属于该怪物的低威胁行动；实际数值、进阶难度变化及意图原有效果全部沿用原版对应Move，不在本Mod中重写。
