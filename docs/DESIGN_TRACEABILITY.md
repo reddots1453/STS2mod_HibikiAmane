@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## 2026-09-30 高欲望边缘渐隐（IMPLEMENTED，待游戏复验）
+
+`SYS-DES-001` → Plan“高欲望粉色边缘柔和退场” → `MaidenSuccubusCreatureVisuals.SetPersistentPinkEdge`的重复状态门、脉冲缓出和低于8点的过渡淡出 → Debug构建与静态动画检查；8点以上、8→7、7→8及退出战斗尚待游戏内视觉确认。
+
 ## 2026-09-30 百科全书响木天音路线筛选（IMPLEMENTED，待游戏复验）
 
 `CARD-POOL-001` → Plan百科路线筛选 → `CardLibraryRoutePoolPatch`保持原三路线合池角色谓词，并添加原生风格的三项路线复选框；`MaidenRouteFilterRules`处理单/多选与全不选，原生费用/稀有度/类型/搜索仍叠加 → `TestCardLibraryRouteFilters20260930.ps1` 24/24、中文本地化6/6及Debug完整内容门。游戏内需验证布局无重叠、鼠标/手柄焦点、切换角色隐藏与重开重置；不标记`VERIFIED`。

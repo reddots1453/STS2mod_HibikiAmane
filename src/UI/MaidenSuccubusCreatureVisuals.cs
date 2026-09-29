@@ -41,6 +41,7 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
     private CanvasLayer? _edgeLayer;
     private Control? _edgeVisual;
     private ShaderMaterial? _edgeMaterial;
+    private bool _pinkEdgeEnabled;
     private bool _feedbackActive;
     private bool _dead;
 
@@ -411,12 +412,25 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
             return;
         }
 
+        // Desire and corruption can refresh independently. Keep the current
+        // pulse phase when the high-desire state itself has not changed.
+        if (_pinkEdgeEnabled == enabled)
+        {
+            return;
+        }
+
+        _pinkEdgeEnabled = enabled;
+
         _edgeTween?.Kill();
         _edgeTween = null;
         if (!enabled)
         {
-            _edgeVisual.Modulate = Colors.Transparent;
-            _edgeMaterial.SetShaderParameter("glow_width_px", 56f);
+            // Finish the visible pulse instead of cutting the overlay off
+            // when desire drops below eight.
+            _edgeTween = CreateTween();
+            _edgeTween.TweenProperty(_edgeVisual, "modulate:a", 0f, 0.8f)
+                .SetTrans(Tween.TransitionType.Sine)
+                .SetEase(Tween.EaseType.Out);
             return;
         }
 
@@ -441,11 +455,11 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
             .SetTrans(Tween.TransitionType.Cubic)
             .SetEase(Tween.EaseType.Out);
         _edgeTween.TweenProperty(
-                _edgeVisual, "modulate:a", 0f, 0.85f)
+                _edgeVisual, "modulate:a", 0f, 1.2f)
             .SetTrans(Tween.TransitionType.Sine)
-            .SetEase(Tween.EaseType.In);
+            .SetEase(Tween.EaseType.Out);
         _edgeTween.Parallel().TweenProperty(
-                _edgeMaterial, "shader_parameter/glow_width_px", 280f, 0.85f)
+                _edgeMaterial, "shader_parameter/glow_width_px", 280f, 1.2f)
             .SetTrans(Tween.TransitionType.Sine)
             .SetEase(Tween.EaseType.Out);
         _edgeTween.TweenInterval(1.1f);
