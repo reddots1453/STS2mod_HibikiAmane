@@ -7,6 +7,10 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
+GAME_MONSTERS = (
+    ROOT.parents[1]
+    / "_decompiled/sts2-v0.111.0/MegaCrit.Sts2.Core.Models.Monsters"
+)
 ASSIGNMENTS = (ROOT / "docs/EROTIC_ATTACK_ASSIGNMENTS.md").read_text(encoding="utf-8")
 INTENTS = (ROOT / "docs/EROTIC_ATTACK_INTENTS.md").read_text(encoding="utf-8")
 CATALOG = (ROOT / "src/Core/Intents/EroticAttackCatalog.cs").read_text(encoding="utf-8")
@@ -66,6 +70,14 @@ def catalog_sets():
 
 
 class MonsterRosterContract(unittest.TestCase):
+    def test_roster_ids_exist_in_declared_game_version(self):
+        self.assertTrue(GAME_MONSTERS.is_dir(), GAME_MONSTERS)
+        roster, *_ = catalog_sets()
+        for monster_id in roster:
+            class_name = "".join(part.title() for part in monster_id.split("_"))
+            with self.subTest(monster=monster_id):
+                self.assertTrue((GAME_MONSTERS / f"{class_name}.cs").is_file())
+
     def test_embedded_tables_have_the_same_roster(self):
         roster, steadfast, caps, thresholds, details, recovery = catalog_sets()
         self.assertEqual(len(roster), 101)

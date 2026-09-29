@@ -858,3 +858,5 @@ SYS-SEA-001/ACT4-001→DS27-01B→封印方向悬停、实际永久实例/拥有
 | 测试基础设施 | 原文/渲染/行为分层，不忽略标点、不依赖固定行号；静态与运行时分开报告 | DS27-07 | 15项离线入口已建立并曾全通过；游戏6组未执行，全范围覆盖待收口 | DS27-GATES |
 
 未完成的新敌人、第三层替换Boss、第四层战斗及多人设计不因本轮审阅自动转为READY。澄清前不在程序中固化候选规则。
+
+`MON-ERO-CATALOG-001`→`DS27-03`→`TestDesignSyncMonsterRoster20260927.test_roster_ids_exist_in_declared_game_version`：101个分配ID与`v0.111.0`怪物类逐一对应，定向6项通过。正常遭遇额外出现未分配的`PARAFRIGHT`，分类待用户确认；未修改玩法、怪物数值或DesignDoc，游戏内覆盖仍未运行。
