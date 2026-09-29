@@ -3,8 +3,12 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Characters;
+using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
+using MaidenSuccubus.Characters;
 using MaidenSuccubus.Cards.Curses;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Data;
@@ -36,6 +40,7 @@ internal static class DesignMassageEventContract
         check(!MassageAppointmentService.DueForAct(1, 3, 1, 0), "wrong-act appointment is not due");
         check(MassageAppointmentService.DueForAct(2, 3, 0, 1), "Act 3 second unknown is due");
         check(!MassageAppointmentService.DueForAct(0, 2, 1, 0), "Act 1 cannot consume appointment");
+        CheckAppointmentLifecycle(player, check);
 
         await PlayerCmd.GainGold(300, player);
         MassageShopFirst general = await Start<MassageShopFirst>(player);
@@ -105,6 +110,56 @@ internal static class DesignMassageEventContract
         T model = (T)ModelDb.Event<T>().ToMutable();
         await model.BeginEvent(player, null, isPreFinished: false);
         return model;
+    }
+
+    private static void CheckAppointmentLifecycle(Player source,
+        Action<bool, string> check)
+    {
+        Player maiden = Player.CreateForNewRun<MaidenSuccubusCharacter>(
+            source.UnlockState, source.NetId + 1000);
+        RunState isolated = RunState.CreateForTest([maiden]);
+        isolated.CurrentActIndex = 1;
+        MassageAppointmentService.Schedule(isolated, 2);
+        check(!MassageAppointmentService.IsDue(isolated, MapPointType.Unknown),
+            "Act 2 first unknown is not replaced");
+        MassageAppointmentService.RoomCreated(isolated, MapPointType.Unknown,
+            new MapRoom());
+        check(Corruption.Handle.Get(isolated).ActTwoUnknownRoomsVisited == 1
+              && MassageAppointmentService.EventFor(isolated, MapPointType.Unknown)
+                  is MassageShopSecond,
+            "Act 2 second unknown selects booked event");
+        EventModel second = ModelDb.Event<MassageShopSecond>();
+        MassageAppointmentService.RoomCreated(isolated, MapPointType.Unknown,
+            new EventRoom(second));
+        check(Corruption.Handle.Get(isolated).MassageAppointmentAct == 0
+              && isolated.VisitedEventIds.Contains(second.Id),
+            "successful Act 2 appointment is consumed and recorded");
+
+        isolated.CurrentActIndex = 2;
+        MassageAppointmentService.Schedule(isolated, 3);
+        MassageAppointmentService.RoomCreated(isolated, MapPointType.Unknown,
+            new MapRoom());
+        check(Corruption.Handle.Get(isolated).ActThreeUnknownRoomsVisited == 1
+              && MassageAppointmentService.EventFor(isolated, MapPointType.Unknown)
+                  is MassageShopThird,
+            "Act 3 second unknown selects booked event");
+        EventModel third = ModelDb.Event<MassageShopThird>();
+        MassageAppointmentService.RoomCreated(isolated, MapPointType.Unknown,
+            new EventRoom(third));
+        check(Corruption.Handle.Get(isolated).MassageAppointmentAct == 0
+              && isolated.VisitedEventIds.Contains(third.Id),
+            "successful Act 3 appointment is consumed and recorded");
+
+        Player ironclad = Player.CreateForNewRun<Ironclad>(
+            source.UnlockState, source.NetId + 1001);
+        RunState foreign = RunState.CreateForTest([ironclad]);
+        foreign.CurrentActIndex = 1;
+        MassageAppointmentService.Schedule(foreign, 2);
+        MassageAppointmentService.RoomCreated(foreign, MapPointType.Unknown,
+            new MapRoom());
+        check(Corruption.Handle.Get(foreign).ActTwoUnknownRoomsVisited == 0
+              && MassageAppointmentService.EventFor(foreign, MapPointType.Unknown) == null,
+            "other character cannot advance or receive appointment");
     }
 }
 #endif

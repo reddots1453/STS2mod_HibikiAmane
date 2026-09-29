@@ -72,6 +72,18 @@ class MassageEventContract(unittest.TestCase):
                        "minor mark is missing"):
             self.assertIn(effect, CONTRACT)
 
+    def test_isolated_run_checks_cross_act_appointment_consumption(self):
+        for token in (
+            "CheckAppointmentLifecycle(player, check)",
+            "RunState.CreateForTest([maiden])",
+            "Act 2 second unknown selects booked event",
+            "successful Act 2 appointment is consumed and recorded",
+            "Act 3 second unknown selects booked event",
+            "successful Act 3 appointment is consumed and recorded",
+            "other character cannot advance or receive appointment",
+        ):
+            self.assertIn(token, CONTRACT)
+
 
 if __name__ == "__main__":
     unittest.main()

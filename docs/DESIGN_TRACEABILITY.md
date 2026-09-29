@@ -864,3 +864,5 @@ SYS-SEA-001/ACT4-001→DS27-01B→封印方向悬停、实际永久实例/拥有
 `MON-ERO-CATALOG-001`→`DS27-03`→`EROTIC_ATTACK_ASSIGNMENTS.md`→`TestDesignSyncMonsterRoster20260927.test_recovery_moves_exist_in_versioned_state_machines`：骇鳗恢复键改用`THRASH_MOVE`而非方法名；26个指定恢复ID与版本化原版状态机对应。静态核验不替代实际挣脱和意图栈验证。
 
 `MON-ERO-CATALOG-001`/`SYS-CTL-001`→`DS27-03`→`ControlIntentTestRunner.terror_eel_recovery_state`：实际怪物、拘束、打牌挣脱、代理恢复动作和原意图顺延共16个控制场景；结构门及Debug编译通过，游戏运行未执行，故不标VERIFIED。
+
+`EVENT-NEW-004～006`→`DS27-06`→`DesignMassageEventContract.CheckAppointmentLifecycle`：隔离跑局依次验证第二幕/第三幕第二个问号预约与一次消费、访问历史、非本角色不触发。源码/编译门通过；自然地图与实际事件页面仍未运行，不当作VERIFIED。
