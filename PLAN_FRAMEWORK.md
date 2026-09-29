@@ -1,5 +1,9 @@
 # PLAN：Maiden & Succubus 角色MVP与第一轮迭代
 
+### DS27-03E：化石追踪者侵犯后击晕顺延回归（IMPLEMENTED，游戏内待验）
+
+前置`fd88b701`，DesignDoc逐行及词级无漂移。对照`SYS-INV-001`、`SYS-DES-INTENT-001`和`MON-ERO-CATALOG-001`，在既有控制意图游戏脚本中补化石追踪者真实侵犯行动场景：确认诅咒写入、后续拘束禁用、击晕仅一次、重复击晕请求不自循环，以及原意图恢复。只补回归证据，不修改怪物行动数值、候选、状态机实现或DesignDoc。测试命令仍限显式确认的可丢弃单人战斗；定向结构门和Debug无部署构建通过后，游戏执行前不标VERIFIED，不部署。
+
 ### DS27-06H：预约事件原生访问历史登记（IMPLEMENTED，游戏内待验）
 
 前置`4fcf4891`，DesignDoc逐行及词级无漂移。原生`ActModel.PullNextEvent`会调用`RunState.AddVisitedEvent`，而第二/三段固定预约由`CreateRoom`注入显式EventModel，绕过该登记。只在实际创建的EventRoom与当前预约EventModel匹配时补原生访问历史；未创建成功或房间不匹配时不登记、不取消预约。扩展预约静态契约，做定向、日期静态与Debug无部署构建；自然跨幕、存读档与Greed顺延仍需游戏内验收，不部署。

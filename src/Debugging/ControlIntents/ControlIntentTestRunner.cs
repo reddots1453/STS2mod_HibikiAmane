@@ -20,6 +20,7 @@ using MaidenSuccubus.Cards.Curses;
 using MaidenSuccubus.Commands;
 using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Core.Intents;
+using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.Powers;
 
@@ -46,6 +47,7 @@ internal static class ControlIntentTestRunner
         new("forced_intent_ignores_natural_cooldown", "SYS-DES-INTENT-001", ForcedIntentIgnoresNaturalCooldown),
         new("natural_consecutive_limit_and_saved_state", "SYS-DES-INTENT-001", NaturalConsecutiveLimitAndSavedState),
         new("default_invasion_curse", "SYS-INV-001", DefaultInvasionCurse),
+        new("fossil_invasion_stun_once", "SYS-INV-001/MON-ERO-CATALOG-001", FossilInvasionStunOnce),
         new("desire_intent_visual_deduplication", "SYS-DES-INTENT-001", DesireIntentVisualDeduplication),
         new("intent_metadata_and_exact_block", "SYS-CTL-001", IntentMetadataAndExactBlock),
         new("insufficient_block_stress_projection", "SYS-CTL-001", InsufficientBlockStressProjection),
@@ -57,6 +59,8 @@ internal static class ControlIntentTestRunner
         new("source_death_releases_and_rebinds", "SYS-CTL-001", SourceDeathReleasesAndRebinds),
         new("catalog_intent_to_recovery", "SYS-CTL-001/002", CatalogIntentToRecovery),
     ];
+
+    internal static int ScenarioCount => Scenarios.Count;
 
     private static async Task LifecycleThresholdDispatch(ControlIntentTestContext ctx)
     {
@@ -239,6 +243,49 @@ internal static class ControlIntentTestRunner
             .Single();
         ctx.AssertEqual("default curse keeps source monster", monster.Id.Entry,
             curse.SourceMonsterId);
+    }
+
+    private static async Task FossilInvasionStunOnce(
+        ControlIntentTestContext ctx)
+    {
+        Creature source = await ctx.AddFossilStalker();
+        MonsterModel monster = source.Monster!;
+        MoveState original = monster.NextMove;
+        InvasionIntentSpec spec = EroticAttackCatalog.Get(monster)?.Invasion
+            ?? throw new InvalidOperationException(
+                "Fossil Stalker has no registered invasion intent.");
+        await TransformationCmd.EnterImmaculateRobe(
+            new BlockingPlayerChoiceContext(), ctx.Self, null);
+        await TransformationCmd.LoseArmor(
+            new BlockingPlayerChoiceContext(), ctx.Self, 2, null);
+        await ctx.ApplyControl(source, ControlType.Attack, 3);
+        ctx.AssertEqual("invasion precondition has one armour", 1m,
+            TransformationCmd.GetArmor(ctx.Self)?.Amount ?? -1m);
+
+        IntentMoveFactory.SetTransient(
+            monster, IntentMoveFactory.CreateInvasion(monster, spec));
+        int deckBefore = ctx.Player.Deck.Cards.Count;
+        ctx.Checkpoint("before Fossil Stalker invasion move");
+        await monster.PerformMove();
+        ctx.AssertEqual("invasion adds its curse once", deckBefore + 1,
+            ctx.Player.Deck.Cards.Count);
+        ctx.AssertTrue("successful invasion disables later control",
+            IntentAdapterRegistry.GetRuntime(monster).ControlDisabled);
+        ctx.AssertEqual("invasion queues one stun", "STUNNED",
+            (monster.NextMove.FollowUpState as MoveState)?.StateId);
+
+        // A second completion/recovery request must not make STUNNED its own
+        // follow-up, which formerly trapped this monster in a stun loop.
+        IntentMoveFactory.ForceStun(monster);
+        monster.RollMove(ctx.Combat.PlayerCreatures);
+        ctx.AssertEqual("first follow-up is stun", "STUNNED",
+            monster.NextMove.StateId);
+        ctx.AssertReference("stun retains the original intent", original,
+            monster.NextMove.FollowUpState);
+        await monster.PerformMove();
+        monster.RollMove(ctx.Combat.PlayerCreatures);
+        ctx.AssertReference("original intent resumes after one stun", original,
+            monster.NextMove);
     }
 
     public static async Task<string> Run(Player player)

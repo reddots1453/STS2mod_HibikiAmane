@@ -32,7 +32,7 @@ public sealed class ControlIntentTestConsoleCmd : AbstractConsoleCmd
 
         Task task = RunAndLog(issuingPlayer);
         return new CmdResult(task, true,
-            "Started 9 exact control-intent scenarios; "
+            $"Started {ControlIntentTestRunner.ScenarioCount} exact control-intent scenarios; "
             + "watch the log and control-intent-test-results/latest.json.");
     }
 

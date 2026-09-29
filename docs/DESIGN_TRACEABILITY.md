@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## DS27-03E：化石追踪者侵犯后击晕顺延回归（IMPLEMENTED，游戏内待验）
+
+`SYS-INV-001`、`SYS-DES-INTENT-001`、`MON-ERO-CATALOG-001` → DesignDoc 3.2～3.5及怪物详细表 → Plan `DS27-03E` → `ControlIntentTestRunner.FossilInvasionStunOnce`和`ControlIntentTestContext.AddFossilStalker` → DS27-MON/COMPAT/GATES。真实怪物行动将验证一次诅咒、成功后禁用、单次击晕、重复请求幂等与原意图出栈。测试结构15场景及Debug无部署构建已通过；游戏脚本未执行，不能据此断言化石追踪者问题在游戏中消失。未改生产规则或怪物数值，未部署。
+
 ## DS27-06H：固定预约事件访问历史（IMPLEMENTED，游戏内待验）
 
 `EVENT-NEW-005/006`固定替换问号 → Plan `DS27-06H` → `MassageAppointmentService.RoomCreated`确认实际事件房间后复用`RunState.AddVisitedEvent` → DS27-EVENT/COMPAT/GATES。原版事件候选会登记已访问事件，固定注入路径先前绕过；只补历史，不改变预约时机或奖励。游戏自然跨幕/存读档待验。
