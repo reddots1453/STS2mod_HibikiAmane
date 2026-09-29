@@ -114,7 +114,7 @@ class MonsterRosterContract(unittest.TestCase):
 
     def test_embedded_tables_have_the_same_roster(self):
         roster, steadfast, caps, thresholds, details, recovery = catalog_sets()
-        self.assertEqual(len(roster), 101)
+        self.assertEqual(len(roster), 102)
         self.assertEqual(Counter(roster).most_common(1)[0][1], 1)
         self.assertEqual(Counter(details).most_common(1)[0][1], 1)
         self.assertEqual(set(details), set(roster))
@@ -123,6 +123,16 @@ class MonsterRosterContract(unittest.TestCase):
         controlled = {monster_id for monster_id, values in caps.items() if values[1] != "—"}
         self.assertEqual(Counter(recovery).most_common(1)[0][1], 1)
         self.assertEqual(set(recovery), controlled)
+
+    def test_parafright_is_only_steadfast_without_erotic_intents(self):
+        roster, steadfast, caps, thresholds, details, recovery = catalog_sets()
+        self.assertIn("PARAFRIGHT", roster)
+        self.assertIn("PARAFRIGHT", steadfast)
+        self.assertNotIn("PARAFRIGHT", caps)
+        self.assertNotIn("PARAFRIGHT", thresholds)
+        self.assertIn("PARAFRIGHT", details)
+        self.assertNotIn("PARAFRIGHT", recovery)
+        self.assertIn("if (preferred == \"S\")", CATALOG)
 
     def test_runtime_cardinality_assertions_match_embedded_tables(self):
         roster, steadfast, *_ = catalog_sets()

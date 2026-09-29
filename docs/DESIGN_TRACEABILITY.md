@@ -850,7 +850,7 @@ SYS-SEA-001/ACT4-001→DS27-01B→封印方向悬停、实际永久实例/拥有
 | `SYS-TRF-001/002/004`、`KW-OVERDRAFT-001` | 上限5、减损33%、零层退出边界、异形态切换；旧完成结论回退 | DS27-01 | 01A IMPLEMENTED；游戏/保存恢复待验 | DS27-CARD-EFFECT/COMPAT |
 | `SYS-SEA-001`、`KW-VARIATION-001` | 封印卡视觉/说明；基础牌变奏实际路线 | DS27-01/02 | 01B展示及既有变奏实现；实际快照/视觉/旧档待验 | DS27-CARD-META/TEXT/EFFECT |
 | 全部`CARD-*`、`STATUS-*`、`CURSE-*`、`ENCH-*` | 所有卡面标点/排版/等级与行为；新增、移动和删除条目，旧存档兼容 | DS27-02 | 229模型静态审计失败0/元数据未解析0；219项待实际渲染、1项设计暂缓；游戏行为与旧档未全验 | DS27-CARD-META/TEXT/EFFECT |
-| `SYS-DES-INTENT-*`、`MON-ERO-CATALOG-001`、`SYS-CTL-*`、`SYS-INV-*` | 逐怪物数值表、冷却与连续上限、阶段保护、意图恢复 | DS27-03 | 101怪物表、状态机和定向脚本已接；逐怪物实战、恢复及保存验证未运行 | DS27-MON/COMPAT |
+| `SYS-DES-INTENT-*`、`MON-ERO-CATALOG-001`、`SYS-CTL-*`、`SYS-INV-*` | 逐怪物数值表、冷却与连续上限、阶段保护、意图恢复 | DS27-03 | 102怪物表含幻象怪意志坚定、状态机和定向脚本已接；逐怪物实战、恢复及保存验证未运行 | DS27-MON/COMPAT |
 | `RELIC-*`、`START-002` | 新/改遗物、先古入口、事件来源、奖励与选择交互 | DS27-04 | 35遗物登记和事件/初始选择实现已有定向脚本；奖励、商店、存读档与多人待验 | DS27-EVENT/ACT4/COMPAT |
 | `ACT4-001` | 14路线×3试炼与4显示形态，单次碎片、每段堕落、献祭只解锁；第四层空注册 | DS27-05/05A～05O | 主状态机、单人开场领奖、谦逊、供奉和预约已有实现/脚本；自然跨幕、X支付、存读档与多人待验 | DS27-ACT4/COMPAT |
 | `EVENT-001～003` | 原版事件集成不回归 | DS27-06C | 实现和Debug回归入口完成；游戏内未运行 | DS27-EVENT |
@@ -868,3 +868,5 @@ SYS-SEA-001/ACT4-001→DS27-01B→封印方向悬停、实际永久实例/拥有
 `EVENT-NEW-004～006`→`DS27-06`→`DesignMassageEventContract.CheckAppointmentLifecycle`：隔离跑局依次验证第二幕/第三幕第二个问号预约与一次消费、访问历史、非本角色不触发。源码/编译门通过；自然地图与实际事件页面仍未运行，不当作VERIFIED。
 
 `MON-ERO-CATALOG-001`→`DS27-03`→`TestDesignSyncMonsterRoster20260927.test_every_intent_has_core_values_consumed_by_runtime_parser`：239个允许候选的核心欲望/伤害/次数、格挡/挣脱、侵犯诅咒格式均可被现有解析表达式读取，诅咒名称在运行时名单内；仅为静态正文契约，非全部附加效果的实战证明。
+
+`MON-ERO-CATALOG-001`→`DS27-03`→`EROTIC_ATTACK_ASSIGNMENTS.md`/`EROTIC_ATTACK_INTENTS.md`→`EroticAttackCatalog.Build`→`TestDesignSyncMonsterRoster20260927.test_parafright_is_only_steadfast_without_erotic_intents`：用户确认胧光怪召唤的`PARAFRIGHT`为`S`；目录102个ID、18个意志坚定，幻象怪没有A/B/I、阈值或恢复动作。静态契约通过；召唤后实际Power施加和意图隔离待游戏内验收。

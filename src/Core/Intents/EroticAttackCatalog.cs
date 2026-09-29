@@ -75,10 +75,10 @@ public static partial class EroticAttackCatalog
         ParseIntentDetails(intents, result);
         ParseRecovery(assignments, result);
 
-        if (result.Count != 101)
+        if (result.Count != 102)
         {
             throw new InvalidDataException(
-                $"Erotic intent catalogue expected 101 monsters, got {result.Count}.");
+                $"Erotic intent catalogue expected 102 monsters, got {result.Count}.");
         }
 
         foreach (EroticMonsterSpec spec in result.Values)
@@ -151,10 +151,10 @@ public static partial class EroticAttackCatalog
             }
         }
         int steadfastCount = result.Values.Count(spec => spec.Steadfast);
-        if (steadfastCount != 17)
+        if (steadfastCount != 18)
         {
             throw new InvalidDataException(
-                $"Erotic intent catalogue expected 17 Steadfast monsters, got {steadfastCount}.");
+                $"Erotic intent catalogue expected 18 Steadfast monsters, got {steadfastCount}.");
         }
         return result;
     }
