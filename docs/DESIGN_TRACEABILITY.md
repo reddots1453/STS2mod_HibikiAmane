@@ -1,5 +1,11 @@
 # DesignDoc需求追踪矩阵
 
+## DS27-07U：乳汁后的审计器自测计数（IMPLEMENTED，离线待复验）
+
+`EVENT-NEW-001`/`RELIC-EVENT-003`衍生牌乳汁 → 当前229注册牌 → Plan `DS27-07U` → 审计器自测注册数和严格审阅输出更新，保留内容缺口拒绝通过 → DS27-CARD-META/GATES。只同步测试期望，不改生产内容；游戏内验收独立保留。
+
+审计器自测29/29、统一离线15/15通过，报告`obj/design-sync-validation/20260929T090146Z-1f0809916701/report.json`；六类游戏运行组均未执行，仍不标VERIFIED。
+
 ## DS27-07T：万念俱灰双X结构门（IMPLEMENTED，离线已复验）
 
 `CARD-C`万念俱灰现行6Y伤害、X/X+1次 → Plan `DS27-07T` → 结构门严格匹配当前战斗外基础/升级模板 → DS27-CARD-TEXT/GATES。仅同步旧测试预期；卡牌规则和本地化不变，游戏内双X场景仍待验。
