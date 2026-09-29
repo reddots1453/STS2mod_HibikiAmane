@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## DS27-06F：可疑的商店与榨乳器（READY，待实现）
+
+`EVENT-NEW-001`、`RELIC-EVENT-003` → DesignDoc `4bd0d08d` → Plan `DS27-06F` → 待接入事件、遗物、“乳汁”衍生卡、中文文本与定向脚本 → DS27-EVENT/RELIC/CARD/GATES。门槛、RNG区间和三个限定遗物，及遗物每战开场伤害与生成两牌是验收重点；当前仅同步计划，不标实现完成。
+
 ## DS27-06E：择祸从轻事件（IMPLEMENTED，游戏内待验）
 
 `EVENT-NEW-007` → DesignDoc `2f7d77e6` 成熟度同步 → Plan `DS27-06E` → 事件类、本地化与 `ms_test_events confirm` → DS27-EVENT/COMPAT/GATES。验收包括限定诅咒池、原生随机稀有遗物、欲望+6、放弃无变化、选项只结算一次及其他角色隔离；游戏尚未测试。
