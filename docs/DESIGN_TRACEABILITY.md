@@ -1,5 +1,7 @@
 # DesignDoc需求追踪矩阵
 
+> 接续入口：[2026-09-29 未完成项交接](DESIGN_SYNC_20260927_UNFINISHED_HANDOFF_20260929.md)。实现快照 `aaf29d57`；保留原未完成状态，不以文档交接提升为 VERIFIED。
+
 > 本文件记录DesignDoc需求、Plan阶段、实现状态和验收入口之间的映射。
 >
 > 玩法规则以`DesignDoc.md`为准，技术方案以`PLAN_FRAMEWORK.md`为准。
