@@ -4,6 +4,8 @@
 
 `START-002`、`UI-CHAR-SELECT-V2-001` → Plan `UI-CHAR-SELECT-V2-003` → `MaidenCharacterSelectVisualPatch` 两个实际图标getter前置保护、Debug逐角色按钮日志 → VisualAssets门和启动日志复查。路径修正后异常未消失，故此轮不再凭堆栈推定触发角色；通过日志明确故障角色后再判断后续兼容范围。
 
+本地启动复查：24/24角色按钮（含本角色与随机角色）均完成初始化，贴图转换异常及其连锁空引用未复现；标准模式点击、遗物切换和多人游戏仍待玩家可见界面验收，状态保持IMPLEMENTED。
+
 ## UI-CHAR-SELECT-V2-002：选角按钮贴图类型修复（IMPLEMENTED，游戏内待验）
 
 `START-002`、`UI-CHAR-SELECT-V2-001` → Plan `UI-CHAR-SELECT-V2-002` → `MaidenCharacterSelectVisualPatch` 的两个路径getter与按钮V2覆盖层 → VisualAssets门和游戏内选角复测。禁用`Ryoshu`后仍报贴图类型异常，证实上一轮把外部模组列为唯一原因并不充分；本项只保证本角色原版初始化路径为压缩贴图资源，正式V2图标继续在初始化后显示，不改其他角色或遗物规则。
