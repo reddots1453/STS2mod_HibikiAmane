@@ -1,8 +1,8 @@
 # DesignDoc需求追踪矩阵
 
-## DS27-03A：怪物目录基数与表间覆盖（READY，待修复）
+## DS27-03A：怪物目录基数与表间覆盖（IMPLEMENTED，游戏内待验）
 
-`MON-ERO-CATALOG-001` → DesignDoc 3.3～3.5与两份怪物表 → Plan `DS27-03A` → `EroticAttackCatalog.Build` 基数校验及定向离线表间集合测试 → DS27-MON/GATES。当前设计表101个ID、代码要求102个；测试应先复现失败，再按正式表修正。此项仅修目录初始化与表间覆盖，不代表逐怪物效果及游戏内行动已验收。
+`MON-ERO-CATALOG-001` → DesignDoc 3.3～3.5与两份怪物表 → Plan `a6ec931b` 的 `DS27-03A` → `EroticAttackCatalog.Build` 基数/ID解析修复及 `TestDesignSyncMonsterRoster20260927.py` → DS27-MON/GATES。正式表101个ID、17个意志坚定；修正代码原102/18硬编码和不能识别ID后中文名的正则。627项静态、11项控制意图结构与Debug无部署构建通过；未在游戏中验证目录初始化、逐怪物行动或完整战斗状态机。
 
 ## DS27-06F：可疑的商店与榨乳器（IMPLEMENTED，游戏内待验）
 

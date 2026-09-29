@@ -75,10 +75,10 @@ public static partial class EroticAttackCatalog
         ParseIntentDetails(intents, result);
         ParseRecovery(assignments, result);
 
-        if (result.Count != 102)
+        if (result.Count != 101)
         {
             throw new InvalidDataException(
-                $"Erotic intent catalogue expected 102 monsters, got {result.Count}.");
+                $"Erotic intent catalogue expected 101 monsters, got {result.Count}.");
         }
 
         foreach (EroticMonsterSpec spec in result.Values)
@@ -145,10 +145,10 @@ public static partial class EroticAttackCatalog
             }
         }
         int steadfastCount = result.Values.Count(spec => spec.Steadfast);
-        if (steadfastCount != 18)
+        if (steadfastCount != 17)
         {
             throw new InvalidDataException(
-                $"Erotic intent catalogue expected 18 Steadfast monsters, got {steadfastCount}.");
+                $"Erotic intent catalogue expected 17 Steadfast monsters, got {steadfastCount}.");
         }
         return result;
     }
@@ -446,7 +446,7 @@ public static partial class EroticAttackCatalog
     [GeneratedRegex(@"`([A-Z0-9_]+)`")]
     private static partial Regex IdRegex();
 
-    [GeneratedRegex(@"^`([A-Z0-9_]+)`$")]
+    [GeneratedRegex(@"^`([A-Z0-9_]+)`(?:（.+）)?$")]
     private static partial Regex SingleIdRegex();
 
     [GeneratedRegex(@"^`([A-Za-z0-9_]+)`$")]
