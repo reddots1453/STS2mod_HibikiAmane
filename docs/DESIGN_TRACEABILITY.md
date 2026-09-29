@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## DS27-03B：Q1/Q6已确认规则统一（READY，代码回修与游戏验证未完成）
+
+`SYS-TRF-001`、`SYS-INV-001`、`SYS-DES-INTENT-001`、`MON-ERO-CATALOG-001` → DesignDoc/怪物表 `7f87016d` → Plan `DS27-03B` → 正数降0保持、0层再损失解除、侵犯耐久≤1、成功后无例外禁用、原意图入栈顺延 → DS27-MON/TRF/COMPAT。此次是已答问题的文档矛盾修正；现有耐久合法性与后继保存代码需回归，自然连续上限及强制改意图冷却过滤仍待代码修复。没有新增怪物数值或游戏验收证据。
+
 ## DS27-03A：怪物目录基数与表间覆盖（IMPLEMENTED，游戏内待验）
 
 `MON-ERO-CATALOG-001` → DesignDoc 3.3～3.5与两份怪物表 → Plan `a6ec931b` 的 `DS27-03A` → `EroticAttackCatalog.Build` 基数/ID解析修复及 `TestDesignSyncMonsterRoster20260927.py` → DS27-MON/GATES。正式表101个ID、17个意志坚定；修正代码原102/18硬编码和不能识别ID后中文名的正则。627项静态、11项控制意图结构与Debug无部署构建通过；未在游戏中验证目录初始化、逐怪物行动或完整战斗状态机。
