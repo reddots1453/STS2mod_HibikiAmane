@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## UI-RUN-RESOURCE-20260929：游戏内资源补装与选角崩溃归因（IMPLEMENTED，游戏内待验）
+
+关联`RELIC-START-003`、`UI-CHAR-SELECT-V2-001`及路线卡视觉：正式源码实现无设计漂移，但DLL单独部署遗漏已提交中文本地化和新版贴图，造成旧遗物文案与百科翼饰消失；定向补装并哈希核验后待实机VERIFIED。选角崩溃的首因是外部`Ryoshu`的图标贴图类型转换失败（日志还标明不支持当前`public-beta`），不归因本Mod的初始遗物切换；禁用该模组复测，若仍复现再查本Mod入口。
+
 ## DS27-03E：化石追踪者侵犯后击晕顺延回归（IMPLEMENTED，游戏内待验）
 
 `SYS-INV-001`、`SYS-DES-INTENT-001`、`MON-ERO-CATALOG-001` → DesignDoc 3.2～3.5及怪物详细表 → Plan `DS27-03E` → `ControlIntentTestRunner.FossilInvasionStunOnce`和`ControlIntentTestContext.AddFossilStalker` → DS27-MON/COMPAT/GATES。真实怪物行动将验证一次诅咒、成功后禁用、单次击晕、重复请求幂等与原意图出栈。测试结构15场景及Debug无部署构建已通过；游戏脚本未执行，不能据此断言化石追踪者问题在游戏中消失。未改生产规则或怪物数值，未部署。
