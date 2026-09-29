@@ -143,6 +143,8 @@ if ($console -notmatch 'ms_test_cards' -or $console -notmatch 'confirm') {
     throw "Destructive console command confirmation gate is missing."
 }
 if ($hotkey -notmatch 'Key\.F10' -or
+    $hotkey -notmatch 'ctrlNow\s*=\s*Input\.IsKeyPressed\(Key\.Ctrl\)' -or
+    $hotkey -notmatch 'f10Now\s*&&\s*!_f10Pressed\s*&&\s*!ctrlNow' -or
     $hotkey -notmatch 'shiftNow\s*\?\s*"iteration2"\s*:\s*"all"' -or
     $hotkey -notmatch 'CombatManager\.Instance\.IsInProgress' -or
     $hotkey -notmatch 'MaidenSuccubusCharacter' -or

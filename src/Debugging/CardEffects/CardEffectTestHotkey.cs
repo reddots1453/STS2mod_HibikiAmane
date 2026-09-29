@@ -46,7 +46,8 @@ internal static class CardEffectTestHotkey
         {
             bool f10Now = Input.IsKeyPressed(Key.F10);
             bool shiftNow = Input.IsKeyPressed(Key.Shift);
-            if (f10Now && !_f10Pressed)
+            bool ctrlNow = Input.IsKeyPressed(Key.Ctrl);
+            if (f10Now && !_f10Pressed && !ctrlNow)
                 RunFromActiveCombat(shiftNow ? "iteration2" : "all");
             _f10Pressed = f10Now;
         }
@@ -92,8 +93,8 @@ internal static class CardEffectTestHotkey
         _running = true;
         MaidenSuccubusMod.Logger.Info(
             requested == "iteration2"
-                ? "[CardEffectTest] Shift+F10 accepted; starting 68 iteration-two card checks."
-                : "[CardEffectTest] F10 accepted; starting all 222 registered card checks.");
+                ? $"[CardEffectTest] Shift+F10 accepted; starting {Iteration2CardEffectContract.ExpectedCardCount} iteration-two card checks."
+                : $"[CardEffectTest] F10 accepted; starting all {CardEffectTestRunner.ExpectedCardCount} registered card checks.");
         try
         {
             string summary = await CardEffectTestRunner.Run(player, requested);

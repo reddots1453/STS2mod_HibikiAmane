@@ -11,7 +11,7 @@ namespace MaidenSuccubus.Debugging.CardEffects;
 
 internal static class CardEffectTestRunner
 {
-    private const int ExpectedCardCount = 229;
+    internal const int ExpectedCardCount = 229;
     private static readonly SemaphoreSlim Gate = new(1, 1);
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
