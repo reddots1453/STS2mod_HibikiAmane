@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## UI-CHAR-SELECT-V2-003：getter类型保护与逐角色诊断（IMPLEMENTED，游戏内待验）
+
+`START-002`、`UI-CHAR-SELECT-V2-001` → Plan `UI-CHAR-SELECT-V2-003` → `MaidenCharacterSelectVisualPatch` 两个实际图标getter前置保护、Debug逐角色按钮日志 → VisualAssets门和启动日志复查。路径修正后异常未消失，故此轮不再凭堆栈推定触发角色；通过日志明确故障角色后再判断后续兼容范围。
+
 ## UI-CHAR-SELECT-V2-002：选角按钮贴图类型修复（IMPLEMENTED，游戏内待验）
 
 `START-002`、`UI-CHAR-SELECT-V2-001` → Plan `UI-CHAR-SELECT-V2-002` → `MaidenCharacterSelectVisualPatch` 的两个路径getter与按钮V2覆盖层 → VisualAssets门和游戏内选角复测。禁用`Ryoshu`后仍报贴图类型异常，证实上一轮把外部模组列为唯一原因并不充分；本项只保证本角色原版初始化路径为压缩贴图资源，正式V2图标继续在初始化后显示，不改其他角色或遗物规则。

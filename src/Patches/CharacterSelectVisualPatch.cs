@@ -22,6 +22,41 @@ public static class MaidenCharacterSelectVisualPatch
     private const string VanillaLockedSelectIcon =
         "res://images/packed/character_select/char_select_ironclad_locked.png";
 
+    // Protect the concrete return type as well as the paths. Third-party
+    // character-select patches may load the path into an ImageTexture before
+    // the original button code asks for its CompressedTexture2D property.
+    [HarmonyPatch(typeof(CharacterModel), nameof(CharacterModel.CharacterSelectIcon), MethodType.Getter)]
+    [HarmonyPrefix]
+    [HarmonyPriority(Priority.First)]
+    public static bool SelectIconPrefix(CharacterModel __instance, ref CompressedTexture2D __result)
+    {
+        if (__instance is not MaidenSuccubusCharacter)
+            return true;
+        CompressedTexture2D? fallback = null;
+        Safe.Run(() => fallback = ResourceLoader.Load<CompressedTexture2D>(VanillaSelectIcon),
+            nameof(SelectIconPrefix));
+        if (fallback == null)
+            return true;
+        __result = fallback;
+        return false;
+    }
+
+    [HarmonyPatch(typeof(CharacterModel), nameof(CharacterModel.CharacterSelectLockedIcon), MethodType.Getter)]
+    [HarmonyPrefix]
+    [HarmonyPriority(Priority.First)]
+    public static bool LockedIconPrefix(CharacterModel __instance, ref CompressedTexture2D __result)
+    {
+        if (__instance is not MaidenSuccubusCharacter)
+            return true;
+        CompressedTexture2D? fallback = null;
+        Safe.Run(() => fallback = ResourceLoader.Load<CompressedTexture2D>(VanillaLockedSelectIcon),
+            nameof(LockedIconPrefix));
+        if (fallback == null)
+            return true;
+        __result = fallback;
+        return false;
+    }
+
     // The profile's user:// PNGs are ImageTexture resources. The vanilla
     // CharacterSelectIcon getters load CompressedTexture2D, so normalize only
     // our path before NCharacterSelectButton.Init invokes those getters.
@@ -53,6 +88,15 @@ public static class MaidenCharacterSelectVisualPatch
     [HarmonyPostfix]
     public static void InitPostfix(NCharacterSelectButton __instance) =>
         Refresh(__instance);
+
+#if DEBUG
+    [HarmonyPatch(typeof(NCharacterSelectButton), nameof(NCharacterSelectButton.Init))]
+    [HarmonyPrefix]
+    public static void InitDiagnosticPrefix(CharacterModel __0) => Safe.Run(
+        () => MaidenSuccubusMod.Logger.Info(
+            $"[CharacterSelectInit] {__0.Id.Entry} ({__0.GetType().FullName})"),
+        nameof(InitDiagnosticPrefix));
+#endif
 
     [HarmonyPatch(typeof(NCharacterSelectButton), nameof(NCharacterSelectButton.LockForAnimation))]
     [HarmonyPostfix]

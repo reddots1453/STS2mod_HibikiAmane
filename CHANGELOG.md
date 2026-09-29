@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-29 — 选角贴图直接getter保护与逐角色诊断
+
+- 变更前快照：`e3c174b7`。已部署的路径修正后仍在原版按钮初始化时发生`ImageTexture`→`CompressedTexture2D`异常，证实仅修正路径不足以保护实际getter返回值。
+- 对本角色正常/锁定选角图标的`CompressedTexture2D` getter直接提供原版压缩资源；按钮完成初始化后仍显示正式V2图标。Debug构建在每个角色按钮初始化入口记录角色ID，便于若问题继续复现时准确定位；不更改其他角色的图标。
+- 验证：Debug/Release及完整离线验证，安装DLL哈希与启动日志复查；游戏内选择与多人仍待验。本批不复制并行素材。
+
 ## 2026-09-29 — 选角按钮贴图类型修复（停用Ryoshu后的第二异常）
 
 - 变更前快照：`2b432138`。停用`Ryoshu`后新日志仍在`NCharacterSelectButton.Init`先抛`ImageTexture`→`CompressedTexture2D`异常，再因按钮未初始化出现空引用；前轮把Ryoshu作为唯一原因的判断不完整。

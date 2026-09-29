@@ -296,7 +296,10 @@ if ($characterSelectPatchCode -notmatch 'NCharacterSelectButton' -or
     $characterSelectPatchCode -notmatch 'char_select_ironclad_locked\.png' -or
     $characterSelectPatchCode -notmatch '__instance is MaidenSuccubusCharacter' -or
     $characterSelectPatchCode -notmatch '__result = VanillaSelectIcon;' -or
-    $characterSelectPatchCode -notmatch '__result = VanillaLockedSelectIcon;') {
+    $characterSelectPatchCode -notmatch '__result = VanillaLockedSelectIcon;' -or
+    $characterSelectPatchCode -notmatch 'nameof\(CharacterModel\.CharacterSelectIcon\), MethodType\.Getter' -or
+    $characterSelectPatchCode -notmatch 'nameof\(CharacterModel\.CharacterSelectLockedIcon\), MethodType\.Getter' -or
+    $characterSelectPatchCode -notmatch 'ResourceLoader\.Load<CompressedTexture2D>') {
     throw "Character-select buttons need compressed vanilla init paths and the reviewed 256px Maiden overlays."
 }
 $thresholdPowerCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
