@@ -144,8 +144,7 @@ public static class IntentMoveFactory
         {
             intents.Add(new DesireGainIntent(
                 spec.Desire,
-                spec.DisplayName,
-                spec.EffectText));
+                spec.DisplayName));
         }
         // The text parser is also the source of truth for the executed extra
         // effects. Derive every supplemental icon from that same text so a
@@ -180,9 +179,9 @@ public static class IntentMoveFactory
         {
             new InvasionIntent(
                 spec.Damage,
-                spec.DisplayName,
-                spec.EffectText),
+                spec.DisplayName),
         };
+        intents.Add(new InvasionCurseIntent(spec.CurseName));
         intents.AddRange(EroticEffectCmd.BuildSupplementalIntents(
             spec.EffectText,
             EroticIntentKind.Invasion));

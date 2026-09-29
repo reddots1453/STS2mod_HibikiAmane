@@ -95,7 +95,14 @@ public sealed class ControlIntent :
         Creature owner)
     {
         LocString description = base.GetIntentDescription(targets, owner);
-        description.Add("Effect", EroticIntentDisplayText.Format(EffectText));
+        string cardType = ControlType switch
+        {
+            ControlType.Attack => "攻击牌",
+            ControlType.Power => "能力牌",
+            _ => "技能牌",
+        };
+        description.Add("Effect", EroticIntentDisplayText.Format(
+            $"需要{BlockRequired}点格挡阻止；失败则拘束{cardType}，挣脱值{EscapeRequired}。"));
         return description;
     }
 }
@@ -103,13 +110,11 @@ public sealed class ControlIntent :
 public sealed class InvasionIntent : SingleAttackIntent
 {
     public string DisplayName { get; }
-    public string EffectText { get; }
 
-    public InvasionIntent(int damage, string displayName, string effectText)
+    public InvasionIntent(int damage, string displayName)
         : base(damage)
     {
         DisplayName = displayName;
-        EffectText = effectText;
     }
 
     protected override string IntentPrefix => "MAIDENSUCCUBUS_INVASION";
@@ -130,7 +135,8 @@ public sealed class InvasionIntent : SingleAttackIntent
         Creature owner)
     {
         LocString description = base.GetIntentDescription(targets, owner);
-        description.Add("Effect", EroticIntentDisplayText.Format(EffectText));
+        description.Add("Effect", EroticIntentDisplayText.Format(
+            $"造成{GetSingleDamage(targets, owner)}点伤害。"));
         return description;
     }
 }
@@ -141,13 +147,11 @@ public sealed class DesireGainIntent :
 {
     public int Amount { get; }
     public string DisplayName { get; }
-    public string EffectText { get; }
 
-    public DesireGainIntent(int amount, string displayName, string effectText)
+    public DesireGainIntent(int amount, string displayName)
     {
         Amount = amount;
         DisplayName = displayName;
-        EffectText = effectText;
     }
 
     public override IntentType IntentType => IntentType.Debuff;
@@ -183,7 +187,8 @@ public sealed class DesireGainIntent :
         Creature owner)
     {
         LocString description = base.GetIntentDescription(targets, owner);
-        description.Add("Effect", EroticIntentDisplayText.Format(EffectText));
+        description.Add("Effect", EroticIntentDisplayText.Format(
+            $"欲望增加{Amount}。"));
         return description;
     }
 }
@@ -211,38 +216,51 @@ public sealed class TearClothingIntent :
         [ExtraIconAmountLabelSpec.PlainCustom("1", 2f, 40f, 64f, 63f)];
 }
 
-public sealed class ClothingHazardIntent : AbstractIntent
+public sealed class ClothingHazardIntent : StatusIntent
 {
-    private readonly string _cardName;
+    public string CardName { get; }
+    public string Placement { get; }
 
-    public ClothingHazardIntent(string cardName) => _cardName = cardName;
+    public ClothingHazardIntent(string cardName, int count, string placement)
+        : base(count)
+    {
+        CardName = cardName;
+        Placement = placement;
+    }
 
-    public override IntentType IntentType => IntentType.StatusCard;
-    protected override LocString IntentLabelFormat =>
-        new("intents", "FORMAT_STATUS_CARD_COUNT");
     protected override string IntentPrefix => "MAIDENSUCCUBUS_CLOTHING_HAZARD";
-    protected override string SpritePath =>
-        "atlases/intent_atlas.sprites/intent_status_card.tres";
-
     public override string GetAnimation(
         IEnumerable<Creature> targets,
-        Creature owner) => IntentAnimData.debuff;
-
-    public override LocString GetIntentLabel(
-        IEnumerable<Creature> targets,
-        Creature owner)
-    {
-        LocString label = IntentLabelFormat;
-        label.Add("CardCount", 1);
-        return label;
-    }
+        Creature owner) => IntentAnimData.status;
 
     protected override LocString GetIntentDescription(
         IEnumerable<Creature> targets,
         Creature owner)
     {
         LocString description = base.GetIntentDescription(targets, owner);
-        description.Add("CardName", _cardName);
+        description.Add("CardName", CardName);
+        description.Add("Placement", Placement);
+        return description;
+    }
+}
+
+public sealed class InvasionCurseIntent : CardDebuffIntent
+{
+    public string CurseName { get; }
+
+    public InvasionCurseIntent(string curseName) => CurseName = curseName;
+
+    protected override string IntentPrefix => "MAIDENSUCCUBUS_INVASION_CURSE";
+    public override string GetAnimation(
+        IEnumerable<Creature> targets,
+        Creature owner) => IntentAnimData.cardDebuff;
+
+    protected override LocString GetIntentDescription(
+        IEnumerable<Creature> targets,
+        Creature owner)
+    {
+        LocString description = base.GetIntentDescription(targets, owner);
+        description.Add("CurseName", CurseName);
         return description;
     }
 }

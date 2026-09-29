@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
@@ -50,6 +51,7 @@ internal static class ControlIntentTestRunner
         new("default_invasion_curse", "SYS-INV-001", DefaultInvasionCurse),
         new("fossil_invasion_stun_once", "SYS-INV-001/MON-ERO-CATALOG-001", FossilInvasionStunOnce),
         new("desire_intent_visual_deduplication", "SYS-DES-INTENT-001", DesireIntentVisualDeduplication),
+        new("catalog_intent_visual_components", "MON-ERO-CATALOG-001", CatalogIntentVisualComponents),
         new("intent_metadata_and_exact_block", "SYS-CTL-001", IntentMetadataAndExactBlock),
         new("insufficient_block_stress_projection", "SYS-CTL-001", InsufficientBlockStressProjection),
         new("high_desire_bypasses_block", "SYS-DES-002B", HighDesireBypassesBlock),
@@ -119,11 +121,11 @@ internal static class ControlIntentTestRunner
                 Desire: 1,
                 Damage: 3,
                 EffectText: "造成3点伤害，欲望增加1，将1张溶解液置入弃牌堆。"));
-        ctx.AssertEqual("delayed hazard has only damage and desire icons", 2,
+        ctx.AssertEqual("delayed hazard has damage, desire and status icons", 3,
             delayedHazard.Intents.Count);
         ctx.AssertEqual("delayed hazard has one desire icon", 1,
             delayedHazard.Intents.Count(intent => intent is DesireGainIntent));
-        ctx.AssertEqual("delayed hazard hides clothing status icon", 0,
+        ctx.AssertEqual("delayed hazard uses one status icon", 1,
             delayedHazard.Intents.Count(intent => intent is ClothingHazardIntent));
 
         MoveState directTear = IntentMoveFactory.CreateDesire(
@@ -137,6 +139,101 @@ internal static class ControlIntentTestRunner
         ctx.AssertEqual("direct tear has one tear icon", 1,
             directTear.Intents.Count(intent => intent is TearClothingIntent));
         await Task.Yield();
+    }
+
+    private static async Task CatalogIntentVisualComponents(
+        ControlIntentTestContext ctx)
+    {
+        MonsterModel source = ctx.PrimaryEnemy.Monster!;
+        int checkedMoves = 0;
+        var errors = new List<string>();
+        foreach (EroticMonsterSpec monster in EroticAttackCatalog.All.Values)
+        {
+            if (monster.Desire is { } desire)
+            {
+                Check(monster.MonsterId, "desire", desire.EffectText,
+                    IntentMoveFactory.CreateDesire(source, desire).Intents,
+                    desire.Damage > 0, desire.Desire, null);
+            }
+            if (monster.Control is { } control)
+            {
+                Check(monster.MonsterId, "control", control.EffectText,
+                    IntentMoveFactory.CreateControl(source, control).Intents,
+                    false, 0, null);
+            }
+            if (monster.Invasion is { } invasion)
+            {
+                Check(monster.MonsterId, "invasion", invasion.EffectText,
+                    IntentMoveFactory.CreateInvasion(source, invasion).Intents,
+                    invasion.Damage > 0,
+                    Number(invasion.EffectText, @"(?:并使)?欲望增加(\d+)"),
+                    invasion.CurseName);
+            }
+        }
+        ctx.AssertEqual("all 102 monsters checked", 102,
+            EroticAttackCatalog.All.Count);
+        ctx.AssertTrue($"{checkedMoves} moves have matching component icons: "
+            + string.Join("; ", errors.Take(8)), errors.Count == 0);
+        await Task.Yield();
+
+        void Check(string id, string kind, string effect,
+            IReadOnlyList<MegaCrit.Sts2.Core.MonsterMoves.Intents.AbstractIntent> icons,
+            bool attacks, int desireAmount, string? curseName)
+        {
+            checkedMoves++;
+            string key = $"{id}/{kind}";
+            int attackIcons = icons.Count(icon => icon is
+                MegaCrit.Sts2.Core.MonsterMoves.Intents.AttackIntent);
+            if (attackIcons != (attacks ? 1 : 0))
+                errors.Add($"{key}: attack={attackIcons}");
+            var desires = icons.OfType<DesireGainIntent>().ToArray();
+            if (desires.Length != (desireAmount > 0 ? 1 : 0)
+                || desires.Any(icon => icon.Amount != desireAmount))
+                errors.Add($"{key}: desire={desires.Length}");
+            var statuses = icons.OfType<ClothingHazardIntent>().ToArray();
+            MatchCollection cardEffects = Regex.Matches(effect,
+                @"将(\d+)张([^；。，]+?)(置入弃牌堆|洗入弃牌堆|洗入抽牌堆)");
+            if (statuses.Length != cardEffects.Count)
+                errors.Add($"{key}: status={statuses.Length}/{cardEffects.Count}");
+            for (int i = 0; i < Math.Min(statuses.Length, cardEffects.Count); i++)
+            {
+                Match card = cardEffects[i];
+                if (statuses[i].CardCount != int.Parse(card.Groups[1].Value)
+                    || statuses[i].CardName != card.Groups[2].Value.Trim('“', '”', ' ')
+                    || statuses[i].Placement != card.Groups[3].Value)
+                    errors.Add($"{key}: status content {i}");
+            }
+            if (icons.Count(icon => icon is TearClothingIntent)
+                != (effect.Contains("撕裂衣服") ? 1 : 0))
+                errors.Add($"{key}: tear");
+            var curses = icons.OfType<InvasionCurseIntent>().ToArray();
+            if (curses.Length != (curseName == null ? 0 : 1)
+                || curses.Any(icon => icon.CurseName != curseName))
+                errors.Add($"{key}: curse");
+            if (icons.Count(icon => icon is
+                    MegaCrit.Sts2.Core.MonsterMoves.Intents.DefendIntent)
+                != (Regex.IsMatch(effect, @"获得\d+点格挡") ? 1 : 0))
+                errors.Add($"{key}: block");
+            if (icons.Count(icon => icon is
+                    MegaCrit.Sts2.Core.MonsterMoves.Intents.BuffIntent)
+                != (Regex.IsMatch(effect, @"获得\d+点力量") ? 1 : 0))
+                errors.Add($"{key}: buff");
+            if (icons.Count(icon => icon is
+                    MegaCrit.Sts2.Core.MonsterMoves.Intents.DebuffIntent)
+                != (Regex.IsMatch(effect, @"虚弱|易伤|脆弱|燃烧|偷取\d+金币")
+                    ? 1 : 0))
+                errors.Add($"{key}: debuff");
+            if (icons.Count(icon => icon is
+                    MegaCrit.Sts2.Core.MonsterMoves.Intents.HealIntent)
+                != (effect.Contains("恢复自身") ? 1 : 0))
+                errors.Add($"{key}: heal");
+        }
+
+        static int Number(string text, string pattern)
+        {
+            Match match = Regex.Match(text, pattern);
+            return match.Success ? int.Parse(match.Groups[1].Value) : 0;
+        }
     }
 
     private static async Task ForcedIntentIgnoresNaturalCooldown(

@@ -28,6 +28,7 @@ $scenarioNames = @(
     "default_invasion_curse",
     "fossil_invasion_stun_once",
     "desire_intent_visual_deduplication",
+    "catalog_intent_visual_components",
     "intent_metadata_and_exact_block",
     "insufficient_block_stress_projection",
     "high_desire_bypasses_block",

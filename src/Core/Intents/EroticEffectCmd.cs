@@ -247,16 +247,13 @@ public static class EroticEffectCmd
         {
             intents.Add(new DebuffIntent());
         }
-        int statusCount = Regex.Matches(
-                effect,
-                @"将(\d+)张([^；。，]+?)(?:置入弃牌堆|洗入弃牌堆|洗入抽牌堆)")
-            .Where(match => !Regex.IsMatch(
-                match.Groups[2].Value,
-                "倒刺钩|衣物燃烧|咬衣纸片|溶解液"))
-            .Sum(match => int.Parse(match.Groups[1].Value));
-        if (statusCount > 0)
+        foreach (Match match in Regex.Matches(
+            effect,
+            @"将(\d+)张([^；。，]+?)(置入弃牌堆|洗入弃牌堆|洗入抽牌堆)"))
         {
-            intents.Add(new StatusIntent(statusCount));
+            string cardName = match.Groups[2].Value.Trim('“', '”', ' ');
+            intents.Add(new ClothingHazardIntent(
+                cardName, int.Parse(match.Groups[1].Value), match.Groups[3].Value));
         }
         if (effect.Contains("恢复自身", StringComparison.Ordinal))
         {
@@ -264,17 +261,13 @@ public static class EroticEffectCmd
         }
         if (kind == EroticIntentKind.Invasion)
         {
-            intents.Add(new CardDebuffIntent());
+            int desire = Number(effect, @"(?:并使)?欲望增加(\d+)");
+            if (desire > 0)
+                intents.Add(new DesireGainIntent(desire, "侵犯"));
         }
         if (effect.Contains("撕裂衣服", StringComparison.Ordinal))
         {
             intents.Add(new TearClothingIntent());
-        }
-        foreach (Match match in Regex.Matches(
-            effect,
-            @"将\d+张(倒刺钩|衣物燃烧|咬衣纸片|溶解液)(?:置入弃牌堆|洗入弃牌堆|洗入抽牌堆)"))
-        {
-            intents.Add(new ClothingHazardIntent(match.Groups[1].Value));
         }
         return intents;
     }
