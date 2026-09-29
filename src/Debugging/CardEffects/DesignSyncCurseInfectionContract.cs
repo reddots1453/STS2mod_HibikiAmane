@@ -100,7 +100,10 @@ internal static class DesignSyncCurseInfectionContract
             ctx.AssertTrue("copy retains enchantment", copy.Enchantment is Sharp);
             ctx.AssertTrue("copy is independent instance", !ReferenceEquals(copy, combatCard));
             CheckText(copy);
-            CardModel restored = CardModel.FromSerializable(copy.ToSerializable());
+            var saved = copy.ToSerializable();
+            ctx.AssertTrue("save payload carries combat annotation",
+                saved.Props?.bools?.Any(entry => entry.name == CurseInfectionStatus.SaveKey && entry.value) == true);
+            CardModel restored = CardModel.FromSerializable(saved);
             ctx.AssertTrue("serialized card restores custom keyword", CurseInfectionStatus.Has(restored));
             ctx.AssertTrue("restored annotation cannot stack", !CurseInfectionStatus.TryApply(restored));
             CardModel fresh = ctx.Combat.CloneCard(deck);

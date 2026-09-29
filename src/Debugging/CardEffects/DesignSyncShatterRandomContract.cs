@@ -81,7 +81,7 @@ internal static class DesignSyncShatterRandomContract
             ctx.AssertDamage("damage with no dealer is not amplified", target, before, 3);
             before = target.CurrentHp;
             if (target == ctx.Self)
-                await DamageCmd.Attack(4).FromMonster(opponent.Monster!).Targeting(target).WithHitCount(2).Execute(choice);
+                await DamageCmd.Attack(4).FromMonster(opponent.Monster!).WithHitCount(2).Execute(choice);
             else
                 await ctx.Play(ctx.Create<MaidenStrike>(), target);
             ctx.AssertDamage("real attack applies shatter per hit", target, before, target == ctx.Self ? 12 : 8);

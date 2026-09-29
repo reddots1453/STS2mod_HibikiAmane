@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## 2026-09-30 游戏测试失败回修（IMPLEMENTED，待实机复验）
+
+`SYS-SCR-001/CARD-H-圣言` → `DesignSyncScriptureGenerationContract`原生手牌节点与`DesignSyncScriptureContract`动态变量绑定 → 重跑Consecration/Gospel/GuardianScripture；`SYS-ENC-001` → 战斗牌归属夹具、原版合法性与费用断言、`CurseInfectionSerializationPatch` → 重跑FlashStab/GoddessOfIce/MagicIndex/ForgeStrike/BeyondReasonForge/CurseInfection/LightWings；`SYS-CTL-001` → 挣脱文案按实际费用而非拘束层数验收 → 重跑MagicResonance；`CARD-N-娅露丝的书库` → 原生古书候选池检查 → 重跑InsatiableGreed；`CARD-N-节制之环` → `LibraryPileChoice`标题变量绑定 → 重跑LibraryPileChoice；`CARD-N-冲浪` → 实际抽牌/牌堆断言 → 重跑Surf；`EVENT-*` → 原版事件非空中间页夹具 → 重跑`ms_test_vanilla_events confirm`。其余CycloneRupture/LightningKick/Milk/Takemikazuchi由对应夹具、文案和预览回修覆盖。游戏旧报告210/18/1仍为旧DLL证据，新DLL完整结果未取得。
+
 ## 2026-09-29 第二轮视觉反馈与测试结果（IMPLEMENTED，待复验）
 
 `START-002/RELIC-START-002` → `StarterRelicSelector`克隆原生`NButton`（不复制进阶信号）→ 选角双箭头尺寸/悬停/按压实机验收；`CARD-N-战技复读` → `BattleReplayOriginCapability`的全卡前景遮罩 → 复制/还原卡面验收；`SYS-ENC-001` → `EnchantmentRevealVisualPatch`在`NCard.UpdateVisuals`后排除揭示过场内重复原生标签 → 战斗和拾取附魔动画验收。游戏测试日志：`ms_test_events` PASS349，`ms_test_route_opening` PASS200，`ms_test_route_reward` PASS511及merchant21；`ms_test_vanilla_events` FAIL“non-bath intermediate page does not complete”；`ms_test_cards confirm all`报告210通过/18失败/1待设计，尚不能标VERIFIED。商店立绘继续由素材Agent负责。

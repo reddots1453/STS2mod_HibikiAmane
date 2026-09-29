@@ -28,6 +28,16 @@ class CurseInfectionContracts(unittest.TestCase):
         self.assertNotIn("DeckVersion", code)
         self.assertIn("StableShuffle(player.RunState.Rng.CombatCardSelection)", code)
 
+    def test_combat_annotation_survives_native_card_save_payload(self):
+        card = model("CurseInfection")
+        code = read("src/Cards/CurseInfectionStatus.cs")
+        self.assertIn("[SavedProperty(SerializationCondition.SaveIfNotTypeDefault)]", card)
+        self.assertIn("nameof(CurseInfection.CurseInfectionAnnotationMarker)", code)
+        self.assertIn("nameof(CardModel.ToSerializable)", code)
+        self.assertIn("nameof(CardModel.FromSerializable)", code)
+        self.assertIn("__result.Props.bools.Add", code)
+        self.assertIn("CurseInfectionStatus.TryApply(__result)", code)
+
     def test_async_wrapper_waits_and_does_not_swallow_original_failure(self):
         code = read("src/Cards/CurseInfectionStatus.cs")
         wrapper = code[code.index("private static async Task ResolveAfterOriginal"):]
@@ -61,7 +71,8 @@ class CurseInfectionContracts(unittest.TestCase):
         for part in ("typeof(MaidenStrike), typeof(MaidenDefend), typeof(MagicIndex), typeof(Dazed), typeof(Injury)",
                      "await CardCmd.Exhaust", "source draws exactly two not four", "recipient passes effect exactly once",
                      "CheckText(target)", "annotation hover has exact full text", "copy retains enchantment",
-                     "CardModel.FromSerializable(copy.ToSerializable())", "fresh permanent clone is unmarked"):
+                     "save payload carries combat annotation", "CardModel.FromSerializable(saved)",
+                     "fresh permanent clone is unmarked"):
             self.assertIn(part, code)
         self.assertIn("CustomVariants<CurseInfection>(DesignSyncCurseInfectionContract.Run, 65)",
                       read("src/Debugging/CardEffects/CardEffectTestCatalog.cs"))

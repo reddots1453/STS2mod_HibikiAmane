@@ -24,7 +24,7 @@ internal static class DesignSyncLightWingsContract
         bool previousTestMode = TestMode.IsOn;
         try
         {
-            TestMode.IsOn = true;
+            // Keep the live combat backend subscribed while cards move between piles.
             ctx.AssertEqual("light wings rarity", CardRarity.Rare, card.Rarity, effect: false);
             ctx.AssertEqual("light wings pool", typeof(MSHolyCardPool), card.Pool.GetType(), effect: false);
             ctx.AssertEqual("light wings cost", 1, card.EnergyCost.GetWithModifiers(CostModifiers.All), effect: false);
@@ -171,7 +171,9 @@ internal static class DesignSyncLightWingsContract
             int expectedCopies = ctx.Player.Deck.Cards.Sum(candidate => candidate.Enchantment is Clone ? 1
                 : candidate.Enchantment is LayeredEnchantment all ? all.Layers.OfType<Clone>().Count() : 0);
             int beforeDeck = ctx.Player.Deck.Cards.Count;
-            ctx.AssertTrue("native clone rest action completes", await new CloneRestSiteOption(ctx.Player).OnSelect());
+            TestMode.IsOn = true;
+            try { ctx.AssertTrue("native clone rest action completes", await new CloneRestSiteOption(ctx.Player).OnSelect()); }
+            finally { TestMode.IsOn = previousTestMode; }
             ctx.AssertEqual("clone rest includes both internal Clone layers", expectedCopies, ctx.Player.Deck.Cards.Count - beforeDeck);
         }
         finally { TestMode.IsOn = previousTestMode; }

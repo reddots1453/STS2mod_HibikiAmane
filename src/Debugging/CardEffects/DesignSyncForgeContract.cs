@@ -60,7 +60,7 @@ internal static class DesignSyncForgeContract
     }
     private static bool Allowed(string id, CardModel card) => id switch
     {
-        "ember" or "instinct" or "iron_wall" or "sharp" => card.Type == CardType.Attack,
+        "instinct" or "iron_wall" or "sharp" => card.Type == CardType.Attack,
         "nimble" => card.GainsBlock,
         _ => true,
     };
@@ -131,7 +131,7 @@ internal static class DesignSyncForgeContract
         await ctx.Reset();
         var skill1 = await ctx.Add<DefendIronclad>(PileType.Hand);
         var skill2 = await ctx.Add<DefendIronclad>(PileType.Hand);
-        string[] legal = ["swift", "charge", "glam", "proliferation", "nimble"];
+        string[] legal = ["swift", "charge", "glam", "ember", "proliferation", "nimble"];
         SeedFor(ctx, legal, "nimble");
         var predicted = new Rng(ctx.Player.RunState.Rng.CombatCardSelection.ToSerializable());
         var expected = Predict(legal, predicted);

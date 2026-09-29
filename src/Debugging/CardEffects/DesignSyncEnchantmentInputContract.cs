@@ -107,8 +107,8 @@ internal static class DesignSyncEnchantmentInputContract
         async Task<CardModel> Enchanted(PileType pile)
         {
             var result = ctx.Create<MaidenStrike>();
-            CombatEnchantmentCmd.ApplyVanilla<Sharp>(result, 1);
             await CardPileCmd.Add(result, pile, CardPilePosition.Top, skipVisuals: true);
+            CombatEnchantmentCmd.ApplyVanilla<Sharp>(result, 1);
             return result;
         }
         foreach (int stacks in new[] { 1, 2 })
@@ -127,9 +127,9 @@ internal static class DesignSyncEnchantmentInputContract
 
         await Activate();
         var generated = ctx.Create<MaidenStrike>();
-        CombatEnchantmentCmd.ApplyVanilla<Sharp>(generated, 1);
         await ctx.AddFillerCards(PileType.Draw, 3);
         await CardPileCmd.AddGeneratedCardToCombat(generated, PileType.Hand, ctx.Player);
+        CombatEnchantmentCmd.ApplyVanilla<Sharp>(generated, 1);
         ctx.AssertEqual("generated hand card is not drawn", 1, Hand());
         await CardPileCmd.Add(generated, PileType.Draw, CardPilePosition.Top, skipVisuals: true);
         for (int i = 0; i < 2; i++)
@@ -143,9 +143,9 @@ internal static class DesignSyncEnchantmentInputContract
         await Activate();
         await ctx.AddFillerCards(PileType.Draw, 3);
         var layered = ctx.Create<LightWings>();
+        await CardPileCmd.Add(layered, PileType.Draw, CardPilePosition.Top, skipVisuals: true);
         CombatEnchantmentCmd.ApplyVanilla<Sharp>(layered, 1);
         CombatEnchantmentCmd.ApplyVanilla<Glam>(layered, 1);
-        await CardPileCmd.Add(layered, PileType.Draw, CardPilePosition.Top, skipVisuals: true);
         await CardPileCmd.Draw(choice, 1, ctx.Player);
         ctx.AssertEqual("multiple enchantment layers still grant one draw", 2, Hand());
 

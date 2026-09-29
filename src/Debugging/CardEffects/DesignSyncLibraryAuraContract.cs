@@ -29,10 +29,15 @@ internal static class DesignSyncLibraryAuraContract
                 DesignSyncNeutralTextContract.Normalize(instance.GetDescriptionForPile(pile)), effect: false);
             ctx.AssertEqual("library aura title", upgraded ? "娅露丝的书库+" : "娅露丝的书库", instance.Title, effect: false);
         }
-        var tome = (DustyTome)ModelDb.Relic<DustyTome>().ToMutable();
-        tome.SetupForPlayer(ctx.Player);
-        var tomeCard = ModelDb.GetById<CardModel>(tome.AncientCard!);
-        ctx.AssertTrue("dusty tome gives new library skill", tomeCard is InsatiableGreed && tomeCard.Type == CardType.Skill);
+        // Inspect the native tome's eligible pool without invoking third-party
+        // SetupForPlayer prefixes installed by unrelated mods in this run.
+        CardModel[] tomePool = ctx.Player.Character.CardPool
+            .GetUnlockedCards(ctx.Player.UnlockState, ctx.Player.RunState.CardMultiplayerConstraint)
+            .Where(candidate => candidate.Rarity == CardRarity.Ancient
+                && !ArchaicTooth.TranscendenceCards.Contains(candidate))
+            .ToArray();
+        ctx.AssertTrue("dusty tome pool contains new library skill",
+            tomePool.Any(candidate => candidate is InsatiableGreed && candidate.Type == CardType.Skill));
 
         await ctx.Reset();
         var left = await ctx.Add<DefendIronclad>(PileType.Hand);

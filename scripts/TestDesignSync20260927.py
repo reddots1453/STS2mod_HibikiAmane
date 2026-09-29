@@ -103,7 +103,8 @@ class DesignSyncBatchOne(unittest.TestCase):
         source = read("src/Cards/LibraryPileChoice.cs")
         self.assertIn("ICardTitleContributor", source)
         self.assertIn("CardTitleFragmentPlacement.ReplaceBase", source)
-        self.assertEqual(self.cards["MAIDEN_SUCCUBUS_CARD_LIBRARY_PILE_CHOICE.title"], "选择牌堆")
+        self.assertEqual(self.cards["MAIDEN_SUCCUBUS_CARD_LIBRARY_PILE_CHOICE.title"], "{PileName}")
+        self.assertIn('TitleLocString.Add("PileName"', source)
         self.assertEqual(self.cards["MAIDEN_SUCCUBUS_CARD_LIBRARY_PILE_CHOICE.pileTitle"], "{PileName}")
 
     def test_event_hp_cost_text(self):

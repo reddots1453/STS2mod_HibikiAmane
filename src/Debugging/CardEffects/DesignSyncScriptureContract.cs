@@ -73,6 +73,7 @@ internal static class DesignSyncScriptureContract
             if (power is GuardianScripturePower)
             {
                 var description = power.SmartDescription;
+                power.DynamicVars.AddTo(description);
                 ctx.AssertEqual("guardian power includes current Dexterity", "剩余回合内，每回合结束时获得4点格挡。",
                     DesignSyncHolyTextContract.Normalize(description.GetFormattedText()), effect: false);
             }

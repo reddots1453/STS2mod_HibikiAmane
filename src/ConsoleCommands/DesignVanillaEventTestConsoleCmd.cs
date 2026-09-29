@@ -214,7 +214,7 @@ public sealed class DesignVanillaEventTestConsoleCmd : AbstractConsoleCmd
             var pending = await Start<WhisperingHollow>();
             await Probe(pending, () => Task.CompletedTask).Chosen();
             Check(CorruptionQuery.Get(run) == 0, "no-op does not complete");
-            await Probe(pending, () => { page.Invoke(pending, [new LocString("events", "WHISPERING_HOLLOW.pages.MS_PURIFY.description"), Array.Empty<EventOption>()]); return Task.CompletedTask; }).Chosen();
+            await Probe(pending, () => { page.Invoke(pending, [new LocString("events", "WHISPERING_HOLLOW.pages.MS_PURIFY.description"), new[] { Probe(pending, () => Task.CompletedTask) }]); return Task.CompletedTask; }).Chosen();
             Check(CorruptionQuery.Get(run) == 0, "non-bath intermediate page does not complete");
             foreach (bool cancel in new[] { false, true })
             {
@@ -232,7 +232,7 @@ public sealed class DesignVanillaEventTestConsoleCmd : AbstractConsoleCmd
             await Probe(pending, () => Finish(pending)).Chosen();
             Check(CorruptionQuery.Get(run) == 1, "rebuilt finished option cannot duplicate");
             var bath = await Start<AbyssalBaths>();
-            Task Advance() { page.Invoke(bath, [new LocString("events", "WHISPERING_HOLLOW.pages.MS_PURIFY.description"), Array.Empty<EventOption>()]); return Task.CompletedTask; }
+            Task Advance() { page.Invoke(bath, [new LocString("events", "WHISPERING_HOLLOW.pages.MS_PURIFY.description"), new[] { Probe(bath, () => Task.CompletedTask) }]); return Task.CompletedTask; }
             const string immerse = "ABYSSAL_BATHS.pages.INITIAL.options.IMMERSE";
             await Probe(bath, Advance, immerse).Chosen();
             Check(!bath.IsFinished && CorruptionQuery.Get(run) == 2, "first bath page advance counts");

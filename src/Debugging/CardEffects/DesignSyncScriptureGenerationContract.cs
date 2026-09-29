@@ -87,10 +87,10 @@ internal static class DesignSyncScriptureGenerationContract
         {
             var clone = ctx.Combat.CloneCard(deck);
             clone.DeckVersion = deck;
-            await CardPileCmd.Add(clone, PileType.Hand, skipVisuals: true);
-            var attack = await ctx.Add<StrikeIronclad>(PileType.Hand);
-            var skill = await ctx.Add<DefendIronclad>(PileType.Hand);
-            var upgradedSkill = await ctx.Add<DefendIronclad>(PileType.Hand, true);
+            await CardPileCmd.Add(clone, PileType.Hand, skipVisuals: false);
+            var attack = await ctx.Add<StrikeIronclad>(PileType.Hand, skipVisuals: false);
+            var skill = await ctx.Add<DefendIronclad>(PileType.Hand, skipVisuals: false);
+            var upgradedSkill = await ctx.Add<DefendIronclad>(PileType.Hand, true, skipVisuals: false);
             var power = await ctx.Add<Consecration>(PileType.Hand);
             var status = await ctx.Add<Wound>(PileType.Hand);
             var curse = await ctx.Add<Regret>(PileType.Hand);
@@ -124,7 +124,7 @@ internal static class DesignSyncScriptureGenerationContract
         await power.AfterPlayerTurnStart(choice, ctx.Player); // Empty hand.
         ctx.AssertEqual("empty hand and foreign turn consume no RNG", before, RandomState(ctx));
         ctx.AssertEqual("consecration upgrade is innate", upgraded, card.Keywords.Contains(CardKeyword.Innate), effect: false);
-        var selected = await ctx.Add<StrikeIronclad>(PileType.Hand, true);
+        var selected = await ctx.Add<StrikeIronclad>(PileType.Hand, true, skipVisuals: false);
         var untouched = await ctx.Add<DefendIronclad>(PileType.Hand);
         var predicted = new Rng(ctx.Player.RunState.Rng.CombatCardGeneration.ToSerializable());
         Type expected = RandomTypes[predicted.NextInt(6)];

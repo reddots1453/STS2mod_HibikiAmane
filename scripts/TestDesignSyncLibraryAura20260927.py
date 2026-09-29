@@ -65,7 +65,9 @@ class LibraryAuraContracts(unittest.TestCase):
 
     def test_actual_new_aura_test_covers_text_tome_clone_play_and_cleanup(self):
         code = read('src/Debugging/CardEffects/DesignSyncLibraryAuraContract.cs')
-        for token in ('tome.SetupForPlayer(ctx.Player)', 'tome.AncientCard!',
+        for token in ('GetUnlockedCards(ctx.Player.UnlockState',
+                      '!ArchaicTooth.TranscendenceCards.Contains(candidate)',
+                      'tomePool.Any(candidate => candidate is InsatiableGreed',
                       'ctx.Player.RunState.CreateCard<InsatiableGreed>', 'PileType.Deck',
                       'instance.GetDescriptionForPile(pile)', 'ctx.Combat.CloneCard(left)',
                       'CardModel.FromSerializable(left.ToSerializable())', 'await ctx.Play(middle)',

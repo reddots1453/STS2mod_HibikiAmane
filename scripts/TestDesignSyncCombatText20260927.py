@@ -147,7 +147,7 @@ class CombatTextContracts(unittest.TestCase):
 
     def test_dynamic_tracker_and_replay_transitions_check_actual_descriptions(self):
         source = read('src/Debugging/CardEffects/CardEffectTestCatalog.cs')
-        self.assertIn('tracker.PlayedEnchantedCards = 3;\n            DesignSyncCombatTextContract.TrackedHits(ctx, card, upgraded);', source)
+        self.assertIn('tracker.PlayedEnchantedCards = 3;\n            await CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);\n            DesignSyncCombatTextContract.TrackedHits(ctx, card, upgraded);', source)
         self.assertIn('DesignSyncCombatTextContract.AssertText(ctx, projected, PileType.Hand,', source)
         self.assertIn('"造成6点伤害。", "replay projection renders copied strike not source text"', source)
         self.assertIn('DesignSyncCombatTextContract.AssertText(ctx, restored, PileType.Discard,', source)

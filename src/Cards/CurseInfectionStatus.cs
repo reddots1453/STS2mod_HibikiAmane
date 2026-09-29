@@ -7,6 +7,8 @@ using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Saves.Runs;
+using MaidenSuccubus.Core.Control;
 using MaidenSuccubus.Keywords;
 using MaidenSuccubus.Util;
 
@@ -18,6 +20,7 @@ namespace MaidenSuccubus.Cards;
 /// </summary>
 public static class CurseInfectionStatus
 {
+    internal const string SaveKey = nameof(CurseInfection.CurseInfectionAnnotationMarker);
     public static bool Has(CardModel card) =>
         card.Keywords.Contains(CurseInfectionKeyword.Value);
 
@@ -46,6 +49,39 @@ public static class CurseInfectionStatus
         await CardPileCmd.Draw(context, 2, card.Owner);
         TryApplyToRandomHandCard(card.Owner);
     }
+}
+
+// CardModel does not serialize arbitrary runtime keywords. Store this one
+// combat-only annotation in the native saved-properties payload so combat
+// saves and multiplayer packets restore the same exhaust behavior.
+[HarmonyPatch]
+internal static class CurseInfectionSerializationPatch
+{
+    [HarmonyPatch(typeof(CardModel), nameof(CardModel.ToSerializable))]
+    [HarmonyPostfix]
+    private static void Save(CardModel __instance, SerializableCard __result) =>
+        Safe.Run(() =>
+        {
+            using (ControlQuery.SuppressPresentation())
+            {
+                if (!CurseInfectionStatus.Has(__instance)) return;
+            }
+            __result.Props ??= new SavedProperties();
+            __result.Props.bools ??= [];
+            if (__result.Props.bools.Any(entry => entry.name == CurseInfectionStatus.SaveKey)) return;
+            __result.Props.bools.Add(new SavedProperties.SavedProperty<bool>(
+                CurseInfectionStatus.SaveKey, true));
+        }, "CurseInfection.Save");
+
+    [HarmonyPatch(typeof(CardModel), nameof(CardModel.FromSerializable))]
+    [HarmonyPostfix]
+    private static void Restore(SerializableCard __0, CardModel __result) =>
+        Safe.Run(() =>
+        {
+            if (__0.Props?.bools?.Any(entry =>
+                    entry.name == CurseInfectionStatus.SaveKey && entry.value) == true)
+                CurseInfectionStatus.TryApply(__result);
+        }, "CurseInfection.Restore");
 }
 
 [HarmonyPatch(typeof(Hook), nameof(Hook.AfterCardExhausted))]

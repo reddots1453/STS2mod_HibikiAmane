@@ -78,7 +78,7 @@ internal static class DesignSyncIceGoddessContract
         ctx.AssertEqual("layered replay counts two plays not four layers", 2, Shards());
 
         await Activate();
-        var expiring = ctx.Create<MaidenDefend>();
+        var expiring = await ctx.Add<MaidenDefend>(PileType.Hand);
         CombatEnchantmentCmd.ApplyVanilla<Swift>(expiring, 1);
         CardPlay receipt = Receipt(expiring);
         await power.BeforeCardPlayed(receipt);
@@ -92,7 +92,7 @@ internal static class DesignSyncIceGoddessContract
         await power.AfterCardPlayed(choice, later);
         ctx.AssertEqual("later unenchanted play cannot reuse old eligibility", 1, Shards());
 
-        var enchanted = ctx.Create<MaidenDefend>();
+        var enchanted = await ctx.Add<MaidenDefend>(PileType.Hand);
         CombatEnchantmentCmd.ApplyVanilla<Swift>(enchanted, 1);
         var foreign = Player.CreateForNewRun<Ironclad>(ctx.Player.UnlockState, ctx.Player.NetId + 1000);
         foreign.RunState = ctx.Player.RunState;
@@ -118,7 +118,7 @@ internal static class DesignSyncIceGoddessContract
         ctx.AssertEqual("clone can observe its own new play", 2, Shards());
 
         await ctx.Reset();
-        var selfEnchanted = ctx.Create<GoddessOfIce>(upgraded);
+        var selfEnchanted = await ctx.Add<GoddessOfIce>(PileType.Hand, upgraded);
         CombatEnchantmentCmd.ApplyVanilla<Swift>(selfEnchanted, 1);
         await ctx.Play(selfEnchanted);
         ctx.AssertEqual("newly applied power observes own enchanted card once", 1, Shards());

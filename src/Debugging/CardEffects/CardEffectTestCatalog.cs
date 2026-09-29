@@ -389,17 +389,19 @@ internal static class CardEffectTestCatalog
         {
             AssertNeutralMetadata(ctx, card, CardRarity.Uncommon, 1);
             MaidenStrike selected = await ctx.Add<MaidenStrike>(PileType.Hand);
+            int originalStrikeCost = selected.EnergyCost.GetWithModifiers(CostModifiers.None);
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(card, ctx.PrimaryEnemy, selectedCards: [selected]);
             ctx.AssertDamage("damage", ctx.PrimaryEnemy, hp, upgraded ? 9 : 6);
             ctx.AssertEqual("selected strike receives Instinct", "Instinct",
                 selected.Enchantment?.GetType().Name ?? "none");
-            ctx.AssertEqual("Instinct reduces selected strike cost", 0,
-                selected.EnergyCost.GetWithModifiers(CostModifiers.All));
+            ctx.AssertEqual("Instinct reduces selected strike base cost by one",
+                Math.Max(0, originalStrikeCost - 1),
+                selected.EnergyCost.GetWithModifiers(CostModifiers.None));
 
             await ctx.Reset();
             MaidenStrike zeroCost = await ctx.Add<MaidenStrike>(PileType.Hand);
-            zeroCost.EnergyCost.UpgradeBy(-1);
+            zeroCost.EnergyCost.UpgradeBy(-zeroCost.EnergyCost.GetWithModifiers(CostModifiers.None));
             ctx.AssertTrue("zero-cost strike is not enchantable by Instinct",
                 !ModelDb.Enchantment<Instinct>().CanEnchant(zeroCost), effect: false);
             await ctx.Play(ctx.Create<ForgeStrike>(upgraded), ctx.PrimaryEnemy);
@@ -463,6 +465,7 @@ internal static class CardEffectTestCatalog
             TakemikazuchiTrackerPower tracker = ctx.Self
                 .Powers.OfType<TakemikazuchiTrackerPower>().Single();
             tracker.PlayedEnchantedCards = 3;
+            await CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);
             DesignSyncCombatTextContract.TrackedHits(ctx, card, upgraded);
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(card, ctx.PrimaryEnemy);
@@ -1211,7 +1214,7 @@ internal static class CardEffectTestCatalog
                 new LocString("cards", "MAIDENSUCCUBUS_ESCAPE.title")
                     .GetFormattedText(), projectedTitle);
             ctx.AssertTrue("projected description exposes escape amount",
-                projectedDescription.Contains("3", StringComparison.Ordinal));
+                projectedDescription.Contains("挣脱1点", StringComparison.Ordinal));
             ctx.AssertEqual("projected keywords remain hidden", 0,
                 projectedKeywords.Count);
             ctx.AssertTrue("projected enchantment remains hidden",
@@ -1401,7 +1404,7 @@ internal static class CardEffectTestCatalog
                     DesignSyncNeutralTextContract.Normalize(card.GetDescriptionForPile(PileType.None)), effect: false);
             }
             return Task.CompletedTask;
-        }, 0);
+        }, 0, notUpgradable: true);
 
     private static void DarkOriginProbe() =>
         CustomVariants<DarkOrigin>(async (ctx, card, upgraded) =>
@@ -2256,8 +2259,8 @@ internal static class CardEffectTestCatalog
             Burn unplayable = await ctx.Add<Burn>(PileType.Draw);
             Bash discounted = await ctx.Add<Bash>(PileType.Draw);
             discounted.EnergyCost.SetThisCombat(1);
-            await ctx.Add<Bash>(PileType.Draw);
-            await ctx.Add<StrikeIronclad>(PileType.Draw);
+            Bash fullCost = await ctx.Add<Bash>(PileType.Draw);
+            StrikeIronclad last = await ctx.Add<StrikeIronclad>(PileType.Draw);
 
             ctx.AssertEqual("Tezcataras Ember current cost", 0,
                 Surf.GetCurrentEnergyCostForAccumulation(ember), effect: false);
@@ -2270,10 +2273,22 @@ internal static class CardEffectTestCatalog
 
             int hp = ctx.PrimaryEnemy.CurrentHp;
             int hand = PileType.Hand.GetPile(ctx.Player).Cards.Count;
+            int draw = PileType.Draw.GetPile(ctx.Player).Cards.Count;
             await ctx.Play(card, ctx.PrimaryEnemy);
             int expectedDraws = upgraded ? 6 : 5;
             ctx.AssertEqual("draws until modified costs reach threshold", expectedDraws,
                 PileType.Hand.GetPile(ctx.Player).Cards.Count - hand);
+            ctx.AssertEqual("draw pile loses exactly the accumulated cards", expectedDraws,
+                draw - PileType.Draw.GetPile(ctx.Player).Cards.Count);
+            ctx.AssertEqual("exactly the expected cards enter hand", expectedDraws,
+                new CardModel[] { ember, xCost, unplayable, discounted, fullCost, last }
+                    .Count(candidate => candidate.Pile?.Type == PileType.Hand));
+            ctx.AssertEqual("discounted bash contributes one to threshold", 1,
+                discounted.Pile?.Type == PileType.Hand ? 1 : 0);
+            ctx.AssertEqual("full-cost bash contributes final two to threshold", 1,
+                fullCost.Pile?.Type == PileType.Hand ? 1 : 0);
+            ctx.AssertEqual("terminal card remains undrawn only at base threshold", !upgraded,
+                last.Pile?.Type == PileType.Draw);
             ctx.AssertDamage("one area hit per drawn card", ctx.PrimaryEnemy, hp,
                 expectedDraws * 4);
         }, 6);

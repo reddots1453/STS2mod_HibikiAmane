@@ -81,6 +81,9 @@ public sealed class AllCurseBite : MSCorruptCard
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class CurseInfection : MSCorruptCard
 {
+    // Registers the annotation save key for marked cards of any origin.
+    [SavedProperty(SerializationCondition.SaveIfNotTypeDefault)]
+    public bool CurseInfectionAnnotationMarker { get; set; }
     protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
         [CardHoverTipSupport.Static("MAIDENSUCCUBUS_CURSE_INFECTION")];
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];

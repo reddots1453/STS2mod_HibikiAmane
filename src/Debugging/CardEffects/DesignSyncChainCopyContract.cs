@@ -137,6 +137,7 @@ internal static class DesignSyncChainCopyContract
     internal static async Task Flash(CardEffectTestContext ctx, FlashStab card, bool upgraded)
     {
         int deckCount = PileType.Deck.GetPile(ctx.Player).Cards.Count;
+        await CardPileCmd.Add(card, PileType.Hand, skipVisuals: true);
         CombatEnchantmentCmd.ApplyVanilla<Sharp>(card, 2);
         await ctx.ApplyPower<StrengthPower>(ctx.Self, 3);
         card.EnergyCost.AddThisCombat(2);

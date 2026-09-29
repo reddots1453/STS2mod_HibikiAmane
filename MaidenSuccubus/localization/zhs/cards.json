@@ -17,7 +17,7 @@
   "MAIDEN_HUMILITY_REWRITE.target_LowestHpEnemy": "对生命最低的敌人",
   "MAIDEN_SUCCUBUS_CARD_DARK_ORIGIN.title": "黑暗之源",
   "MAIDEN_SUCCUBUS_CARD_DARK_ORIGIN.description": "造成{Damage:diff()}点伤害。\n[gold]魔力解放[/gold]：{IsCorrupt:造成{Damage:diff()}点伤害|获得{Block:diff()}点[gold]格挡[/gold]}。\n{IsCorrupt:[purple]堕落值[/purple]≤-3|[purple]堕落值[/purple]＞-3}：[gold]变奏[/gold]。",
-  "MAIDEN_SUCCUBUS_CARD_LIBRARY_PILE_CHOICE.title": "选择牌堆",
+  "MAIDEN_SUCCUBUS_CARD_LIBRARY_PILE_CHOICE.title": "{PileName}",
   "MAIDEN_SUCCUBUS_CARD_LIBRARY_PILE_CHOICE.pileTitle": "{PileName}",
   "MAIDEN_SUCCUBUS_CARD_LIBRARY_PILE_CHOICE.description": "随机打出[gold]{PileName}[/gold]中的{Count:diff()}张牌。",
   "MAIDEN_SUCCUBUS_CARD_TEMPERANCE_SIGNET.title": "节制之戒",
@@ -479,5 +479,5 @@
   "MAIDEN_SUCCUBUS_CARD_FLAME_SWORD.title": "炎之剑",
   "MAIDEN_SUCCUBUS_CARD_FLAME_SWORD.description": "造成{Damage:diff()}点伤害。\n完成5场战斗后，为这张牌[gold]附魔[/gold]：[purple]特兹卡塔拉的余烬[/purple]。{ShowRemaining:\n（还剩{Remaining:diff()}场战斗）|}",
   "MAIDEN_SUCCUBUS_CARD_MILK.title": "乳汁",
-  "MAIDEN_SUCCUBUS_CARD_MILK.description": "恢复{Heal:diff()}点生命值。\n[gold]消耗[/gold]。"
+  "MAIDEN_SUCCUBUS_CARD_MILK.description": "恢复{Heal:diff()}点生命值。"
 }
