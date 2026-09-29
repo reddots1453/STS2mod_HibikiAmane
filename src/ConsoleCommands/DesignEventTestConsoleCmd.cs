@@ -24,7 +24,7 @@ public sealed class DesignEventTestConsoleCmd : AbstractConsoleCmd
     private static bool _running;
     public override string CmdName => "ms_test_events";
     public override string Args => "confirm";
-    public override string Description => "Destructive DS27 UndeadGathering, LesserEvil and SuspiciousShop tests; disposable run only";
+    public override string Description => "Destructive DS27 event tests including the three MassageShop visits; disposable run only";
     public override bool IsNetworked => false;
 
     public override CmdResult Process(Player? issuingPlayer, string[] args)
@@ -111,6 +111,7 @@ public sealed class DesignEventTestConsoleCmd : AbstractConsoleCmd
             await DesignUndeadEventContract.Run(player, Check);
             await DesignLesserEvilEventContract.Run(player, Check);
             await DesignSuspiciousShopEventContract.Run(player, Check);
+            await DesignMassageEventContract.Run(player, Check);
             MaidenSuccubusMod.Logger.Info($"[DS27EventTest] PASS {checks} assertions; disposable run was modified.");
         }
         catch (Exception ex)

@@ -11,4 +11,9 @@ public sealed class CorruptionState
 
     // 每局限一次的行为标记（如"失去纯洁印记获得堕落值"等战斗行为）
     public HashSet<string> TriggeredOnceFlags { get; set; } = new();
+
+    // Fixed second unknown-room appointment in Acts 2 and 3 (1-based act number).
+    public int MassageAppointmentAct { get; set; }
+    public int ActTwoUnknownRoomsVisited { get; set; }
+    public int ActThreeUnknownRoomsVisited { get; set; }
 }
