@@ -4,7 +4,8 @@
 
 - 变更前快照：`27837c5e`；DesignDoc逐行、词级无漂移。遗物切换沿用原生进阶按钮，但不再重新实例化进阶场景，隔离材质资源；按原按钮可见尺寸布置，以遗物图标而非会随描述变化的面板中心定位。
 - 战技复读的来源暗边改为显式原生卡牌画布。此前覆盖容器是`Node`，`FullRect`得到零宽高，四条暗边不可见。未修改复制规则与遗物效果。
-- 验证：`TestUiVisualRegression20260930.py` 3/3；Debug与Release无部署构建均0警告0错误；统一离线15/15套通过（`obj/design-sync-validation/20260929T170531Z-0649efdf7ea2/report.json`）。验证器因游戏运行组尚未执行返回`incomplete`，不代表静态门失败。部署及实机视觉复验另记。
+- 验证：`TestUiVisualRegression20260930.py` 3/3；Debug与Release无部署构建均0警告0错误；统一离线15/15套通过（`obj/design-sync-validation/20260929T170531Z-0649efdf7ea2/report.json`）。验证器因游戏运行组尚未执行返回`incomplete`，不代表静态门失败。修复提交`ae8d7019`，实机视觉仍待复验。
+- 游戏进程未运行时只部署本Mod的Debug DLL/PDB，避免完整资产复制覆盖并行素材。旧文件备份于`obj/deployment-backups/replay-arrow-20260930T010939`；源/目标SHA256一致：DLL `8BEF04EA32F8AEC322CA848B5754FE150A93FE77A0BE3592CAC5ABDBCCA06846`，PDB `17BC9D5703227A051E479F2EB1A3BADDB98A1B21C98DAF43A5381AFD2F282C95`。
 
 ## 2026-09-30 — 游戏测试失败回修（待实机复验）
 
