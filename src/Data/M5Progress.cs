@@ -4,6 +4,8 @@ namespace MaidenSuccubus.Data;
 
 public sealed class M5ProgressState
 {
+    public bool? GoddessTrialsEnabled { get; set; }
+    public HashSet<int> ResolvedAlignmentActs { get; set; } = [];
     public HashSet<int> BlessingOfferedActs { get; set; } = [];
     public bool StartProfileApplied { get; set; }
     public string StartProfileId { get; set; } = "";

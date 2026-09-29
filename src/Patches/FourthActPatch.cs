@@ -73,6 +73,14 @@ public static class FourthActCreationPatch
             "FourthAct.NormalizePendingActs");
 }
 
+[HarmonyPatch(typeof(RunState), nameof(RunState.CreateForNewRun))]
+public static class GoddessTrialNewRunPatch
+{
+    [HarmonyPostfix]
+    public static void Postfix(RunState __result) => Safe.Run(
+        () => GoddessTrialMode.CaptureNewRun(__result), "GoddessTrial.CaptureNewRun");
+}
+
 [HarmonyPatch(typeof(RunManager), nameof(RunManager.EnterNextAct))]
 public static class FourthActEndingPatch
 {

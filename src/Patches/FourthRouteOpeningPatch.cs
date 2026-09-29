@@ -58,7 +58,7 @@ public static class FourthRouteOpeningPatch
         if (TestMode.IsOn || EventField?.GetValue(room) is not Neow ancient || FinishedField?.GetValue(room) is not false
             || ancient.Owner is not { } player || !FourthRouteLifecycle.IsEligible(player) || !LocalContext.IsMe(player)
             || player.RunState is not RunState run || run.Players.Count != 1 || run.CurrentActIndex != 0
-            || !FourthRouteOpeningService.NeedsOpening(run)) return;
+            || !GoddessTrialMode.Enabled(run) || !FourthRouteOpeningService.NeedsOpening(run)) return;
         bool Current() => GodotObject.IsInstanceValid(room) && room.IsInsideTree()
             && ReferenceEquals(NEventRoom.Instance, room) && RunManager.Instance.DebugOnlyGetState() == run;
         while (Current() && NModalContainer.Instance?.OpenModal != null)

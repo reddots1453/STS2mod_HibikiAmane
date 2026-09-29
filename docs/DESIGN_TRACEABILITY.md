@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## 2026-09-30 女神试炼可选与跨幕二选一（IMPLEMENTED，待游戏复验）
+
+用户2026-09-30明确变更`ACT4-001/SYS-COR-002`的可选流程 → Plan“女神试炼开关与跨幕堕落值选择” → `GoddessTrialMode`注册RitsuLib主菜单设置、捕获每Run模式及幕索引收据；`FourthRouteOpeningPatch`/`FourthRouteQuestSelectionPatch`/`FourthRouteLifecycle`关闭试炼入口和监听；`ActAlignmentChoiceScreen`在第二/第三幕地图强制二选一，`CorruptionCmd`结算±2 → `TestGoddessTrialMode20260930.ps1`生产规则10/10、`FrameworkSelfTests.AssertActAlignmentChoices`、Debug无部署构建；游戏内主菜单设置、Neow、两次自然跨幕、退出读档、其他角色待验。旧档缺模式字段保留原试炼流程；不对第四幕追加一次选择。该明确用户增量需设计工作树回填DesignDoc稳定ID，代码不宣称第四层完整验收。
+
 ## 2026-09-30 商店精液类诅咒清理入口视觉（IMPLEMENTED，待游戏复验）
 
 `SYS-INV-002` → Plan“商店清理诅咒入口原生化” → `MerchantInvasionCursePatch`复制原生`NMerchantCardRemoval`槽位、独立购买/悬停与焦点路径，`InvasionCurseMerchantService`结算保持不变 → `TestMerchantCurseVisual20260930.py`静态契约及Debug完整构建；游戏内需验证与普通删牌图标并排、退款价签、交互反馈、普通删牌仍可用、无诅咒或其他角色不显示，未运行时不标VERIFIED。

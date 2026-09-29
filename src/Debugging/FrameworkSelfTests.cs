@@ -37,6 +37,7 @@ public static class FrameworkSelfTests
         AssertControlTypes();
         AssertFourthActRoutes();
         AssertFourthRouteQuests();
+        AssertActAlignmentChoices();
         AssertStunSchedulingIsIdempotent();
 
         var normalized = RouteRewardProbabilities.Calculate(
@@ -74,6 +75,22 @@ public static class FrameworkSelfTests
             FourthActRouteService.DefaultForBand(CorruptionBand.Corrupt)
                 == FourthActRoute.Corrupt,
             "fourth act corrupt route");
+    }
+
+    private static void AssertActAlignmentChoices()
+    {
+        HashSet<int> resolved = [];
+        AssertBoolean(true, !ActAlignmentChoiceRules.Needs(0, resolved), "no opening choice");
+        AssertBoolean(true, ActAlignmentChoiceRules.Needs(1, resolved), "second act choice");
+        AssertBoolean(true, ActAlignmentChoiceRules.Needs(2, resolved), "third act choice");
+        AssertBoolean(true, !ActAlignmentChoiceRules.Needs(3, resolved), "no fourth act choice");
+        resolved.Add(1);
+        AssertBoolean(true, !ActAlignmentChoiceRules.Needs(1, resolved), "second act receipt");
+        AssertBoolean(true, ActAlignmentChoiceRules.Needs(2, resolved), "third act still pending");
+        resolved.Add(2);
+        AssertBoolean(true, !ActAlignmentChoiceRules.Needs(2, resolved), "third act receipt");
+        AssertBoolean(true, ActAlignmentChoiceRules.ValidDelta(2) && ActAlignmentChoiceRules.ValidDelta(-2)
+            && !ActAlignmentChoiceRules.ValidDelta(0), "alignment deltas");
     }
 
     private static void AssertFourthRouteQuests()

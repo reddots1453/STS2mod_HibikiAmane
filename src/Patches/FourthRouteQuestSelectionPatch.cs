@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Acts;
+using MaidenSuccubus.UI;
 using MaidenSuccubus.Bootstrap;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Players;
@@ -43,10 +44,14 @@ public static class FourthRouteQuestSelectionPatch
         Player? player = runState?.Players.FirstOrDefault(candidate =>
             FourthRouteLifecycle.IsEligible(candidate) && LocalContext.IsMe(candidate));
         bool needsQuest = runState is not null
+            && GoddessTrialMode.Enabled(runState)
             && !FourthRouteProgressService.TryGetQuest(runState, out _);
         bool needsReward = runState is not null
+            && GoddessTrialMode.Enabled(runState)
             && FourthRouteProgressService.HasPendingInitialReward(runState);
-        if (runState is null || player is null || (!needsQuest && !needsReward))
+        bool needsAlignment = runState is not null && GoddessTrialMode.NeedsActChoice(runState)
+            && runState.Players.Count == 1;
+        if (runState is null || player is null || (!needsQuest && !needsReward && !needsAlignment))
         {
             return;
         }
@@ -81,7 +86,9 @@ public static class FourthRouteQuestSelectionPatch
 
         if (RunManager.Instance.DebugOnlyGetState() != runState
             || NModalContainer.Instance?.OpenModal is not null
-            || (FourthRouteProgressService.TryGetQuest(runState, out _)
+            || (!GoddessTrialMode.NeedsActChoice(runState)
+                && (FourthRouteProgressService.TryGetQuest(runState, out _)
+                    || !GoddessTrialMode.Enabled(runState))
                 && !FourthRouteProgressService.HasPendingInitialReward(runState)))
         {
             return;
@@ -92,15 +99,31 @@ public static class FourthRouteQuestSelectionPatch
         try
         {
             MaidenSuccubusMod.Logger.Info(
-                $"Fourth-route map modal ready: quest={needsQuest}, reward={needsReward}, mapOpen={map.IsOpen}.");
-            if (!FourthRouteProgressService.TryGetQuest(runState, out _))
+                $"Fourth-route map modal ready: quest={needsQuest}, reward={needsReward}, alignment={needsAlignment}, mapOpen={map.IsOpen}.");
+            if (GoddessTrialMode.NeedsActChoice(runState))
+            {
+                int actIndex = runState.CurrentActIndex;
+                while (GoddessTrialMode.NeedsActChoice(runState)
+                    && RunManager.Instance.DebugOnlyGetState() == runState
+                    && GodotObject.IsInstanceValid(map) && map.IsInsideTree()
+                    && ReferenceEquals(NMapScreen.Instance, map))
+                {
+                    int? delta = await ActAlignmentChoiceScreen.Show(actIndex);
+                    if (delta is int change && RunManager.Instance.DebugOnlyGetState() == runState)
+                        GoddessTrialMode.ResolveActChoice(runState, actIndex, change);
+                    else
+                        await WaitOneFrame(); // Closing the modal is not a third option.
+                }
+                return;
+            }
+            if (GoddessTrialMode.Enabled(runState) && !FourthRouteProgressService.TryGetQuest(runState, out _))
                 await FourthRouteLifecycle.For(player).EnsureFourthRouteQuestSelected();
-            if (FourthRouteProgressService.HasPendingInitialReward(runState))
+            if (GoddessTrialMode.Enabled(runState) && FourthRouteProgressService.HasPendingInitialReward(runState))
                 await FourthRouteLifecycle.For(player).EnsureFourthRouteRewardClaimed();
         }
         finally
         {
-            if (restoreTravel
+            if (restoreTravel && !GoddessTrialMode.NeedsActChoice(runState)
                 && RunManager.Instance.DebugOnlyGetState() == runState
                 && NMapScreen.Instance is { IsOpen: true } currentMap)
             {

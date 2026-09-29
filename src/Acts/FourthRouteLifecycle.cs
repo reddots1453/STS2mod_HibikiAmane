@@ -40,7 +40,9 @@ public sealed class FourthRouteLifecycle : SingletonModel
     // Only the run stream: it is also included by run+combat dispatch, so never
     // subscribe this tracker to both streams (that would double every trial).
     internal static IEnumerable<AbstractModel> Listeners(RunState run) =>
-        run.Players.Where(player => player.IsActiveForHooks && IsEligible(player)).Select(For);
+        GoddessTrialMode.Enabled(run)
+            ? run.Players.Where(player => player.IsActiveForHooks && IsEligible(player)).Select(For)
+            : [];
 
     public override Task BeforeCombatStart() => CheckThresholdQuest();
     public override async Task AfterRoomEntered(AbstractRoom room)
