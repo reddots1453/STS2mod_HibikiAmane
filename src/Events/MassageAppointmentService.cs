@@ -52,9 +52,10 @@ internal static class MassageAppointmentService
             || run.Players.Count == 0
             || run.Players.Any(player => player.Character is not MaidenSuccubusCharacter))
             return;
+        EventModel? expected = EventFor(run, pointType);
         bool fulfilled = room is EventRoom eventRoom
-            && EventFor(run, pointType) is EventModel expected
-            && eventRoom.ModelId == expected.Id;
+            && expected != null && eventRoom.ModelId == expected.Id;
+        if (fulfilled) run.AddVisitedEvent(expected!);
         Corruption.Handle.Modify(run, state =>
         {
             if (run.CurrentActIndex == 1) state.ActTwoUnknownRoomsVisited++;

@@ -1,5 +1,11 @@
 # DesignDoc需求追踪矩阵
 
+## DS27-06H：固定预约事件访问历史（IMPLEMENTED，游戏内待验）
+
+`EVENT-NEW-005/006`固定替换问号 → Plan `DS27-06H` → `MassageAppointmentService.RoomCreated`确认实际事件房间后复用`RunState.AddVisitedEvent` → DS27-EVENT/COMPAT/GATES。原版事件候选会登记已访问事件，固定注入路径先前绕过；只补历史，不改变预约时机或奖励。游戏自然跨幕/存读档待验。
+
+预约定向5项、日期静态635项和Debug无部署构建通过；游戏运行时未验。
+
 ## DS27-03D：逐怪物三表候选与前置一致性（IMPLEMENTED，离线已复验）
 
 `MON-ERO-CATALOG-001`分配表及详细行动表 → Plan `DS27-03D` → 101个ID逐列比较次数/阈值/详细行动有无、I需B的运行时目录校验 → DS27-MON/GATES。仅数据完整性约束，不修改表中数值；真实怪物行动未运行。

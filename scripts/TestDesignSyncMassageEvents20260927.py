@@ -58,6 +58,12 @@ class MassageEventContract(unittest.TestCase):
         self.assertIn("[HarmonyPrefix, HarmonyPriority(Priority.Last)]", GREED)
         self.assertIn("reserved: !__runOriginal", GREED)
 
+    def test_fulfilled_fixed_event_is_recorded_like_native_event(self):
+        self.assertIn("EventModel? expected = EventFor(run, pointType);", SERVICE)
+        self.assertIn("eventRoom.ModelId == expected.Id", SERVICE)
+        self.assertIn("if (fulfilled) run.AddVisitedEvent(expected!);", SERVICE)
+        self.assertIn("if (fulfilled) state.MassageAppointmentAct = 0;", SERVICE)
+
     def test_all_three_package_effects_have_game_scenarios(self):
         self.assertIn("DesignMassageEventContract.Run(player, Check)", RUNNER)
         for effect in ("general package pays 100", "first special package pays 50",
