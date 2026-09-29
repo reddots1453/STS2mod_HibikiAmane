@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## 2026-09-30 商店精液类诅咒清理入口视觉（IMPLEMENTED，待游戏复验）
+
+`SYS-INV-002` → Plan“商店清理诅咒入口原生化” → `MerchantInvasionCursePatch`复制原生`NMerchantCardRemoval`槽位、独立购买/悬停与焦点路径，`InvasionCurseMerchantService`结算保持不变 → `TestMerchantCurseVisual20260930.py`静态契约及Debug完整构建；游戏内需验证与普通删牌图标并排、退款价签、交互反馈、普通删牌仍可用、无诅咒或其他角色不显示，未运行时不标VERIFIED。
+
 ## 2026-09-30 顶栏资源生命周期及侧栏文字布局（IMPLEMENTED，待游戏复验）
 
 `SYS-COR-001/SYS-DES-001` → Plan“顶栏资源生命周期与侧栏精简” → `CorruptionMeter`、`MaidenSidebarRail`以原生牌组/地图按钮、Neow初始房间、全屏Modal和顶栏位置为共同显隐门，降低Z层避免遮挡女神试炼；`TemptationMeter`移除标题并居中下移数字，`DesireMeter`裁去贴图自带数值框 → `TestSidebarLayout20260927.py`变异测试及双配置构建；第四层试炼打开/关闭、地图与设置切换、欲望数值视觉待游戏复验。

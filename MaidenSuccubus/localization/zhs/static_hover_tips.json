@@ -45,5 +45,7 @@
   "MAIDENSUCCUBUS_INVASION_REFERENCE.title": "侵犯",
   "MAIDENSUCCUBUS_INVASION_REFERENCE.description": "[gold]侵犯[/gold]会造成伤害，同时向玩家牌组塞入诅咒。只有处于[gold]拘束[/gold]状态且[gold]魔装耐久[/gold]为全损状态时，才会成为合法意图。",
   "MAIDENSUCCUBUS_EROTIC_ATTACK_REFERENCE.title": "色情攻击",
-  "MAIDENSUCCUBUS_EROTIC_ATTACK_REFERENCE.description": "[pink]色情攻击[/pink]是[pink]欲望攻击[/pink]、[gold]拘束[/gold]意图和[gold]侵犯[/gold]意图的统称。"
+  "MAIDENSUCCUBUS_EROTIC_ATTACK_REFERENCE.description": "[pink]色情攻击[/pink]是[pink]欲望攻击[/pink]、[gold]拘束[/gold]意图和[gold]侵犯[/gold]意图的统称。",
+  "MAIDENSUCCUBUS_SHOP_CURSE_REMOVAL.title": "清理精液类诅咒",
+  "MAIDENSUCCUBUS_SHOP_CURSE_REMOVAL.description": "永久移除全部[gold]{Count}[/gold]张精液类诅咒，获得[gold]{Refund}[/gold]金币。免费，且不影响旁边的普通删牌服务。"
 }
