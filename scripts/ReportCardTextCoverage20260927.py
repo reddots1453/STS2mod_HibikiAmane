@@ -30,7 +30,7 @@ GLOBAL = (
     ('DesignSyncStarterTextContract', 'Entries', 'starter full run text', 5),
     ('DesignSyncRemainingTextContract', 'Entries', 'remaining exact run text', 7),
     ('DesignSyncFinalTextContract', 'Entries', 'final exact run text', 12),
-    ('DesignSyncStatusTextContract', 'Entries', 'status full run text', 38),
+    ('DesignSyncStatusTextContract', 'Entries', 'status full run text', 39),
     ('DesignSyncNeutralTextContract', 'Entries', 'DS27 neutral full rendered text', 30),
     ('DesignSyncHolyTextContract', 'Entries', 'DS27 holy full rendered text', 48),
     ('DesignSyncCombatTextContract', 'Entries', 'combat text contract true run instance', 8),

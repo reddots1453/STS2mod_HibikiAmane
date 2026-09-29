@@ -182,5 +182,8 @@
   "MAIDEN_SUCCUBUS_RELIC_CLEAR_HEART_NECKLACE.flavor": "回合开始时，如果≥5点欲望，失去1点欲望值。堕落值≥3：变奏。",
   "MAIDEN_SUCCUBUS_RELIC_MURKY_HEART_NECKLACE.title": "浊心项链",
   "MAIDEN_SUCCUBUS_RELIC_MURKY_HEART_NECKLACE.description": "回合开始时，如果≤5点[pink]欲望[/pink]，获得1点[pink]欲望值[/pink]。[purple]堕落值[/purple]＜3：[gold]变奏[/gold]。",
-  "MAIDEN_SUCCUBUS_RELIC_MURKY_HEART_NECKLACE.flavor": "回合开始时，如果≤5点欲望，获得1点欲望值。堕落值＜3：变奏。"
+  "MAIDEN_SUCCUBUS_RELIC_MURKY_HEART_NECKLACE.flavor": "回合开始时，如果≤5点欲望，获得1点欲望值。堕落值＜3：变奏。",
+  "MAIDEN_SUCCUBUS_RELIC_MILKER.title": "榨乳器",
+  "MAIDEN_SUCCUBUS_RELIC_MILKER.description": "战斗开始时，受到3点伤害，将2张[gold]乳汁[/gold]放入[gold]抽牌堆[/gold]。",
+  "MAIDEN_SUCCUBUS_RELIC_MILKER.flavor": "古怪机器里传来一声短促的嗡鸣。"
 }

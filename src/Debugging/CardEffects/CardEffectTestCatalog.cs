@@ -294,6 +294,14 @@ internal static class CardEffectTestCatalog
         IceMistProbe();
         Block<IceShard>(3, 4);
         HandPlayRestriction<InfatuationCurse>(CardType.Attack);
+        BaseOnly<Milk>(async (ctx, card) =>
+        {
+            await MegaCrit.Sts2.Core.Commands.CreatureCmd.SetCurrentHp(ctx.Self, ctx.Self.MaxHp - 20);
+            int before = ctx.Self.CurrentHp;
+            await ctx.Play(card);
+            ctx.AssertEqual("milk restores three health", 3, ctx.Self.CurrentHp - before);
+            ctx.AssertEqual("milk exhausts after play", 1, ctx.CountCards<Milk>(PileType.Exhaust));
+        }, 2);
         EndTurnGenerate<LewdMarkCompleteCurse, ArousalStatus>(2);
         EndTurnGenerate<LewdMarkMinorCurse, ArousalStatus>(1);
         EndTurnGenerate<LewdMarkSpreadCurse, ArousalStatus>(2);

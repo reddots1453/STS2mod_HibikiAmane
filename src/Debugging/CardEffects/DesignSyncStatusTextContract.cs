@@ -20,6 +20,7 @@ internal static class DesignSyncStatusTextContract
         new(typeof(BiteInvader), "选择一名意图为侵犯的敌人，给于7层虚弱并将其击晕。\n随身。"),
         new(typeof(BitingPaperStatus), "回合结束时如果这张牌在你的手牌中，失去1层魔装耐久。\n消耗。"),
         new(typeof(ChangePanties), "欲望大于等于5时才能打出。\n获得2层滑溜。\n获得2层易伤。", "欲望大于等于4时才能打出。\n获得2层滑溜。\n获得2层易伤。"),
+        new(typeof(Milk), "恢复3点生命值。\n消耗。"),
         new(typeof(ClimaxBanCurse), "虚无。\n如果这张牌在你的手牌中，你不会因欲望值满进入高潮平复。"),
         new(typeof(ClothingBurnStatus), "虚无。\n回合结束时如果这张牌在你的手牌中，失去1层魔装耐久。\n消耗。"),
         new(typeof(CorrosiveSlimeCurse), "打出后移除出牌组。\n失去1层魔装耐久。"),

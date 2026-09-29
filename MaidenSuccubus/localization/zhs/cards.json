@@ -477,5 +477,7 @@
   "MAIDEN_SUCCUBUS_CARD_SHINING_SWORD.title": "闪耀之剑",
   "MAIDEN_SUCCUBUS_CARD_SHINING_SWORD.description": "造成{Damage:diff()}点伤害{Repeat}次。\n拾起时，为这张牌[gold]附魔[/gold]：[purple]活力：3[/purple]。",
   "MAIDEN_SUCCUBUS_CARD_FLAME_SWORD.title": "炎之剑",
-  "MAIDEN_SUCCUBUS_CARD_FLAME_SWORD.description": "造成{Damage:diff()}点伤害。\n完成5场战斗后，为这张牌[gold]附魔[/gold]：[purple]特兹卡塔拉的余烬[/purple]。{ShowRemaining:\n（还剩{Remaining:diff()}场战斗）|}"
+  "MAIDEN_SUCCUBUS_CARD_FLAME_SWORD.description": "造成{Damage:diff()}点伤害。\n完成5场战斗后，为这张牌[gold]附魔[/gold]：[purple]特兹卡塔拉的余烬[/purple]。{ShowRemaining:\n（还剩{Remaining:diff()}场战斗）|}",
+  "MAIDEN_SUCCUBUS_CARD_MILK.title": "乳汁",
+  "MAIDEN_SUCCUBUS_CARD_MILK.description": "恢复{Heal:diff()}点生命值。\n[gold]消耗[/gold]。"
 }

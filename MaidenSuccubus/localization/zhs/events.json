@@ -135,5 +135,15 @@
   "MAIDEN_SUCCUBUS_EVENT_LESSER_EVIL.pages.CHAMBER.description": "玻璃门在身后锁死。甜腻的雾气贴着皮肤涌来，搅乱呼吸与思绪。许久之后，另一侧的门终于开启。一件遗物安静地等在那里，仿佛刚才的一切就是它收取的价钱。",
   "MAIDEN_SUCCUBUS_EVENT_LESSER_EVIL.pages.INITIAL.options.LEAVE.title": "放弃",
   "MAIDEN_SUCCUBUS_EVENT_LESSER_EVIL.pages.INITIAL.options.LEAVE.description": "离开。",
-  "MAIDEN_SUCCUBUS_EVENT_LESSER_EVIL.pages.LEAVE.description": "你没有碰任何一座装置。机关沉默片刻，两件遗物同时缩回墙内。让开的缝隙刚好够一个人通过。身后传来失望似的咔哒声。"
+  "MAIDEN_SUCCUBUS_EVENT_LESSER_EVIL.pages.LEAVE.description": "你没有碰任何一座装置。机关沉默片刻，两件遗物同时缩回墙内。让开的缝隙刚好够一个人通过。身后传来失望似的咔哒声。",
+  "MAIDEN_SUCCUBUS_EVENT_SUSPICIOUS_SHOP.title": "可疑的商店",
+  "MAIDEN_SUCCUBUS_EVENT_SUSPICIOUS_SHOP.pages.INITIAL.description": "一道猩红色帘幕挤在尖塔的两面墙之间。上方歪斜的木牌写着：[gold]高薪日结[/gold]。\n\n帘幕后摆满了蒙着黑布的货架。布沿下露出一只眼罩、一个嗡嗡作响的卵形小玩意，以及一台用途不明的古怪机器。\n\n柜台后的店主笑得过分热情。\n\n“找活干，还是随便看看？”",
+  "MAIDEN_SUCCUBUS_EVENT_SUSPICIOUS_SHOP.pages.INITIAL.options.WORK.title": "打工",
+  "MAIDEN_SUCCUBUS_EVENT_SUSPICIOUS_SHOP.pages.INITIAL.options.WORK.description": "获得1点堕落值。获得2点欲望。获得175～200金币。",
+  "MAIDEN_SUCCUBUS_EVENT_SUSPICIOUS_SHOP.pages.INITIAL.options.WORK_LOCKED.title": "[需要+2或更高堕落值] 打工",
+  "MAIDEN_SUCCUBUS_EVENT_SUSPICIOUS_SHOP.pages.INITIAL.options.WORK_LOCKED.description": "你还没有放下足够多的顾虑。",
+  "MAIDEN_SUCCUBUS_EVENT_SUSPICIOUS_SHOP.pages.WORK.description": "帘幕在你身后合拢。店主递来一份没有正文的契约，只在最下方留了一个签名框。等帘幕再次拉开，墙上的钟已经转过了好几圈。你握紧沉甸甸的钱袋，决定不去细想自己究竟工作了多久。",
+  "MAIDEN_SUCCUBUS_EVENT_SUSPICIOUS_SHOP.pages.INITIAL.options.BROWSE.title": "只是路过",
+  "MAIDEN_SUCCUBUS_EVENT_SUSPICIOUS_SHOP.pages.INITIAL.options.BROWSE.description": "获得1件随机“店主的遗物”。",
+  "MAIDEN_SUCCUBUS_EVENT_SUSPICIOUS_SHOP.pages.BROWSE.description": "“第一次光顾，总该带点纪念品。”店主从黑布下随手摸出一件东西，塞进你的行囊。你正想推辞，帘幕已经在面前落下。再掀开时，墙后只剩一条死路。"
 }

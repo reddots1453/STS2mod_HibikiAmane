@@ -208,6 +208,43 @@ public sealed class DesignMagicRelicTestConsoleCmd : AbstractConsoleCmd
                 turnProperty.SetValue(player.PlayerCombatState, originalTurn);
                 if (player.Relics.Contains(refreshed)) await RelicCmd.Remove(refreshed);
             }
+            await ctx.Reset();
+            var milker = (Milker)ModelDb.Relic<Milker>().ToMutable();
+            await RelicCmd.Obtain(milker, player);
+            try
+            {
+                int healthBefore = ctx.Self.CurrentHp;
+                await milker.BeforeCombatStart();
+                Check(ctx.Self.CurrentHp == healthBefore - 3
+                    && ctx.CountCards<MaidenSuccubus.Cards.Milk>(PileType.Draw) == 2,
+                    "milker takes three damage and puts two milk cards into draw pile");
+                await milker.BeforeCombatStart();
+                Check(ctx.Self.CurrentHp == healthBefore - 3
+                    && ctx.CountCards<MaidenSuccubus.Cards.Milk>(PileType.Draw) == 2,
+                    "duplicate combat setup does not trigger milker twice");
+                var restoredMilker = (Milker)RelicModel.FromSerializable(milker.ToSerializable());
+                restoredMilker.Owner = player;
+                await restoredMilker.BeforeCombatStart();
+                Check(restoredMilker.CombatPrepared && ctx.Self.CurrentHp == healthBefore - 3,
+                    "saved combat receipt prevents duplicate milker damage");
+                await milker.AfterCombatEnd(null!);
+                await ctx.Reset();
+                healthBefore = ctx.Self.CurrentHp;
+                await milker.BeforeCombatStart();
+                Check(ctx.Self.CurrentHp == healthBefore - 3
+                    && ctx.CountCards<MaidenSuccubus.Cards.Milk>(PileType.Draw) == 2,
+                    "milker activates again in the next combat");
+                var foreignMilker = (Milker)ModelDb.Relic<Milker>().ToMutable();
+                foreignMilker.Owner = foreign;
+                await foreignMilker.BeforeCombatStart();
+                Check(!foreignMilker.CombatPrepared && ctx.Self.CurrentHp == healthBefore - 3,
+                    "milker ignores other characters");
+            }
+            finally
+            {
+                await milker.AfterCombatEnd(null!);
+                if (player.Relics.Contains(milker)) await RelicCmd.Remove(milker);
+            }
             MaidenSuccubusMod.Logger.Info($"[DS27MagicRelicTest] PASS {checks} assertions; disposable combat modified.");
         }
         catch (Exception ex)

@@ -34,8 +34,8 @@ $expected = @(
         ForEach-Object { $_ } |
         Sort-Object -Unique
 )
-if ($expected.Count -ne 228) {
-    throw "Content contract must contain exactly 228 unique cards; found $($expected.Count)."
+if ($expected.Count -ne 229) {
+    throw "Content contract must contain exactly 229 unique cards; found $($expected.Count)."
 }
 
 $registrationStart = $catalog.IndexOf("private static void RegisterNeutral", [StringComparison]::Ordinal)
@@ -135,9 +135,9 @@ $missingIteration2Registrations = @($iteration2Types |
 if ($missingIteration2Registrations.Count -gt 0) {
     throw "Iteration-two changed cards are missing runtime tests: [$($missingIteration2Registrations -join ',')]."
 }
-if ($runner -notmatch 'ExpectedCardCount\s*=\s*228' -or
+if ($runner -notmatch 'ExpectedCardCount\s*=\s*229' -or
     $runner -notmatch 'expected\.Length\s*!=\s*ExpectedCardCount') {
-    throw "Runtime 228-card identity gate is missing."
+    throw "Runtime 229-card identity gate is missing."
 }
 if ($console -notmatch 'ms_test_cards' -or $console -notmatch 'confirm') {
     throw "Destructive console command confirmation gate is missing."
@@ -194,4 +194,4 @@ if ($holyPowers -notmatch '_pendingRestores' -or
     throw "BattleTechniqueReplay must restore only after the played projection leaves PileType.Play."
 }
 
-Write-Host "Validated card-effect tests: 228 exact registrations, 227 executable cards, 1 DESIGN_PENDING card, 68-card iteration-two numeric suite, guarded manual-entry F10 trigger, no method-presence placeholders."
+Write-Host "Validated card-effect tests: 229 exact registrations, 228 executable cards, 1 DESIGN_PENDING card, 68-card iteration-two numeric suite, guarded manual-entry F10 trigger, no method-presence placeholders."
