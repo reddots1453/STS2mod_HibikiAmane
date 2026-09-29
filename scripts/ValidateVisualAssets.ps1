@@ -289,8 +289,15 @@ $characterSelectPatchCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
     Join-Path $ProjectDir "src\Patches\CharacterSelectVisualPatch.cs")
 if ($characterSelectPatchCode -notmatch 'NCharacterSelectButton' -or
     $characterSelectPatchCode -notmatch 'hibiki_amane_character_icon_v02_256\.png' -or
-    $characterSelectPatchCode -notmatch 'hibiki_amane_character_icon_outline_v02_256\.png') {
-    throw "Character-select buttons must use the reviewed 256px Maiden icons."
+    $characterSelectPatchCode -notmatch 'hibiki_amane_character_icon_outline_v02_256\.png' -or
+    $characterSelectPatchCode -notmatch '"CharacterSelectIconPath", MethodType\.Getter' -or
+    $characterSelectPatchCode -notmatch '"CharacterSelectLockedIconPath", MethodType\.Getter' -or
+    $characterSelectPatchCode -notmatch 'char_select_ironclad\.png' -or
+    $characterSelectPatchCode -notmatch 'char_select_ironclad_locked\.png' -or
+    $characterSelectPatchCode -notmatch '__instance is MaidenSuccubusCharacter' -or
+    $characterSelectPatchCode -notmatch '__result = VanillaSelectIcon;' -or
+    $characterSelectPatchCode -notmatch '__result = VanillaLockedSelectIcon;') {
+    throw "Character-select buttons need compressed vanilla init paths and the reviewed 256px Maiden overlays."
 }
 $thresholdPowerCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
     Join-Path $ProjectDir "src\Powers\EroticIntentThresholdPowers.cs")

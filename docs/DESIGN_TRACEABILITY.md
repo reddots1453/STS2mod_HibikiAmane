@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## UI-CHAR-SELECT-V2-002：选角按钮贴图类型修复（IMPLEMENTED，游戏内待验）
+
+`START-002`、`UI-CHAR-SELECT-V2-001` → Plan `UI-CHAR-SELECT-V2-002` → `MaidenCharacterSelectVisualPatch` 的两个路径getter与按钮V2覆盖层 → VisualAssets门和游戏内选角复测。禁用`Ryoshu`后仍报贴图类型异常，证实上一轮把外部模组列为唯一原因并不充分；本项只保证本角色原版初始化路径为压缩贴图资源，正式V2图标继续在初始化后显示，不改其他角色或遗物规则。
+
 ## UI-RUN-RESOURCE-20260929：游戏内资源补装与选角崩溃归因（IMPLEMENTED，游戏内待验）
 
 关联`RELIC-START-003`、`UI-CHAR-SELECT-V2-001`及路线卡视觉：正式源码实现无设计漂移，但DLL单独部署遗漏已提交中文本地化和新版贴图，造成旧遗物文案与百科翼饰消失；定向补装并哈希核验后待实机VERIFIED。选角崩溃的首因是外部`Ryoshu`的图标贴图类型转换失败（日志还标明不支持当前`public-beta`），不归因本Mod的初始遗物切换；禁用该模组复测，若仍复现再查本Mod入口。

@@ -1,5 +1,6 @@
 using Godot;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.UI;
@@ -10,12 +11,44 @@ namespace MaidenSuccubus.Patches;
 /// <summary>
 /// CharacterModel's select-icon API is typed as CompressedTexture2D, while
 /// loose reviewed mod PNGs are decoded as ImageTexture. Keep the vanilla-safe
-/// path for preloading and replace only the Maiden button texture after the
-/// original character-select lifecycle writes it.
+/// path for the original button initialization, then replace only the Maiden
+/// button texture after the original lifecycle writes it.
 /// </summary>
 [HarmonyPatch]
 public static class MaidenCharacterSelectVisualPatch
 {
+    private const string VanillaSelectIcon =
+        "res://images/packed/character_select/char_select_ironclad.png";
+    private const string VanillaLockedSelectIcon =
+        "res://images/packed/character_select/char_select_ironclad_locked.png";
+
+    // The profile's user:// PNGs are ImageTexture resources. The vanilla
+    // CharacterSelectIcon getters load CompressedTexture2D, so normalize only
+    // our path before NCharacterSelectButton.Init invokes those getters.
+    [HarmonyPatch(typeof(CharacterModel), "CharacterSelectIconPath", MethodType.Getter)]
+    [HarmonyPostfix]
+    [HarmonyPriority(Priority.Last)]
+    public static void SelectIconPathPostfix(CharacterModel __instance, ref string __result)
+    {
+        bool isMaiden = false;
+        Safe.Run(() => isMaiden = __instance is MaidenSuccubusCharacter,
+            nameof(SelectIconPathPostfix));
+        if (isMaiden)
+            __result = VanillaSelectIcon;
+    }
+
+    [HarmonyPatch(typeof(CharacterModel), "CharacterSelectLockedIconPath", MethodType.Getter)]
+    [HarmonyPostfix]
+    [HarmonyPriority(Priority.Last)]
+    public static void LockedIconPathPostfix(CharacterModel __instance, ref string __result)
+    {
+        bool isMaiden = false;
+        Safe.Run(() => isMaiden = __instance is MaidenSuccubusCharacter,
+            nameof(LockedIconPathPostfix));
+        if (isMaiden)
+            __result = VanillaLockedSelectIcon;
+    }
+
     [HarmonyPatch(typeof(NCharacterSelectButton), nameof(NCharacterSelectButton.Init))]
     [HarmonyPostfix]
     public static void InitPostfix(NCharacterSelectButton __instance) =>
