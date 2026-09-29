@@ -407,7 +407,10 @@ internal static class CardEffectTestRunner
         {
             if (spec.Scenarios.Count == 0)
                 throw new InvalidOperationException($"{spec.CardId} has no executable scenarios.");
-            if (spec.Scenarios.Any(scenario => scenario.MinimumEffectAssertions <= 0))
+            // LibraryPileChoice is a generated, unplayable choice token. Its
+            // scenario checks pile/title/text contracts, not a played effect.
+            if (spec.Scenarios.Any(scenario => scenario.MinimumEffectAssertions <= 0)
+                && spec.CardType != typeof(Cards.LibraryPileChoice))
                 throw new InvalidOperationException($"{spec.CardId} permits a zero-assertion scenario.");
 
             bool hasBase = spec.Scenarios.Any(scenario => !scenario.Upgraded);

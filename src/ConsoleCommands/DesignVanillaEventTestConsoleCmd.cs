@@ -92,7 +92,8 @@ public sealed class DesignVanillaEventTestConsoleCmd : AbstractConsoleCmd
         }
         try
         {
-            TestMode.IsOn = true;
+            // Live run inventory must create its native relic holders.
+            TestMode.IsOn = false;
             foreach (RelicModel relic in player.Relics.ToArray()) await RelicCmd.Remove(relic);
             await Deck(3, 1);
             for (int value = -5; value <= 5; value++)

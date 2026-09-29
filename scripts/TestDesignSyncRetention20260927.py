@@ -52,7 +52,7 @@ class RetentionStarterContract(unittest.TestCase):
         choices = read("src/Characters/Starts/MaidenSuccubusStartProfiles.cs")
         self.assertIn("[typeof(TwinSoulChalice), typeof(HeroOrb)]", choices)
         contract = json.loads(read("docs/content_contract_20260824.json"))
-        self.assertEqual(len(contract["relics"]), 35)  # Includes TonysCharm, Refreshed and Milker.
+        self.assertEqual(len(contract["relics"]), 36)  # Includes the stored-curse relic.
         self.assertIn("BalancedLens", contract["relics"])  # Legacy identity is not silently repurposed.
 
     def test_selection_is_player_lobby_data_not_process_global(self):
@@ -83,9 +83,9 @@ class RetentionStarterContract(unittest.TestCase):
         code = read("src/UI/StarterRelicSelector.cs")
         for term in ["ConditionalWeakTable<NCharacterSelectScreen, StarterRelicSelector>",
                      "!button.IsLocked && !button.IsRandom", "lobby.LocalPlayer.isReady",
-                     "lobby.LocalPlayer.character is not MaidenSuccubusCharacter", "_row.IsVisibleInTree()",
+                     "lobby.LocalPlayer.character is not MaidenSuccubusCharacter", "_previous.IsVisibleInTree()",
                      "_previous.Pressed += ToggleSafely", "_next.Pressed += ToggleSafely",
-                     "FocusNeighborRight", "FocusNeighborLeft", "_closed = true", "_row.Hide()",
+                     "FocusNeighborRight", "FocusNeighborLeft", "_closed = true", "_previous.Hide()",
                      "relic.DynamicDescription.GetFormattedText()"]:
             self.assertIn(term, code)
         self.assertNotIn("_Process", code)

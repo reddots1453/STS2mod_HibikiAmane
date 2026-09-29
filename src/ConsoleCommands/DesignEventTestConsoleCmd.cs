@@ -55,7 +55,10 @@ public sealed class DesignEventTestConsoleCmd : AbstractConsoleCmd
         }
         try
         {
-            TestMode.IsOn = true;
+            // This command runs against a live UI-backed run. Engine TestMode
+            // rejects HP changes while CombatStateTracker is still subscribed
+            // and suppresses relic inventory nodes; keep the native mode.
+            TestMode.IsOn = false;
             var run = (RunState)player.RunState;
             foreach (RelicModel relic in player.Relics.ToArray())
                 await RelicCmd.Remove(relic);

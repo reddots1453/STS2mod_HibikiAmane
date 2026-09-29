@@ -7,6 +7,7 @@ using MaidenSuccubus.Core.Intents;
 using MaidenSuccubus.Powers;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Data;
+using MaidenSuccubus.Relics;
 using MegaCrit.Sts2.Core.Runs;
 
 namespace MaidenSuccubus.Commands;
@@ -105,6 +106,18 @@ public static class InvasionCmd
 
     private static async Task<MSInvasionCurseTemplate?> Add<T>(Player target)
         where T : MSInvasionCurseTemplate =>
-        await CardPileCmd.AddCurseToDeck<T>(target)
+        await AddOrStore<T>(target);
+
+    private static async Task<MSInvasionCurseTemplate?> AddOrStore<T>(Player target)
+        where T : MSInvasionCurseTemplate
+    {
+        int before = target.Relics.OfType<InternalCondom>().Sum(relic => relic.StoredCount);
+        MSInvasionCurseTemplate? added = await CardPileCmd.AddCurseToDeck<T>(target)
             as MSInvasionCurseTemplate;
+        if (added != null) return added;
+        // Hook.ShouldAddToDeck returned false because the relic stored the
+        // curse. This is still a successful invasion, unlike other prevention.
+        return target.Relics.OfType<InternalCondom>().Sum(relic => relic.StoredCount) > before
+            ? target.RunState.CreateCard<T>(target) : null;
+    }
 }

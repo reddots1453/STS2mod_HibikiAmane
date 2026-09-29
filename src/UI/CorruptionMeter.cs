@@ -78,10 +78,14 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
         // the +5 clamped texture here made a zero-value scale look tilted.
         _displayedValue = Corruption.Neutral;
         BuildVisuals();
-        SetProcess(false);
+        // The top bar is created before the first map coordinate is visited;
+        // refresh when that lifecycle boundary changes, not only on combat.
+        SetProcess(true);
         Visible = false;
         CallDeferred(nameof(RefreshVisibility));
     }
+
+    public override void _Process(double delta) => RefreshVisibility();
 
     private void BuildVisuals()
     {
@@ -135,7 +139,10 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
         _initialRefreshAttempts = 0;
 
         var player = LocalContext.GetMe(runState);
-        if (player?.Character is not MaidenSuccubusCharacter)
+        if (player?.Character is not MaidenSuccubusCharacter
+            || !runState.CurrentMapCoord.HasValue
+            || _topBar == null || !_topBar.IsVisibleInTree()
+            || _topBar.Position.Y < -0.5f)
         {
             HideIfNeeded();
             return;

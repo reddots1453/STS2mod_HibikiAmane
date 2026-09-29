@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.Models;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Core.Invasion;
 using MaidenSuccubus.Cards.Curses;
+using MaidenSuccubus.Relics;
 
 namespace MaidenSuccubus.Merchant;
 
@@ -23,6 +24,9 @@ public static class InvasionCurseMerchantService
     public static IReadOnlyList<CardModel> GetEligible(Player player) =>
         PileType.Deck.GetPile(player).Cards.Where(IsEligible).ToList();
 
+    public static int GetEligibleCount(Player player) => GetEligible(player).Count
+        + player.Relics.OfType<InternalCondom>().Sum(relic => relic.StoredCount);
+
     public static async Task<CardModel?> SelectAndRemove(Player player)
     {
         if (player.Character is not MaidenSuccubusCharacter)
@@ -31,7 +35,9 @@ public static class InvasionCurseMerchantService
         }
 
         CardModel[] selected = GetEligible(player).ToArray();
-        if (selected.Length == 0)
+        InternalCondom[] condoms = player.Relics.OfType<InternalCondom>().ToArray();
+        int stored = condoms.Sum(relic => relic.StoredCount);
+        if (selected.Length + stored == 0)
         {
             return null;
         }
@@ -40,13 +46,14 @@ public static class InvasionCurseMerchantService
         {
             await CardPileCmd.RemoveFromDeck(curse);
         }
-        int refund = selected.Length
+        foreach (InternalCondom condom in condoms) condom.StoredCount = 0;
+        int refund = (selected.Length + stored)
             * InvasionCurseMerchantConfig.RefundGoldPerCurse;
         await PlayerCmd.GainGold(refund, player);
         MaidenSuccubusMod.Logger.Info(
-            $"Merchant removed {selected.Length} invasion curses; "
+            $"Merchant removed {selected.Length} deck and {stored} stored invasion curses; "
             + $"refund={refund}; normalRemovalCount="
             + player.ExtraFields.CardShopRemovalsUsed);
-        return selected[0];
+        return selected.FirstOrDefault();
     }
 }

@@ -185,5 +185,9 @@
   "MAIDEN_SUCCUBUS_RELIC_MURKY_HEART_NECKLACE.flavor": "回合开始时，如果≤5点欲望，获得1点欲望值。堕落值＜3：变奏。",
   "MAIDEN_SUCCUBUS_RELIC_MILKER.title": "榨乳器",
   "MAIDEN_SUCCUBUS_RELIC_MILKER.description": "战斗开始时，受到3点伤害，将2张[gold]乳汁[/gold]放入[gold]抽牌堆[/gold]。",
-  "MAIDEN_SUCCUBUS_RELIC_MILKER.flavor": "古怪机器里传来一声短促的嗡鸣。"
+  "MAIDEN_SUCCUBUS_RELIC_MILKER.flavor": "古怪机器里传来一声短促的嗡鸣。",
+  "MAIDEN_SUCCUBUS_RELIC_INTERNAL_CONDOM.title": "内用套套",
+  "MAIDEN_SUCCUBUS_RELIC_INTERNAL_CONDOM.description": "获得[gold]精液类诅咒牌[/gold]时，将其存入套套。[purple]堕落值[/purple]≥3：[gold]变奏[/gold]。",
+  "MAIDEN_SUCCUBUS_RELIC_INTERNAL_CONDOM.descriptionCorrupt": "获得精液类诅咒牌时，将其存入套套并获得3点最大生命值。[purple]堕落值[/purple]＜3：[gold]变奏[/gold]。",
+  "MAIDEN_SUCCUBUS_RELIC_INTERNAL_CONDOM.flavor": "存入的诅咒仍可在商店清理。"
 }

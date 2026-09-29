@@ -26,7 +26,7 @@ public static class MerchantInvasionCursePatch
     {
         var player = inventory.Inventory?.Player;
         if (player?.Character is not MaidenSuccubusCharacter
-            || InvasionCurseMerchantService.GetEligible(player).Count == 0
+            || InvasionCurseMerchantService.GetEligibleCount(player) == 0
             || inventory.GetNodeOrNull<Button>(ButtonName) != null)
         {
             return;
@@ -58,7 +58,7 @@ public static class MerchantInvasionCursePatch
         {
             return;
         }
-        if (InvasionCurseMerchantService.GetEligible(player).Count == 0)
+        if (InvasionCurseMerchantService.GetEligibleCount(player) == 0)
         {
             button.QueueFree();
             return;
@@ -69,5 +69,5 @@ public static class MerchantInvasionCursePatch
 
     private static string BuildText(Player player) =>
         $"清理全部精液类诅咒（获得"
-        + $"{InvasionCurseMerchantConfig.RefundGoldPerCurse * InvasionCurseMerchantService.GetEligible(player).Count}金币）";
+        + $"{InvasionCurseMerchantConfig.RefundGoldPerCurse * InvasionCurseMerchantService.GetEligibleCount(player)}金币）";
 }

@@ -98,7 +98,7 @@ class UndeadContracts(unittest.TestCase):
     def test_guarded_command_and_test_mode_restoration(self):
         for token in ('args[0] != "confirm"', "CombatManager.Instance.IsInProgress",
                       "issuingPlayer.RunState.Players.Count != 1", "if (_running)",
-                      "bool previousTestMode = TestMode.IsOn", "TestMode.IsOn = true",
+                      "bool previousTestMode = TestMode.IsOn", "TestMode.IsOn = false",
                       "await DesignUndeadEventContract.Run(player, Check)",
                       "finally { TestMode.IsOn = previousTestMode; _running = false; }"):
             self.assertIn(token, self.command)

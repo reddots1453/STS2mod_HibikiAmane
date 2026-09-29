@@ -85,6 +85,7 @@ public sealed class DesignRouteRewardTestConsoleCmd : AbstractConsoleCmd
             TestMode.IsOn = true;
             if (merchant)
             {
+                TestMode.IsOn = false;
                 await CheckMerchant(player, run, Prepare, Check);
                 MaidenSuccubusMod.Logger.Info($"[DS27RewardTest] PASS merchant {checks}; real inventory generation and purchase wrapper tested; natural room travel, rendering and full save/load still require hand tests.");
                 return;
@@ -101,6 +102,10 @@ public sealed class DesignRouteRewardTestConsoleCmd : AbstractConsoleCmd
             try { await FourthRouteVictoryRewardPatch.AfterVictory(Task.FromException(new InvalidOperationException("expected")), run, null!); }
             catch (InvalidOperationException ex) when (ex.Message == "expected") { faultPropagated = true; }
             Check(faultPropagated, "original victory failure not swallowed or rewarded");
+
+            // Subsequent assertions use the live relic inventory, whose
+            // holders are intentionally not created in engine TestMode.
+            TestMode.IsOn = false;
 
             foreach (var quest in Enum.GetValues<FourthRouteQuest>())
             foreach (var phase in new[] { FourthTrialPhase.FirstReward, FourthTrialPhase.SecondReward, FourthTrialPhase.ThirdReward })

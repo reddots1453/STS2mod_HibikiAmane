@@ -98,7 +98,7 @@ class DarvCompassContract(unittest.TestCase):
         content = json.loads(read("docs/content_contract_20260824.json"))
         self.assertEqual(content["relics"].count("SoulCompass"), 1)
         self.assertIn("BalancedLens", content["relics"])
-        self.assertEqual(len(content["relics"]), 35)  # Includes TonysCharm, Refreshed and Milker.
+        self.assertEqual(len(content["relics"]), 36)  # Includes the stored-curse relic.
         self.assertIn('Compile Remove="tests/**/*.cs"', read("MaidenSuccubus.csproj"))
 
 

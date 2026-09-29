@@ -333,7 +333,7 @@ Assert-NotContains "high-desire warning must not use rectangular edge strips" $c
 
 $sidebarRail = Read-Text "src\UI\MaidenSidebarRail.cs"
 Assert-Contains "resource widgets share a vertical rail" $sidebarRail 'TemptationPosition\s*=\s*new\(7f,\s*8f\)[\s\S]*?DesirePosition\s*=\s*new\(7f,\s*88f\)'
-Assert-Contains "resource rail hides for settings" $sidebarRail 'SettingsOpened\s*\+=\s*OnSettingsOpened[\s\S]*?Visible\s*=\s*!open'
+Assert-Contains "resource rail hides for settings" $sidebarRail 'SettingsOpened\s*\+=\s*OnSettingsOpened[\s\S]*?bool shouldShow\s*=\s*!_settingsOpen[\s\S]*?Visible\s*=\s*shouldShow'
 Assert-Contains "resource rail clears hover tips while hidden" $sidebarRail 'NHoverTipSet\.Remove\(child\)'
 
 $fourthRouteScreen = Read-Text "src\UI\FourthRouteSelectionScreen.cs"

@@ -64,6 +64,10 @@ public sealed class DesignRouteOpeningTestConsoleCmd : AbstractConsoleCmd
             await gated;
             Check(gated.IsCompletedSuccessfully, "test mode never creates UI");
 
+            // Only the bridge probe needs engine TestMode. The remaining
+            // checks obtain/remove real relics from an active inventory.
+            TestMode.IsOn = false;
+
             foreach (var quest in Enum.GetValues<FourthRouteQuest>())
             {
                 foreach (var relic in player.Relics.Where(r => r is FourthRouteRelic or FourthRouteFragmentRelic).ToArray())

@@ -1,5 +1,9 @@
 # DesignDoc需求追踪矩阵
 
+## 2026-09-29 实机回归：选角、资源UI、遗物与测试命令（IMPLEMENTED，待复验）
+
+`START-002/RELIC-START-002/004` → Plan `UI-START/RELIC-CHAR-002/DS27-GAME-REGRESSION` → `StarterRelicSelector`复用进阶箭头贴图并在遗物两侧定位；`StarterRelicCollectionPatch`将可选英雄宝珠和先古永恒宝珠插入原版百科子类，不额外授予开局遗物。`SYS-COR-001/SYS-DES-001` → `MaidenSidebarRail`与`CorruptionMeter`按本地角色、已访问地图坐标、顶栏显隐及设置界面保持一致生命周期。`RELIC-CHAR-002`（DesignDoc内用套套罕见条目）→ `InternalCondom`/`InvasionCmd`/`InvasionCurseMerchantService`/本地化：原生入牌组前拦截、持久计数、堕落≥3最大生命及商店清空/退款；旧存档无此遗物则不影响。`DS27`命令日志显示入口已触发但书库候选零效果门、TestMode与真实UI冲突导致失败；修正测试边界后仅离线编译与结构验证，游戏重跑尚未完成。商店角色立绘过大交素材Agent，非本批实现范围。
+
 ## UI-CHAR-SELECT-V2-003：getter类型保护与逐角色诊断（IMPLEMENTED，游戏内待验）
 
 `START-002`、`UI-CHAR-SELECT-V2-001` → Plan `UI-CHAR-SELECT-V2-003` → `MaidenCharacterSelectVisualPatch` 两个实际图标getter前置保护、Debug逐角色按钮日志 → VisualAssets门和启动日志复查。路径修正后异常未消失，故此轮不再凭堆栈推定触发角色；通过日志明确故障角色后再判断后续兼容范围。

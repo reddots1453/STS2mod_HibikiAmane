@@ -27,7 +27,7 @@ class ReactiveRelicContracts(unittest.TestCase):
         for name in ("CounterCurseMirror", "DivineStardust"):
             self.assertEqual(contract["relics"].count(name), 1)
             self.assertIn(f"[RegisterRelic(typeof(MSRelicPool))]\npublic sealed class {name}", source)
-        self.assertEqual(len(contract["relics"]), 35)  # Includes TonysCharm, Refreshed and Milker.
+        self.assertEqual(len(contract["relics"]), 36)  # Includes the stored-curse relic.
         for token in ("RelicRarity.Rare", "RelicRarity.Uncommon", "FromPower<BurningPower>",
                       "FromPower<CondemnationPower>", "FromPower<MagicAmplificationPower>"):
             self.assertIn(token, source)

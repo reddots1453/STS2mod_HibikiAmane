@@ -56,7 +56,7 @@ class SidebarLayoutTests(unittest.TestCase):
                 self.reject(name, 'Reparent(rail);', '/* Reparent(rail); */')
 
     def test_settings_not_hidden(self):
-        self.reject('MaidenSidebarRail', 'Visible = !open;', 'Visible = true;')
+        self.reject('MaidenSidebarRail', '!_settingsOpen && _topBar != null', '_topBar != null')
 
     def test_settings_close_callback_inverted(self):
         self.reject('MaidenSidebarRail', 'SetSettingsOpen(false)', 'SetSettingsOpen(true)')

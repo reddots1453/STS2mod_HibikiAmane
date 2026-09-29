@@ -79,7 +79,9 @@ def validate(sources):
     for callback, value in (('OnSettingsOpened', 'true'), ('OnSettingsClosed', 'false')):
         has(rail, callback + r'\(\)\s*=>\s*SetSettingsOpen\(' + value + r'\)',
             'Settings callback must update rail visibility')
-    has(rail, r'Visible\s*=\s*!open\s*;', 'Open settings must hide rail')
+    has(rail, r'bool shouldShow\s*=\s*!_settingsOpen\s*&&', 'Open settings must hide rail')
+    has(rail, r'Visible\s*=\s*shouldShow\s*;', 'Rail must apply combined lifecycle visibility')
+    has(rail, r'CurrentMapCoord\.HasValue', 'Rail must wait for map entry')
     has(rail, r'SetSettingsOpen\(settings.IsVisibleInTree\(\)\)', 'Initial settings visibility missing')
     has(rail, r'NHoverTipSet.Remove\(child\)', 'Settings must clear child hover tips')
 

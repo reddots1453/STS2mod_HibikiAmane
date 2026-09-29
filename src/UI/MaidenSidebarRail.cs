@@ -3,6 +3,9 @@ using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
+using MegaCrit.Sts2.Core.Context;
+using MegaCrit.Sts2.Core.Runs;
+using MaidenSuccubus.Characters;
 
 namespace MaidenSuccubus.UI;
 
@@ -63,6 +66,7 @@ internal sealed partial class MaidenSidebarRail : Control
                 SetSettingsOpen(visiblyOpen);
             }
         }
+        RefreshVisibility();
     }
 
     public override void _ExitTree()
@@ -123,7 +127,10 @@ internal sealed partial class MaidenSidebarRail : Control
     {
         if (_topBar != null && GodotObject.IsInstanceValid(_topBar))
         {
-            Position = ScreenPosition - _topBar.GlobalPosition;
+            // Follow the top bar vertically when it animates away. Only the
+            // horizontal viewport offset is compensated for this side rail.
+            Position = new Vector2(ScreenPosition.X - _topBar.GlobalPosition.X,
+                ScreenPosition.Y);
         }
     }
 
@@ -149,7 +156,7 @@ internal sealed partial class MaidenSidebarRail : Control
     private void SetSettingsOpen(bool open)
     {
         _settingsOpen = open;
-        Visible = !open;
+        RefreshVisibility();
         if (!open)
         {
             return;
@@ -161,5 +168,19 @@ internal sealed partial class MaidenSidebarRail : Control
         {
             NHoverTipSet.Remove(child);
         }
+    }
+
+    private void RefreshVisibility()
+    {
+        RunState? run = RunManager.Instance?.DebugOnlyGetState();
+        bool shouldShow = !_settingsOpen && _topBar != null
+            && GodotObject.IsInstanceValid(_topBar) && _topBar.IsVisibleInTree()
+            && _topBar.Position.Y >= -0.5f && run?.CurrentMapCoord.HasValue == true
+            && LocalContext.GetMe(run)?.Character is MaidenSuccubusCharacter;
+        if (Visible == shouldShow) return;
+        Visible = shouldShow;
+        if (!shouldShow)
+            foreach (Control child in GetChildren().OfType<Control>())
+                NHoverTipSet.Remove(child);
     }
 }
