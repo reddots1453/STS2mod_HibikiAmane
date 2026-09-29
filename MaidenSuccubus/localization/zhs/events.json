@@ -124,5 +124,16 @@
   "SYMBIOTE.pages.INITIAL.options.MS_SYMBIOSE_NO_CARDS.title": "[没有可附魔牌] 完全共生",
   "SYMBIOTE.pages.INITIAL.options.MS_SYMBIOSE_NO_CARDS.description": "牌组中没有可以被腐化附魔的牌。",
   "SYMBIOTE.pages.MS_PURIFY.description": "共生体被圣洁的力量彻底清除。",
-  "SYMBIOTE.pages.MS_SYMBIOSE.description": "共生体深入你的牌组，与之融为一体。"
+  "SYMBIOTE.pages.MS_SYMBIOSE.description": "共生体深入你的牌组，与之融为一体。",
+  "MAIDEN_SUCCUBUS_EVENT_LESSER_EVIL.title": "择祸从轻",
+  "MAIDEN_SUCCUBUS_EVENT_LESSER_EVIL.pages.INITIAL.description": "走廊被两座并排的装置堵得严严实实。\n\n左边是一只不断传出碰撞声的铁盒，开口处挂着一块牌子：[purple]咒具盒[/purple]。右边的玻璃小室灌满了缓慢翻涌的粉色雾气，门上写着：[purple]媚毒室[/purple]。\n\n两座装置之后，各摆着一件一模一样的[gold]遗物[/gold]。\n\n墙里的机关咔哒一响。\n\n[jitter]“选择代价。领取奖品。”[/jitter]",
+  "MAIDEN_SUCCUBUS_EVENT_LESSER_EVIL.pages.INITIAL.options.CURSE.title": "咒具盒",
+  "MAIDEN_SUCCUBUS_EVENT_LESSER_EVIL.pages.INITIAL.options.CURSE.description": "将1张诅咒加入你的牌组。获得1件随机稀有遗物。",
+  "MAIDEN_SUCCUBUS_EVENT_LESSER_EVIL.pages.CURSE.description": "你把手伸进铁盒。里面的东西立刻缠了上来，冰冷的扣锁声在盒中接连响起。等装置终于松开，一件遗物从出口滚到脚边——同时落下的，还有一份甩不掉的麻烦。",
+  "MAIDEN_SUCCUBUS_EVENT_LESSER_EVIL.pages.INITIAL.options.CHAMBER.title": "媚毒室",
+  "MAIDEN_SUCCUBUS_EVENT_LESSER_EVIL.pages.INITIAL.options.CHAMBER.description": "获得6点欲望。获得1件随机稀有遗物。",
+  "MAIDEN_SUCCUBUS_EVENT_LESSER_EVIL.pages.CHAMBER.description": "玻璃门在身后锁死。甜腻的雾气贴着皮肤涌来，搅乱呼吸与思绪。许久之后，另一侧的门终于开启。一件遗物安静地等在那里，仿佛刚才的一切就是它收取的价钱。",
+  "MAIDEN_SUCCUBUS_EVENT_LESSER_EVIL.pages.INITIAL.options.LEAVE.title": "放弃",
+  "MAIDEN_SUCCUBUS_EVENT_LESSER_EVIL.pages.INITIAL.options.LEAVE.description": "离开。",
+  "MAIDEN_SUCCUBUS_EVENT_LESSER_EVIL.pages.LEAVE.description": "你没有碰任何一座装置。机关沉默片刻，两件遗物同时缩回墙内。让开的缝隙刚好够一个人通过。身后传来失望似的咔哒声。"
 }

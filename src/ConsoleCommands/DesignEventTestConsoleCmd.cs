@@ -24,7 +24,7 @@ public sealed class DesignEventTestConsoleCmd : AbstractConsoleCmd
     private static bool _running;
     public override string CmdName => "ms_test_events";
     public override string Args => "confirm";
-    public override string Description => "Destructive DS27 UndeadGathering event test; disposable run only";
+    public override string Description => "Destructive DS27 UndeadGathering and LesserEvil event tests; disposable run only";
     public override bool IsNetworked => false;
 
     public override CmdResult Process(Player? issuingPlayer, string[] args)
@@ -109,6 +109,7 @@ public sealed class DesignEventTestConsoleCmd : AbstractConsoleCmd
             Check(player.Deck.Cards.OfType<Normality>().Count() == cursesBefore + 1, "normality added");
             Check(CorruptionQuery.Get(run) == 4, "learning adds corruption");
             await DesignUndeadEventContract.Run(player, Check);
+            await DesignLesserEvilEventContract.Run(player, Check);
             MaidenSuccubusMod.Logger.Info($"[DS27EventTest] PASS {checks} assertions; disposable run was modified.");
         }
         catch (Exception ex)
