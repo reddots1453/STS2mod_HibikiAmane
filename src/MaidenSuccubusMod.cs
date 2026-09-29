@@ -43,6 +43,7 @@ public static class MaidenSuccubusMod
         MaidenLocalizationFormatters.Register();
         RegisterRunSavedData();
         Util.Safe.Run(Acts.GoddessTrialMode.Register, "GoddessTrial.RegisterSettings");
+        Util.Safe.Run(PerformanceSettings.Register, "Performance.RegisterSettings");
         RegisterKeywords();
         DesireResource.Register();
         DesirePersistenceCoordinator.Initialize();

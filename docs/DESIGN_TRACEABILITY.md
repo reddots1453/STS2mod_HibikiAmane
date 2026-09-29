@@ -728,7 +728,7 @@ SYS-SEA-001/ACT4-001→DS27-01B→封印方向悬停、实际永久实例/拥有
 | `PERF-CG-002` | `SYS-CTL-001`、`SYS-INV-001` | 怪物类型映射独立于UI，未知侵犯回退弱怪 | IMPLEMENTED | `MonsterPerformanceProfiles`映射审查 |
 | `PERF-AUD-001` | `SYS-TRF-001/002`、`SYS-DES-001/002A` | 普通提示、成人演出分轨；循环单例；场景清理 | IMPLEMENTED | `PerformanceAudioService`、Debug构建 |
 | `PERF-AUD-002` | `SYS-DES-003B`、`SYS-CTL-001`、`SYS-INV-001` | 只在效果实际执行/成功后播放，同怪同动作去重 | IMPLEMENTED | 意图入口审查、游戏内手测 |
-| `PERF-CFG-001` | 表现设置降级 | 成人CG/音频独立接口；未确认产品默认前均关闭 | IMPLEMENTED（设置UI OPEN） | `PerformanceSettings`、关闭态手测 |
+| `PERF-CFG-001` | 表现设置降级 | RitsuLib主菜单CG/音频独立开关、普通/成人音量，全局保存；默认均关闭成人演出 | IMPLEMENTED；游戏内待验证 | `PerformanceSettings`、关闭态与持久化手测 |
 | `PERF-REG-001` | `MP-001`、角色隔离 | 仅正确本地响木天音显示，不重复规则命令 | IMPLEMENTED；待多人手测 | `PerformanceAudience`、手测清单 |
 
 ### 2.2 历史记录UI回归追踪（2026-09-26）

@@ -122,6 +122,12 @@ Assert-Contains (Join-Path $presentation "PerformanceSettings.cs") `
 Assert-Contains (Join-Path $presentation "PerformanceSettings.cs") `
     'AdultAudioEnabled\s*=>\s*false' `
     "Adult audio safe fallback must remain disabled"
+Assert-Contains (Join-Path $presentation "PerformanceSettings.cs") `
+    'SaveScope\.Global[\s\S]*?\.AsChildOf\(MaidenSuccubusMod\.ModId\)[\s\S]*?\.AddToggle\("adult_cg"[\s\S]*?\.AddToggle\("adult_audio"[\s\S]*?\.AddIntSlider\("normal_volume"[\s\S]*?\.AddIntSlider\("adult_volume"' `
+    "Adult CG/audio must have independent, persisted main-menu controls and volume sliders"
+Assert-Contains (Join-Path $ProjectDir "src\MaidenSuccubusMod.cs") `
+    'PerformanceSettings\.Register' `
+    "Performance settings must be registered during mod initialization"
 Assert-Contains (Join-Path $presentation "CutscenePlaybackService.cs") `
     '!PerformanceSettings\.Current\.AdultCgEnabled\s*\r?\n\s*\|\|\s*!PerformanceAudience\.IsLocalMaiden\(player\)' `
     "Cutscenes must gate settings and local Maiden ownership before loading assets"
@@ -149,5 +155,8 @@ Assert-Contains (Join-Path $ProjectDir "src\RestSite\MasturbateRestSiteOption.cs
 Assert-Contains (Join-Path $ProjectDir "src\Patches\PerformanceLifecyclePatch.cs") `
     'PerformanceDirector\.OnSceneTransition' `
     "Scene transitions must clean performance nodes and audio"
+Assert-Contains (Join-Path $presentation "PerformanceDirector.cs") `
+    'sceneGeneration\s*==\s*_sceneGeneration[\s\S]*?PerformanceAudioService\.PlayOneShot\(PerformanceAudioCue\.InvasionFinish\)' `
+    "A cancelled invasion must not restart audio after scene cleanup"
 
 Write-Host "Performance assets validated: 13 CGs, 16 OGGs, exact copies and structural safety gates."

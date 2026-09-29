@@ -9,6 +9,7 @@ namespace MaidenSuccubus.Presentation;
 public static class PerformanceDirector
 {
     private static readonly HashSet<string> ActionAudio = new(StringComparer.Ordinal);
+    private static int _sceneGeneration;
 
     public static async Task PlayControlAsync(MonsterModel source, Creature target)
     {
@@ -36,6 +37,7 @@ public static class PerformanceDirector
     public static async Task PlayInvasionAsync(MonsterModel source, Player target)
     {
         if (!PerformanceAudience.IsLocalMaiden(target)) return;
+        int sceneGeneration = _sceneGeneration;
         bool playAudio = Mark(source, EroticIntentKind.Invasion);
         if (playAudio)
         {
@@ -52,7 +54,7 @@ public static class PerformanceDirector
         finally
         {
             PerformanceAudioService.StopLoop(PerformanceLoopCue.Breath);
-            if (playAudio)
+            if (playAudio && sceneGeneration == _sceneGeneration)
             {
                 PerformanceAudioService.PlayOneShot(PerformanceAudioCue.InvasionFinish);
             }
@@ -104,6 +106,7 @@ public static class PerformanceDirector
 
     public static void OnSceneTransition()
     {
+        _sceneGeneration++;
         CutscenePlaybackService.CancelActive();
         PerformanceAudioService.StopAll();
         ActionAudio.Clear();
@@ -111,6 +114,7 @@ public static class PerformanceDirector
 
     public static void OnCombatEnded()
     {
+        _sceneGeneration++;
         CutscenePlaybackService.CancelActive();
         PerformanceAudioService.StopAll();
         ActionAudio.Clear();

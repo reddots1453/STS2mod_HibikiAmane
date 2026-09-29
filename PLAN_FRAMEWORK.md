@@ -1972,12 +1972,14 @@ ms_act4 <holy|corrupt|neutral>
 | `PERF-CG-002` | 拘束仅在`Applied`后、侵犯仅在`Resolve == true`后、火堆规则确认后接入；怪物映射独立于UI | IMPLEMENTED | 调用顺序审查、独立视觉档案、默认回退 |
 | `PERF-AUD-001` | 统一一次性/单例循环音频服务、淡入淡出、分轨音量、缺失降级和场景清理 | IMPLEMENTED | Debug编译、16个资源哈希/OGG签名门 |
 | `PERF-AUD-002` | 变身、魔力增幅/耐久、欲望阈值、色情攻击、拘束、侵犯、撕衣、心跳、自慰触发 | IMPLEMENTED | 精确阈值与成功结算入口审查 |
-| `PERF-CFG-001` | 成人CG/成人音频独立配置接口与安全默认 | IMPLEMENTED（UI待确认） | 默认关闭时不加载成人资源、不创建遮罩 |
+| `PERF-CFG-001` | RitsuLib主菜单独立CG/音频开关与双音量滑块；安全默认关闭 | IMPLEMENTED；游戏内待验证 | 全局持久化、关闭时不加载成人资源或创建遮罩、Debug构建 |
 | `PERF-REG-001` | 生命周期、其他角色隔离、同怪同动作去重与清单验证 | IMPLEMENTED；游戏内待验证 | `ValidatePerformanceAssets.ps1`与Debug构建 |
 
 ### 22.3 尚需游戏内验收
 
 按`docs/PERFORMANCE_MANUAL_TEST_CHECKLIST.md`执行：成功/失败拘束与侵犯、欲望7→8→9→10、读档恢复、心跳单例及退出清理、多段欲望攻击、火堆不足/确认/跳过、设置关闭和多人本地显示。完成这些运行时项目后，才可将本节从`IMPLEMENTED`提升为`VERIFIED`。
+
+2026-09-30补齐实际设置入口：RitsuLib“响木天音 → 过场与音频”子页单独保存CG、成人音频及普通/成人音量；继续保持成人演出默认关闭。场景/战斗终止后，已取消的侵犯过场不得重启收尾音效。`ValidatePerformanceAssets.ps1`核验设置接线、取消保护与13+16资源；尚需在游戏中复验开关持久化、音量及各成功/失败触发。
 
 ---
 
