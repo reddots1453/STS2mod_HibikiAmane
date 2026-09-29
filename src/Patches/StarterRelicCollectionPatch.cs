@@ -19,23 +19,22 @@ namespace MaidenSuccubus.Patches;
 internal static class StarterRelicCollectionPatch
 {
     [HarmonyPostfix]
-    private static void AfterLoad(NRelicCollectionCategory __instance, RelicRarity relicRarity,
-        NRelicCollection collection, HashSet<RelicModel> seenRelics,
-        HashSet<RelicModel> allUnlockedRelics)
+    private static void AfterLoad(NRelicCollectionCategory __instance, RelicRarity __0,
+        NRelicCollection __1, HashSet<RelicModel> __3)
     {
-        if (relicRarity != RelicRarity.Starter) return;
+        if (__0 != RelicRarity.Starter) return;
         Safe.Run(() =>
         {
             var groups = __instance.GetChildren().OfType<NRelicCollectionCategory>()
                 .Where(group => !group.IsQueuedForDeletion()).ToArray();
             if (groups.Length < 2) return;
-            Add(groups[0], collection, ModelDb.Relic<HeroOrb>(), seenRelics, allUnlockedRelics);
-            Add(groups[1], collection, ModelDb.Relic<EternalOrb>(), seenRelics, allUnlockedRelics);
+            Add(groups[0], __1, ModelDb.Relic<HeroOrb>(), __3);
+            Add(groups[1], __1, ModelDb.Relic<EternalOrb>(), __3);
         }, nameof(AfterLoad));
     }
 
     private static void Add(NRelicCollectionCategory category, NRelicCollection collection,
-        RelicModel relic, HashSet<RelicModel> seen, HashSet<RelicModel> unlocked)
+        RelicModel relic, HashSet<RelicModel> seen)
     {
         GridContainer grid = category.GetNode<GridContainer>("%RelicsContainer");
         if (grid.GetChildren().OfType<NRelicCollectionEntry>().Any(entry => entry.relic.Id == relic.Id)) return;
