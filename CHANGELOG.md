@@ -1,3 +1,9 @@
+## 2026-10-01 — 剩余四张候选卡图正式化
+
+- 变更前快照：`maiden-card-art-before-20261001-four-candidates`（`5ad5cfbe0030ff9ab3233717df1d590ecad6f0db`）；目标文档备份于工作区 `backups/four_accepted_cards_20261001/`。
+- 按玩家本轮明确指令，暗焰壁障、焚刃祭仪、瘴气转化和光之力解放采用各自V01候选，加入正式清单并同步项目内运行时卡图。
+- 源图统一为1000×760 RGB PNG，画面内容不变；198张正式卡图加默认图的视觉资源门通过，无部署Debug构建0警告0错误。游戏内显示待复验，未部署游戏安装目录。
+
 ## 2026-10-01 — 历史验收卡图漏项补入
 
 - 变更前快照：`maiden-card-art-before-20261001-history-audit`（`20872a7accce627b659db37638e7cc5b467cc319`）；目标文档备份于工作区 `backups/additional_accepted_cards_20261001/`。
