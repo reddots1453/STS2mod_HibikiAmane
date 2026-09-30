@@ -144,7 +144,6 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
         if (player?.Character is not MaidenSuccubusCharacter
             || !runState.CurrentMapCoord.HasValue
             || _topBar == null || !_topBar.IsVisibleInTree()
-            || _topBar.FocusBehaviorRecursive == Control.FocusBehaviorRecursiveEnum.Disabled
             || _topBar.Position.Y < -0.5f
             || _topBar.Deck?.IsVisibleInTree() != true
             || _topBar.Map?.IsVisibleInTree() != true

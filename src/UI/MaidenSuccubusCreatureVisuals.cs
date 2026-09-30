@@ -384,7 +384,7 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
                     float edge_distance = min(edge_pixels.x, edge_pixels.y);
                     float falloff = 1.0 - smoothstep(0.0, glow_width_px, edge_distance);
                     float soft_glow = falloff * falloff;
-                    COLOR = vec4(glow_color.rgb, glow_color.a * soft_glow * COLOR.a);
+                    COLOR = vec4(glow_color.rgb, glow_color.a * soft_glow);
                 }
                 """,
         };

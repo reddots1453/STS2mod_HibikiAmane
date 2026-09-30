@@ -106,11 +106,11 @@ internal sealed class MaidenRouteFilterState
     private static readonly ConditionalWeakTable<NCardLibrary, MaidenRouteFilterState> States = new();
     private readonly NCardLibrary _library;
     private readonly NCardPoolFilter _maidenPool;
-    private readonly VBoxContainer _row;
+    private readonly HBoxContainer _row;
     private readonly Dictionary<RouteCardKind, NCardRarityTickbox> _filters = [];
 
     private MaidenRouteFilterState(NCardLibrary library, NCardPoolFilter maidenPool,
-        VBoxContainer row)
+        HBoxContainer row)
     {
         _library = library;
         _maidenPool = maidenPool;
@@ -137,7 +137,7 @@ internal sealed class MaidenRouteFilterState
             return null;
         }
 
-        VBoxContainer row = new()
+        HBoxContainer row = new()
         {
             Name = "MaidenRouteFilters",
             Visible = false,
@@ -145,8 +145,6 @@ internal sealed class MaidenRouteFilterState
         };
         if (prototype.GetParent() is BoxContainer nativeRow)
             row.AddThemeConstantOverride("separation", nativeRow.GetThemeConstant("separation"));
-        // The native sidebar is narrow: keep one checkbox per line, like its rarity module.
-        row.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         host.AddChild(row);
         host.MoveChild(row, anchor.GetIndex() + 1);
         MaidenRouteFilterState state = new(library, maidenPool, row);
@@ -162,7 +160,6 @@ internal sealed class MaidenRouteFilterState
     {
         var filter = (NCardRarityTickbox)prototype.Duplicate((int)Node.DuplicateFlags.Scripts);
         filter.Name = $"MaidenRoute{key}";
-        NativeUiClone.RestoreOwners(filter);
         IsolateMaterials(filter);
         filter.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopLeft);
         filter.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;

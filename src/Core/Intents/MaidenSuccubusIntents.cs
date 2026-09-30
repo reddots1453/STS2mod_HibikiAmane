@@ -67,7 +67,7 @@ public sealed class ControlIntent :
         "atlases/intent_atlas.sprites/intent_card_debuff.tres";
     public override string GetAnimation(
         IEnumerable<Creature> targets,
-        Creature owner) => IntentAnimData.debuff;
+        Creature owner) => null!;
 
     public override Texture2D? GetTexture(
         IEnumerable<Creature> targets,
@@ -123,7 +123,7 @@ public sealed class InvasionIntent : SingleAttackIntent
 
     public override string GetAnimation(
         IEnumerable<Creature> targets,
-        Creature owner) => IntentAnimData.debuff;
+        Creature owner) => null!;
 
     public override Texture2D GetTexture(
         IEnumerable<Creature> targets,
@@ -161,7 +161,7 @@ public sealed class DesireGainIntent :
 
     public override string GetAnimation(
         IEnumerable<Creature> targets,
-        Creature owner) => IntentAnimData.debuff;
+        Creature owner) => null!;
 
     public override Texture2D? GetTexture(
         IEnumerable<Creature> targets,
@@ -204,7 +204,7 @@ public sealed class TearClothingIntent :
 
     public override string GetAnimation(
         IEnumerable<Creature> targets,
-        Creature owner) => IntentAnimData.debuff;
+        Creature owner) => null!;
 
     public override Texture2D? GetTexture(
         IEnumerable<Creature> targets,

@@ -41,7 +41,6 @@ internal sealed partial class MaidenSidebarRail : Control
         var rail = new MaidenSidebarRail
         {
             Name = RailNodeName,
-            Visible = false,
             CustomMinimumSize = RailSize,
             Size = RailSize,
             MouseFilter = MouseFilterEnum.Ignore,
@@ -178,7 +177,6 @@ internal sealed partial class MaidenSidebarRail : Control
         RunState? run = RunManager.Instance?.DebugOnlyGetState();
         bool shouldShow = !_settingsOpen && _topBar != null
             && GodotObject.IsInstanceValid(_topBar) && _topBar.IsVisibleInTree()
-            && _topBar.FocusBehaviorRecursive != Control.FocusBehaviorRecursiveEnum.Disabled
             && _topBar.Position.Y >= -0.5f && run?.CurrentMapCoord.HasValue == true
             && _topBar.Deck?.IsVisibleInTree() == true
             && _topBar.Map?.IsVisibleInTree() == true

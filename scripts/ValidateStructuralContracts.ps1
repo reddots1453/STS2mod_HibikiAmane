@@ -182,14 +182,11 @@ Assert-Contains "desire intent canonical title" $intentLocalization '"MAIDENSUCC
 Assert-Contains "desire intent centered amount label" $intentModels 'DesireGainIntent[\s\S]*?ExtraIconAmountLabelSpec\.PlainCustom\('
 Assert-NotContains "desire intent reserved vanilla corner" $intentModels 'DesireGainIntent[\s\S]*?ExtraIconAmountLabelCorner\.BottomRight'
 Assert-Contains "custom intent sprite uses stable public update entry" $customUiIconPatches 'HarmonyPatch\(typeof\(NIntent\),\s*nameof\(NIntent\.UpdateIntent\)\)'
-Assert-Contains "custom intent also handles StateTracker refresh" $customUiIconPatches 'HarmonyPatch\(typeof\(NIntent\),\s*"UpdateVisuals"\)'
-Assert-Contains "custom intent stops native frame overwrite" $customUiIconPatches 'AnimationFramesField![\s\S]*?\.Clear\(\)'
-Assert-NotContains "intent animations cannot use null dictionary keys" $intentModels '=>\s*null!;'
-
+Assert-NotContains "custom intent sprite must not rely on inline-prone private update" $customUiIconPatches 'HarmonyPatch\(typeof\(NIntent\),\s*"UpdateVisuals"\)'
 foreach ($intentType in @(
     "ControlIntent", "InvasionIntent", "DesireGainIntent", "TearClothingIntent")) {
-    Assert-Contains "$intentType uses a valid native fallback animation" $intentModels (
-        'class\s+' + $intentType + '[\s\S]*?GetAnimation\([\s\S]*?\)\s*=>\s*IntentAnimData\.debuff;')
+    Assert-Contains "$intentType disables vanilla intent animation" $intentModels (
+        'class\s+' + $intentType + '[\s\S]*?GetAnimation\([\s\S]*?\)\s*=>\s*null!;')
 }
 $intentFactory = Read-Text "src\Core\Intents\IntentMoveFactory.cs"
 Assert-Contains "desire attack derives supplemental icons from effect parser" $intentFactory 'BuildDesireIntents[\s\S]*?BuildSupplementalIntents\([\s\S]*?EroticIntentKind\.Desire'

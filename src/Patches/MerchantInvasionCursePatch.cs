@@ -13,7 +13,6 @@ using MegaCrit.Sts2.addons.mega_text;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Merchant;
 using MaidenSuccubus.Util;
-using MaidenSuccubus.UI;
 
 namespace MaidenSuccubus.Patches;
 
@@ -75,7 +74,6 @@ public static class MerchantInvasionCursePatch
             return;
         slot.Name = SlotName;
         slot.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopLeft);
-        NativeUiClone.RestoreOwners(slot);
         IsolateMaterials(slot);
         var entry = new MerchantCardRemovalEntry(player);
         RemovalEntryField.SetValue(slot, entry);
@@ -91,16 +89,8 @@ public static class MerchantInvasionCursePatch
             var state = new SlotState(player, entry, ordinary);
             States.Add(slot, state);
             slot.Initialize(inventory);
-            slot.FillSlot(entry);
             UpdateVisualMethod.Invoke(slot, null);
             LinkFocus(ordinary, slot, state);
-            // Final layout is not available during Initialize. Position again after containers settle.
-            Callable.From(() =>
-            {
-                if (GodotObject.IsInstanceValid(slot) && GodotObject.IsInstanceValid(ordinary))
-                    PlaceBeside(slot, ordinary);
-            }).CallDeferred();
-            MaidenSuccubusMod.Logger.Info("[MerchantInvasionCurse] Native cleanup slot mounted beside card removal.");
         }
         catch
         {
@@ -249,13 +239,6 @@ public static class MerchantInvasionCursePatch
                 && TryGetState(slot, out SlotState state)
                 && !state.Entry.Used)
                 LinkFocus(ordinary, slot, state);
-            // Final layout is not available during Initialize. Position again after containers settle.
-            Callable.From(() =>
-            {
-                if (GodotObject.IsInstanceValid(slot) && GodotObject.IsInstanceValid(ordinary))
-                    PlaceBeside(slot, ordinary);
-            }).CallDeferred();
-            MaidenSuccubusMod.Logger.Info("[MerchantInvasionCurse] Native cleanup slot mounted beside card removal.");
         }, "MerchantInvasionCurse.UpdateNavigation");
     }
 }
