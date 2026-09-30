@@ -2372,3 +2372,8 @@ DS27-05整体未完成：42试炼、沉睡遗物、奖励替换、碎片及献�
 `ASSET-CEL-UI-20261001`：前置`5a1a9aacd86979facd5221705a830a726bc02706`。遗物43枚V3赛璐璐为待审阅候选，未绑定RelicAssetProfile；8枚现行附魔候选不改。`START-001`选角专用图按原版132×195适配；`SYS-TRF-004`商店立绘0.40→0.46且脚底锚点保持。正常/锁定图、兼容别名与正式源一致，保留通用头像。角色显示IMPLEMENTED，需重启后选角/锁定/商店和不同窗口比例实机复验；本批不部署，不改变DesignDoc玩法。
 
 本批最终验证：43枚遗物RGBA/512/64/清单哈希、两张选角132×195/源运行时一致性及商店有效脚底保持全部通过；ValidateVisualAssets.ps1完整视觉门通过；Debug --no-restore -p:DeployMod=false -p:ValidateMod=true完整构建通过，0警告0错误。首次构建碰到并行演出代码暂时不一致，相关引用由独立批次同步后，本批重新完整构建通过。仍未部署，游戏内复验NOT_RUN，角色资源标IMPLEMENTED，遗物仍为待审阅候选。
+
+
+`ART-CHAR-SELECT-ORIGINAL-V4-20261001`（START-001 / UI-CHAR-SELECT-V2-001，IMPLEMENTED）：前置`83f5617e4ee554a3b5fe243a96ff46201a5b7a51`。依用户原作主菜单参考重绘双形态选角大图及正常/锁定图标，2561×1201和132×195；权威源V4原作画风，兼容旧V2三个同步文件名及运行时引用。左侧文字安全区、双形态面部、下方按钮和16:9/超宽裁切待实机审阅；静态预览不是游戏截图，未部署，不改玩法。
+
+本批最终验证：三张资源尺寸、全不透明PNG、manifest哈希、V4权威源/V2兼容源/运行时逐字节一致及旧版本留档全部通过；Debug --no-restore -p:DeployMod=false -p:ValidateMod=true完整构建与资源门通过，0警告0错误。未部署，游戏内复验NOT_RUN，IMPLEMENTED。

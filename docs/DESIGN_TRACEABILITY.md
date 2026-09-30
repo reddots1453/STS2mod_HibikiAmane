@@ -977,3 +977,8 @@ SYS-SEA-001/ACT4-001→DS27-01B→封印方向悬停、实际永久实例/拥有
 `START-001`/`SYS-TRF-004` → `ASSET-CEL-UI-20261001` → `图片素材/选角界面/V3竖向适配_20261001`、选角兼容资源与`maiden_succubus_merchant.tscn`：原版/Hornet132×195、TheQueen131×194；正常/锁定竖图132×195、原生88×130蒙版，商店有效高度+15%、脚底不变。资源定向检查及完整门见本批记录；IMPLEMENTED，实机待验，未部署。遗物43枚V3单独为美术候选，未进入正式运行时，不标VERIFIED。
 
 本批最终验证：43枚遗物RGBA/512/64/清单哈希、两张选角132×195/源运行时一致性及商店有效脚底保持全部通过；ValidateVisualAssets.ps1完整视觉门通过；Debug --no-restore -p:DeployMod=false -p:ValidateMod=true完整构建通过，0警告0错误。首次构建碰到并行演出代码暂时不一致，相关引用由独立批次同步后，本批重新完整构建通过。仍未部署，游戏内复验NOT_RUN，角色资源标IMPLEMENTED，遗物仍为待审阅候选。
+
+
+`START-001` / `UI-CHAR-SELECT-V2-001` → `ART-CHAR-SELECT-ORIGINAL-V4-20261001` → `图片素材/选角界面/V4原作画风_20261001`、V2正式同步别名及character_select三张兼容PNG：原作主菜单两种天音身份/画风，大图天平与光暗分隔，图标132×195适配88×130。静态尺寸/哈希和完整资源门见本批记录；IMPLEMENTED，原作风格与UI遮挡待用户游戏内复验，未部署。
+
+本批最终验证：三张资源尺寸、全不透明PNG、manifest哈希、V4权威源/V2兼容源/运行时逐字节一致及旧版本留档全部通过；Debug --no-restore -p:DeployMod=false -p:ValidateMod=true完整构建与资源门通过，0警告0错误。未部署，游戏内复验NOT_RUN，IMPLEMENTED。

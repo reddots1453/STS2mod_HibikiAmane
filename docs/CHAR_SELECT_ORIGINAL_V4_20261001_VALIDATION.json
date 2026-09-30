@@ -1,0 +1,50 @@
+{
+  "status": "passed",
+  "batch": "ART-CHAR-SELECT-ORIGINAL-V4-20261001",
+  "checks": [
+    {
+      "asset": "background",
+      "size": [
+        2561,
+        1201
+      ],
+      "opaque": true,
+      "sha256": "7bbd9ac2939ec398204d7417bbda502f1575db0f35fd061c4636ee15e096305c",
+      "source_and_runtime_match": true,
+      "old_version_preserved": true
+    },
+    {
+      "asset": "normal",
+      "size": [
+        132,
+        195
+      ],
+      "opaque": true,
+      "sha256": "d0ba228f3af53d0285af9808de95c741c7da63d8899c0a0dc6850dfdf97714fc",
+      "source_and_runtime_match": true,
+      "old_version_preserved": true
+    },
+    {
+      "asset": "locked",
+      "size": [
+        132,
+        195
+      ],
+      "opaque": true,
+      "sha256": "4c58c664a216a61dd9f7b9a71897c3de7eb4a164af4f32fece6d2959dfd2bd04",
+      "source_and_runtime_match": true,
+      "old_version_preserved": true
+    }
+  ],
+  "previews": "static, not game screenshots",
+  "game_verification": "NOT_RUN",
+  "deployed": false,
+  "build": {
+    "command": "dotnet build MaidenSuccubus.csproj -c Debug --no-restore -p:DeployMod=false -p:ValidateMod=true",
+    "result": "passed",
+    "warnings": 0,
+    "errors": 0,
+    "visual_assets_gate": "passed",
+    "duration_seconds": 29.38
+  }
+}
