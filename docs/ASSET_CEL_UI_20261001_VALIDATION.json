@@ -1,0 +1,20 @@
+{
+  "batch": "ASSET-CEL-UI-20261001",
+  "assets": "passed",
+  "relic_count": 43,
+  "icon_size": [
+    132,
+    195
+  ],
+  "merchant_scale": 0.46,
+  "effective_feet_y": 6.4,
+  "full_visual_gate": "passed",
+  "debug_build": "passed",
+  "build_command": "dotnet build MaidenSuccubus.csproj -c Debug --no-restore -p:DeployMod=false -p:ValidateMod=true",
+  "warnings": 0,
+  "errors": 0,
+  "initial_build_attempt": "Failed during a concurrent presentation-code edit; source reference was subsequently fixed by that separate batch, and a fresh full build passed. No C# files changed by this batch.",
+  "deployment": "not_run",
+  "game_verification": "NOT_RUN",
+  "status": "遗物候选包完成；角色资源修正IMPLEMENTED，实机待验，未部署"
+}
