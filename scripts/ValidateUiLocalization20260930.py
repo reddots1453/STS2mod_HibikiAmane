@@ -7,7 +7,7 @@ from pathlib import Path
 def validate(project, installed=None):
     root = project / 'MaidenSuccubus/localization/zhs'
     tables = {name: json.loads((root / f'{name}.json').read_text(encoding='utf-8'))
-              for name in ('intents', 'static_hover_tips', 'card_library', 'powers')}
+              for name in ('intents', 'static_hover_tips', 'card_library', 'powers', 'characters')}
     prefixes = set()
     for file in (project / 'src/Core/Intents').glob('*.cs'):
         prefixes.update(re.findall(r'IntentPrefix\s*=>\s*"(MAIDENSUCCUBUS_[A-Z_]+)"', file.read_text(encoding='utf-8')))
@@ -17,6 +17,9 @@ def validate(project, installed=None):
                  for suffix in ('.title', '.description')]
     required += [('powers', 'MAIDEN_SUCCUBUS_POWER_CORRUPT_ROBE_POWER' + suffix)
                  for suffix in ('.description', '.smartDescription')]
+    character_key = 'MAIDEN_SUCCUBUS_CHARACTER_MAIDEN_SUCCUBUS_CHARACTER.description'
+    required += [('characters', character_key)]
+    assert tables['characters'][character_key] == '与魔导书·娅露丝相遇，获得魔法力量的少女。\n虽然内心依然纯洁，但身体却因为快感而慢慢觉醒。'
     for table, key in required:
         assert tables[table].get(key), f'Missing UI localization: {table}.{key}'
     for key, parameters in {
@@ -37,7 +40,7 @@ def validate(project, installed=None):
             runtime = json.loads(target.read_text(encoding='utf-8'))
             mismatch = [key for key, value in source.items() if runtime.get(key) != value]
             assert not mismatch, f'Stale installed {table}: {mismatch}'
-    print(f'PASS: {len(required)} UI keys, format parameters, ' + ('4 installed tables match' if installed else 'source tables'))
+    print(f'PASS: {len(required)} UI keys, format parameters, ' + ('5 installed tables match' if installed else 'source tables'))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
