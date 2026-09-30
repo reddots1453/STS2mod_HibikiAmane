@@ -40,7 +40,7 @@ public sealed class MasturbateRestSiteOption : ModRestSiteOptionTemplate
         if (Owner.RunState is RunState runState
             && CorruptionCmd.TryTriggerOnce(runState, "SYS-CORRUPTION-FIRST-MASTURBATION"))
         {
-            CorruptionCmd.Modify(runState, 1, CorruptionChangeSource.Unknown);
+            CorruptionCmd.Modify(runState, 1, CorruptionChangeSource.FirstMasturbation);
         }
         await PerformanceDirector.PlayMasturbationAsync(Owner);
         return true;

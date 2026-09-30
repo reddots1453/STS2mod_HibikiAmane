@@ -266,7 +266,7 @@ public class MaidenSuccubusCharacter
                 runState,
                 $"SYS-CORRUPTION-VIRGIN-ACT-{runState.CurrentActIndex}"))
         {
-            CorruptionCmd.Modify(runState, -1, CorruptionChangeSource.Unknown);
+            CorruptionCmd.Modify(runState, -1, CorruptionChangeSource.VirginAct);
         }
         return Task.CompletedTask;
     }

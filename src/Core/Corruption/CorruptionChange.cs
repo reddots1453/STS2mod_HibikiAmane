@@ -6,6 +6,9 @@ public readonly record struct CorruptionChangeSource(string Id)
 {
     public static readonly CorruptionChangeSource Unknown = new("unknown");
     public static readonly CorruptionChangeSource Debug = new("debug");
+    public static readonly CorruptionChangeSource FirstInvasion = new("invasion.first");
+    public static readonly CorruptionChangeSource FirstMasturbation = new("rest_site.first_masturbation");
+    public static readonly CorruptionChangeSource VirginAct = new("virgin.act");
     public static readonly CorruptionChangeSource DesireFirstMaximum =
         new("desire.first_maximum");
     public static readonly CorruptionChangeSource BossBlessingLight =

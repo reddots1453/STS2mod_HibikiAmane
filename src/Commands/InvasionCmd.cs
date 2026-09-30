@@ -60,7 +60,7 @@ public static class InvasionCmd
             if (firstInvasion)
             {
                 Corruption.Handle.Modify(runState, state => state.VirginMark = false);
-                CorruptionCmd.Modify(runState, 1, CorruptionChangeSource.Unknown);
+                CorruptionCmd.Modify(runState, 1, CorruptionChangeSource.FirstInvasion);
             }
         }
 

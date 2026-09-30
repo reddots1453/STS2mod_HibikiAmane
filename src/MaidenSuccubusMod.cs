@@ -48,6 +48,7 @@ public static class MaidenSuccubusMod
         DesireResource.Register();
         DesirePersistenceCoordinator.Initialize();
         PerformanceAudioService.Initialize();
+        CorruptionChangeFeedback.Initialize();
         if (MvpFeatureFlags.EnemyIntentExtensions)
         {
             EroticAttackCatalog.Validate();
