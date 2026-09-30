@@ -1,3 +1,9 @@
+## 2026-10-01 — 历史验收卡图漏项补入
+
+- 变更前快照：`maiden-card-art-before-20261001-history-audit`（`20872a7accce627b659db37638e7cc5b467cc319`）；目标文档备份于工作区 `backups/additional_accepted_cards_20261001/`。
+- 旧会话将学习计划V03、冰晶碎片V02与泡澡V02列为第14批待审核候选；玩家随后整体批准第13、14批正式化。补入此前漏登的两张卡图，保留原图内容。
+- 更新正式清单和README，同步项目内运行时卡图。194张正式卡图加默认图的视觉资源门通过；无部署Debug构建0警告0错误，游戏内显示待复验；不部署游戏安装目录。
+
 ## 2026-10-01 — 双重防御与泡澡正式卡图漏项补入
 
 - 变更前快照：`maiden-card-art-before-20261001-omission-repair`（`13ce32099f7cd38c5d9cf13394d140910ac52527`）；原清单、README和CHANGELOG备份于工作区 `backups/missing_accepted_cards_20261001/`。
