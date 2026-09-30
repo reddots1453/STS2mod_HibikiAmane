@@ -2,9 +2,11 @@
 
 [ext_resource type="Texture2D" path="user://maiden_succubus_merchant_texture.tres" id="1_merchant"]
 
-[node name="MaidenSuccubusMerchant" type="Sprite2D"]
-position = Vector2(0, 22.04)
-scale = Vector2(0.46, 0.46)
+[node name="MaidenSuccubusMerchant" type="Node2D"]
+
+[node name="Visuals" type="Sprite2D" parent="."]
+position = Vector2(0, 13.65)
+scale = Vector2(0.35, 0.35)
 texture = ExtResource("1_merchant")
 centered = false
 offset = Vector2(-512, -1536)

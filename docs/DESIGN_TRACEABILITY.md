@@ -997,3 +997,8 @@ SYS-SEA-001/ACT4-001→DS27-01B→封印方向悬停、实际永久实例/拥有
 `START-001` / `UI-CHAR-SELECT-V2-001` → `ART-CHAR-SELECT-ORIGINAL-V4-20261001` → `图片素材/选角界面/V4原作画风_20261001`、V2正式同步别名及character_select三张兼容PNG：原作主菜单两种天音身份/画风，大图天平与光暗分隔，图标132×195适配88×130。静态尺寸/哈希和完整资源门见本批记录；IMPLEMENTED，原作风格与UI遮挡待用户游戏内复验，未部署。
 
 本批最终验证：三张资源尺寸、全不透明PNG、manifest哈希、V4权威源/V2兼容源/运行时逐字节一致及旧版本留档全部通过；Debug --no-restore -p:DeployMod=false -p:ValidateMod=true完整构建与资源门通过，0警告0错误。未部署，游戏内复验NOT_RUN，IMPLEMENTED。
+
+
+`SYS-TRF-004` → `MERCHANT-SIZE-V2-20261001` → `maiden_succubus_merchant.tscn`中性Node2D根/内部Visuals Sprite2D，`图片素材/商店立绘/尺寸修正V2_20261001/comparison.json`记录RitsuLib 0.4.64复制根变换且保留原节点的二次缩放证据。可见高度由源码上次311.9→515.9、安装旧235.8→515.9，对照原版460.8～557.4setup。定向几何检查/完整资源门/构建见验证记录；IMPLEMENTED，实际身高、脚底、多人及按钮遮挡待实机，不部署，不把setup静态范围当动画帧验收。
+
+本批最终验证：PNG哈希保持、版本场景/源码一致、RitsuLib转换后高度515.9/脚底0、原版setup范围及1/2/4人原生布局几何检查全部通过；Debug --no-restore -p:DeployMod=false -p:ValidateMod=true完整构建和资源门通过，0警告0错误。未部署，游戏内复验NOT_RUN，IMPLEMENTED。

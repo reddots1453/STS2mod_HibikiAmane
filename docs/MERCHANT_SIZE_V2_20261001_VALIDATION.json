@@ -1,0 +1,101 @@
+{
+  "batch": "MERCHANT-SIZE-V2-20261001",
+  "status": "passed",
+  "image_unchanged": true,
+  "versioned_scene_matches_source": true,
+  "converted_scale": [
+    0.35,
+    0.35
+  ],
+  "converted_visible_height": 515.9,
+  "native_setup_range": [
+    460.7806964111328,
+    557.42
+  ],
+  "visible_feet_y": 1.7763568394002505e-15,
+  "visible_width": 123.89999999999999,
+  "native_multiplayer_layout_geometry": [
+    {
+      "players": 1,
+      "player": 0,
+      "native_anchor": [
+        564,
+        766
+      ],
+      "head_y": 250.10000000000002,
+      "feet_y": 766.0
+    },
+    {
+      "players": 2,
+      "player": 0,
+      "native_anchor": [
+        564,
+        766
+      ],
+      "head_y": 250.10000000000002,
+      "feet_y": 766.0
+    },
+    {
+      "players": 2,
+      "player": 1,
+      "native_anchor": [
+        289,
+        766
+      ],
+      "head_y": 250.10000000000002,
+      "feet_y": 766.0
+    },
+    {
+      "players": 4,
+      "player": 0,
+      "native_anchor": [
+        564,
+        766
+      ],
+      "head_y": 250.10000000000002,
+      "feet_y": 766.0
+    },
+    {
+      "players": 4,
+      "player": 1,
+      "native_anchor": [
+        289,
+        766
+      ],
+      "head_y": 250.10000000000002,
+      "feet_y": 766.0
+    },
+    {
+      "players": 4,
+      "player": 2,
+      "native_anchor": [
+        424,
+        716
+      ],
+      "head_y": 200.10000000000002,
+      "feet_y": 716.0
+    },
+    {
+      "players": 4,
+      "player": 3,
+      "native_anchor": [
+        149,
+        716
+      ],
+      "head_y": 200.10000000000002,
+      "feet_y": 716.0
+    }
+  ],
+  "runtime_library_version": "0.4.64",
+  "checks": "One-off static conversion and layout calculations; not game rendering or animation verification.",
+  "deployed": false,
+  "game_verification": "NOT_RUN",
+  "build": {
+    "command": "dotnet build MaidenSuccubus.csproj -c Debug --no-restore -p:DeployMod=false -p:ValidateMod=true",
+    "result": "passed",
+    "warnings": 0,
+    "errors": 0,
+    "visual_assets_gate": "passed",
+    "duration_seconds": 31.42
+  }
+}

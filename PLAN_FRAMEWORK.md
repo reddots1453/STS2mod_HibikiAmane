@@ -2392,3 +2392,8 @@ DS27-05整体未完成：42试炼、沉睡遗物、奖励替换、碎片及献�
 `ART-CHAR-SELECT-ORIGINAL-V4-20261001`（START-001 / UI-CHAR-SELECT-V2-001，IMPLEMENTED）：前置`83f5617e4ee554a3b5fe243a96ff46201a5b7a51`。依用户原作主菜单参考重绘双形态选角大图及正常/锁定图标，2561×1201和132×195；权威源V4原作画风，兼容旧V2三个同步文件名及运行时引用。左侧文字安全区、双形态面部、下方按钮和16:9/超宽裁切待实机审阅；静态预览不是游戏截图，未部署，不改玩法。
 
 本批最终验证：三张资源尺寸、全不透明PNG、manifest哈希、V4权威源/V2兼容源/运行时逐字节一致及旧版本留档全部通过；Debug --no-restore -p:DeployMod=false -p:ValidateMod=true完整构建与资源门通过，0警告0错误。未部署，游戏内复验NOT_RUN，IMPLEMENTED。
+
+
+`MERCHANT-SIZE-V2-20261001`（SYS-TRF-004，IMPLEMENTED）：前置`46d4f38f90eda3685350b6cac7a845fb466e0f25`。修复RitsuLib 0.4.64商店自定义Sprite2D根转换时重复缩放，调整为中性Node2D根和Visuals单次0.35，人物可见高515.9，处于原版猎手460.8/铁甲557.4setup范围。内部脚底补偿13.65，继续沿用原生多玩家位置。PNG无修改；上次单次0.46高度估算已由本批更正。定向转换几何/资源门/无部署构建后，人物身高、脚底、多人和商品按钮实机复验NOT_RUN，不部署。
+
+本批最终验证：PNG哈希保持、版本场景/源码一致、RitsuLib转换后高度515.9/脚底0、原版setup范围及1/2/4人原生布局几何检查全部通过；Debug --no-restore -p:DeployMod=false -p:ValidateMod=true完整构建和资源门通过，0警告0错误。未部署，游戏内复验NOT_RUN，IMPLEMENTED。
