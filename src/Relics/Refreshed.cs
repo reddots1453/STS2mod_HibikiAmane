@@ -16,7 +16,7 @@ namespace MaidenSuccubus.Relics;
 public sealed class Refreshed : MSRelicTemplate
 {
     public override RelicRarity Rarity => RelicRarity.Event;
-    public override RelicAssetProfile AssetProfile => MagicSupportRelicAssets.Placeholder;
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("event_Refreshed");
     public override bool HasUponPickupEffect => true;
     public override bool ShowCounter => true;
     public override int DisplayAmount => RemainingCombats;

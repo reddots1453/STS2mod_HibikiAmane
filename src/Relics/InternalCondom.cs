@@ -22,7 +22,7 @@ public sealed class InternalCondom : MSRelicTemplate
 {
     private int _storedCount;
     public override RelicRarity Rarity => RelicRarity.Uncommon;
-    public override RelicAssetProfile AssetProfile => MagicSupportRelicAssets.Placeholder;
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("character_InternalCondom");
 
     [SavedProperty]
     public int StoredCount

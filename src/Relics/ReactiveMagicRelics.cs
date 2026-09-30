@@ -30,7 +30,7 @@ public sealed class CounterCurseMirror : MSRelicTemplate
     // entire awaited reaction chain is guarded, including effects of judgment.
     private static readonly WeakInstanceScope<Creature> Reactions = new();
     public override RelicRarity Rarity => RelicRarity.Rare;
-    public override RelicAssetProfile AssetProfile => MagicSupportRelicAssets.Placeholder;
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("character_CountercurseMirror");
     protected override IEnumerable<IHoverTip> AdditionalHoverTips =>
         [HoverTipFactory.FromPower<BurningPower>(), HoverTipFactory.FromPower<CondemnationPower>()];
 
@@ -73,7 +73,7 @@ public sealed class DivineStardust : MSRelicTemplate
     private ConditionalWeakTable<CardPlay, PlayReceipt> _plays = new();
     private int _progress;
     public override RelicRarity Rarity => RelicRarity.Uncommon;
-    public override RelicAssetProfile AssetProfile => MagicSupportRelicAssets.Placeholder;
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("character_DivineStardust");
     protected override IEnumerable<IHoverTip> AdditionalHoverTips => [HoverTipFactory.FromPower<MagicAmplificationPower>()];
     public override bool ShowCounter => true;
     public override int DisplayAmount => Progress;

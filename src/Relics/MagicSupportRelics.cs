@@ -20,20 +20,11 @@ using STS2RitsuLib.Scaffolding.Content;
 
 namespace MaidenSuccubus.Relics;
 
-internal static class MagicSupportRelicAssets
-{
-    // Dedicated icons have not been mapped; explicit vanilla fallback, no external mod dependency.
-    internal static readonly RelicAssetProfile Placeholder = new(
-        IconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres",
-        IconOutlinePath: "res://images/atlases/relic_outline_atlas.sprites/circlet.tres",
-        BigIconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres");
-}
-
 [RegisterRelic(typeof(MSRelicPool))]
 public sealed class PrayerEarrings : MSRelicTemplate
 {
     public override RelicRarity Rarity => RelicRarity.Common;
-    public override RelicAssetProfile AssetProfile => MagicSupportRelicAssets.Placeholder;
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("character_PrayerEarrings");
     protected override IEnumerable<IHoverTip> AdditionalHoverTips =>
         [HoverTipFactory.FromPower<MagicAmplificationPower>()];
 
@@ -70,7 +61,7 @@ public sealed class BarrierGenerator : MSRelicTemplate
 {
     private int _turnsSeen;
     public override RelicRarity Rarity => RelicRarity.Rare;
-    public override RelicAssetProfile AssetProfile => MagicSupportRelicAssets.Placeholder;
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("character_BarrierGenerator");
     protected override IEnumerable<IHoverTip> AdditionalHoverTips => [HoverTipFactory.FromPower<SanctuaryPower>()];
     public override bool ShowCounter => true;
     public override int DisplayAmount => TurnsSeen;

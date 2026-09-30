@@ -28,10 +28,7 @@ public sealed class BalancedLens : MSRelicTemplate, IMSRouteRewardModifierRelic
 {
     public override RelicRarity Rarity => RelicRarity.Starter;
 
-    public override RelicAssetProfile AssetProfile => new(
-        IconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres",
-        IconOutlinePath: "res://images/atlases/relic_outline_atlas.sprites/circlet.tres",
-        BigIconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres");
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("legacy_balanced_lens_v1");
 
     public RouteRewardProbabilityBonus GetRouteRewardProbabilityBonus(
         Player player)
@@ -82,10 +79,7 @@ public sealed class Blindfold : MSRelicTemplate
     public override Task AfterObtained() => BlindfoldPresentation.Refresh(Owner);
     public override Task AfterRemoved() => BlindfoldPresentation.Refresh(Owner);
 
-    public override RelicAssetProfile AssetProfile => new(
-        IconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres",
-        IconOutlinePath: "res://images/atlases/relic_outline_atlas.sprites/circlet.tres",
-        BigIconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres");
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("legacy_blindfold_v1");
 }
 
 /// <summary>EVENT-VANILLA-002 Whispering Hollow reward; STS1 Dead Branch semantics.</summary>
@@ -132,10 +126,7 @@ public sealed class Vibrator : MSRelicTemplate
     private bool _triggeredThisTurn;
     public override RelicRarity Rarity => RelicRarity.Event;
 
-    public override RelicAssetProfile AssetProfile => new(
-        IconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres",
-        IconOutlinePath: "res://images/atlases/relic_outline_atlas.sprites/circlet.tres",
-        BigIconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres");
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("legacy_vibrator_v1");
 
     public override async Task AfterDamageReceived(
         PlayerChoiceContext choiceContext,

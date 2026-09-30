@@ -39,7 +39,7 @@ public sealed class EternalOrb : RetentionOrb
 public abstract class RetentionOrb : ModRelicTemplate
 {
     protected abstract bool IsEternal { get; }
-    public override RelicAssetProfile AssetProfile => OrbAssets.Placeholder;
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For(this is EternalOrb ? "starter_EternalOrb" : "starter_HeroOrb");
     protected override IEnumerable<IHoverTip> AdditionalHoverTips => [HoverTipFactory.FromKeyword(CardKeyword.Retain)];
 
     public override async Task BeforeFlushLate(PlayerChoiceContext context, Player player)

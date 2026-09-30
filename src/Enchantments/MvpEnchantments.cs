@@ -20,6 +20,7 @@ namespace MaidenSuccubus.Enchantments;
 [RegisterEnchantment]
 public sealed class EnergyOverloadEnchantment : ModEnchantmentTemplate
 {
+    public override EnchantmentAssetProfile AssetProfile => EnchantmentIconAssets.For("energy_overload_enchantment_v1");
     public override bool HasExtraCardText => true;
     public override bool CanEnchant(CardModel card) => false;
 }
@@ -27,6 +28,7 @@ public sealed class EnergyOverloadEnchantment : ModEnchantmentTemplate
 [RegisterEnchantment]
 public sealed class ChargeEnchantment : ModEnchantmentTemplate
 {
+    public override EnchantmentAssetProfile AssetProfile => EnchantmentIconAssets.For("charge_enchantment_v1");
     public override bool HasExtraCardText => true;
     public override bool ShowAmount => true;
     public override bool CanEnchantCardType(CardType cardType) => true;
@@ -43,6 +45,7 @@ public sealed class ChargeEnchantment : ModEnchantmentTemplate
 [RegisterEnchantment]
 public sealed class NecromancyEnchantment : ModEnchantmentTemplate
 {
+    public override EnchantmentAssetProfile AssetProfile => EnchantmentIconAssets.For("necromancy_enchantment_v1");
     public override bool HasExtraCardText => true;
 
     public override async Task AfterCardExhausted(
@@ -58,6 +61,7 @@ public sealed class NecromancyEnchantment : ModEnchantmentTemplate
 [RegisterEnchantment]
 public sealed class SoulLinkEnchantment : ModEnchantmentTemplate
 {
+    public override EnchantmentAssetProfile AssetProfile => EnchantmentIconAssets.For("soul_link_enchantment_v1");
     public override bool HasExtraCardText => true;
 
     public override async Task OnPlay(PlayerChoiceContext context, CardPlay? cardPlay)
@@ -74,6 +78,7 @@ public sealed class SoulLinkEnchantment : ModEnchantmentTemplate
 [RegisterEnchantment]
 public sealed class IronWallEnchantment : CombatOnlyEnchantmentTemplate
 {
+    public override EnchantmentAssetProfile AssetProfile => EnchantmentIconAssets.For("iron_wall_enchantment_v1");
     public override bool HasExtraCardText => true;
     public override bool CanEnchantCardType(CardType cardType) => cardType == CardType.Attack;
 
@@ -93,6 +98,7 @@ public sealed class IronWallEnchantment : CombatOnlyEnchantmentTemplate
 [RegisterEnchantment]
 public sealed class ProliferationEnchantment : CombatOnlyEnchantmentTemplate
 {
+    public override EnchantmentAssetProfile AssetProfile => EnchantmentIconAssets.For("proliferation_enchantment_v1");
     public override bool HasExtraCardText => true;
 
     public override async Task OnPlay(PlayerChoiceContext context, CardPlay? cardPlay)
@@ -107,6 +113,7 @@ public sealed class ProliferationEnchantment : CombatOnlyEnchantmentTemplate
 [RegisterEnchantment]
 public sealed class WrathEnchantment : ModEnchantmentTemplate
 {
+    public override EnchantmentAssetProfile AssetProfile => EnchantmentIconAssets.For("wrath_enchantment_v1");
     private bool _used;
     [SavedProperty]
     public bool UsedThisCombat { get => _used; set { AssertMutable(); _used = value; } }
@@ -138,6 +145,7 @@ public sealed class WrathEnchantment : ModEnchantmentTemplate
 [RegisterEnchantment]
 public sealed class FamiliarEnchantment : CombatOnlyEnchantmentTemplate
 {
+    public override EnchantmentAssetProfile AssetProfile => EnchantmentIconAssets.For("familiar_enchantment_v1");
     public override bool HasExtraCardText => true;
 
     public override async Task BeforeSideTurnEnd(

@@ -84,6 +84,26 @@ Assert-ManifestCopy (
     Join-Path $cardArtSource $cardArtManifest.default.file) (
     Join-Path $cardRuntime "default.png") $cardArtManifest.default.sha256
 
+# Every accepted PNG in the formal root must be mapped to a concrete card
+# class, and every runtime PNG must be accounted for by the same manifest.
+$formalFiles = @{}
+foreach ($item in $cardArtManifest.items) { $formalFiles[$item.file] = $true }
+$formalFiles[$cardArtManifest.default.file] = $true
+foreach ($file in Get-ChildItem -LiteralPath $cardArtSource -Filter '*.png' -File) {
+    if (!$formalFiles.ContainsKey($file.Name)) {
+        throw "Unmapped accepted formal card art: $($file.Name)"
+    }
+}
+if (@(Get-ChildItem -LiteralPath $cardArtSource -Filter '*.png' -File).Count -ne $formalFiles.Count -or
+    $cardRuntimeFiles.Count -ne ($cardArtManifest.items.Count + 1)) {
+    throw "Formal card source/runtime counts do not match the manifest."
+}
+foreach ($file in $cardRuntimeFiles) {
+    if ($file.BaseName -ne 'default' -and !$seenCardClasses.ContainsKey($file.BaseName)) {
+        throw "Runtime card art has no accepted manifest entry: $($file.Name)"
+    }
+}
+
 $corruptionRelativePath = [regex]::Unescape(
     "\u56fe\u7247\u7d20\u6750/\u5815\u843d\u503c\u5929\u5e73")
 $corruptionSource = Join-Path $ProjectDir $corruptionRelativePath
@@ -127,7 +147,7 @@ foreach ($legacyRouteMark in @(
 
 $characterSelectRelativePath = [regex]::Unescape(
     "\u56fe\u7247\u7d20\u6750/\u9009\u89d2\u754c\u9762/" +
-    "V2\u9ad8\u6e05\u91cd\u7ed8")
+    "V4\u539f\u4f5c\u753b\u98ce_20261001/\u4fdd\u7559\u7684\u524d\u7248\u517c\u5bb9\u8d44\u6e90")
 foreach ($file in @(
     "hibiki_amane_char_select_bg_v02_2561x1201.png",
     "hibiki_amane_character_icon_v02_256.png",
@@ -140,6 +160,18 @@ if (Test-Path -LiteralPath (
     Join-Path $runtime "ui\character_select\hibiki_amane_char_select_bg_v01_2561x1201.png") `
     -PathType Leaf) {
     throw "Legacy V1 character-select background must not remain in the runtime package."
+}
+
+$characterV4Source = Join-Path $ProjectDir ([regex]::Unescape(
+    "\u56fe\u7247\u7d20\u6750/\u9009\u89d2\u754c\u9762/V4\u539f\u4f5c\u753b\u98ce_20261001"))
+$characterV4Manifest = Get-Content -Raw -Encoding UTF8 -LiteralPath (
+    Join-Path $characterV4Source "manifest.json") | ConvertFrom-Json
+if ($characterV4Manifest.assets.Count -ne 3) {
+    throw "Expected three reviewed V4 character-select assets."
+}
+foreach ($asset in $characterV4Manifest.assets) {
+    Assert-ManifestCopy (Join-Path $characterV4Source $asset.file) (
+        Join-Path $runtime "ui\character_select\$($asset.file)") $asset.sha256
 }
 
 $schoolUniformRelativePath = [regex]::Unescape(
@@ -257,8 +289,8 @@ if ($characterCode -notmatch 'new CharacterUiAssetSet\(' -or
     $characterCode -notmatch 'CharacterSelectBgPath: characterSelectBgPath' -or
     $characterCode -notmatch 'CharacterSelectIconPath: characterSelectIconPath' -or
     $characterCode -notmatch 'CharacterSelectLockedIconPath: characterSelectLockedIconPath' -or
-    $characterCode -notmatch 'hibiki_amane_char_select_bg_v02_2561x1201\.png' -or
-    $characterCode -notmatch 'user://maiden_succubus_character_select_bg_v02\.tres') {
+    $characterCode -notmatch 'hibiki_amane_select_bg_v04_2561x1201\.png' -or
+    $characterCode -notmatch 'user://maiden_succubus_character_select_bg_v04\.tres') {
     throw "Character profile must route the reviewed Maiden icon through RitsuLib Ui.IconPath for the top bar."
 }
 $cardArtCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
@@ -288,8 +320,8 @@ if ($cardPresentationCode -notmatch 'HarmonyPatch\(typeof\(CardModel\), nameof\(
 $characterSelectPatchCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
     Join-Path $ProjectDir "src\Patches\CharacterSelectVisualPatch.cs")
 if ($characterSelectPatchCode -notmatch 'NCharacterSelectButton' -or
-    $characterSelectPatchCode -notmatch 'hibiki_amane_character_icon_v02_256\.png' -or
-    $characterSelectPatchCode -notmatch 'hibiki_amane_character_icon_outline_v02_256\.png' -or
+    $characterSelectPatchCode -notmatch 'hibiki_amane_select_normal_v04_132x195\.png' -or
+    $characterSelectPatchCode -notmatch 'hibiki_amane_select_locked_v04_132x195\.png' -or
     $characterSelectPatchCode -notmatch '"CharacterSelectIconPath", MethodType\.Getter' -or
     $characterSelectPatchCode -notmatch '"CharacterSelectLockedIconPath", MethodType\.Getter' -or
     $characterSelectPatchCode -notmatch 'char_select_ironclad\.png' -or
@@ -300,7 +332,7 @@ if ($characterSelectPatchCode -notmatch 'NCharacterSelectButton' -or
     $characterSelectPatchCode -notmatch 'nameof\(CharacterModel\.CharacterSelectIcon\), MethodType\.Getter' -or
     $characterSelectPatchCode -notmatch 'nameof\(CharacterModel\.CharacterSelectLockedIcon\), MethodType\.Getter' -or
     $characterSelectPatchCode -notmatch 'ResourceLoader\.Load<CompressedTexture2D>') {
-    throw "Character-select buttons need compressed vanilla init paths and the reviewed 256px Maiden overlays."
+    throw "Character-select buttons need compressed vanilla init paths and the reviewed 132x195 V4 Maiden overlays."
 }
 $thresholdPowerCode = Get-Content -Raw -Encoding UTF8 -LiteralPath (
     Join-Path $ProjectDir "src\Powers\EroticIntentThresholdPowers.cs")
@@ -389,4 +421,50 @@ if ($holyPowerCode -match
     throw "Holy Flame must remain a visible Power state."
 }
 
-Write-Host "Validated visual assets: $($cardArtManifest.items.Count) card arts plus default and HD view, V2 character-select background/icons, school-uniform/world portraits, 11 HD corruption states, 11 desire states, 10 intent icons, temptation UI, 10 core/route icons, and 72 paired power/mechanism icons."
+$relicArtRoot = Join-Path $ProjectDir ([regex]::Unescape("\u56fe\u7247\u7d20\u6750/\u9057\u7269\u56fe\u6807"))
+$relicV3 = @(Get-ChildItem -LiteralPath $relicArtRoot -Directory | Where-Object {
+    $_.Name -like 'V3*_20261001' -and (Test-Path -LiteralPath (Join-Path $_.FullName 'manifest.json'))
+})
+if ($relicV3.Count -ne 1) { throw "Expected exactly one reviewed V3 relic directory." }
+$relicV3 = $relicV3[0].FullName
+$relicSource = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $relicV3 'manifest.json') | ConvertFrom-Json
+$relicRuntime = Join-Path $runtime 'relics\icons'
+$relicBound = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $relicRuntime 'manifest.json') | ConvertFrom-Json
+if ($relicSource.entries.Count -ne 43 -or $relicBound.entries.Count -ne 49) {
+    throw "Expected 43 reviewed V3 icons and 49 runtime relic profiles."
+}
+foreach ($entry in $relicSource.entries) {
+    $stem = [IO.Path]::GetFileNameWithoutExtension($entry.file)
+    Assert-ManifestCopy (Join-Path $relicV3 "512x512\$($entry.file)") (
+        Join-Path $relicRuntime "${stem}_big.png") $entry.sha256
+    Assert-ExactCopy (Join-Path $relicV3 "64x64\$($entry.file)") (
+        Join-Path $relicRuntime "${stem}_small.png")
+}
+$seenRelicIcons = @{}
+foreach ($entry in $relicBound.entries) {
+    if ($seenRelicIcons.ContainsKey($entry.asset)) { throw "Duplicate relic icon: $($entry.asset)" }
+    $seenRelicIcons[$entry.asset] = $true
+    foreach ($part in @('small', 'big', 'outline')) {
+        $target = Join-Path $relicRuntime "$($entry.asset)_$part.png"
+        if (!(Test-Path -LiteralPath $target -PathType Leaf) -or
+            (Get-Sha256 $target) -ne $entry.("${part}_sha256").ToUpperInvariant()) {
+            throw "Missing or altered relic $part icon: $($entry.asset)"
+        }
+    }
+    if ($entry.asset.StartsWith('legacy_', [StringComparison]::Ordinal)) {
+        $source = Join-Path $relicArtRoot ($entry.source.Replace('/', '\'))
+        Assert-ManifestCopy $source (Join-Path $relicRuntime "$($entry.asset)_big.png") $entry.source_sha256
+    }
+}
+
+$enchantArtRoot = Join-Path $ProjectDir ([regex]::Unescape("\u56fe\u7247\u7d20\u6750/\u9644\u9b54\u56fe\u6807/V1\u8349\u56fe/\u72ec\u7acb\u56fe\u6807"))
+$enchantRuntime = Join-Path $runtime 'enchantments'
+$enchantManifest = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $enchantRuntime 'manifest.json') | ConvertFrom-Json
+if ($enchantManifest.entries.Count -ne 9) { throw "Expected nine enchantment icons." }
+foreach ($entry in $enchantManifest.entries) {
+    $file = "$($entry.asset).png"
+    Assert-ManifestCopy (Join-Path $enchantArtRoot $file) (
+        Join-Path $enchantRuntime $file) $entry.source_sha256
+}
+
+Write-Host "Validated visual assets: $($cardArtManifest.items.Count) card arts plus default and HD view, V4 character-select background/icons with V2 aliases, school-uniform/world portraits, 11 HD corruption states, 11 desire states, 10 intent icons, temptation UI, 10 core/route icons, 72 paired power/mechanism icons, 49 relic icon profiles and 9 enchantment icons."

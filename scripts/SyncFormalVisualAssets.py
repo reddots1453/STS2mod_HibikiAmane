@@ -120,21 +120,21 @@ def sync_route_marks() -> int:
 
 
 def sync_character_select() -> int:
-    source_root = PROJECT / "图片素材" / "选角界面" / "V2高清重绘"
+    source_root = PROJECT / "图片素材" / "选角界面" / "V4原作画风_20261001"
     destination_root = RUNTIME / "ui" / "character_select"
-    for file_name in (
-        "hibiki_amane_char_select_bg_v02_2561x1201.png",
-        "hibiki_amane_character_icon_v02_256.png",
-        "hibiki_amane_character_icon_outline_v02_256.png",
-    ):
-        copy_exact(
-            source_root / file_name,
-            destination_root / file_name,
-        )
+    manifest = json.loads((source_root / "manifest.json").read_text(encoding="utf-8"))
+    if len(manifest["assets"]) != 3:
+        raise RuntimeError("Expected background, normal and locked V4 select assets.")
+    for asset in manifest["assets"]:
+        copy_exact(source_root / asset["file"], destination_root / asset["file"], asset["sha256"])
+    # Keep earlier paths only for old saves and tools that still reference them.
+    for file_name in manifest["runtime_aliases"]:
+        copy_exact(source_root / "保留的前版兼容资源" / file_name,
+                   destination_root / file_name)
     (destination_root / "hibiki_amane_char_select_bg_v01_2561x1201.png").unlink(
         missing_ok=True
     )
-    return 3
+    return len(manifest["assets"])
 
 
 def main() -> None:

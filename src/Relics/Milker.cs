@@ -18,7 +18,7 @@ namespace MaidenSuccubus.Relics;
 public sealed class Milker : MSRelicTemplate
 {
     public override RelicRarity Rarity => RelicRarity.Event;
-    public override RelicAssetProfile AssetProfile => MagicSupportRelicAssets.Placeholder;
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("event_MilkExtractor");
     [SavedProperty] public bool CombatPrepared { get; set; }
 
     public override async Task BeforeCombatStart()

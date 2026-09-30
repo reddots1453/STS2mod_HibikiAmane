@@ -1,0 +1,41 @@
+{
+  "count": 9,
+  "entries": [
+    {
+      "asset": "charge_enchantment_v1",
+      "source_sha256": "8869d1dcc1f21b18a0099b3a96d3c2c1ffd870fc3a65a01d6b04ba76b785325c"
+    },
+    {
+      "asset": "energy_overload_enchantment_v1",
+      "source_sha256": "7a257080b4fbda69af011654e9470c898175c00e1af6ac72586f920715a413df"
+    },
+    {
+      "asset": "familiar_enchantment_v1",
+      "source_sha256": "f22f62a21d6fd342fce15b0635cc22a2fe4a5239de5bddfab3310806563f8e86"
+    },
+    {
+      "asset": "infection_enchantment_v1",
+      "source_sha256": "417ae2747da172483438e15a5baa269646e388ece834febd68f099dbee845595"
+    },
+    {
+      "asset": "iron_wall_enchantment_v1",
+      "source_sha256": "7591c4b7b1b97210d3dea8246513c5124c782d1435b6caafeb8f8c7003622f2f"
+    },
+    {
+      "asset": "necromancy_enchantment_v1",
+      "source_sha256": "cca90e04519ccb80444ccf85e28043328f22410326d2d724579d063d7cc15442"
+    },
+    {
+      "asset": "proliferation_enchantment_v1",
+      "source_sha256": "1ce04f340d05a9f9d960ae9aaa6ce22cff58fa2e661ff85b45f5db0cc079775f"
+    },
+    {
+      "asset": "soul_link_enchantment_v1",
+      "source_sha256": "0f66e336756b26dde7abe9a138e1f55212e57714c77ad6187a5b671c9990881f"
+    },
+    {
+      "asset": "wrath_enchantment_v1",
+      "source_sha256": "f3e6e2d9429d40637d7583afc27a35eecead2b400c9c64574eb82c5cd20ddab3"
+    }
+  ]
+}

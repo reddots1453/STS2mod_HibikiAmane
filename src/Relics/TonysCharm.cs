@@ -20,10 +20,7 @@ public sealed class TonysCharm : MSRelicTemplate
     private readonly HashSet<CardModel> _resolving = [];
     public override RelicRarity Rarity => RelicRarity.Shop;
     public override bool HasUponPickupEffect => true;
-    public override RelicAssetProfile AssetProfile => new(
-        IconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres",
-        IconOutlinePath: "res://images/atlases/relic_outline_atlas.sprites/circlet.tres",
-        BigIconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres");
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("character_TonysTalisman");
 
     public override async Task AfterObtained()
     {

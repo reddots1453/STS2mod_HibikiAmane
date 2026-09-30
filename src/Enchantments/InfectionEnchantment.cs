@@ -20,8 +20,7 @@ public sealed class InfectionEnchantment : ModEnchantmentTemplate
 {
     public override bool HasExtraCardText => true;
 
-    public override EnchantmentAssetProfile AssetProfile => new(
-        IconPath: "res://images/powers/strength_power.png");
+    public override EnchantmentAssetProfile AssetProfile => EnchantmentIconAssets.For("infection_enchantment_v1");
 
     public override async Task OnPlay(
         PlayerChoiceContext choiceContext,

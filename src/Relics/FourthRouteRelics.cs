@@ -68,10 +68,7 @@ public abstract class FourthRouteRelic : ModRelicTemplate
     }
     public abstract FourthRouteQuest Quest { get; }
     public override RelicRarity Rarity => RelicRarity.Event;
-    public override RelicAssetProfile AssetProfile => new(
-        IconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres",
-        IconOutlinePath: "res://images/atlases/relic_outline_atlas.sprites/circlet.tres",
-        BigIconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres");
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.ForRoute(Quest);
 }
 
 [RegisterRelic(typeof(MSRelicPool))]
@@ -90,10 +87,7 @@ public sealed class FourthRouteFragmentRelic : ModRelicTemplate
         }
     }
     public override RelicRarity Rarity => RelicRarity.Event;
-    public override RelicAssetProfile AssetProfile => new(
-        IconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres",
-        IconOutlinePath: "res://images/atlases/relic_outline_atlas.sprites/circlet.tres",
-        BigIconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres");
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.ForFragment(RouteTitleKey);
     public override bool IsAllowed(MegaCrit.Sts2.Core.Runs.IRunState runState) => false;
     public override Task AfterObtained() => FourthRouteProgressService.UnlockSecondTrial(Owner);
 }

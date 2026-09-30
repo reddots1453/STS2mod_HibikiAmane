@@ -78,16 +78,16 @@ public class MaidenSuccubusCharacter
             "user://maiden_succubus_character_icon_outline.tres",
             iconPath);
         string characterSelectBgPath = RuntimeTextureAssets.PrepareResource(
-            "ui/character_select/hibiki_amane_char_select_bg_v02_2561x1201.png",
-            "user://maiden_succubus_character_select_bg_v02.tres",
+            "ui/character_select/hibiki_amane_select_bg_v04_2561x1201.png",
+            "user://maiden_succubus_character_select_bg_v04.tres",
             CharacterSelectBgFallback);
         string characterSelectIconPath = RuntimeTextureAssets.PrepareResource(
-            "ui/character_select/hibiki_amane_character_icon_v02_256.png",
-            "user://maiden_succubus_character_select_icon_v02.tres",
+            "ui/character_select/hibiki_amane_select_normal_v04_132x195.png",
+            "user://maiden_succubus_character_select_icon_v04.tres",
             iconPath);
         string characterSelectLockedIconPath = RuntimeTextureAssets.PrepareResource(
-            "ui/character_select/hibiki_amane_character_icon_outline_v02_256.png",
-            "user://maiden_succubus_character_select_locked_icon_v02.tres",
+            "ui/character_select/hibiki_amane_select_locked_v04_132x195.png",
+            "user://maiden_succubus_character_select_locked_icon_v04.tres",
             characterSelectIconPath);
 
         // The two world scenes reference these user resources. Preparing them

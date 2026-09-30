@@ -17,7 +17,7 @@ public sealed class SkyOrb : ModRelicTemplate
 {
     public override RelicRarity Rarity => RelicRarity.Ancient;
     protected override IEnumerable<DynamicVar> CanonicalVars => [new MaxHpVar(5)];
-    public override RelicAssetProfile AssetProfile => OrbAssets.Placeholder;
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("starter_HeavenlyOrb");
 
     public override async Task AfterCombatVictory(CombatRoom room)
     {

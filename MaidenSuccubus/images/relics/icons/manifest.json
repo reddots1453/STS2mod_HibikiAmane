@@ -1,0 +1,397 @@
+{
+  "count": 49,
+  "entries": [
+    {
+      "asset": "starter_HeroOrb",
+      "source": "V3赛璐璐_20261001/starter_HeroOrb.png",
+      "source_sha256": "b2e6f4fa0cef39521d2a8bdd471c109ca69679e21809f29133e177ce0a2cb9c1",
+      "small_sha256": "b0d898c3d1b673168615fcf4969384516594154f31a3fdd6f079ae82a3104848",
+      "big_sha256": "b2e6f4fa0cef39521d2a8bdd471c109ca69679e21809f29133e177ce0a2cb9c1",
+      "outline_sha256": "eef45ac48fca78b6fedb0b2c58cbe0e1e90bc3d97cb262c089b5d1178784b61a"
+    },
+    {
+      "asset": "starter_AllPurposeOrb",
+      "source": "V3赛璐璐_20261001/starter_AllPurposeOrb.png",
+      "source_sha256": "0f7d2948cc3db1e9bf22925c6d8bcaebbba71847dc79deecc26dcd73dfc74127",
+      "small_sha256": "77812369f89ae064babfd6810ba800773ec446ef4c3860eb08810bd8cd8f0adf",
+      "big_sha256": "0f7d2948cc3db1e9bf22925c6d8bcaebbba71847dc79deecc26dcd73dfc74127",
+      "outline_sha256": "101abaee4c403cbd0a29eebbc72799ee4f98a4948fef3a9ac66debc1f2224c5e"
+    },
+    {
+      "asset": "starter_EternalOrb",
+      "source": "V3赛璐璐_20261001/starter_EternalOrb.png",
+      "source_sha256": "73633720962d4065cc261e73b6acdf07351757d23b1b1a44e689f6e0c2ff22d2",
+      "small_sha256": "89f92e8bab0fa83c4a67219aa06d8ea936a4ae71c02d33226187b8931e925a7c",
+      "big_sha256": "73633720962d4065cc261e73b6acdf07351757d23b1b1a44e689f6e0c2ff22d2",
+      "outline_sha256": "bf09de2835f977ff7e0c5e1610a457cd0d42f53caf9cafff92390a9808b83e39"
+    },
+    {
+      "asset": "starter_HeavenlyOrb",
+      "source": "V3赛璐璐_20261001/starter_HeavenlyOrb.png",
+      "source_sha256": "bc47c239ad21c0242d6bbce8dbdcbc0db73571e4d24940e65d9960f1472ce073",
+      "small_sha256": "13ebc26f352e9103ec0bc55d46ad5fc6a7f004931048a1619bfe1226d62630e2",
+      "big_sha256": "bc47c239ad21c0242d6bbce8dbdcbc0db73571e4d24940e65d9960f1472ce073",
+      "outline_sha256": "1164314d45242fee5d91ce835a1e6655fbeb5f0ff39bb99f2415a163e1a1aa34"
+    },
+    {
+      "asset": "event_SoulCompass",
+      "source": "V3赛璐璐_20261001/event_SoulCompass.png",
+      "source_sha256": "af31a37172ae5778b4a0595d72ec7dafa3a03adf91ec8d69676f2c0d3ce1c318",
+      "small_sha256": "d5b20090319459611bd0880e40b4d9cde9b4fbf6ccb5125e0bb08724dac0495d",
+      "big_sha256": "af31a37172ae5778b4a0595d72ec7dafa3a03adf91ec8d69676f2c0d3ce1c318",
+      "outline_sha256": "30573d3b2ca57f3fe3b36ae23a2a5bc6abcd82a87cb84fb66fd0c11444d16fca"
+    },
+    {
+      "asset": "event_MilkExtractor",
+      "source": "V3赛璐璐_20261001/event_MilkExtractor.png",
+      "source_sha256": "2dfaa693fb46270f7bce1b933cbf33e13a5c1c672bbb5ee1e5bc01f872df56eb",
+      "small_sha256": "f5435293340b9b90dd3473e3d3a35a62639cfca1719e6a547040444b2b9cf777",
+      "big_sha256": "2dfaa693fb46270f7bce1b933cbf33e13a5c1c672bbb5ee1e5bc01f872df56eb",
+      "outline_sha256": "24e1a44e7f6db5fd7592c14f8ee957d625f2dbf381556e43093226ffe2b0d1ef"
+    },
+    {
+      "asset": "event_Refreshed",
+      "source": "V3赛璐璐_20261001/event_Refreshed.png",
+      "source_sha256": "0f1a90896b0bed570c822e3bc78567d88586bb80951b2610c96be0eecb8d2df6",
+      "small_sha256": "cca851c437c03dfad26040cf2c3bb0dd789d9d86b2d9ca6b101729c7f08ccbcd",
+      "big_sha256": "0f1a90896b0bed570c822e3bc78567d88586bb80951b2610c96be0eecb8d2df6",
+      "outline_sha256": "68273021a128c1b73a4974d2def5451f90b3d847bbf21446960359a7946d6925"
+    },
+    {
+      "asset": "character_PrayerEarrings",
+      "source": "V3赛璐璐_20261001/character_PrayerEarrings.png",
+      "source_sha256": "9188a67ec4f86bfcb4743870d93d9233d094b10502053fc2de3803c7f34f22a9",
+      "small_sha256": "431673547a74e09289a3e8bc7c524889ab860a1bc61383d661b33c27c3718983",
+      "big_sha256": "9188a67ec4f86bfcb4743870d93d9233d094b10502053fc2de3803c7f34f22a9",
+      "outline_sha256": "6dc8692b9d7c9e1cb6d596ffadfb4dad233e0bb85b0a9f8cadbbf563f2682cfb"
+    },
+    {
+      "asset": "character_InternalCondom",
+      "source": "V3赛璐璐_20261001/character_InternalCondom.png",
+      "source_sha256": "42b79604829a2aa5bbd66fe46d9a7ee5cbd45c26888d56e214bda012b82e09c2",
+      "small_sha256": "c48af7ea346334aa56a2c3be3c343db2d892998e112cdea5f7597eabeb4348c7",
+      "big_sha256": "42b79604829a2aa5bbd66fe46d9a7ee5cbd45c26888d56e214bda012b82e09c2",
+      "outline_sha256": "559ed71e1f8dedc93b7257a60e0138122daf82c741af183673f85f88014e1333"
+    },
+    {
+      "asset": "character_DivineStardust",
+      "source": "V3赛璐璐_20261001/character_DivineStardust.png",
+      "source_sha256": "062f593ea2ca85f5846055df5132dfb5b9785589f8de078e9bf64b557781efcc",
+      "small_sha256": "7556624c9b298033dd6cbb1857e4386caa97909b8ea690d646875f72f0d707b7",
+      "big_sha256": "062f593ea2ca85f5846055df5132dfb5b9785589f8de078e9bf64b557781efcc",
+      "outline_sha256": "f5e93566a18519aaa5aa60e2f718c0f64d4f3a8164f32d9fbc71b4f7257eef5d"
+    },
+    {
+      "asset": "character_CountercurseMirror",
+      "source": "V3赛璐璐_20261001/character_CountercurseMirror.png",
+      "source_sha256": "f31d820c2b71dfeb45cb0eabddf808f56ab8cec41831a1a39f1d016f40e3ebeb",
+      "small_sha256": "859e6c0d33a0bc1e60a450b5e24fd5b037d8e5bcadee1484d5f98593df1258fe",
+      "big_sha256": "f31d820c2b71dfeb45cb0eabddf808f56ab8cec41831a1a39f1d016f40e3ebeb",
+      "outline_sha256": "386978af98a810363cf37922503cc44e1b3a14ea61c568ae3c53173d40ffcb7e"
+    },
+    {
+      "asset": "character_BarrierGenerator",
+      "source": "V3赛璐璐_20261001/character_BarrierGenerator.png",
+      "source_sha256": "03cce0cc48c7663456b3303bfc3f3f4dc8bc62bb170ebb4fe8388750596cbeb0",
+      "small_sha256": "a246be4fb7c21cb3b35f19838f854ed18f997e60cd797dff2d5f9422ffc5e941",
+      "big_sha256": "03cce0cc48c7663456b3303bfc3f3f4dc8bc62bb170ebb4fe8388750596cbeb0",
+      "outline_sha256": "df93bb581c2adaf1bd09db546e9ef6712583f86d0598a29c5b284834f013a7d7"
+    },
+    {
+      "asset": "character_TonysTalisman",
+      "source": "V3赛璐璐_20261001/character_TonysTalisman.png",
+      "source_sha256": "2e91a2afd8b3bd5e5e35db0a35f09e8949920318e8464971bdc3cf9a036b4199",
+      "small_sha256": "ca86f92b431af81c6c2456698c98cb5b460a39a706c0c4246fa94ad32b3137cf",
+      "big_sha256": "2e91a2afd8b3bd5e5e35db0a35f09e8949920318e8464971bdc3cf9a036b4199",
+      "outline_sha256": "1090c83bdd5897ec46e03048f08720243a45b6d4fb3cc14ae7a5c89f81b41636"
+    },
+    {
+      "asset": "character_ClearHeartNecklace",
+      "source": "V3赛璐璐_20261001/character_ClearHeartNecklace.png",
+      "source_sha256": "0b4cc88ba7931a56fa7b8810ba27bf35b79fe5917c5dae4107fc0640e401ffbc",
+      "small_sha256": "d3ebce628fdd9cd9825b6a2b66482f3631438ca5340232c1692c26d1634377d0",
+      "big_sha256": "0b4cc88ba7931a56fa7b8810ba27bf35b79fe5917c5dae4107fc0640e401ffbc",
+      "outline_sha256": "28c8e8bc156719556af9a22013dbdf4852c6615e6b7c295c46b3c274d5812100"
+    },
+    {
+      "asset": "character_MurkyHeartNecklace",
+      "source": "V3赛璐璐_20261001/character_MurkyHeartNecklace.png",
+      "source_sha256": "4b0e0ebc3938308d5ee8bfee0493636dfe79af55e098f4e1d966b210ee11288b",
+      "small_sha256": "870d04e62cc2e4273aa5a32bcbc2804bb79c12397c234f02b86e1a4f817d4598",
+      "big_sha256": "4b0e0ebc3938308d5ee8bfee0493636dfe79af55e098f4e1d966b210ee11288b",
+      "outline_sha256": "6bef3c23e62bae467b08501a780372916dd74453eba6d6c2673fd8206841e8b4"
+    },
+    {
+      "asset": "route_relic_Pride",
+      "source": "V3赛璐璐_20261001/route_relic_Pride.png",
+      "source_sha256": "fa5d5f4c028fd3ba5248e231683751565d7ea89ed50b4a87e6d01755371946eb",
+      "small_sha256": "e9af94eac0f77ff4342c830d2abf6f2e87437f5bd43d17fd8293d1f02f1d7b82",
+      "big_sha256": "fa5d5f4c028fd3ba5248e231683751565d7ea89ed50b4a87e6d01755371946eb",
+      "outline_sha256": "6f591021743cb4ed3ea7bb8338b818993f881749ccb38403c771f080a0ee9c61"
+    },
+    {
+      "asset": "route_relic_Greed",
+      "source": "V3赛璐璐_20261001/route_relic_Greed.png",
+      "source_sha256": "342e8da405b08c266ec68957b26e334bdf4b4cb4cc5ebbdc9cc2fa2b47f0a3a1",
+      "small_sha256": "b9c2b34f75192be083556c94ca55383d107321bdbd0b602ce98fa10e87e0ba16",
+      "big_sha256": "342e8da405b08c266ec68957b26e334bdf4b4cb4cc5ebbdc9cc2fa2b47f0a3a1",
+      "outline_sha256": "bf5de0ec2b07ff77fa38081f7c0e35cc6816b06cd0a2a842bf228a41d039a69c"
+    },
+    {
+      "asset": "route_relic_Lust",
+      "source": "V3赛璐璐_20261001/route_relic_Lust.png",
+      "source_sha256": "c3ba0f92aaa426440dc9144e1607b1df8efa4de8d13dc303b372655cbfa4b213",
+      "small_sha256": "c4df2e401bb9292c5c766550e53c1981218c1668f1dcc0d2d50bdd3966212c62",
+      "big_sha256": "c3ba0f92aaa426440dc9144e1607b1df8efa4de8d13dc303b372655cbfa4b213",
+      "outline_sha256": "3123007838c6e8328739ed76127034b3fbecaa6df03f80ae88f85ada7ac78212"
+    },
+    {
+      "asset": "route_relic_Envy",
+      "source": "V3赛璐璐_20261001/route_relic_Envy.png",
+      "source_sha256": "cf3afc6c5af572e201fc202e7dd56137dc08dacc47ba7490b63cd45f34cb7875",
+      "small_sha256": "74e9eac3aa2b77a94dcca23b11c961f82e64708fb6ea962dae4bbff5fbfdf0fe",
+      "big_sha256": "cf3afc6c5af572e201fc202e7dd56137dc08dacc47ba7490b63cd45f34cb7875",
+      "outline_sha256": "2a03d30e7cad5cd42415047ccc85006a9a5162558426a5a14aec2f9fa2a523ff"
+    },
+    {
+      "asset": "route_relic_Gluttony",
+      "source": "V3赛璐璐_20261001/route_relic_Gluttony.png",
+      "source_sha256": "253e2fc55d28b9e415ec4cf765960c26afd9f23f20a0a9edf3c427229269bc35",
+      "small_sha256": "5024df8dfaccea2499a082cb145f3d5f7ba79950e6195ed9ad000a36fae3dbda",
+      "big_sha256": "253e2fc55d28b9e415ec4cf765960c26afd9f23f20a0a9edf3c427229269bc35",
+      "outline_sha256": "a06bf91869569f8bb7618c5847f388bc75d433b8e65379694a0fb45e777bf16f"
+    },
+    {
+      "asset": "route_relic_Wrath",
+      "source": "V3赛璐璐_20261001/route_relic_Wrath.png",
+      "source_sha256": "9b4eb7272a3ba2ca4a5cd78e3dea2d45be3ce7f92cf06cf83c9ac07c94b271fa",
+      "small_sha256": "c77b427cf4a4163617634886a41488510e07eb9cef056e2e0f76896b4c34fb19",
+      "big_sha256": "9b4eb7272a3ba2ca4a5cd78e3dea2d45be3ce7f92cf06cf83c9ac07c94b271fa",
+      "outline_sha256": "71efefcdcab94fac679526d363d34cda4167e27daf15101a35b68887bbc02e62"
+    },
+    {
+      "asset": "route_relic_Sloth",
+      "source": "V3赛璐璐_20261001/route_relic_Sloth.png",
+      "source_sha256": "da368212f8d7706bec8f0f4203009a152dd378d898c072be44f050855e6f5787",
+      "small_sha256": "317996e6cfa71639a5e799850c5b9328b3db6f6a6e9342f2bc6e63926f561f6c",
+      "big_sha256": "da368212f8d7706bec8f0f4203009a152dd378d898c072be44f050855e6f5787",
+      "outline_sha256": "e55b6fec8abd53a72a07a4681b78bbdffd731c79c52c4209ff15db6a9820950a"
+    },
+    {
+      "asset": "route_relic_Humility",
+      "source": "V3赛璐璐_20261001/route_relic_Humility.png",
+      "source_sha256": "4b327550f926f2d927568f4ebb30049cf500715dadd017bca84af7f9e1cc085b",
+      "small_sha256": "bda99e05360f16893866c073e5713d06373043f9a1345a2ab7ea73c7faa045e5",
+      "big_sha256": "4b327550f926f2d927568f4ebb30049cf500715dadd017bca84af7f9e1cc085b",
+      "outline_sha256": "8691d6e12befc24a2237dba4e3a4ea0a0039f949b68853dcb2d847fe93f1162d"
+    },
+    {
+      "asset": "route_relic_Generosity",
+      "source": "V3赛璐璐_20261001/route_relic_Generosity.png",
+      "source_sha256": "2b66ab1c602d3513ac2a638a046566007fa6c3347756f5b08882eb1b89ec5f75",
+      "small_sha256": "80687b100eb1f1b36d1cc421d53d83c793d6e8eacc8a4b0c93a7bac0b64f9bb4",
+      "big_sha256": "2b66ab1c602d3513ac2a638a046566007fa6c3347756f5b08882eb1b89ec5f75",
+      "outline_sha256": "6575ba123e617ae43012367aa02d4d0c72a9fdf47aee449d8c695b76512a9ed6"
+    },
+    {
+      "asset": "route_relic_Chastity",
+      "source": "V3赛璐璐_20261001/route_relic_Chastity.png",
+      "source_sha256": "f3c17660fab13eb1a1e40f44512373d2224ee32199c9b01575c241d743e3bfce",
+      "small_sha256": "d1d84b62ff3d32847cf2176d4d1c0e452fd3c79d28a57ad97f17c861d9eefb17",
+      "big_sha256": "f3c17660fab13eb1a1e40f44512373d2224ee32199c9b01575c241d743e3bfce",
+      "outline_sha256": "57e0f1a7b6cd5afad5386353b6d2c7a750c8cc315599d2acf739594b41804795"
+    },
+    {
+      "asset": "route_relic_Benevolence",
+      "source": "V3赛璐璐_20261001/route_relic_Benevolence.png",
+      "source_sha256": "8472fc1cc3265950f6327007e26224de7a6cb3dec74d6694fec2e1f2bc7b6c11",
+      "small_sha256": "b675a8e501ca3df72abe7ec383f1633a0c135b1a156d31e3dc236264cbe6245e",
+      "big_sha256": "8472fc1cc3265950f6327007e26224de7a6cb3dec74d6694fec2e1f2bc7b6c11",
+      "outline_sha256": "b8e2eb6d517147d2c42ec4567f026b628f9c1c53e20975d7af25018ad9dc0c8d"
+    },
+    {
+      "asset": "route_relic_Temperance",
+      "source": "V3赛璐璐_20261001/route_relic_Temperance.png",
+      "source_sha256": "c1f0a5d57d3902756f44629f0d3b8f8c7fe595bb64177c3cfa137e8a16400f85",
+      "small_sha256": "d2fec2f4ece9c2500048c88d7e00828b710651b3975756068f480c1fde67440d",
+      "big_sha256": "c1f0a5d57d3902756f44629f0d3b8f8c7fe595bb64177c3cfa137e8a16400f85",
+      "outline_sha256": "7fc1d3a05bc0640a4626d40792c9ef189c434753fdb3cdb62d288d9831e9c2f5"
+    },
+    {
+      "asset": "route_relic_Patience",
+      "source": "V3赛璐璐_20261001/route_relic_Patience.png",
+      "source_sha256": "f8ba1e37a50ef340a7904d6088f4517f646905d0f372a562106c666a23a2b5a0",
+      "small_sha256": "bb3a489ab74aa553a7c2c2b03f49f1e4deee0bd8a8ec6c7f1843bbf1e8cce34a",
+      "big_sha256": "f8ba1e37a50ef340a7904d6088f4517f646905d0f372a562106c666a23a2b5a0",
+      "outline_sha256": "cae6a4ad5d697e97fb8aad6111d749a555455957f121daea43692a2e8498ea41"
+    },
+    {
+      "asset": "route_relic_Diligence",
+      "source": "V3赛璐璐_20261001/route_relic_Diligence.png",
+      "source_sha256": "8f03ac0f5a7082ad200b260ebf7c2940f0e5c9df840ab8cf5adefe04a164988e",
+      "small_sha256": "7d2acaddd3cdc1218bec1beb00ff12b70d9bdf59d80e6b3a99dc40a8c2aa6a8d",
+      "big_sha256": "8f03ac0f5a7082ad200b260ebf7c2940f0e5c9df840ab8cf5adefe04a164988e",
+      "outline_sha256": "5c9e40f3770283a5c3e0aaad1ddee1353d0c37c3f6e9187d86c1975a1502d75b"
+    },
+    {
+      "asset": "route_fragment_Pride",
+      "source": "V3赛璐璐_20261001/route_fragment_Pride.png",
+      "source_sha256": "2a7cf9f0f7a1f311fce069bab4a2e85bab2f835f2468105cb30eb19d2f43749e",
+      "small_sha256": "df2133fb53f7a09af69e91e3dbcafd79114ea4981bff540bb453c07321ede8b3",
+      "big_sha256": "2a7cf9f0f7a1f311fce069bab4a2e85bab2f835f2468105cb30eb19d2f43749e",
+      "outline_sha256": "f0d39bb8438ba0608fe2144421178b0cf89722ef538d8ac51690cc53c09c0fdd"
+    },
+    {
+      "asset": "route_fragment_Greed",
+      "source": "V3赛璐璐_20261001/route_fragment_Greed.png",
+      "source_sha256": "c23e994bee7c9bf1002e505467185d1d45a653267b8356cdd07681fccf7a14c4",
+      "small_sha256": "b937e39014fce03eb97b2bc2b3a46b32dfc96ebdcbb946ab6c3440dd44a3dac6",
+      "big_sha256": "c23e994bee7c9bf1002e505467185d1d45a653267b8356cdd07681fccf7a14c4",
+      "outline_sha256": "9d9ebabf46df32af3403a4e9b054166ed12116c5bab7e8504494e2fa1d360db7"
+    },
+    {
+      "asset": "route_fragment_Lust",
+      "source": "V3赛璐璐_20261001/route_fragment_Lust.png",
+      "source_sha256": "45c5ccf7c4e40d93b6b91c22bd0377a182b67c53f6d574d9fe19ed3c28aabb27",
+      "small_sha256": "3a64875c5d3f4082ebe5c1ceab17594d2918e0286846f766dfcc900038560d61",
+      "big_sha256": "45c5ccf7c4e40d93b6b91c22bd0377a182b67c53f6d574d9fe19ed3c28aabb27",
+      "outline_sha256": "79fa5288e44aa94650c3d0995ac5332e07a391d602f7e3f18cec1367b8a459bf"
+    },
+    {
+      "asset": "route_fragment_Envy",
+      "source": "V3赛璐璐_20261001/route_fragment_Envy.png",
+      "source_sha256": "fee9f2c59657d9b66e1af070c6735e00a00743b93227dda4659e102fe495e8af",
+      "small_sha256": "434444f93548313ec0e6567038ddef3af6ff8e7b97ffd591890a22783e5f45cf",
+      "big_sha256": "fee9f2c59657d9b66e1af070c6735e00a00743b93227dda4659e102fe495e8af",
+      "outline_sha256": "6ff27fcb9c210526dfb9d8091e01089b90c550286b87f7f0e3408bb74ef26d6e"
+    },
+    {
+      "asset": "route_fragment_Gluttony",
+      "source": "V3赛璐璐_20261001/route_fragment_Gluttony.png",
+      "source_sha256": "74e934d2ff59b1410fe03154e2125fd60540a0a58964c3e6ec189057fd0845c5",
+      "small_sha256": "c97016f4a5b6bff1268480568eb232189c753bf573698c4a425bff9ec10365b9",
+      "big_sha256": "74e934d2ff59b1410fe03154e2125fd60540a0a58964c3e6ec189057fd0845c5",
+      "outline_sha256": "5e471608a986c6ad9613e389ee035e85e5ff2c1741facec9fafb146c2f5486d7"
+    },
+    {
+      "asset": "route_fragment_Wrath",
+      "source": "V3赛璐璐_20261001/route_fragment_Wrath.png",
+      "source_sha256": "ff14a24ce1536d7f57d3d6818ed73a53c4e394a754a697ffaf3a9d008babfbfd",
+      "small_sha256": "99f9b7d0cb8fc765d018a5559af9d01e5efa9d3483de857bef5fcb4eda641766",
+      "big_sha256": "ff14a24ce1536d7f57d3d6818ed73a53c4e394a754a697ffaf3a9d008babfbfd",
+      "outline_sha256": "9d2a4600113a345ac4c232e513cc079b62073688017944ea67c01dcf3f3c2d87"
+    },
+    {
+      "asset": "route_fragment_Sloth",
+      "source": "V3赛璐璐_20261001/route_fragment_Sloth.png",
+      "source_sha256": "ddccc2a0426857fbe2feffaaf18f664b6505fdf2d1a87014ecda2c8a4a909292",
+      "small_sha256": "cf28f5d0d4c0e697ecdeb3835d314e1462af1f7ad6dc0c068f95c0ad78f05863",
+      "big_sha256": "ddccc2a0426857fbe2feffaaf18f664b6505fdf2d1a87014ecda2c8a4a909292",
+      "outline_sha256": "5dac6ddbcfb6d9a1d3cc53711c007c3975ea24ba14fc2eed90fc2ade131ece2a"
+    },
+    {
+      "asset": "route_fragment_Humility",
+      "source": "V3赛璐璐_20261001/route_fragment_Humility.png",
+      "source_sha256": "96e83200a32f599ce33c447a30c80145ff8ed7273027964b4ce9d5e649076f8a",
+      "small_sha256": "8c17516b2cd283b0c474ca395c2d35d6ddcc4aeabed598bad5e35c71ed2645b3",
+      "big_sha256": "96e83200a32f599ce33c447a30c80145ff8ed7273027964b4ce9d5e649076f8a",
+      "outline_sha256": "4ee39136d9526c75fb80c0db2ec47b3e51e4049539bb1e96ac2e609d4313e2db"
+    },
+    {
+      "asset": "route_fragment_Generosity",
+      "source": "V3赛璐璐_20261001/route_fragment_Generosity.png",
+      "source_sha256": "1aba3302a30c03e57f6f509ae5056a61614f5fd608d6e51fba8cc30eb686de72",
+      "small_sha256": "1bcdd42baaf8a7cd363f8ffd6f104af441027903a3c75c631822a3c695c8bb14",
+      "big_sha256": "1aba3302a30c03e57f6f509ae5056a61614f5fd608d6e51fba8cc30eb686de72",
+      "outline_sha256": "789e9dc367445d9599d40376a74b4336aa343eaad784267823d1dc9877ce5002"
+    },
+    {
+      "asset": "route_fragment_Chastity",
+      "source": "V3赛璐璐_20261001/route_fragment_Chastity.png",
+      "source_sha256": "1f6addeb9630882371a48ed6fa07b27ef67646f54eac06b7c47a1ba2890e1331",
+      "small_sha256": "b566964b61336742aba70a414855c37e7ff1361250e4da28f823ffaa3a2226bf",
+      "big_sha256": "1f6addeb9630882371a48ed6fa07b27ef67646f54eac06b7c47a1ba2890e1331",
+      "outline_sha256": "d24a6da7222f6bbcb07bbcb8cd65ed0639a00deae4323a1e75945a11b52753af"
+    },
+    {
+      "asset": "route_fragment_Benevolence",
+      "source": "V3赛璐璐_20261001/route_fragment_Benevolence.png",
+      "source_sha256": "c62df4f3cf503117065f5f7cf06458725203c6088112c944a51d2ebfa57882ad",
+      "small_sha256": "be9a70af6516a7a855c258af545acc75f66c44a832e9cc33fa42217ccadffe34",
+      "big_sha256": "c62df4f3cf503117065f5f7cf06458725203c6088112c944a51d2ebfa57882ad",
+      "outline_sha256": "c8f27f98dc295ac9563e324b8aac97d28b20fbe7a60acf8242bfb09216ab1239"
+    },
+    {
+      "asset": "route_fragment_Temperance",
+      "source": "V3赛璐璐_20261001/route_fragment_Temperance.png",
+      "source_sha256": "30dc981d4372aff05fe93bb40b5a1d6a19d5479cbf2002bbfada27216faf658a",
+      "small_sha256": "dde4eca420ce6a0fe217223516227edfcbb8cdaf4bed9596364715da75b9147a",
+      "big_sha256": "30dc981d4372aff05fe93bb40b5a1d6a19d5479cbf2002bbfada27216faf658a",
+      "outline_sha256": "3d7cdb6f5fd22ab1fece3cd4446e56fc849921a84314f0bd004752edd626131a"
+    },
+    {
+      "asset": "route_fragment_Patience",
+      "source": "V3赛璐璐_20261001/route_fragment_Patience.png",
+      "source_sha256": "3eb4c082cf3944dfdd62f28eeadad2d6b91668e2967a6e4ee0137a583d8adf7d",
+      "small_sha256": "93b2940305ad6e46a3bdd53cf943d3d4e122977e9d6c7be8fee45ed5c7a979c0",
+      "big_sha256": "3eb4c082cf3944dfdd62f28eeadad2d6b91668e2967a6e4ee0137a583d8adf7d",
+      "outline_sha256": "203f52db26e8b4e4af6de1d5465a64d39d49c1466a55adda39fb93a117ea1491"
+    },
+    {
+      "asset": "route_fragment_Diligence",
+      "source": "V3赛璐璐_20261001/route_fragment_Diligence.png",
+      "source_sha256": "de3433998242346946a4d81fb91077c1f9bca5e9a0331e641067f10b8eab5a6a",
+      "small_sha256": "933de662a6910b5f17501ac33110557399828575883cd203182622001ccede1f",
+      "big_sha256": "de3433998242346946a4d81fb91077c1f9bca5e9a0331e641067f10b8eab5a6a",
+      "outline_sha256": "9b34bc036a4492373c34288af5d094b29907805e8b9c7dfeeef5981367783f98"
+    },
+    {
+      "asset": "legacy_balanced_lens_v1",
+      "source": "V1草图/独立图标/balanced_lens_v1.png",
+      "source_sha256": "15874e9248b098a5e160156cf93209c175b74994240f9a659d56f119ead7011a",
+      "small_sha256": "bb984d44c9d2e84c2ec0ab7b04c638664e62f8dd4463319187cef423b758220c",
+      "big_sha256": "15874e9248b098a5e160156cf93209c175b74994240f9a659d56f119ead7011a",
+      "outline_sha256": "0824a8f94e0b08fb8c6ed9324906a0ef6c7141adbfc2ef33f571691a406a82b9"
+    },
+    {
+      "asset": "legacy_blindfold_v1",
+      "source": "V1草图/独立图标/blindfold_v1.png",
+      "source_sha256": "ef4fb31562a95557849f3e1e460014cd29edc049e4166f4aa77c64b893b73337",
+      "small_sha256": "0311b769823a1f4f5a177303aa07bf50255d8a7dd1b7e4156d8574e29c4ec3ea",
+      "big_sha256": "ef4fb31562a95557849f3e1e460014cd29edc049e4166f4aa77c64b893b73337",
+      "outline_sha256": "b54c1977399f0754bfec3ca777a907f289ba367458c9ddce29927dceb55e8e54"
+    },
+    {
+      "asset": "legacy_vibrator_v1",
+      "source": "V1草图/独立图标/vibrator_v1.png",
+      "source_sha256": "434c8513e38d3e728ff59dd2b2681629fa8550a9c358bbae59ee2dd52a590437",
+      "small_sha256": "ce887614e82fa6a1118062c93d5104d5c6319989bb3204ee8ec8d6ff3a55ff2a",
+      "big_sha256": "434c8513e38d3e728ff59dd2b2681629fa8550a9c358bbae59ee2dd52a590437",
+      "outline_sha256": "9e083ba30c035262d8d95b1f2ca7e3c81ea947a8fe205a5fd086b9797cc3fa28"
+    },
+    {
+      "asset": "legacy_light_blessing_placeholder_v1",
+      "source": "V1草图/独立图标/light_blessing_placeholder_v1.png",
+      "source_sha256": "a463ea8a96b32ad0760f55c6e97ea811a44831d9edfc7575cb08e23017e07a02",
+      "small_sha256": "a2c84e828877c7700e756676b927ff38fea08573f82e9c1e034a31e67aaf51b6",
+      "big_sha256": "a463ea8a96b32ad0760f55c6e97ea811a44831d9edfc7575cb08e23017e07a02",
+      "outline_sha256": "981c0e1923ea2a66beec4736f52b6b7f6a69b1e18934527a74d673bf664b06d8"
+    },
+    {
+      "asset": "legacy_dark_blessing_placeholder_v1",
+      "source": "V1草图/独立图标/dark_blessing_placeholder_v1.png",
+      "source_sha256": "08bcd33e5d2d2b794f3b3f2a7c1929031d60cb8d401e37be068f0c379dc6af2f",
+      "small_sha256": "620ee8de0d2c81b0f1fc227b1b17ce7c65819329c7cbdbc12238c07c6859d96e",
+      "big_sha256": "08bcd33e5d2d2b794f3b3f2a7c1929031d60cb8d401e37be068f0c379dc6af2f",
+      "outline_sha256": "6b8a862321c01c7823d2a44269d8332d1e47136b8f0fea48548b67f4e547eb3f"
+    },
+    {
+      "asset": "legacy_fourth_route_fragment_relic_v1",
+      "source": "V1草图/独立图标/fourth_route_fragment_relic_v1.png",
+      "source_sha256": "d78232469c192c00affebbe63ef12dda7cd96a4624b5f8e8d3d274df790303b3",
+      "small_sha256": "fc0f5853b5e956422288d21f95c0272a16d1dc30311ad68939aa80fcb4e5e14c",
+      "big_sha256": "d78232469c192c00affebbe63ef12dda7cd96a4624b5f8e8d3d274df790303b3",
+      "outline_sha256": "7b416af1f935d0fad6d423a28497e0f1f718a31a7a60e0bec7bdff69afcfb19c"
+    }
+  ]
+}

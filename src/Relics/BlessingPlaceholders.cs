@@ -9,10 +9,7 @@ public abstract class BlessingPlaceholderBase : ModRelicTemplate
 {
     public override RelicRarity Rarity => RelicRarity.Event;
 
-    public override RelicAssetProfile AssetProfile => new(
-        IconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres",
-        IconOutlinePath: "res://images/atlases/relic_outline_atlas.sprites/circlet.tres",
-        BigIconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres");
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For(this is LightBlessingPlaceholder ? "legacy_light_blessing_placeholder_v1" : "legacy_dark_blessing_placeholder_v1");
 }
 
 [RegisterRelic(typeof(MSRelicPool))]

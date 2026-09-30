@@ -19,10 +19,7 @@ namespace MaidenSuccubus.Relics;
 public abstract class HeartNecklace : MSRelicTemplate
 {
     public override RelicRarity Rarity => RelicRarity.Rare;
-    public override RelicAssetProfile AssetProfile => new(
-        IconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres",
-        IconOutlinePath: "res://images/atlases/relic_outline_atlas.sprites/circlet.tres",
-        BigIconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres");
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For(IsMurky ? "character_MurkyHeartNecklace" : "character_ClearHeartNecklace");
 
     internal string ActiveEntry => "MAIDEN_SUCCUBUS_RELIC_" + (IsMurky
         ? "MURKY_HEART_NECKLACE" : "CLEAR_HEART_NECKLACE");

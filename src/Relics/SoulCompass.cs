@@ -23,10 +23,7 @@ public sealed class SoulCompass : MSRelicTemplate, IMSRouteRewardModifierRelic
     [SavedProperty] public bool PickupRewardsGranted { get; set; }
 
     // Dedicated art is not available yet; do not depend on another mod's assets.
-    public override RelicAssetProfile AssetProfile => new(
-        IconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres",
-        IconOutlinePath: "res://images/atlases/relic_outline_atlas.sprites/circlet.tres",
-        BigIconPath: "res://images/atlases/relic_atlas.sprites/circlet.tres");
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("event_SoulCompass");
 
     public static RouteRewardProbabilityBonus BonusAt(int corruption) =>
         RouteRewardProbabilityBonus.ForSoulCompass(corruption);

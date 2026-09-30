@@ -21,7 +21,7 @@ public sealed class TwinSoulChalice : ModRelicTemplate
 {
     public override RelicRarity Rarity => RelicRarity.Starter;
     protected override IEnumerable<DynamicVar> CanonicalVars => [new HealVar(5), new MaxHpVar(5)];
-    public override RelicAssetProfile AssetProfile => OrbAssets.Placeholder;
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("starter_AllPurposeOrb");
 
     public override async Task AfterCombatVictory(CombatRoom room)
     {
@@ -38,13 +38,4 @@ public sealed class TwinSoulChalice : ModRelicTemplate
         ReferenceEquals(player, Owner) && ReferenceEquals(cardReward.Player, player)
         && player.Character is MaidenSuccubusCharacter && player.RunState is RunState run
         && OrbRules.AllowsMoreCards(CorruptionQuery.Get(run), sky: false, cardReward.Cards.Count());
-}
-
-internal static class OrbAssets
-{
-    // Explicit vanilla fallback until dedicated relic art is handed over.
-    internal static readonly RelicAssetProfile Placeholder = new(
-        IconPath: "res://images/atlases/relic_atlas.sprites/neows_lament.tres",
-        IconOutlinePath: "res://images/atlases/relic_outline_atlas.sprites/neows_lament.tres",
-        BigIconPath: "res://images/atlases/relic_atlas.sprites/neows_lament.tres");
 }
