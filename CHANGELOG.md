@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-01 — 火焰绽放卡图握剑与形象修正
+
+改动前快照 `maiden-card-art-before-20261001-flame-bloom-v06`。按玩家反馈重绘正式图：天音双手正握同一剑柄，剑刃仅从护手前方伸出；五组清晰火焰花瓣沿刀刃绽开；墨宝依照原版 Inklet 立绘保持双耳、单条发光眼与完整四肢。图像为 1000×760 RGB，正式清单 SHA-256 已同步。仅修改卡图及记录，未改玩法、DesignDoc 或运行时资源，未部署。
+
 ## 2026-09-30 事件试炼奖励与商店路线补充（TRIAL-SHOP-20260930，IMPLEMENTED 待复验）
 
 前置 529deafea307ebb330d15c3155a44d75de36afc2，目标文件批次备份；DesignDoc逐行/词级发现SYS-TRF-002已明确缩短邪瘴天衣状态说明，按用户文案同步description/smartDescription，规则结算不变；不提交或覆盖设计工作树正在编辑的DesignDoc。
