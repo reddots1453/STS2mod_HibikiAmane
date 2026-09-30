@@ -56,11 +56,7 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
 
     public void Setup(Node parent, Node node)
     {
-        if (parent is NTopBar topBar
-            && topBar.BossIcon != null
-            && GodotObject.IsInstanceValid(topBar.BossIcon)
-            && topBar.Timer != null
-            && GodotObject.IsInstanceValid(topBar.Timer))
+        if (parent is NTopBar topBar)
         {
             _topBar = topBar;
             CallDeferred(Node.MethodName.Reparent, topBar);
@@ -144,6 +140,7 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
         if (player?.Character is not MaidenSuccubusCharacter
             || !runState.CurrentMapCoord.HasValue
             || _topBar == null || !_topBar.IsVisibleInTree()
+            || _topBar.FocusBehaviorRecursive == Control.FocusBehaviorRecursiveEnum.Disabled
             || _topBar.Position.Y < -0.5f
             || _topBar.Deck?.IsVisibleInTree() != true
             || _topBar.Map?.IsVisibleInTree() != true
@@ -218,6 +215,12 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
         float targetGlobalY = _topBar.BossIcon.GlobalPosition.Y
             + (_topBar.BossIcon.Size.Y - MeterHeight) / 2f;
         Position = new Vector2(targetGlobalX, targetGlobalY) - _topBar.GlobalPosition;
+    }
+
+    internal void SuspendNativeUi()
+    {
+        HideIfNeeded();
+        Visible = false;
     }
 
     private void HideIfNeeded()

@@ -152,9 +152,13 @@ public static class MaidenIntentSpritePatch
     private static readonly FieldInfo? AnimationFrameField =
         AccessTools.Field(typeof(NIntent), "_animationFrame");
 
+    private static readonly FieldInfo? AnimationFramesField =
+        AccessTools.Field(typeof(NIntent), "_animationFrames");
+
     public static bool Prepare()
     {
-        bool compatible = IntentField?.FieldType ==
+        bool compatible = AnimationFramesField?.FieldType == typeof(List<Texture2D>)
+            && IntentField?.FieldType ==
                 typeof(MegaCrit.Sts2.Core.MonsterMoves.Intents.AbstractIntent)
             && AnimationNameField?.FieldType == typeof(string)
             && AnimationFrameField?.FieldType == typeof(int?);
@@ -190,7 +194,18 @@ public static class MaidenIntentSpritePatch
                 // update entry with stale animation state on this reused node.
                 AnimationNameField!.SetValue(__instance, null);
                 AnimationFrameField!.SetValue(__instance, null);
+                ((List<Texture2D>)AnimationFramesField!.GetValue(__instance)!).Clear();
+                __instance.GetNode<CpuParticles2D>("%IntentParticle").Texture = texture;
             },
             nameof(MaidenIntentSpritePatch));
     }
+}
+
+// StateTracker can refresh visuals without calling the public UpdateIntent entry.
+[HarmonyPatch(typeof(NIntent), "UpdateVisuals")]
+internal static class MaidenIntentRefreshSpritePatch
+{
+    private static bool Prepare() => MaidenIntentSpritePatch.Prepare();
+    [HarmonyPostfix]
+    private static void Postfix(NIntent __instance) => MaidenIntentSpritePatch.Postfix(__instance);
 }

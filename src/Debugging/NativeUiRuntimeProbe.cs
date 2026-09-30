@@ -29,8 +29,9 @@ internal static class NativeUiRuntimeProbe
     [HarmonyPostfix]
     private static void Postfix(NMainMenu __instance)
     {
-        if (_started || !OS.GetCmdlineUserArgs().Contains("--maiden-ui-probe")) return;
+        if (_started || !OS.GetCmdlineUserArgs().Any(arg => arg.Trim() == "--maiden-ui-probe")) return;
         _started = true;
+        MaidenSuccubusMod.Logger.Info("[NativeUiProbe] START");
         _ = Run(__instance);
     }
 
@@ -54,7 +55,7 @@ internal static class NativeUiRuntimeProbe
         var host = new Control { Name = "MaidenUiProbe", Visible = false };
         try
         {
-            for (int i = 0; i < 45; i++) await menu.ToSignal(menu.GetTree(), SceneTree.SignalName.ProcessFrame);
+            for (int i = 0; i < 5; i++) await menu.ToSignal(menu.GetTree(), SceneTree.SignalName.ProcessFrame);
             (NGame.Instance ?? throw new InvalidOperationException("Game unavailable")).AddChild(host);
             NCardLibrary library = NCardLibrary.Create() ?? throw new InvalidOperationException("Library unavailable");
             host.AddChild(library);
