@@ -32,7 +32,7 @@ function CopyVerified([string]$source,[string]$target,[string]$key){
     if((Get-FileHash -LiteralPath $target).Hash -ne $hash){throw "Deployment hash mismatch: $key"}
     [pscustomobject]@{path=$target;sha256=$hash}
 }
-foreach($name in @('MaidenSuccubus.dll','MaidenSuccubus.pdb')){
+foreach($name in @('MaidenSuccubus.dll','MaidenSuccubus.pdb','MaidenSuccubus.json')){
     $verified+=CopyVerified (Join-Path $ProjectDir $name) (Join-Path $installed $name) "installed/$name"
 }
 foreach($resource in $resources){

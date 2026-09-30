@@ -136,10 +136,6 @@ public static class TransformationCmd
             await PowerCmd.ModifyAmount(
                 choiceContext, armor, amount, creature, source);
         }
-        if (PerformanceAudience.IsLocalMaiden(creature.Player))
-        {
-            PerformanceAudioService.PlayOneShot(PerformanceAudioCue.MagicCast);
-        }
         return true;
     }
 

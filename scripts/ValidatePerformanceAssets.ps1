@@ -134,9 +134,24 @@ Assert-Contains (Join-Path $presentation "CutscenePlaybackService.cs") `
 Assert-Contains (Join-Path $presentation "CutscenePlaybackService.cs") `
     'RuntimeTextureAssets\.Load\(relativePath\)' `
     "Loose runtime CGs must use the PNG buffer loader"
+Assert-Contains (Join-Path $ProjectDir "src\Core\Desire\DesireResourceRules.cs") `
+    'PerformanceAudioService\.PlayDesireMaximum\(\)' `
+    "Desire maximum must trigger the replacement sound sequence"
 Assert-Contains (Join-Path $presentation "PerformanceAudioService.cs") `
-    'OldValue\s*<\s*8\s*&&\s*change\.NewValue\s*>=\s*8\s*&&\s*change\.NewValue\s*<\s*10' `
-    "High-desire audio must use the exact 7-to-8 threshold contract"
+    'PlayDesireMaximum\(\)\s*=>\s*PlayOneShot\(PerformanceAudioCue\.Climax\)' `
+    "Desire maximum must use only the climax cue"
+Assert-Contains (Join-Path $presentation "PerformanceSettings.cs") `
+    'WithVisibleOnHostSurfaces\(ModSettingsHostSurface\.All\)' `
+    "CG and audio toggles must be visible from RitsuLib settings on every host surface"
+Assert-Contains (Join-Path $ProjectDir "MaidenSuccubus.json") `
+    '"description"\s*:\s*"playable character"' `
+    "Mod description must match the requested RitsuLib listing text"
+$removedAudio = @('MagicCast', 'DesireHigh', 'DesireFull', 'Heartbeat')
+$activeAudio = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $presentation "PerformanceAssets.cs")
+foreach ($cue in $removedAudio) {
+    if ($activeAudio -match [regex]::Escape($cue)) { throw "Removed audio cue remains active: $cue" }
+}
+if ($activeAudio -match 'PerformanceLoopCue\.Masturbation') { throw "Masturbation loop remains active" }
 Assert-Contains (Join-Path $presentation "PerformanceAudioService.cs") `
     'Loops\.TryGetValue\(cue' `
     "Loop audio must be singleton-backed"

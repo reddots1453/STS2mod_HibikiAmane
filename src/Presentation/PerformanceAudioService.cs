@@ -1,8 +1,6 @@
 using Godot;
-using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Nodes;
 using STS2RitsuLib;
-using MaidenSuccubus.Core.Desire;
 
 namespace MaidenSuccubus.Presentation;
 
@@ -21,7 +19,6 @@ public static class PerformanceAudioService
     {
         if (_initialized) return;
         _initialized = true;
-        DesireEvents.Changed += OnDesireChanged;
         Subscriptions.Add(RitsuLibFramework.SubscribeLifecycle<CombatEndedEvent>(
             _ => PerformanceDirector.OnCombatEnded(), replayCurrentState: false));
     }
@@ -60,6 +57,9 @@ public static class PerformanceAudioService
         player.Finished += () => ReleaseOneShot(player);
         player.Play();
     }
+
+    /// <summary>Desire maximum reuses the same single cue as the rest-site action.</summary>
+    public static void PlayDesireMaximum() => PlayOneShot(PerformanceAudioCue.Climax);
 
     public static void StartLoop(PerformanceLoopCue cue, float fadeSeconds = 0.2f)
     {
@@ -179,28 +179,6 @@ public static class PerformanceAudioService
         Loops.TryGetValue(cue, out AudioStreamPlayer? player)
         && GodotObject.IsInstanceValid(player)
         && player.IsPlaying();
-
-    private static void OnDesireChanged(DesireChanged change)
-    {
-        if (!PerformanceAudience.IsLocalMaiden(change.Player)) return;
-
-        if (change.OldValue < 8 && change.NewValue >= 8 && change.NewValue < 10)
-        {
-            PlayOneShot(PerformanceAudioCue.DesireHigh);
-        }
-
-        bool activeCombat = CombatManager.Instance.IsInProgress
-            && !CombatManager.Instance.IsEnding
-            && change.Player.Creature.CombatState != null;
-        if (activeCombat && change.NewValue >= 8)
-        {
-            StartLoop(PerformanceLoopCue.Heartbeat);
-        }
-        else
-        {
-            StopLoop(PerformanceLoopCue.Heartbeat);
-        }
-    }
 
     private static Node? EnsureHost()
     {

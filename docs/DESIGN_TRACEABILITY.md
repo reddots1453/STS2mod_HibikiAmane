@@ -1,5 +1,11 @@
 # DesignDoc需求追踪矩阵
 
+## 2026-10-01 音频触发与RitsuLib设置修订（PERF-AUDIO-20261001，IMPLEMENTED 待复验）
+
+前置快照 `5a1a9aacd86979facd5221705a830a726bc02706`，12项目标文件逐项备份；DesignDoc逐行/词级漂移仅有既有邪瘴文案与书库归属，未覆盖设计工作树。用户明确删除施法音和欲望达到8时音效；移除MagicCast及DesireHigh/Heartbeat触发，欲望满值撤下DesireFull音效，最终按用户补充指令，火堆自慰和欲望满值均只播放高潮音；循环音及原满值音不再触发。源音频清单仍保留原16个素材供追溯，但其中5个不再运行时引用。
+CG与音频独立开关显示于RitsuLib主菜单、跑局暂停和战斗暂停设置；模组清单description精确改为`playable character`，后续部署必须同步该清单。音量设置保持原有持久化与默认成人关闭。为恢复全量资源门，按已确认正式卡图清单同步最新FlameBloom运行时图；同步源/运行时SHA-256。未来定向部署脚本包含MaidenSuccubus.json。验证：Debug --no-restore -p:DeployMod=false -p:ValidateMod=true 完整构建与内容、结构、154张正式卡图、13CG/16OGG源资源、本地化及卡牌/意图门全部通过，0警告0错误；RitsuLib三类宿主界面可见设置源码契约、已撤音效不再引用与高潮音双触发校验通过。定向部署脚本默认预检通过，未执行Apply。CG/音频实际可见可闻效果需游戏内复验，不标记VERIFIED。 按用户先前要求暂不部署。
+
+
 ## 2026-10-01 选角简介与正式卡图更新（PROFILE-ART-20261001，IMPLEMENTED 待复验）
 
 前置快照 `59a91e09a65742dcde4bf124392c4a0c2a53ea9e`；目标旧资源与文本逐文件备份。用户明确更新选角简介为两句话并保留换行：与魔导书·娅露丝相遇，获得魔法力量的少女。 / 虽然内心依然纯洁，但身体却因为快感而慢慢觉醒。
@@ -958,3 +964,6 @@ SYS-SEA-001/ACT4-001→DS27-01B→封印方向悬停、实际永久实例/拥有
 `MON-ERO-CATALOG-001`→`DS27-03`→`TestDesignSyncMonsterRoster20260927.test_every_intent_has_core_values_consumed_by_runtime_parser`：239个允许候选的核心欲望/伤害/次数、格挡/挣脱、侵犯诅咒格式均可被现有解析表达式读取，诅咒名称在运行时名单内；仅为静态正文契约，非全部附加效果的实战证明。
 
 `MON-ERO-CATALOG-001`→`DS27-03`→`EROTIC_ATTACK_ASSIGNMENTS.md`/`EROTIC_ATTACK_INTENTS.md`→`EroticAttackCatalog.Build`→`TestDesignSyncMonsterRoster20260927.test_parafright_is_only_steadfast_without_erotic_intents`：用户确认胧光怪召唤的`PARAFRIGHT`为`S`；目录102个ID、18个意志坚定，幻象怪没有A/B/I、阈值或恢复动作。静态契约通过；召唤后实际Power施加和意图隔离待游戏内验收。
+
+
+`START-001`/`SYS-TRF-004` → `ASSET-CEL-UI-20261001` → `图片素材/选角界面/V3竖向适配_20261001`、选角兼容资源与`maiden_succubus_merchant.tscn`：原版/Hornet132×195、TheQueen131×194；正常/锁定竖图132×195、原生88×130蒙版，商店有效高度+15%、脚底不变。资源定向检查及完整门见本批记录；IMPLEMENTED，实机待验，未部署。遗物43枚V3单独为美术候选，未进入正式运行时，不标VERIFIED。

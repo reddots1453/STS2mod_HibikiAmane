@@ -56,13 +56,13 @@ public static class PerformanceSettings
             .AsChildOf(MaidenSuccubusMod.ModId)
             .WithTitle(ModSettingsText.Literal("过场与音频"))
             .WithModDisplayName(ModSettingsText.Literal("Maiden & Succubus"))
-            .WithVisibleOnHostSurfaces(ModSettingsHostSurface.MainMenu)
+            .WithVisibleOnHostSurfaces(ModSettingsHostSurface.All)
             .AddSection("adult_presentation", section => section
                 .WithTitle(ModSettingsText.Literal("成人演出"))
                 .AddToggle("adult_cg", ModSettingsText.Literal("播放成人过场 CG"), cg,
                     ModSettingsText.Literal("关闭时不创建过场画面；战斗与火堆效果照常结算。"))
                 .AddToggle("adult_audio", ModSettingsText.Literal("播放成人演出音频"), audio,
-                    ModSettingsText.Literal("关闭时不加载成人音频；普通变身与欲望提示音不受影响。")))
+                    ModSettingsText.Literal("关闭时不加载成人演出音频；变身开始与完成音效不受影响。")))
             .AddSection("volumes", section => section
                 .WithTitle(ModSettingsText.Literal("音量"))
                 .AddIntSlider("normal_volume", ModSettingsText.Literal("普通演出音量"),

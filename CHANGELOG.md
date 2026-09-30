@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-01 音频触发与RitsuLib设置修订（PERF-AUDIO-20261001，IMPLEMENTED 待复验）
+
+前置快照 `5a1a9aacd86979facd5221705a830a726bc02706`，12项目标文件逐项备份；DesignDoc逐行/词级漂移仅有既有邪瘴文案与书库归属，未覆盖设计工作树。用户明确删除施法音和欲望达到8时音效；移除MagicCast及DesireHigh/Heartbeat触发，欲望满值撤下DesireFull音效，最终按用户补充指令，火堆自慰和欲望满值均只播放高潮音；循环音及原满值音不再触发。源音频清单仍保留原16个素材供追溯，但其中5个不再运行时引用。
+CG与音频独立开关显示于RitsuLib主菜单、跑局暂停和战斗暂停设置；模组清单description精确改为`playable character`，后续部署必须同步该清单。音量设置保持原有持久化与默认成人关闭。为恢复全量资源门，按已确认正式卡图清单同步最新FlameBloom运行时图；同步源/运行时SHA-256。未来定向部署脚本包含MaidenSuccubus.json。验证：Debug --no-restore -p:DeployMod=false -p:ValidateMod=true 完整构建与内容、结构、154张正式卡图、13CG/16OGG源资源、本地化及卡牌/意图门全部通过，0警告0错误；RitsuLib三类宿主界面可见设置源码契约、已撤音效不再引用与高潮音双触发校验通过。定向部署脚本默认预检通过，未执行Apply。CG/音频实际可见可闻效果需游戏内复验，不标记VERIFIED。 按用户先前要求暂不部署。
+
+
+
 ## 2026-10-01 — 火焰绽放卡图单朵火花与命中构图
 
 改动前快照 `maiden-card-art-before-20261001-flame-bloom-v07`。按玩家最新反馈将剑刃上的多朵火花改为命中点唯一一朵完整火焰花，剑尖明确击中墨宝；维持双手正握及原版 Inklet 的完整双耳、单条发光眼和四肢。图像为 1000×760 RGB，正式清单 SHA-256 已同步。仅修改卡图及记录，未改玩法、DesignDoc 或运行时资源，未部署。

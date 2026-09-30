@@ -4,9 +4,6 @@ public enum PerformanceAudioCue
 {
     TransformationStart,
     TransformationComplete,
-    MagicCast,
-    DesireHigh,
-    DesireFull,
     EroticAttackTouch,
     EroticAttackTentacle,
     RestraintChain,
@@ -19,9 +16,7 @@ public enum PerformanceAudioCue
 
 public enum PerformanceLoopCue
 {
-    Heartbeat,
     Breath,
-    Masturbation,
 }
 
 internal static class PerformanceAssets
@@ -33,9 +28,6 @@ internal static class PerformanceAssets
     {
         PerformanceAudioCue.TransformationStart => Audio + "magic/transformation_start.ogg",
         PerformanceAudioCue.TransformationComplete => Audio + "magic/transformation_complete.ogg",
-        PerformanceAudioCue.MagicCast => Audio + "magic/magic_cast.ogg",
-        PerformanceAudioCue.DesireHigh => Audio + "desire/desire_high.ogg",
-        PerformanceAudioCue.DesireFull => Audio + "desire/desire_full.ogg",
         PerformanceAudioCue.EroticAttackTouch => Audio + "erotic_intents/erotic_attack_touch.ogg",
         PerformanceAudioCue.EroticAttackTentacle => Audio + "erotic_intents/erotic_attack_tentacle.ogg",
         PerformanceAudioCue.RestraintChain => Audio + "erotic_intents/restraint_chain.ogg",
@@ -49,9 +41,7 @@ internal static class PerformanceAssets
 
     public static string AudioPath(PerformanceLoopCue cue) => cue switch
     {
-        PerformanceLoopCue.Heartbeat => Audio + "desire/heartbeat.ogg",
         PerformanceLoopCue.Breath => Audio + "erotic_intents/breath.ogg",
-        PerformanceLoopCue.Masturbation => Audio + "rest_site/masturbation_loop.ogg",
         _ => throw new ArgumentOutOfRangeException(nameof(cue), cue, null),
     };
 
@@ -66,7 +56,7 @@ internal static class PerformanceAssets
         or PerformanceAudioCue.Climax;
 
     public static bool IsAdult(PerformanceLoopCue cue) => cue is
-        PerformanceLoopCue.Breath or PerformanceLoopCue.Masturbation;
+        PerformanceLoopCue.Breath;
 
     public static string Control(ControlVisualKind kind) => kind switch
     {

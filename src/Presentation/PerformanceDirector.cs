@@ -85,23 +85,14 @@ public static class PerformanceDirector
             return;
         }
 
-        PerformanceAudioService.StartLoop(PerformanceLoopCue.Masturbation);
-        try
-        {
-            await CutscenePlaybackService.PlayAsync(
-                player,
-                PerformanceAssets.MasturbationSequence,
-                index =>
-                {
-                    if (index != 1) return;
-                    PerformanceAudioService.StopLoop(PerformanceLoopCue.Masturbation, 0.1f);
+        await CutscenePlaybackService.PlayAsync(
+            player,
+            PerformanceAssets.MasturbationSequence,
+            index =>
+            {
+                if (index == 1)
                     PerformanceAudioService.PlayOneShot(PerformanceAudioCue.Climax);
-                });
-        }
-        finally
-        {
-            PerformanceAudioService.StopLoop(PerformanceLoopCue.Masturbation);
-        }
+            });
     }
 
     public static void OnSceneTransition()

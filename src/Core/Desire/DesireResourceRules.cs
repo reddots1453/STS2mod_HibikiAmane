@@ -157,7 +157,7 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
     {
         if (PerformanceAudience.IsLocalMaiden(player))
         {
-            PerformanceAudioService.PlayOneShot(PerformanceAudioCue.DesireFull);
+            PerformanceAudioService.PlayDesireMaximum();
         }
     }
 

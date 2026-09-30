@@ -226,26 +226,6 @@ public sealed class MagicAmplificationPower : MaidenSuccubusPowerTemplate
         && (_cardToAmplify == null
             || (ReferenceEquals(card, _cardToAmplify) && _reservedForOverdraft < Amount));
 
-    public override Task AfterApplied(Creature? applier, CardModel? cardSource)
-    {
-        PlayGainFeedback();
-        return Task.CompletedTask;
-    }
-
-    public override Task AfterPowerAmountChanged(
-        PlayerChoiceContext context,
-        PowerModel power,
-        decimal amount,
-        Creature? applier,
-        CardModel? cardSource)
-    {
-        if (ReferenceEquals(power, this) && amount > 0)
-        {
-            PlayGainFeedback();
-        }
-        return Task.CompletedTask;
-    }
-
     internal bool TryReserveForOverdraft(CardModel? card)
     {
         if (card == null || AmplificationConsumptionScope.IsExempt(card)) return false;
@@ -329,17 +309,6 @@ public sealed class MagicAmplificationPower : MaidenSuccubusPowerTemplate
         || (card?.Enchantment != null && Owner.HasPower<TacticalCorePower>())
             ? 2m
             : 1.5m;
-
-    private void PlayGainFeedback()
-    {
-        if (CombatManager.Instance.IsInProgress
-            && !CombatManager.Instance.IsEnding
-            && Owner.CombatState != null
-            && PerformanceAudience.IsLocalMaiden(Owner.Player))
-        {
-            PerformanceAudioService.PlayOneShot(PerformanceAudioCue.MagicCast);
-        }
-    }
 
     public override async Task AfterCardPlayed(
         PlayerChoiceContext context,
