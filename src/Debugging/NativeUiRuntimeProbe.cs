@@ -198,6 +198,64 @@ internal static class NativeUiRuntimeProbe
         Check(EroticAttackCatalog.All.Count == 102 && blockComponents > 0, $"102 monsters: {moves} moves, {tips} formatted tips, {blockComponents} numeric defend components; no stale reused labels");
     }
 
+    private static void CheckTrialAndShop(Control host)
+    {
+        int shops = 0;
+        foreach (int corruption in Enumerable.Range(-5, 11))
+        foreach (int seed in Enumerable.Range(1, 12))
+        {
+            var player = Player.CreateForNewRun<MaidenSuccubusCharacter>(UnlockState.all, 1);
+            var run = RunState.CreateForNewRun([player], ActModel.GetDefaultList().Select(a => (ActModel)a.ToMutable()).ToArray(), [], GameMode.Standard, 0, "SHOP_PROBE_" + seed);
+            MaidenSuccubus.Core.Corruption.CorruptionCmd.Set(run, corruption);
+            var shop = MerchantInventory.CreateForNormalMerchant(player);
+            var cards = shop.CharacterCardEntries.Select(entry => entry.CreationResult?.Card ?? throw new InvalidOperationException("Shop card missing")).ToArray();
+            if (cards.Length != 5 || !cards.Any(MaidenSuccubus.Core.Routes.RouteCardQuery.IsHoly)
+                || !cards.Any(MaidenSuccubus.Core.Routes.RouteCardQuery.IsCorrupt)
+                || cards.Select(card => card.Id).Distinct().Count() != 5
+                || shop.CharacterCardEntries.Count(entry => entry.IsOnSale) != 1)
+                throw new InvalidOperationException($"Shop guarantee/duplicates/sale failed: corruption={corruption}; seed={seed}");
+            if (!cards.Select(card => card.Type).SequenceEqual(new[] { MegaCrit.Sts2.Core.Entities.Cards.CardType.Attack, MegaCrit.Sts2.Core.Entities.Cards.CardType.Attack, MegaCrit.Sts2.Core.Entities.Cards.CardType.Skill, MegaCrit.Sts2.Core.Entities.Cards.CardType.Skill, MegaCrit.Sts2.Core.Entities.Cards.CardType.Power }))
+                throw new InvalidOperationException("Native shop types changed");
+            // Check our population step directly: workshop mods may independently
+            // add/remove non-colored merchandise in CreateForNormalMerchant postfixes.
+            var coloredOnly = new MerchantInventory(player);
+            if (!MerchantRouteCardPatch.Populate(coloredOnly)
+                || coloredOnly.ColorlessCardEntries.Count != 0 || coloredOnly.RelicEntries.Count != 0
+                || coloredOnly.PotionEntries.Count != 0 || coloredOnly.CardRemovalEntry != null)
+                throw new InvalidOperationException("Route population changed non-colored inventory");
+            if (shops == 0)
+                MaidenSuccubusMod.Logger.Info($"[NativeUiProbe] Full shop with workshop hooks: colorless={shop.ColorlessCardEntries.Count}, relics={shop.RelicEntries.Count}, potions={shop.PotionEntries.Count}, removal={shop.CardRemovalEntry != null}");
+            shops++;
+        }
+        Check(shops == 132, "132 native shops: -5..+5 corruption, holy/corrupt guarantees, native types, unique cards, sale and other inventory preserved");
+        var owner = Player.CreateForNewRun<MaidenSuccubusCharacter>(UnlockState.all, 1);
+        var library = ModelDb.Card<MaidenSuccubus.Cards.InsatiableGreed>();
+        Check(library.Pool is MaidenSuccubus.Pools.MSNeutralCardPool
+            && MaidenSuccubus.Core.Routes.RouteCardQuery.Get(library) == MaidenSuccubus.Core.Routes.RouteCardKind.Neutral
+            && library.Rarity == MegaCrit.Sts2.Core.Entities.Cards.CardRarity.Ancient,
+            "Yarus library registers only in neutral pool; Ancient rarity and saved card ID preserved");
+        int rewards = 0;
+        foreach (var quest in Enum.GetValues<MaidenSuccubus.Acts.FourthRouteQuest>())
+        foreach (var phase in new[] { MaidenSuccubus.Acts.FourthTrialPhase.FirstReward, MaidenSuccubus.Acts.FourthTrialPhase.SecondReward, MaidenSuccubus.Acts.FourthTrialPhase.ThirdReward })
+        {
+            var offer = new MaidenSuccubus.Acts.FourthRouteRewardOffer(quest, phase);
+            var reward = new FourthRouteTrialRelicReward(owner, offer, () => true);
+            if (reward is not MegaCrit.Sts2.Core.Rewards.RelicReward || reward.Relic is not MaidenSuccubus.Relics.FourthRouteRelic relic
+                || relic.Stage != offer.Stage || relic.Quest != quest || relic.Owner != null || !reward.IsPopulated)
+                throw new InvalidOperationException("Invalid native trial relic preview");
+            var set = new MegaCrit.Sts2.Core.Rewards.RewardsSet(owner).WithCustomRewards([reward]).WithSkippingDisallowed();
+            if (!set.DisallowSkipping || set.Rewards.Count != 1 || set.Rewards[0] != reward)
+                throw new InvalidOperationException("Trial reward can be skipped or duplicated");
+            var icon = reward.CreateIcon();
+            host.AddChild(icon);
+            if (icon.Texture == null || reward.Description.GetFormattedText().Contains("MAIDEN_SUCCUBUS_", StringComparison.Ordinal))
+                throw new InvalidOperationException("Native trial reward icon/title missing");
+            icon.QueueFree();
+            rewards++;
+        }
+        Check(rewards == 42, "42 trial stages use populated native relic rewards, mandatory loot sets, current-stage previews and native icons");
+    }
+
     private static async Task Run(NMainMenu menu)
     {
         var host = new Control { Name = "MaidenUiProbe", Visible = false };
@@ -210,6 +268,7 @@ internal static class NativeUiRuntimeProbe
             {
                 await CheckRelicArrowGeometry(menu, host);
                 CheckEroticHoverTips(host);
+                CheckTrialAndShop(host);
                 host.QueueFree();
                 for (int i = 0; i < 5; i++) await menu.ToSignal(menu.GetTree(), SceneTree.SignalName.ProcessFrame);
                 MaidenSuccubusMod.Logger.Info("[NativeUiProbe] RELIC GEOMETRY COMPLETE PASS (no lobby/run/save changes)");

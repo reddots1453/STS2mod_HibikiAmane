@@ -40,7 +40,18 @@ internal static class FourthRouteRewardFlow
                 || NRun.Instance?.TreasureRoom?.GetNodeOrNull<Control>("%RelicCollection")?.Visible == true,
             NGame.Instance?.Transition.InTransition == true,
             run.CurrentRoom is EventRoom { LocalMutableEvent: Neow } && FourthRouteOpeningService.NeedsOpening(run),
-            RunManager.Instance.ActionExecutor.IsRunning || RunManager.Instance.ActionExecutor.IsPaused, victoryBoundary);
+            RunManager.Instance.ActionExecutor.IsRunning || RunManager.Instance.ActionExecutor.IsPaused, victoryBoundary,
+            EventSettled(run));
+
+    private static bool EventSettled(RunState run)
+    {
+        if (run.CurrentRoom is not EventRoom room) return true;
+        // Event handlers are fire-and-forget tasks, independent of ActionExecutor.
+        // Never nest a trial reward while the event is still choosing/updating its result page.
+        bool finished = room.LocalMutableEvent.IsFinished;
+        bool optionsSettled = finished && RunManager.Instance.EventSynchronizer.AwaitPendingOptionTasks().IsCompletedSuccessfully;
+        return FourthRouteRewardOffer.EventReady(true, finished, optionsSettled);
+    }
 
     internal static async Task<bool> Show(Player player, bool victoryBoundary = false)
     {
@@ -58,13 +69,7 @@ internal static class FourthRouteRewardFlow
         try
         {
             if (restoreTravel) map!.SetTravelEnabled(false);
-            var picked = await FourthRouteRewardScreen.Show(offer, Current);
-            if (picked is null || !Current()) return false;
-            if (!await Claim(player, offer)) return false;
-            var obtained = player.Relics.OfType<FourthRouteRelic>().FirstOrDefault(r => r.Quest == offer.Quest && r.Stage == offer.Stage);
-            if (obtained != null && GodotObject.IsInstanceValid(scene) && ReferenceEquals(NRun.Instance, scene))
-                scene!.GlobalUi.RelicInventory.AnimateRelic(obtained, picked.Value.Position, picked.Value.Scale);
-            return true;
+            return await FourthRouteRewardScreen.Show(player, offer, Current);
         }
         catch (Exception ex)
         {

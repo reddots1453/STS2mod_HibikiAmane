@@ -578,6 +578,23 @@ foreach (var phase in Enum.GetValues<FourthTrialPhase>())
 }
 Equal(false, new FourthRouteRewardOffer((FourthRouteQuest)1000, FourthTrialPhase.FirstReward).IsValid, "unknown route cannot be shown");
 Equal(false, new FourthRouteRewardOffer(FourthRouteQuest.Pride, (FourthTrialPhase)1000).IsValid, "unknown phase cannot be shown");
+for (int flags = 0; flags < 8; flags++)
+{
+    bool eventRoom = (flags & 1) != 0, finished = (flags & 2) != 0, settled = (flags & 4) != 0;
+    Equal(!eventRoom || finished && settled, FourthRouteRewardOffer.EventReady(eventRoom, finished, settled), "event reward waits for final page and all option handlers");
+}
+Equal(false, FourthRouteRewardOffer.CanPresent(true, true, false, true, true, false, false, false, false, false, false, false, false), "unfinished event cannot present reward even with idle executor");
+for (int corruption = -5; corruption <= 5; corruption++)
+for (int seed = 0; seed < 100; seed++)
+{
+    var random = new Random(seed);
+    var probabilities = MaidenSuccubus.Core.Routes.RouteRewardProbabilities.Calculate(corruption);
+    var routes = MaidenSuccubus.Core.Routes.MerchantRoutePlan.Create(probabilities, () => random.NextSingle(), count => random.Next(count));
+    Equal(5, routes.Length, "native colored shop slot count preserved");
+    Equal(true, routes.Contains(MaidenSuccubus.Core.Routes.RouteCardKind.Holy), "shop holy guarantee at every corruption value");
+    Equal(true, routes.Contains(MaidenSuccubus.Core.Routes.RouteCardKind.Corrupt), "shop corrupt guarantee at every corruption value");
+    Equal(probabilities.Holy > 0m ? MaidenSuccubus.Core.Routes.RouteCardKind.Holy : MaidenSuccubus.Core.Routes.RouteCardKind.Corrupt, probabilities.RollRoute(0f), "reward/shop use common route thresholds at zero roll");
+}
 for (int flags = 0; flags < 4096; flags++)
 {
     bool Flag(int bit) => (flags & (1 << bit)) != 0;

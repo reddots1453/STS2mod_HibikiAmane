@@ -28,7 +28,6 @@
   "MAIDEN_SUCCUBUS_POWER_PURIFICATION_POWER.title": "净化",
   "MAIDEN_SUCCUBUS_POWER_PURIFICATION_POWER.description": "回合开始时，每有1层[gold]净化[/gold]，随机失去1层可叠加的负面状态。",
   "MAIDEN_SUCCUBUS_POWER_PURIFICATION_POWER.smartDescription": "回合开始时，每有1层[gold]净化[/gold]，随机失去1层可叠加的负面状态。",
-
   "MAIDEN_SUCCUBUS_POWER_GUARDIAN_SCRIPTURE_POWER.title": "守护圣言",
   "MAIDEN_SUCCUBUS_POWER_GUARDIAN_SCRIPTURE_POWER.description": "剩余回合内，每回合结束时获得{Block}点[gold]格挡[/gold]。",
   "MAIDEN_SUCCUBUS_POWER_GUARDIAN_SCRIPTURE_POWER.smartDescription": "剩余回合内，每回合结束时获得{Block}点[gold]格挡[/gold]。",
@@ -77,7 +76,6 @@
   "MAIDEN_SUCCUBUS_POWER_BASIC_TRAINING_POWER.title": "基本功",
   "MAIDEN_SUCCUBUS_POWER_BASIC_TRAINING_POWER.description": "打击额外造成伤害。防御额外获得[gold]格挡[/gold]。",
   "MAIDEN_SUCCUBUS_POWER_BASIC_TRAINING_POWER.smartDescription": "打击额外造成{Amount}点伤害。防御额外获得{Amount}点[gold]格挡[/gold]。",
-
   "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.title": "拘束",
   "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.description": "天音被[gold]拘束[/gold]了！所有对应类型的非[gold]随身[/gold]牌临时变为[gold]挣脱[/gold]。尽快[gold]挣脱[/gold]以避免遭受[gold]侵犯[/gold]。",
   "MAIDEN_SUCCUBUS_POWER_CONTROL_POWER.attackDescription": "天音被[gold]拘束[/gold]了！双臂被控制，乳房毫无防备，所有攻击牌临时变为[gold]挣脱[/gold]。尽快[gold]挣脱[/gold]以避免遭受[gold]侵犯[/gold]。",
@@ -226,8 +224,8 @@
   "MAIDEN_SUCCUBUS_POWER_WET_POWER.description": "无法[gold]格挡[/gold]防御怪物的[gold]拘束[/gold]类意图。",
   "MAIDEN_SUCCUBUS_POWER_WET_POWER.smartDescription": "无法[gold]格挡[/gold]防御怪物的[gold]拘束[/gold]类意图。",
   "MAIDEN_SUCCUBUS_POWER_CORRUPT_ROBE_POWER.title": "变身：邪瘴天衣形态",
-  "MAIDEN_SUCCUBUS_POWER_CORRUPT_ROBE_POWER.description": "每回合开始时获得1层[gold]魔力增幅[/gold]。实际失去[gold]魔装耐久[/gold]时获得1点[pink]欲望[/pink]。0层时再次尝试损失耐久不获得[pink]欲望[/pink]。",
-  "MAIDEN_SUCCUBUS_POWER_CORRUPT_ROBE_POWER.smartDescription": "每回合开始时获得1层[gold]魔力增幅[/gold]。实际失去[gold]魔装耐久[/gold]时获得1点[pink]欲望[/pink]。0层时再次尝试损失耐久不获得[pink]欲望[/pink]。",
+  "MAIDEN_SUCCUBUS_POWER_CORRUPT_ROBE_POWER.description": "每回合开始时获得1层“[gold]魔力增幅[/gold]”。失去[gold]魔装耐久[/gold]时获得1点[pink]欲望[/pink]。",
+  "MAIDEN_SUCCUBUS_POWER_CORRUPT_ROBE_POWER.smartDescription": "每回合开始时获得1层“[gold]魔力增幅[/gold]”。失去[gold]魔装耐久[/gold]时获得1点[pink]欲望[/pink]。",
   "MAIDEN_SUCCUBUS_POWER_HOLY_FLAME_POWER.title": "圣焰",
   "MAIDEN_SUCCUBUS_POWER_HOLY_FLAME_POWER.description": "给予[gold]燃烧[/gold]时额外给予[gold]燃烧[/gold]。",
   "MAIDEN_SUCCUBUS_POWER_HOLY_FLAME_POWER.smartDescription": "给予[gold]燃烧[/gold]时额外给予{Amount}层[gold]燃烧[/gold]。",

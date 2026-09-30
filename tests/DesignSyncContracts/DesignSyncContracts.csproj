@@ -35,5 +35,6 @@
     <Compile Include="../../src/Core/Relics/RetentionOrbRules.cs" Link="Production/RetentionOrbRules.cs" />
     <Compile Include="../../src/Util/WeakInstanceScope.cs" Link="Production/WeakInstanceScope.cs" />
     <Compile Include="../../src/Util/WeakInstanceValueScope.cs" Link="Production/WeakInstanceValueScope.cs" />
+    <Compile Include="../../src/Core/Routes/MerchantRoutePlan.cs" Link="Production/MerchantRoutePlan.cs" />
   </ItemGroup>
 </Project>

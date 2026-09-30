@@ -67,23 +67,7 @@ public static class RouteCardRewardService
         return true;
     }
 
-    public static RouteCardKind RollRoute(
-        RouteRewardProbabilities probabilities,
-        float roll)
-    {
-        decimal clampedRoll = Math.Clamp((decimal)roll, 0m, 1m);
-        if (clampedRoll < probabilities.Holy)
-        {
-            return RouteCardKind.Holy;
-        }
-
-        if (clampedRoll < probabilities.Holy + probabilities.Corrupt)
-        {
-            return RouteCardKind.Corrupt;
-        }
-
-        return RouteCardKind.Neutral;
-    }
+    public static RouteCardKind RollRoute(RouteRewardProbabilities probabilities, float roll) => probabilities.RollRoute(roll);
 
     private static bool IsEligibleEncounterReward(
         Player player,

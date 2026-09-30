@@ -8,9 +8,12 @@ public readonly record struct FourthRouteRewardOffer(FourthRouteQuest Quest, Fou
     public bool IsValid => Enum.IsDefined(Quest) && FourthRouteTrialRules.Pending(Phase);
     public bool Matches(FourthRouteQuest quest, FourthTrialPhase phase) => IsValid && Quest == quest && Phase == phase;
 
+    public static bool EventReady(bool eventRoom, bool finished, bool optionTasksSettled) =>
+        !eventRoom || finished && optionTasksSettled;
+
     public static bool CanPresent(bool localMaiden, bool singlePlayer, bool testMode, bool alive,
         bool currentScene, bool combatActive, bool modalOpen, bool overlayOpen, bool transitioning,
-        bool openingPending, bool executorBusy, bool victoryBoundary) =>
+        bool openingPending, bool executorBusy, bool victoryBoundary, bool eventSettled = true) =>
         localMaiden && singlePlayer && !testMode && alive && currentScene && !combatActive
-        && !modalOpen && !overlayOpen && !transitioning && !openingPending && (!executorBusy || victoryBoundary);
+        && eventSettled && !modalOpen && !overlayOpen && !transitioning && !openingPending && (!executorBusy || victoryBoundary);
 }

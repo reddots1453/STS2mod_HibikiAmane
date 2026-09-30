@@ -519,8 +519,8 @@ public sealed class BiteInvader : MSCorruptCard
 }
 
 [RegisterDustyTomeCard(typeof(MaidenSuccubus.Characters.MaidenSuccubusCharacter))]
-[RegisterCard(typeof(MSCorruptCardPool))]
-public sealed class InsatiableGreed : MSCorruptCard
+[RegisterCard(typeof(MSNeutralCardPool))]
+public sealed class InsatiableGreed : MSNeutralCard
 {
     // Retain Dusty Tome/save identity; its old power now belongs to TemperanceCirclet.
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Ethereal];

@@ -13,6 +13,12 @@ public readonly record struct RouteRewardProbabilities(
 
     public decimal Total => Holy + Corrupt + Neutral;
 
+    public RouteCardKind RollRoute(float roll)
+    {
+        decimal value = Math.Clamp((decimal)roll, 0m, 1m);
+        return value < Holy ? RouteCardKind.Holy : value < Holy + Corrupt ? RouteCardKind.Corrupt : RouteCardKind.Neutral;
+    }
+
     public static RouteRewardProbabilities Calculate(
         int corruption,
         decimal holyBonus = 0m,

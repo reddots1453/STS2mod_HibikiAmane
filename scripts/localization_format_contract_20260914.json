@@ -37,7 +37,7 @@
     "MAIDEN_SUCCUBUS_POWER_BURNING_POWER.description": "攻击时，受到等同于[gold]燃烧[/gold]层数的伤害。",
     "MAIDEN_SUCCUBUS_POWER_STEADFAST_POWER.description": "这名敌人不会进行[pink]色情攻击[/pink]。",
     "MAIDEN_SUCCUBUS_POWER_IMMACULATE_ROBE_POWER.description": "每回合开始时获得1层[gold]魔力增幅[/gold]。",
-    "MAIDEN_SUCCUBUS_POWER_CORRUPT_ROBE_POWER.description": "每回合开始时获得1层[gold]魔力增幅[/gold]。实际失去[gold]魔装耐久[/gold]时获得1点[pink]欲望[/pink]。0层时再次尝试损失耐久不获得[pink]欲望[/pink]。",
+    "MAIDEN_SUCCUBUS_POWER_CORRUPT_ROBE_POWER.description": "每回合开始时获得1层“[gold]魔力增幅[/gold]”。失去[gold]魔装耐久[/gold]时获得1点[pink]欲望[/pink]。",
     "MAIDEN_SUCCUBUS_POWER_ETERNAL_ROBE_POWER.description": "每回合开始时获得9层[gold]魔力增幅[/gold]。",
     "MAIDEN_SUCCUBUS_POWER_DESIRE_INTENT_THRESHOLD_POWER.smartDescription": "这名敌人在天音的[gold]诱惑度[/gold]达到{Amount}时，将会使用[pink]欲望攻击[/pink]。",
     "MAIDEN_SUCCUBUS_POWER_CONTROL_INTENT_THRESHOLD_POWER.smartDescription": "这名敌人在天音的[gold]诱惑度[/gold]达到{Amount}时，将会使用[gold]拘束[/gold]意图。",

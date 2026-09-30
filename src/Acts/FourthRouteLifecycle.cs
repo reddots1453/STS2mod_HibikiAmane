@@ -101,9 +101,9 @@ public sealed class FourthRouteLifecycle : SingletonModel
                 await FourthRouteRewardFlow.Show(_owner);
                 return;
             }
-            if (await FourthRouteSelectionScreen.ShowReward(quest,
-                FourthRouteTrialRules.RewardStage(FourthRouteProgressService.Trial(runState).Phase)))
-                await FourthRouteProgressService.ClaimInitialReward(_owner);
+            var offer = new FourthRouteRewardOffer(quest, FourthRouteProgressService.Trial(runState).Phase);
+            await FourthRouteRewardScreen.Show(_owner, offer, () => _owner.RunState == runState
+                && offer.Matches(quest, FourthRouteProgressService.Trial(runState).Phase));
         }
         finally { _showingFourthRouteFlow = false; }
     }

@@ -4,7 +4,7 @@ $game=[IO.Path]::GetFullPath((Join-Path $ProjectDir '../../..'))
 $installed=Join-Path $game 'mods/MaidenSuccubus'
 & python -B (Join-Path $PSScriptRoot 'ValidateUiLocalization20260930.py') --project-dir $ProjectDir
 if($LASTEXITCODE -ne 0){throw 'UI localization preflight failed.'}
-$resources=@('localization/zhs/intents.json','localization/zhs/static_hover_tips.json','localization/zhs/card_library.json')
+$resources=@('localization/zhs/intents.json','localization/zhs/static_hover_tips.json','localization/zhs/card_library.json','localization/zhs/powers.json')
 if(-not $Apply){Write-Host 'Preflight passed. Apply requires explicit deployment authorization; no installed files changed.';return}
 if(Get-Process SlayTheSpire2 -ErrorAction SilentlyContinue){throw 'Game is running; keep the repair pending until the user exits.'}
 $backup=Join-Path $ProjectDir ('obj/ui-deploy-backup-'+(Get-Date -Format 'yyyyMMdd-HHmmss'))
