@@ -29,62 +29,16 @@ internal sealed class StarterRelicSelector
         _relicPanel = screen.GetNode<Control>("InfoPanel/VBoxContainer/Relic");
         _relicIcon = screen.GetNode<Control>("InfoPanel/VBoxContainer/Relic/Icon");
         NAscensionPanel ascension = screen.GetNode<NAscensionPanel>("%AscensionPanel");
-        _previous = MakeArrow(ascension.GetNode<NButton>("HBoxContainer/LeftArrowContainer/LeftArrow"));
-        _next = MakeArrow(ascension.GetNode<NButton>("HBoxContainer/RightArrowContainer/RightArrow"));
-        screen.AddChild(_previous);
-        screen.AddChild(_next);
-        _relicPanel.Resized += PlaceArrows;
-        _relicIcon.Resized += PlaceArrows;
+        var layout = new StarterRelicArrowLayout(_relicPanel, _relicIcon,
+            ascension.GetNode<NButton>("HBoxContainer/LeftArrowContainer/LeftArrow"),
+            ascension.GetNode<NButton>("HBoxContainer/RightArrowContainer/RightArrow"));
+        _previous = layout.Previous;
+        _next = layout.Next;
         _previous.Connect(NClickableControl.SignalName.Released, Callable.From<NButton>(_ => ToggleSafely()));
         _next.Connect(NClickableControl.SignalName.Released, Callable.From<NButton>(_ => ToggleSafely()));
         _previous.FocusNeighborRight = _next.GetPath();
         _next.FocusNeighborLeft = _previous.GetPath();
     }
-
-    private static NButton MakeArrow(NButton source)
-    {
-        // A scene re-instantiation can bring back the ascension scene's own
-        // connections. Copy the live control tree without its signal links.
-        var button = (NButton)source.Duplicate((int)Node.DuplicateFlags.Scripts);
-        button.Name = "MaidenStarterRelicArrow";
-        button.TooltipText = string.Empty;
-        button.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopLeft);
-        button.CustomMinimumSize = Vector2.Zero;
-        button.Size = source.Size;
-        // Ascension's parent scales the button. Keep its on-screen footprint
-        // after moving the copy to the character-select screen root.
-        Vector2 displayed = source.GetGlobalRect().Size;
-        button.Scale = new Vector2(
-            source.Size.X > 0f ? displayed.X / source.Size.X : 1f,
-            source.Size.Y > 0f ? displayed.Y / source.Size.Y : 1f);
-        IsolateMaterials(button);
-        button.Visible = false;
-        return button;
-    }
-
-    private static void IsolateMaterials(Node node)
-    {
-        // The native arrow's hover/press animation changes shader parameters.
-        // Godot duplicates nodes but otherwise shares their Material resources.
-        if (node is CanvasItem canvas && canvas.Material != null)
-            canvas.Material = (Material)canvas.Material.Duplicate(true);
-        foreach (Node child in node.GetChildren()) IsolateMaterials(child);
-    }
-
-    private void PlaceArrows()
-    {
-        Rect2 bounds = _relicPanel.GetGlobalRect();
-        float centerY = _relicIcon.GetGlobalRect().GetCenter().Y;
-        Vector2 previousSize = _previous.GetGlobalRect().Size;
-        Vector2 nextSize = _next.GetGlobalRect().Size;
-        MoveArrowTo(_previous, new Vector2(bounds.Position.X - previousSize.X - 8f,
-            centerY - previousSize.Y / 2f));
-        MoveArrowTo(_next, new Vector2(bounds.End.X + 8f,
-            centerY - nextSize.Y / 2f));
-    }
-
-    private static void MoveArrowTo(NButton arrow, Vector2 desiredTopLeft) =>
-        arrow.GlobalPosition += desiredTopLeft - arrow.GetGlobalRect().Position;
 
     internal static void Selected(NCharacterSelectScreen screen, NCharacterSelectButton button, CharacterModel character)
     {
@@ -125,8 +79,6 @@ internal sealed class StarterRelicSelector
         _screen.GetNode<MegaRichTextLabel>("InfoPanel/VBoxContainer/Relic/Description").Text = relic.DynamicDescription.GetFormattedText();
         _screen.GetNode<TextureRect>("InfoPanel/VBoxContainer/Relic/Icon").Texture = relic.Icon;
         _screen.GetNode<TextureRect>("InfoPanel/VBoxContainer/Relic/Icon/Outline").Texture = relic.IconOutline;
-        PlaceArrows();
-        Callable.From(PlaceArrows).CallDeferred();
     }
 
     private void ToggleSafely() => Safe.Run(() =>

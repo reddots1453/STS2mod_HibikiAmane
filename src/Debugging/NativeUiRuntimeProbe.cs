@@ -7,6 +7,11 @@ using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardLibrary;
+using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
+using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
+using MegaCrit.Sts2.addons.mega_text;
+using MaidenSuccubus.Characters.Starts;
+using MaidenSuccubus.Data;
 using MegaCrit.Sts2.Core.Nodes.Screens.MainMenu;
 using MegaCrit.Sts2.Core.Nodes.Screens.Shops;
 using MegaCrit.Sts2.Core.Entities.Players;
@@ -29,7 +34,7 @@ internal static class NativeUiRuntimeProbe
     [HarmonyPostfix]
     private static void Postfix(NMainMenu __instance)
     {
-        if (_started || !OS.GetCmdlineUserArgs().Any(arg => arg.Trim() == "--maiden-ui-probe")) return;
+        if (_started || !OS.GetCmdlineUserArgs().Any(arg => arg.Trim() is "--maiden-ui-probe" or "--maiden-relic-arrow-probe")) return;
         _started = true;
         MaidenSuccubusMod.Logger.Info("[NativeUiProbe] START");
         _ = Run(__instance);
@@ -50,13 +55,167 @@ internal static class NativeUiRuntimeProbe
         MaidenSuccubusMod.Logger.Info("[NativeUiProbe] PASS " + message);
     }
 
+    private static async Task CheckRelicArrowGeometry(NMainMenu menu, Control host)
+    {
+        using var scene = NCharacterSelectScreen.Create() ?? throw new InvalidOperationException("Character scene unavailable");
+        var panel = (Control)scene.GetNode<Control>("InfoPanel").Duplicate((int)Node.DuplicateFlags.Scripts);
+        NativeUiClone.RestoreOwners(panel);
+        host.AddChild(panel);
+        Control relic = panel.GetNode<Control>("VBoxContainer/Relic");
+        Control icon = relic.GetNode<Control>("Icon");
+        var ascension = scene.GetNode<NAscensionPanel>("AscensionPanel");
+        var layout = new StarterRelicArrowLayout(relic, icon,
+            ascension.GetNode<NButton>("HBoxContainer/LeftArrowContainer/LeftArrow"),
+            ascension.GetNode<NButton>("HBoxContainer/RightArrowContainer/RightArrow"));
+        layout.Previous.Show();
+        layout.Next.Show();
+        const float epsilon = .05f;
+        async Task Frames(int count)
+        {
+            for (int i = 0; i < count; i++) await menu.ToSignal(menu.GetTree(), SceneTree.SignalName.ProcessFrame);
+        }
+        Vector2 Center(Control node) => node.GetGlobalRect().GetCenter();
+        void Aligned(string phase)
+        {
+            Rect2 bounds = relic.GetGlobalRect();
+            float gap = 8f * relic.GetGlobalTransform().Scale.X;
+            if (Mathf.Abs(layout.Previous.GetGlobalRect().End.X - bounds.Position.X + gap) > epsilon ||
+                Mathf.Abs(layout.Next.GetGlobalRect().Position.X - bounds.End.X - gap) > epsilon ||
+                Mathf.Abs(Center(layout.Previous).Y - Center(icon).Y) > epsilon ||
+                Mathf.Abs(Center(layout.Next).Y - Center(icon).Y) > epsilon)
+                throw new InvalidOperationException($"Arrow alignment changed: {phase}; panel={bounds}; prev={layout.Previous.GetGlobalRect()}; next={layout.Next.GetGlobalRect()}; icon={icon.GetGlobalRect()}");
+        }
+        await Frames(5);
+        var title = relic.GetNode<MegaRichTextLabel>("Name/RichTextLabel");
+        var description = relic.GetNode<MegaRichTextLabel>("Description");
+        var character = ModelDb.Character<MaidenSuccubusCharacter>();
+        panel.GetNode<MegaLabel>("VBoxContainer/Name").SetTextAutoSize(new MegaCrit.Sts2.Core.Localization.LocString("characters", character.CharacterSelectTitle).GetFormattedText());
+        panel.GetNode<MegaRichTextLabel>("VBoxContainer/DescriptionLabel").Text = new MegaCrit.Sts2.Core.Localization.LocString("characters", character.CharacterSelectDesc).GetFormattedText();
+        await Frames(5);
+        Vector2 baselinePrevious = Center(layout.Previous);
+        Vector2 baselineNext = Center(layout.Next);
+        for (int iteration = 0; iteration < 8; iteration++)
+        {
+            var preview = StarterRelicSelection.Preview(iteration % 2 == 0 ? StarterRelicKind.Omnipotent : StarterRelicKind.Hero);
+            title.Text = preview.Title.GetFormattedText();
+            description.Text = preview.DynamicDescription.GetFormattedText();
+            relic.GetNode<TextureRect>("Icon").Texture = preview.Icon;
+            relic.GetNode<TextureRect>("Icon/Outline").Texture = preview.IconOutline;
+            await Frames(5);
+            Aligned("toggle " + iteration);
+            Check(Center(layout.Previous).DistanceTo(baselinePrevious) < epsilon && Center(layout.Next).DistanceTo(baselineNext) < epsilon,
+                "relic toggle " + iteration + " keeps both button centers");
+        }
+        foreach (var button in new[] { layout.Previous, layout.Next })
+        {
+            AccessTools.Method(button.GetType(), "OnFocus").Invoke(button, null);
+            AccessTools.Method(button.GetType(), "OnPress").Invoke(button, null);
+            AccessTools.Method(button.GetType(), "OnRelease").Invoke(button, null);
+            Aligned("native press/release");
+            AccessTools.Method(button.GetType(), "OnUnfocus").Invoke(button, null);
+        }
+        for (int frame = 0; frame < 45; frame++)
+        {
+            panel.Position += new Vector2(3f, 1f);
+            await Frames(1);
+            Aligned("panel animation " + frame);
+        }
+        Check(true, "45 panel-animation frames and native button animations stay aligned");
+        host.Scale = new Vector2(1.25f, 1.25f);
+        relic.Size += new Vector2(90f, 0f);
+        icon.Position += new Vector2(0f, 6f);
+        await Frames(5);
+        Aligned("resize/scale/icon move");
+        Check(layout.Previous.GetParent() == relic && layout.Next.GetParent() == relic,
+            "panel anchors survive resize, parent scale and icon position change");
+        Check(!ReferenceEquals(layout.Previous.GetNode<TextureRect>("TextureRect").Material,
+            ascension.GetNode<TextureRect>("HBoxContainer/LeftArrowContainer/LeftArrow/TextureRect").Material),
+            "hover material isolated from ascension button");
+    }
+
+    private static void CheckEroticHoverTips(Control host)
+    {
+        var player = Player.CreateForNewRun<MaidenSuccubusCharacter>(UnlockState.all, 1);
+        var run = RunState.CreateForNewRun([player], ActModel.GetDefaultList().Select(a => (ActModel)a.ToMutable()).ToArray(), [], GameMode.Standard, 0, "UI_INTENT_PROBE");
+        var owner = player.Creature;
+        var node = NIntent.Create(0f);
+        host.AddChild(node);
+        int moves = 0, tips = 0, blockComponents = 0;
+        foreach (var spec in EroticAttackCatalog.All.Values)
+        {
+            foreach (var (method, value) in new (string, object?)[]
+            {
+                ("BuildDesireIntents", spec.Desire),
+                ("BuildControlIntents", spec.Control),
+                ("BuildInvasionIntents", spec.Invasion),
+            })
+            {
+                if (value == null) continue;
+                moves++;
+                var intents = (AbstractIntent[])AccessTools.Method(typeof(IntentMoveFactory), method).Invoke(null, [value])!;
+                foreach (var intent in intents)
+                {
+                    var tip = intent.GetHoverTip([], owner);
+                    if ((tip.Title ?? string.Empty).Contains("MAIDENSUCCUBUS_", StringComparison.Ordinal)
+                        || tip.Description.Contains("MAIDENSUCCUBUS_", StringComparison.Ordinal)
+                        || System.Text.RegularExpressions.Regex.IsMatch(tip.Description, @"\{\w+\}"))
+                        throw new InvalidOperationException($"Unformatted intent tip: {spec.MonsterId}: {tip.Title}: {tip.Description}");
+                    if (intent is InvasionCurseIntent curse && !tip.Description.Contains(curse.CurseName, StringComparison.Ordinal))
+                        throw new InvalidOperationException("Curse name missing: " + spec.MonsterId);
+                    if (intent is EroticBlockIntent block)
+                    {
+                        blockComponents++;
+                        node.UpdateIntent(block, [], owner);
+                        string expected = block.GetIntentLabel([], owner).GetFormattedText();
+                        if (node.GetNode<MegaRichTextLabel>("%Value").Text != expected
+                            || !tip.Description.Contains(expected, StringComparison.Ordinal))
+                            throw new InvalidOperationException("Block amount missing: " + spec.MonsterId);
+                        node.UpdateIntent(new DefendIntent(), [], owner);
+                        if (node.GetNode<MegaRichTextLabel>("%Value").Text.Length != 0)
+                            throw new InvalidOperationException("Block number leaked into vanilla defend");
+                        if (IntentAnimData.GetAnimationFrameCount(block.GetAnimation([], owner)) <= 0)
+                            throw new InvalidOperationException("Invalid defend animation");
+                    }
+                    tips++;
+                }
+            }
+        }
+        foreach (var (text, amount, recipient) in new[]
+        {
+            ("欲望增加1；获得5点格挡。", 5, EroticBlockRecipient.Self),
+            ("其他敌人获得6点格挡。", 6, EroticBlockRecipient.OtherEnemies),
+            ("召唤物获得7点格挡。", 7, EroticBlockRecipient.Summons),
+        })
+        {
+            var components = EroticEffectCmd.BuildSupplementalIntents(text, EroticIntentKind.Desire).OfType<EroticBlockIntent>().ToArray();
+            if (components.Length != 1 || components[0].Amount != amount || components[0].Recipient != recipient)
+                throw new InvalidOperationException("Block recipient mismatch: " + text);
+        }
+        var description = new MegaCrit.Sts2.Core.Localization.LocString("static_hover_tips", "MAIDENSUCCUBUS_SHOP_CURSE_REMOVAL.description");
+        description.Add("Count", 2); description.Add("Refund", 100);
+        var shopTip = new MegaCrit.Sts2.Core.HoverTips.HoverTip(new MegaCrit.Sts2.Core.Localization.LocString("static_hover_tips", "MAIDENSUCCUBUS_SHOP_CURSE_REMOVAL.title"), description);
+        Check(shopTip.Title == "清理精液类诅咒" && shopTip.Description.Contains("2") && shopTip.Description.Contains("100"), "shop curse tip formats count and refund");
+        Check(EroticAttackCatalog.All.Count == 102 && blockComponents > 0, $"102 monsters: {moves} moves, {tips} formatted tips, {blockComponents} numeric defend components; no stale reused labels");
+    }
+
     private static async Task Run(NMainMenu menu)
     {
         var host = new Control { Name = "MaidenUiProbe", Visible = false };
         try
         {
             for (int i = 0; i < 5; i++) await menu.ToSignal(menu.GetTree(), SceneTree.SignalName.ProcessFrame);
+            MaidenSuccubusMod.Logger.Info("[NativeUiProbe] UserData=" + OS.GetUserDataDir());
             (NGame.Instance ?? throw new InvalidOperationException("Game unavailable")).AddChild(host);
+            if (OS.GetCmdlineUserArgs().Any(arg => arg.Trim() == "--maiden-relic-arrow-probe"))
+            {
+                await CheckRelicArrowGeometry(menu, host);
+                CheckEroticHoverTips(host);
+                host.QueueFree();
+                for (int i = 0; i < 5; i++) await menu.ToSignal(menu.GetTree(), SceneTree.SignalName.ProcessFrame);
+                MaidenSuccubusMod.Logger.Info("[NativeUiProbe] RELIC GEOMETRY COMPLETE PASS (no lobby/run/save changes)");
+                menu.GetTree().Quit(0);
+                return;
+            }
             NCardLibrary library = NCardLibrary.Create() ?? throw new InvalidOperationException("Library unavailable");
             host.AddChild(library);
             var row = Descendants(library).FirstOrDefault(n => n.Name == "MaidenRouteFilters");

@@ -235,9 +235,16 @@ public static class EroticEffectCmd
         EroticIntentKind kind)
     {
         var intents = new List<AbstractIntent>();
-        if (Regex.IsMatch(effect, @"获得\d+点格挡"))
+        string selfEffect = Regex.Replace(effect,
+            @"(?:所有)?其他敌人获得\d+点(?:格挡|力量)|召唤物获得\d+点(?:格挡|力量)", string.Empty);
+        foreach (var (amount, recipient) in new[]
         {
-            intents.Add(new DefendIntent());
+            (Number(selfEffect, @"获得(\d+)点格挡"), EroticBlockRecipient.Self),
+            (Number(effect, @"(?:所有)?其他敌人获得(\d+)点格挡"), EroticBlockRecipient.OtherEnemies),
+            (Number(effect, @"召唤物获得(\d+)点格挡"), EroticBlockRecipient.Summons),
+        })
+        {
+            if (amount > 0) intents.Add(new EroticBlockIntent(amount, recipient));
         }
         if (Regex.IsMatch(effect, @"获得\d+点力量"))
         {

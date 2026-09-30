@@ -10,5 +10,8 @@
   "MAIDENSUCCUBUS_CLOTHING_HAZARD.title": "状态牌",
   "MAIDENSUCCUBUS_CLOTHING_HAZARD.description": "这名敌人将把{CardCount}张[gold]{CardName}[/gold]{Placement}。",
   "MAIDENSUCCUBUS_INVASION_CURSE.title": "诅咒牌",
-  "MAIDENSUCCUBUS_INVASION_CURSE.description": "这名敌人将把1张[gold]{CurseName}[/gold]加入牌组。"
+  "MAIDENSUCCUBUS_INVASION_CURSE.description": "这名敌人将把1张[gold]{CurseName}[/gold]加入牌组。",
+  "MAIDENSUCCUBUS_BLOCK.title": "守势",
+  "MAIDENSUCCUBUS_BLOCK.description": "{Effect}",
+  "MAIDENSUCCUBUS_BLOCK.format": "{BlockAmount}"
 }
