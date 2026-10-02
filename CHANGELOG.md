@@ -2306,3 +2306,8 @@ PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.cspr
 
 
 最终构建：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误。不运行静态测试；游戏内验收NOT_RUN。独立DLL/PDB/完整PCK已保存于聊天outputs/trial-background-debug-20261003，资源条目683个，包含本轮四张试炼背景及此前接入的当前正式美术。未部署正式游戏、沙箱或ModUploader，上传器JSON未修改。
+
+
+## 2026-10-03 用户授权部署试炼背景测试版
+
+用户要求“部署让我测试下效果”。复用已通过Debug构建（0警告0错误）的c68757e批次DLL/PDB/PCK，完整PCK含683条资源；游戏进程关闭后备份安装产物，并部署至正式游戏mods/MaidenSuccubus、兼容沙箱mod-store/local-MaidenSuccubus及沙箱game/mods/local-MaidenSuccubus。三处部署文件逐项SHA-256复核一致，现有JSON哈希不变，未动ModUploader。备份：`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\trial-background-deployment-20261003-015303`。本轮文档前置快照`a35a8417b0dec0aeda3cb125443be0ab40be1bc8`；部署明细见聊天outputs/trial-background-debug-20261003/deployment-20261003-015303.json。不运行静态测试；画面和玩法由用户实测。
