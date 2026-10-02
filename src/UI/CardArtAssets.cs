@@ -1,4 +1,6 @@
 using Godot;
+using MaidenSuccubus.Cards;
+using MaidenSuccubus.Core.Routes;
 using MegaCrit.Sts2.Core.Models;
 
 namespace MaidenSuccubus.UI;
@@ -29,6 +31,25 @@ public static class CardArtAssets
     public static bool IsMaidenCard(CardModel model) =>
         model.GetType().Assembly == typeof(CardArtAssets).Assembly
         || model.Id.Entry.StartsWith(CardIdPrefix, StringComparison.Ordinal);
+
+    public static Texture2D? GetPortraitTexture(CardModel card)
+    {
+        // RouteKind already implements the live corruption thresholds and
+        // defaults to the base art for cards without an attached run state.
+        string? variant = card switch
+        {
+            Transform transform when transform.RouteKind == RouteCardKind.Corrupt
+                => "cards/Transform_Corrupt.png",
+            DarkElementBase dark when dark.RouteKind == RouteCardKind.Holy
+                => $"cards/{card.GetType().Name}_Holy.png",
+            _ => null,
+        };
+        if (variant != null && RuntimeTextureAssets.Exists(variant))
+        {
+            return RuntimeTextureAssets.Load(variant);
+        }
+        return GetPortraitTexture(card.GetType());
+    }
 
     public static Texture2D? GetPortraitTexture(Type cardType)
     {

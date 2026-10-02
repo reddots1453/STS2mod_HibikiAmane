@@ -1,5 +1,6 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Localization;
+using MaidenSuccubus.Relics;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MaidenSuccubus.Core.Relics;
@@ -35,5 +36,37 @@ internal static class ForgottenSoulDescriptionPatch
                     + (damage == 2 ? "descriptionCorrupt" : "description"));
         }, nameof(ForgottenSoulDescriptionPatch));
         __result = result;
+    }
+}
+
+// The vanilla relic has no mod AssetProfile. Redirect each native icon path at
+// read time so crossing the corruption threshold updates all three views.
+[HarmonyPatch(typeof(RelicModel), "get_PackedIconPath")]
+internal static class ForgottenSoulSmallIconPatch
+{
+    private static void Postfix(RelicModel __instance, ref string __result)
+    {
+        if (ForgottenSoulVariation.TryGetDamage(__instance, out int damage) && damage == 2)
+            __result = RelicIconAssets.For("vanilla_ForgottenSoul_Corrupt").IconPath ?? __result;
+    }
+}
+
+[HarmonyPatch(typeof(RelicModel), "get_PackedIconOutlinePath")]
+internal static class ForgottenSoulOutlineIconPatch
+{
+    private static void Postfix(RelicModel __instance, ref string __result)
+    {
+        if (ForgottenSoulVariation.TryGetDamage(__instance, out int damage) && damage == 2)
+            __result = RelicIconAssets.For("vanilla_ForgottenSoul_Corrupt").IconOutlinePath ?? __result;
+    }
+}
+
+[HarmonyPatch(typeof(RelicModel), "get_ResolvedBigIconPath")]
+internal static class ForgottenSoulBigIconPatch
+{
+    private static void Postfix(RelicModel __instance, ref string __result)
+    {
+        if (ForgottenSoulVariation.TryGetDamage(__instance, out int damage) && damage == 2)
+            __result = RelicIconAssets.For("vanilla_ForgottenSoul_Corrupt").BigIconPath ?? __result;
     }
 }

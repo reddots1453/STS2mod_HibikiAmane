@@ -24,7 +24,8 @@ namespace MaidenSuccubus.Relics;
 public sealed class PrayerEarrings : MSRelicTemplate
 {
     public override RelicRarity Rarity => RelicRarity.Common;
-    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("character_PrayerEarrings");
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For(HolyVariation
+        ? "character_PrayerEarrings_Holy" : "character_PrayerEarrings");
     protected override IEnumerable<IHoverTip> AdditionalHoverTips =>
         [HoverTipFactory.FromPower<MagicAmplificationPower>()];
 

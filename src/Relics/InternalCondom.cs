@@ -22,7 +22,8 @@ public sealed class InternalCondom : MSRelicTemplate
 {
     private int _storedCount;
     public override RelicRarity Rarity => RelicRarity.Uncommon;
-    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("character_InternalCondom");
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For(CorruptVariation
+        ? "character_InternalCondom_Corrupt" : "character_InternalCondom");
 
     [SavedProperty]
     public int StoredCount

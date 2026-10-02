@@ -21,7 +21,19 @@ public sealed class TwinSoulChalice : ModRelicTemplate
 {
     public override RelicRarity Rarity => RelicRarity.Starter;
     protected override IEnumerable<DynamicVar> CanonicalVars => [new HealVar(5), new MaxHpVar(5)];
-    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("starter_AllPurposeOrb");
+    public override RelicAssetProfile AssetProfile
+    {
+        get
+        {
+            if (IsMutable && Owner is { Character: MaidenSuccubusCharacter, RunState: RunState run })
+            {
+                int corruption = CorruptionQuery.Get(run);
+                if (corruption <= -4) return RelicIconAssets.For("starter_AllPurposeOrb_Holy");
+                if (corruption >= 4) return RelicIconAssets.For("starter_AllPurposeOrb_Corrupt");
+            }
+            return RelicIconAssets.For("starter_AllPurposeOrb");
+        }
+    }
 
     public override async Task AfterCombatVictory(CombatRoom room)
     {

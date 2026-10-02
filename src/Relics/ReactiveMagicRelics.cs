@@ -30,7 +30,8 @@ public sealed class CounterCurseMirror : MSRelicTemplate
     // entire awaited reaction chain is guarded, including effects of judgment.
     private static readonly WeakInstanceScope<Creature> Reactions = new();
     public override RelicRarity Rarity => RelicRarity.Rare;
-    public override RelicAssetProfile AssetProfile => RelicIconAssets.For("character_CountercurseMirror");
+    public override RelicAssetProfile AssetProfile => RelicIconAssets.For(HolyVariation
+        ? "character_CountercurseMirror_Holy" : "character_CountercurseMirror");
     protected override IEnumerable<IHoverTip> AdditionalHoverTips =>
         [HoverTipFactory.FromPower<BurningPower>(), HoverTipFactory.FromPower<CondemnationPower>()];
 

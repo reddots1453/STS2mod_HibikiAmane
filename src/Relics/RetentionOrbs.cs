@@ -39,7 +39,20 @@ public sealed class EternalOrb : RetentionOrb
 public abstract class RetentionOrb : ModRelicTemplate
 {
     protected abstract bool IsEternal { get; }
-    public override RelicAssetProfile AssetProfile => RelicIconAssets.For(this is EternalOrb ? "starter_EternalOrb" : "starter_HeroOrb");
+    public override RelicAssetProfile AssetProfile
+    {
+        get
+        {
+            if (this is EternalOrb) return RelicIconAssets.For("starter_EternalOrb");
+            if (IsMutable && Owner is { Character: MaidenSuccubusCharacter, RunState: RunState run })
+            {
+                int corruption = CorruptionQuery.Get(run);
+                if (corruption <= -4) return RelicIconAssets.For("starter_HeroOrb_Holy");
+                if (corruption >= 4) return RelicIconAssets.For("starter_HeroOrb_Corrupt");
+            }
+            return RelicIconAssets.For("starter_HeroOrb");
+        }
+    }
     protected override IEnumerable<IHoverTip> AdditionalHoverTips => [HoverTipFactory.FromKeyword(CardKeyword.Retain)];
 
     public override async Task BeforeFlushLate(PlayerChoiceContext context, Player player)
