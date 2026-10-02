@@ -2275,3 +2275,11 @@ PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.cspr
 - 前置提交 `83cf2ca945a899e2044e8cc1a09683e7d2f19cfd`；目标文件写入前镜像见聊天工作区 `backups/three_variations_promotion_20261003`。
 - 用户审定变身邪瘴天衣、黑暗元素圣洁、黑暗之源圣洁 V02；源候选归档，正式图统一尺寸并按形态保存，运行时动态选图。基础图不变。
 - 更新正式清单与视觉资源门；定向图像哈希/映射验证通过，非部署 Debug 编译 0 警告 0 错误，完整视觉资源检查通过；游戏内切换待验，未部署。
+
+
+## 2026-10-03 多重附魔兼容与终极耀斑能量文字
+
+前置快照 `6863ec656b830ac3eff8337121d1d974abc09ca7`。接入可选MultiEnchantmentMod v2公共API，修复已有附魔牌被选择槽过滤及临时附魔执行拒绝；临时层仅本场战斗，抑制永久牌同步；理外锻成用实际合法目标处理外部全附魔手牌，保留独立版跳过和光之翼规则；灵魂联结/愤怒读取外部槽。终极耀斑只统一减费文字/图标，不改牌效。详见docs/MULTIENCHANT_COMPAT_20261003.md。Debug build待记录；不运行静态测试，暂不部署正式游戏或上传器。
+
+
+最终构建：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误。按用户要求未运行静态测试。测试产物目录为聊天 outputs/multienchant-compat-debug-20261003，包含累计Debug DLL/PDB与当前源码资源PCK；该构建也包含前一批首次无Neow开局的新版地图兜底。游戏内验收NOT_RUN，正式游戏、沙箱活动模组及ModUploader未部署，上传器JSON未修改。

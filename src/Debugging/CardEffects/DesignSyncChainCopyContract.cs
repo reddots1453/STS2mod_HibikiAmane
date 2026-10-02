@@ -16,7 +16,7 @@ namespace MaidenSuccubus.Debugging.CardEffects;
 internal static class DesignSyncChainCopyContract
 {
     internal static readonly Type[] Types = [typeof(SummonThunder), typeof(UltimateFlare), typeof(FlashStab)];
-    private static string Plain(string text) => Regex.Replace(text, @"\[[^\]]*\]", "");
+    private static string Plain(string text) => DesignSyncHolyTextContract.Normalize(text);
 
     internal static void Validate(CardEffectTestContext ctx, CardModel card, bool upgraded)
     {
@@ -24,7 +24,7 @@ internal static class DesignSyncChainCopyContract
         string expected = card switch
         {
             SummonThunder => $"造成{(upgraded ? 9 : 7)}点伤害。\n斩杀时和魔力解放：对生命值最低的敌人造成{(upgraded ? 9 : 7)}点伤害。",
-            UltimateFlare => $"对所有敌人造成{(upgraded ? 52 : 40)}点伤害。\n回合结束时，如果这张牌在你的手牌中，本场战斗中耗能降低1。",
+            UltimateFlare => $"对所有敌人造成{(upgraded ? 52 : 40)}点伤害。\n回合结束时，如果这张牌在你的手牌中，本场战斗费用减少〈能量〉。",
             _ => $"造成{(upgraded ? 7 : 5)}点伤害。\n将一张复制加入抽牌堆。"
         };
         ctx.AssertEqual("chain/copy exact cost", card is SummonThunder ? 1 : card is UltimateFlare ? 4 : 0,

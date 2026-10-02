@@ -201,7 +201,7 @@
   "MAIDEN_SUCCUBUS_CARD_EXPLOSIVE_IMPACT.title": "爆发式冲击",
   "MAIDEN_SUCCUBUS_CARD_EXPLOSIVE_IMPACT.description": "随机造成{Damage:diff()}点伤害2次。\n给予受到伤害的敌人2层[gold]破碎[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_ULTIMATE_FLARE.title": "终极耀斑",
-  "MAIDEN_SUCCUBUS_CARD_ULTIMATE_FLARE.description": "对所有敌人造成{Damage:diff()}点伤害。\n回合结束时，如果这张牌在你的[gold]手牌[/gold]中，本场战斗中耗能降低1。",
+  "MAIDEN_SUCCUBUS_CARD_ULTIMATE_FLARE.description": "对所有敌人造成{Damage:diff()}点伤害。\n回合结束时，如果这张牌在你的[gold]手牌[/gold]中，本场战斗费用减少{energyPrefix:maidenEnergyIcons(1)}。",
   "MAIDEN_SUCCUBUS_CARD_MAGIC_INDEX.title": "魔力索引",
   "MAIDEN_SUCCUBUS_CARD_MAGIC_INDEX.description": "每当你抽到1张[gold]附魔牌[/gold]时，抽1张牌。",
   "MAIDEN_SUCCUBUS_CARD_LULLABY.title": "子守歌",

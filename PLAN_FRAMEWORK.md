@@ -2519,3 +2519,8 @@ PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.cspr
 ## 2026-10-03 已审定三张变奏异画接入（IMPLEMENTED，游戏内待验）
 
 `KW-VARIATION-001` 与初始三牌既有阈值逻辑 → 正式异画清单／运行时模型取图／视觉资源门。变身堕落态及黑暗元素、黑暗之源圣洁态使用各自独立图；基础资源不变，形态按现有 RouteKind 实时选择。前置 HEAD `83cf2ca945a899e2044e8cc1a09683e7d2f19cfd`，无玩法数值变更；游戏内画面切换待验。
+
+
+## MULTIENCHANT-COMPAT-20261003（IMPLEMENTED，待实测）
+
+复核SYS-ENC-001、CARD-N-400～499、锻成/灵魂联结/光之翼完整条目。按用户要求加入可选MultiEnchantmentMod v2公共API桥接，放开已附魔目标的前置槽过滤并使用显式战斗scope、抑制永久牌同步，按实际合法目标决定理外锻成跳过；保留独立版和设计明确的阻断规则。终极耀斑减费文本/能量图标对齐暗之惩戒，牌效不变。验收与构建见docs/MULTIENCHANT_COMPAT_20261003.md。

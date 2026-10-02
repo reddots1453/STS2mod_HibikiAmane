@@ -208,9 +208,10 @@ public sealed class BeyondReasonForge : MSNeutralCard
             && !CombatManager.Instance.IsOverOrEnding;
         CardModel[] hand = PileType.Hand.GetPile(Owner).Cards
             .Where(card => card != this).ToArray();
-        // An already-enchanted hand has no choice to offer, even when its only
-        // card is LightWings (which can normally accept additional layers).
-        if (hand.Length == 0 || hand.All(card => card.Enchantment != null)) return;
+        // Retain the all-enchanted skip for the standalone mod. With the
+        // optional multi-enchantment mod, decide from actual legal effects.
+        if (hand.Length == 0 || (!MultiEnchantmentCompatibility.Active
+            && hand.All(card => card.Enchantment != null))) return;
         List<Option> legal = CreateOptions().Where(option =>
                 hand.Any(card => LayeredEnchantments.HasOpenSlot(card) && option.CanApply(card)))
             .ToList().UnstableShuffle(Owner.RunState.Rng.CombatCardSelection).Take(3).ToList();
@@ -232,7 +233,8 @@ public sealed class BeyondReasonForge : MSNeutralCard
         // target while the chooser was open, do not open an impossible hand prompt.
         CardModel[] currentHand = PileType.Hand.GetPile(Owner).Cards
             .Where(card => card != this).ToArray();
-        if (currentHand.Length == 0 || currentHand.All(card => card.Enchantment != null)
+        if (currentHand.Length == 0 || (!MultiEnchantmentCompatibility.Active
+            && currentHand.All(card => card.Enchantment != null))
             || !currentHand.Any(card => IsEligibleTarget(card, optionDef))) return;
 
         CardModel? target = (await CardSelectCmd.FromHand(context, Owner,

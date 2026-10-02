@@ -17,7 +17,8 @@ internal static class LayeredEnchantments
     }
 
     internal static bool Supports(CardModel card) => card is LightWings;
-    internal static bool HasOpenSlot(CardModel card) => Supports(card) || card.Enchantment == null;
+    internal static bool HasOpenSlot(CardModel card) => Supports(card) || card.Enchantment == null
+        || MultiEnchantmentCompatibility.Active; // CanEnchant still enforces type/cap/duplicate rules.
     internal static bool HidesSlot(CardModel card) => ReferenceEquals(card, _eligibilityCard);
     internal static IDisposable HideSlotForEligibility(CardModel card)
     {
@@ -27,7 +28,8 @@ internal static class LayeredEnchantments
     }
 
     internal static bool Has<T>(CardModel card) where T : EnchantmentModel =>
-        card.Enchantment is T || card.Enchantment is LayeredEnchantment layers && layers.Layers.Any(layer => layer is T);
+        card.Enchantment is T || card.Enchantment is LayeredEnchantment layers && layers.Layers.Any(layer => layer is T)
+        || MultiEnchantmentCompatibility.Has<T>(card);
 
     internal static EnchantmentModel Apply(EnchantmentModel incoming, CardModel card, decimal amount)
     {

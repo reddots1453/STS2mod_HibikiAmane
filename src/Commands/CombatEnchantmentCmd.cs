@@ -90,10 +90,20 @@ public static class CombatEnchantmentCmd
             // the projection getters are suppressed; otherwise EnchantInternal
             // receives a card whose visible Enchantment was deliberately null.
             // Permanent layers are deep-cloned with their deck card. Only
-            // LightWings may add another layer; other cards keep one slot.
+            // LightWings uses its native container; optional multi-enchantment owns other extra slots.
             if (LayeredEnchantments.Supports(card))
             {
                 applied = (T)LayeredEnchantments.Apply(enchantment, card, amount);
+                foreach (ICombatEnchantmentAppliedListener listener in card.CombatState!
+                    .IterateHookListeners().OfType<ICombatEnchantmentAppliedListener>())
+                    listener.AfterCombatEnchantmentApplied(card);
+            }
+            else if (MultiEnchantmentCompatibility.Active)
+            {
+                // The optional mod owns storage, stacking and hook expansion.
+                // Explicit scope + suppression keep this a combat-only change,
+                // including reapplication onto a permanent enchantment clone.
+                applied = MultiEnchantmentCompatibility.ApplyCombat(enchantment, card, amount);
                 foreach (ICombatEnchantmentAppliedListener listener in card.CombatState!
                     .IterateHookListeners().OfType<ICombatEnchantmentAppliedListener>())
                     listener.AfterCombatEnchantmentApplied(card);
