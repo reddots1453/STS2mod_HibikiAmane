@@ -2323,3 +2323,8 @@ PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.cspr
 首次构建实际为1警告0错误（日志读取Reward的可空引用）；已修正该日志空值处理，以下最终0警告结论以随后重新构建为准。
 
 可空日志修正后的重新构建实际通过：0警告0错误，未运行静态测试；最终交付采用这次重建DLL/PDB。
+
+
+## 2026-10-03 慷慨奖励卡死修复部署
+
+接续用户已授权的本轮部署，使用日志确认的慷慨卡死修复Debug构建（0警告0错误），PCK资源未改动、含683条资源；游戏进程关闭后备份安装产物，并部署至正式游戏mods/MaidenSuccubus、兼容沙箱mod-store/local-MaidenSuccubus及沙箱game/mods/local-MaidenSuccubus。三处部署文件逐项SHA-256复核一致，现有JSON哈希不变，未动ModUploader。备份：`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\generosity-choice-deployment-20261003-021842`。本轮文档前置快照`4012e8b07e85eadea3be5a0c27363417bffe558d`；部署明细见聊天outputs/generosity-choice-debug-20261003/deployment-20261003-021842.json。不运行静态测试；画面和玩法由用户实测。
