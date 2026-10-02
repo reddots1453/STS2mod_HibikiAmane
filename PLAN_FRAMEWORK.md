@@ -2524,3 +2524,12 @@ PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.cspr
 ## MULTIENCHANT-COMPAT-20261003（IMPLEMENTED，待实测）
 
 复核SYS-ENC-001、CARD-N-400～499、锻成/灵魂联结/光之翼完整条目。按用户要求加入可选MultiEnchantmentMod v2公共API桥接，放开已附魔目标的前置槽过滤并使用显式战斗scope、抑制永久牌同步，按实际合法目标决定理外锻成跳过；保留独立版和设计明确的阻断规则。终极耀斑减费文本/能量图标对齐暗之惩戒，牌效不变。验收与构建见docs/MULTIENCHANT_COMPAT_20261003.md。
+
+## 2026-10-03 遗物变奏异画与试炼背景（视觉资源）
+
+已审定 8 张遗物异画正式接入：英雄/全能宝珠各正反两态，祈祷耳环圣洁，内用套套堕落，反咒镜圣洁，遗忘之魂堕落。运行时按既有门槛切换 57 套遗物图标；Debug 0 警告 0 错误、完整视觉资源门通过，游戏内复验待做，未部署。女神试炼上方/双选项/选择后四张 2D 赛璐璐背景已按 1840×960 界面截图输出候选，待用户审定后再接入正式素材与 UI。
+
+
+## ART-VARIATION-RUNTIME-20261003（IMPLEMENTED，待实测）
+
+接入已审定五张先古牌、三张卡牌异画、八张遗物异画。沿用KW-VARIATION-001和既有路线阈值，补齐NCard/NRelic可见节点刷新、RelicModel大图缓存失效与完整PCK新增资源打包。效果和阈值不变；详见docs/VARIATION_ART_20261003.md。不运行静态测试，不部署。

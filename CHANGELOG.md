@@ -1,3 +1,10 @@
+## 2026-10-03 — 已审定的 8 张遗物变奏异画正式接入
+
+- 前置 HEAD `83cf2ca945a899e2044e8cc1a09683e7d2f19cfd`；写入前逐文件备份于聊天工作区 `work/relic_variation_promotion_20261003/before`，另保存清单哈希。共享工作树已有大量暂存/未提交修改，未重置或覆盖。
+- 8 张审定图作为透明 master 与 512/64 像素正式素材保存；生成 128 像素白色轮廓图，运行时遗物图标配置由 49 增至 57。英雄宝珠、全能宝珠、祈祷耳环、内用套套、反咒镜、原版遗忘之魂按现有阈值实时取对应异画；永恒宝珠与天穹宝珠保持各自独立图标。
+- 无数值/存档规则变动。`dotnet build MaidenSuccubus.csproj -c Debug --no-restore -p:DeployMod=false -p:ValidateMod=false`：0 警告、0 错误；`scripts/ValidateVisualAssets.ps1 -ProjectDir .`：57 套图标与其他视觉资源全部通过。游戏内状态切换待验；未部署。
+- 同轮女神试炼背景 4 张仅在聊天工作区 `trial_background_candidates_20261003` 保留为待审候选，尺寸依次为 1840×430、774×504、774×504、1840×960；未接入正式运行时。
+
 ## 2026-10-03 — 先古对话安装资源部署记录
 
 27组57句先古对话已部署到本地游戏PCK；包挂载/648资源哈希验证通过，647条其他资源与安装DLL/PDB/清单保持。无部署Debug构建0警告0错误。源码范围提交 `c011eb30a3921a8799a30f8490ef5d6a15fcf55f`，前置 `4c687a970833b298760dbc15abfe407e3ad07f12`；旧包已备份。游戏内验收NOT_RUN，保持IMPLEMENTED；未改上传器或发布Steam。安装PCK SHA-256 `a4acf3304d0b39b792d50a23c82cb552962ce8bc78dd3638462301ba984f662d`。
@@ -2283,3 +2290,11 @@ PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.cspr
 
 
 最终构建：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误。按用户要求未运行静态测试。测试产物目录为聊天 outputs/multienchant-compat-debug-20261003，包含累计Debug DLL/PDB与当前源码资源PCK；该构建也包含前一批首次无Neow开局的新版地图兜底。游戏内验收NOT_RUN，正式游戏、沙箱活动模组及ModUploader未部署，上传器JSON未修改。
+
+
+## 2026-10-03 正式先古牌与变奏美术运行时接入
+
+前置快照`a25fae3cd598100809f3b260f7ccefbc6b5dd716`保存当前美术接入代码及资源；本批补齐堕落值变化时的卡面/遗物刷新和大图缓存失效，完整打包五张先古牌、三张卡牌异画及八张遗物异画。只修改美术接入，不调整玩法。不运行静态测试，不部署正式游戏、沙箱活动模组或ModUploader，不修改上传器JSON。构建结果待记录；详见docs/VARIATION_ART_20261003.md。
+
+
+最终构建：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误。不运行静态测试；游戏内验收NOT_RUN。独立DLL/PDB/完整PCK已保存于聊天outputs/variation-art-debug-20261003，资源条目679个，包含当前正式先古牌与十一张变奏异画的全部运行时图像。未部署正式游戏、沙箱或ModUploader，上传器JSON未修改。

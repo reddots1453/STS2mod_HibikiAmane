@@ -1113,3 +1113,12 @@ FourthRouteLifecycle / FourthRouteQuestSelectionPatch 在单人地图入口复�
 ## 2026-10-03 可选多重附魔兼容（IMPLEMENTED）
 
 SYS-ENC-001 / CARD-N-400～499 → MULTIENCHANT-COMPAT-20261003 → MultiEnchantmentCompatibility / LayeredEnchantments / CombatEnchantmentCmd / BeyondReasonForge。外部API管理附加槽与战斗生命周期，Has<T>识别外部槽，单独启用时仍保留全附魔跳过；合法目标为零时不提示。CARD-N终极耀斑文本 → cards.json / DesignSyncChainCopyContract，条件和数值不变。游戏内NOT_RUN，未运行静态测试，未部署。
+
+## 2026-10-03 遗物变奏异画接入（IMPLEMENTED，游戏内待验）
+
+`KW-VARIATION-001`、`RELIC-START-001/002`、`RELIC-CHAR-002` 与原版遗忘之魂既有变奏规则 → 8 张审定独立图像／小图、大图、轮廓图／运行时阈值切换／视觉资源验证。门槛沿用现有玩法实现，不调整数值或存档。女神试炼界面 4 张背景在聊天工作区待审，暂不计正式资源。DesignDoc 的其他未提交变更未改动；本轮不部署，游戏内待验。
+
+
+## ART-VARIATION-RUNTIME-20261003（IMPLEMENTED）
+
+KW-VARIATION-001 / START-002 / RELIC-START-002/003 / RELIC-CHAR-001/002/003 / 已有RELIC-VANILLA-002视觉 → 正式卡图和遗物异画manifest / CardArtAssets / 遗物AssetProfile与ForgottenSoulVariationPatch / VariationArtRefreshPatch。五张先古牌只换图；三张卡牌和八张遗物异画按既有效果阈值切换，可见节点随所属RunState堕落值变动更新，大图缓存重置；游戏内验收NOT_RUN。
