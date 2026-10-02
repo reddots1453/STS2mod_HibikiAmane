@@ -24,6 +24,8 @@ internal static class VariationArtRefresh
     private static readonly List<WeakReference<NRelic>> Relics = [];
     private static readonly MethodInfo? IconChanged =
         AccessTools.DeclaredMethod(typeof(RelicModel), "RelicIconChanged");
+    private static readonly FieldInfo? RelicModelField =
+        AccessTools.DeclaredField(typeof(NRelic), "_model");
     private static bool _subscribed;
 
     internal static bool HasVariationArt(RelicModel? model) => model is
@@ -37,9 +39,9 @@ internal static class VariationArtRefresh
         IconChanged?.Invoke(model, null);
     }
 
-    internal static void Track(NRelic node)
+    internal static void Track(NRelic node, RelicModel? model)
     {
-        if (!node.IsNodeReady() || !HasVariationArt(node.Model)) return;
+        if (model == null || !node.IsNodeReady() || !HasVariationArt(model)) return;
         Subscribe();
         AddOnce(Relics, node);
     }
@@ -87,9 +89,10 @@ internal static class VariationArtRefresh
                 Relics.Remove(view);
                 continue;
             }
-            if (!node.IsInsideTree() || !HasVariationArt(node.Model)) continue;
-            RelicModel model = node.Model;
-            if (!model.IsMutable || !ReferenceEquals(model.Owner?.RunState, change.RunState)) continue;
+            if (!node.IsInsideTree()) continue;
+            RelicModel? model = RelicModelField?.GetValue(node) as RelicModel;
+            if (model == null || !HasVariationArt(model) || !model.IsMutable
+                || !ReferenceEquals(model.Owner?.RunState, change.RunState)) continue;
             Safe.Run(() => node.Model = model, nameof(VariationArtRefresh));
         }
         foreach (WeakReference<NCard> view in Cards.ToArray())
@@ -116,8 +119,8 @@ internal static class VariationRelicReloadPatch
             Safe.Run(() => VariationArtRefresh.Invalidate(____model!), nameof(VariationRelicReloadPatch));
     }
 
-    private static void Postfix(NRelic __instance) => Safe.Run(
-        () => VariationArtRefresh.Track(__instance), nameof(VariationRelicReloadPatch));
+    private static void Postfix(NRelic __instance, RelicModel? ____model) => Safe.Run(
+        () => VariationArtRefresh.Track(__instance, ____model), nameof(VariationRelicReloadPatch));
 }
 
 [HarmonyPatch(typeof(NCard), "Reload")]

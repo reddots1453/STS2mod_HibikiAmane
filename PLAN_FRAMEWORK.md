@@ -2538,3 +2538,8 @@ PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.cspr
 ## TRIAL-BACKGROUND-20261003（IMPLEMENTED，待实测）
 
 ACT4-001既有开场UI：用户已确认四张候选背景，接入标题/公共叙事、七宗罪、七美德、选择后整屏；此前待审记录已由本次直接授权转为正式接入。TrialBackgroundArt负责等比覆盖、尺寸解耦与输入穿透，FourthRouteOpeningScreen切换背景阶段，旧多人选择器复用选项图。细节与验收见docs/TRIAL_BACKGROUND_20261003.md。不运行静态测试，不部署。
+
+
+## GENEROSITY-CHOICE-20261003（IMPLEMENTED，待实测）
+
+ACT4-001慷慨遗物/供奉互斥选择：本机日志确认原生LinkedRewardSet信号参数错配，后端完成但UI行残留。限GenerosityOfferingGroup修正子领取回调和携带父节点的一次父信号，让原生屏幕完成移除/关闭；不改同步与牌效。附带修正变奏视觉刷新对未赋值NRelic的警告。构建与手测入口见docs/GENEROSITY_CHOICE_20261003.md，不运行静态测试。

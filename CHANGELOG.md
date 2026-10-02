@@ -2311,3 +2311,11 @@ PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.cspr
 ## 2026-10-03 用户授权部署试炼背景测试版
 
 用户要求“部署让我测试下效果”。复用已通过Debug构建（0警告0错误）的c68757e批次DLL/PDB/PCK，完整PCK含683条资源；游戏进程关闭后备份安装产物，并部署至正式游戏mods/MaidenSuccubus、兼容沙箱mod-store/local-MaidenSuccubus及沙箱game/mods/local-MaidenSuccubus。三处部署文件逐项SHA-256复核一致，现有JSON哈希不变，未动ModUploader。备份：`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\trial-background-deployment-20261003-015303`。本轮文档前置快照`a35a8417b0dec0aeda3cb125443be0ab40be1bc8`；部署明细见聊天outputs/trial-background-debug-20261003/deployment-20261003-015303.json。不运行静态测试；画面和玩法由用户实测。
+
+
+## 2026-10-03 慷慨领取遗物后卡死修复
+
+前置快照`8bbb5f5777f3074f6ec946bd2b96db6bb2fbf371`。本机日志确认：领取普通宝箱遗物后，慷慨LinkedRewardSet子信号参数错配导致UI残留，继续按钮再跳过已完成奖励集。仅慷慨二选一使用带参数回调和一次带父节点领取信号，保留原生同步、行移除和关闭。附带修正上一批变奏视觉刷新读取未赋值NRelic的警告。未改设计/资源/上传器JSON，不运行静态测试；构建/部署结果另记，用户手测待做。详见docs/GENEROSITY_CHOICE_20261003.md。
+
+
+构建命令：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误。不运行静态测试，游戏内验收NOT_RUN。本轮仅代码和文档修改，复用上一批哈希一致的完整683条资源PCK，保留全部先古牌/变奏图/试炼背景。独立DLL/PDB/PCK见聊天outputs/generosity-choice-debug-20261003，部署另记。

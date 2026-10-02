@@ -1127,3 +1127,8 @@ KW-VARIATION-001 / START-002 / RELIC-START-002/003 / RELIC-CHAR-001/002/003 / �
 ## TRIAL-BACKGROUND-20261003（IMPLEMENTED）
 
 ACT4-001公共开场叙事/左右双栏/选择后全屏叙事 → 用户确认四张正式背景 → TrialBackgroundArt / FourthRouteOpeningScreen / FourthRouteSelectionScreen / 正式资源manifest。标题与选项分区缩放，确认/恢复时全屏图切换；滚动、按钮、存档和奖励规则保持既有实现。此前四张背景待审状态由本次授权更新为正式接入，游戏内验收NOT_RUN。
+
+
+## GENEROSITY-CHOICE-20261003（IMPLEMENTED）
+
+ACT4-001慷慨宝箱/战利品二选一 → 本机godot.log 3683/3710领取信号/重复跳过错误 → GenerosityLinkedRewardCompletionPatch → typed child callback / once parent signal / 原生RewardCollectedFrom收尾。KW-VARIATION-001视觉 → VariationArtRefreshPatch可空_model保护。原玩法不变，游戏内验收NOT_RUN；燃烧/眼罩补丁安装错误另外记录，不声明已修复。
