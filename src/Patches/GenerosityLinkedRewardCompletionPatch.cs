@@ -41,7 +41,7 @@ internal static class GenerosityLinkedRewardCompletionPatch
             // NRewardsScreen's typed listener removes the row and closes only
             // a completed non-terminal screen. Do not skip a popped rewards set.
             MaidenSuccubusMod.Logger.Info(
-                $"[Generosity] Linked choice UI completed: {button.Reward.GetType().Name}.");
+                $"[Generosity] Linked choice UI completed: {button.Reward?.GetType().Name ?? "Unknown"}.");
         });
     }
 }

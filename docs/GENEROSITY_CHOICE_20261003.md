@@ -18,3 +18,7 @@
 
 
 构建命令：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误。不运行静态测试，游戏内验收NOT_RUN。本轮仅代码和文档修改，复用上一批哈希一致的完整683条资源PCK，保留全部先古牌/变奏图/试炼背景。独立DLL/PDB/PCK见聊天outputs/generosity-choice-debug-20261003，部署另记。
+
+首次构建实际为1警告0错误（日志读取Reward的可空引用）；已修正该日志空值处理，以下最终0警告结论以随后重新构建为准。
+
+可空日志修正后的重新构建实际通过：0警告0错误，未运行静态测试；最终交付采用这次重建DLL/PDB。
