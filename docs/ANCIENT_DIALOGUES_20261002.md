@@ -400,3 +400,7 @@
 ## 本轮验证结果
 
 Debug无部署构建：`dotnet build MaidenSuccubus.csproj -c Debug --no-restore -p:DeployMod=false -p:ValidateMod=false`，0警告、0错误。游戏v0.111.0内置引擎无界面挂载候选PCK，648个资源SHA-256及57正文/30按钮验证通过。与安装前PCK比较，只有`MaidenSuccubus/localization/zhs/ancients.json`改变，647条其他资源逐字节相同。尚未运行自然对话或验证实际富文本视觉；不标VERIFIED。资源部署在范围提交后进行。
+
+## 安装部署结果
+
+用户授权的本地游戏资源部署完成：仅替换`mods/MaidenSuccubus/MaidenSuccubus.pck`，SHA-256 `a4acf3304d0b39b792d50a23c82cb552962ce8bc78dd3638462301ba984f662d`。安装DLL/PDB/清单哈希保持。648条资源仅先古对话改变，其余647条逐字节相同；上传器未改，未执行Steam发布。替换前确认游戏关闭；实机自然拜访和富文本渲染仍NOT_RUN。
