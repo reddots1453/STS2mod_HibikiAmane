@@ -2515,3 +2515,7 @@ PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.cspr
 ## 2026-10-03 ACT4 开场兼容跟进
 
 复核 ACT4-001 的公共叙事、双栏选择、确认后叙事与收据边界；现有 DesignDoc 差异属此前已授权修订，本次不修改设计。首次游戏无 Neow 时地图改走同一新版开场；单人中断故事恢复；多人和旧存档边界保留。新增入口及 Harmony owner 日志。IMPLEMENTED，Debug build 与用户实测状态见 docs/COMPAT_OPENING_20261003.md。
+
+## 2026-10-03 已审定三张变奏异画接入（IMPLEMENTED，游戏内待验）
+
+`KW-VARIATION-001` 与初始三牌既有阈值逻辑 → 正式异画清单／运行时模型取图／视觉资源门。变身堕落态及黑暗元素、黑暗之源圣洁态使用各自独立图；基础资源不变，形态按现有 RouteKind 实时选择。前置 HEAD `83cf2ca945a899e2044e8cc1a09683e7d2f19cfd`，无玩法数值变更；游戏内画面切换待验。

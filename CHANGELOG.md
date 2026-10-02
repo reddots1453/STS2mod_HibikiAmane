@@ -2269,3 +2269,9 @@ PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.cspr
 
 
 构建结果：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误。未运行静态测试，未进行游戏内验收。独立Debug DLL/PDB保存于聊天 outputs/opening-fallback-debug-20261003；尚未替换任何运行中的游戏或沙箱模组。沙箱启动脚本另行修正为保留各配置已保存的加载顺序与单项启用状态，兼容原生序列化的来源名称与配置中的数值来源。
+
+## 2026-10-03 三张变奏卡图正式接入（待游戏内验收）
+
+- 前置提交 `83cf2ca945a899e2044e8cc1a09683e7d2f19cfd`；目标文件写入前镜像见聊天工作区 `backups/three_variations_promotion_20261003`。
+- 用户审定变身邪瘴天衣、黑暗元素圣洁、黑暗之源圣洁 V02；源候选归档，正式图统一尺寸并按形态保存，运行时动态选图。基础图不变。
+- 更新正式清单与视觉资源门；定向图像哈希/映射验证通过，非部署 Debug 编译 0 警告 0 错误，完整视觉资源检查通过；游戏内切换待验，未部署。

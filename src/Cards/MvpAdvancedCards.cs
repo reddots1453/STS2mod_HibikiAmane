@@ -134,7 +134,7 @@ public sealed class YarusMemory : MSHolyCard
 
     public override async Task AfterCardChangedPiles(CardModel card, PileType oldPileType, AbstractModel? source)
     {
-        if (card != this || LinkedOnPickup || oldPileType != PileType.None || card.Pile?.Type != PileType.Deck)
+        if (LinkedOnPickup || !PickupEnchantmentCmd.IsPickupOrDeckTransformation(this, card, oldPileType))
             return;
         LinkedOnPickup = true;
         SoulLinkEnchantment canonical = ModelDb.Enchantment<SoulLinkEnchantment>();
@@ -207,8 +207,12 @@ public sealed class BeyondReasonForge : MSNeutralCard
         bool CanContinue() => CombatState == combat && Owner.Creature.IsAlive
             && !CombatManager.Instance.IsOverOrEnding;
         CardModel[] hand = PileType.Hand.GetPile(Owner).Cards
-            .Where(card => card != this && LayeredEnchantments.HasOpenSlot(card)).ToArray();
-        List<Option> legal = CreateOptions().Where(option => hand.Any(option.CanApply))
+            .Where(card => card != this).ToArray();
+        // An already-enchanted hand has no choice to offer, even when its only
+        // card is LightWings (which can normally accept additional layers).
+        if (hand.Length == 0 || hand.All(card => card.Enchantment != null)) return;
+        List<Option> legal = CreateOptions().Where(option =>
+                hand.Any(card => LayeredEnchantments.HasOpenSlot(card) && option.CanApply(card)))
             .ToList().UnstableShuffle(Owner.RunState.Rng.CombatCardSelection).Take(3).ToList();
         if (legal.Count == 0) return;
 
@@ -224,6 +228,12 @@ public sealed class BeyondReasonForge : MSNeutralCard
         if (!CanContinue() || selectedOption == null || !choiceCards.Contains(selectedOption)) return;
         Option? optionDef = legal.FirstOrDefault(option => option.Id == selectedOption?.ChoiceId);
         if (optionDef == null) return;
+        // The first choice yields. If another effect enchanted or removed every
+        // target while the chooser was open, do not open an impossible hand prompt.
+        CardModel[] currentHand = PileType.Hand.GetPile(Owner).Cards
+            .Where(card => card != this).ToArray();
+        if (currentHand.Length == 0 || currentHand.All(card => card.Enchantment != null)
+            || !currentHand.Any(card => IsEligibleTarget(card, optionDef))) return;
 
         CardModel? target = (await CardSelectCmd.FromHand(context, Owner,
             new CardSelectorPrefs(CardSelectorPrefs.EnchantSelectionPrompt, 1),

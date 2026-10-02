@@ -1104,3 +1104,7 @@ PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.cspr
 ### 2026-10-03 ACT4-001 首次开局兼容
 
 FourthRouteLifecycle / FourthRouteQuestSelectionPatch 在单人地图入口复用 FourthRouteOpeningScreen，解决首次没有 Neow 时出现旧界面；根据 NeedsOpening 兼容叙事中断恢复。FourthRouteOpeningPatch 记录等待点注入、Neow 入口和补丁 owners。试炼条件、奖励及旧跑局已选路线不变；IMPLEMENTED，待首局无 Neow、正常有 Neow、选定后中断恢复手测。
+
+## 2026-10-03 已审定三张变奏异画接入（IMPLEMENTED，游戏内待验）
+
+`KW-VARIATION-001` 与初始三牌既有阈值逻辑 → 正式异画清单／运行时模型取图／视觉资源门。变身堕落态及黑暗元素、黑暗之源圣洁态使用各自独立图；基础资源不变，形态按现有 RouteKind 实时选择。前置 HEAD `83cf2ca945a899e2044e8cc1a09683e7d2f19cfd`，无玩法数值变更；游戏内画面切换待验。
