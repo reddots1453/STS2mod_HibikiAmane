@@ -168,6 +168,8 @@ public sealed partial class FourthRouteSelectionScreen : Control, IScreenContext
         margin.AddThemeConstantOverride("margin_top", 26);
         margin.AddThemeConstantOverride("margin_bottom", 26);
         button.AddChild(margin);
+        TrialBackgroundArt.AddBackdrop(margin,
+            alignment == FourthRouteAlignment.Dark ? "sin.png" : "virtue.png");
 
         VBoxContainer body = new()
         {

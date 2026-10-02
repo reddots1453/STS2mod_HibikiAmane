@@ -19,6 +19,7 @@ public sealed partial class FourthRouteOpeningScreen : Control, IScreenContext
     private readonly TaskCompletionSource<bool> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly List<Button> _buttons = [];
     private VBoxContainer _body = null!;
+    private Control _narrativeBackground = null!;
     private bool _busy;
     private bool _closed;
     public Control? DefaultFocusedControl => _buttons.FirstOrDefault(button => !button.Disabled);
@@ -59,6 +60,8 @@ public sealed partial class FourthRouteOpeningScreen : Control, IScreenContext
         var background = new ColorRect { Color = new Color(0.018f, 0.024f, 0.043f, 1f), MouseFilter = MouseFilterEnum.Stop };
         background.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         AddChild(background);
+        _narrativeBackground = TrialBackgroundArt.AddBackdrop(this, "narrative.png", .38f);
+        _narrativeBackground.Visible = false;
         var margin = new MarginContainer { MouseFilter = MouseFilterEnum.Ignore };
         margin.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         margin.AnchorLeft = .06f; margin.AnchorRight = .94f;
@@ -82,10 +85,13 @@ public sealed partial class FourthRouteOpeningScreen : Control, IScreenContext
     private void ShowChoices(FourthRouteOpeningState opening)
     {
         ClearPage();
-        _body.AddChild(Heading(TextFor("title"), 38));
-        var story = Scroll(TextFor("common"));
-        story.SizeFlagsStretchRatio = .9f;
-        _body.AddChild(story);
+        _narrativeBackground.Visible = false;
+        var header = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore };
+        header.AddThemeConstantOverride("separation", 20);
+        header.AddChild(Heading(TextFor("title"), 38));
+        header.AddChild(Scroll(TextFor("common")));
+        _body.AddChild(TrialBackgroundArt.Banner(header));
         var columns = new HBoxContainer { SizeFlagsVertical = SizeFlags.ExpandFill, SizeFlagsHorizontal = SizeFlags.ExpandFill,
             SizeFlagsStretchRatio = 1.35f };
         columns.AddThemeConstantOverride("separation", 32);
@@ -103,6 +109,7 @@ public sealed partial class FourthRouteOpeningScreen : Control, IScreenContext
             ContentMarginLeft = 24, ContentMarginRight = 24, ContentMarginTop = 20, ContentMarginBottom = 20 };
         style.SetBorderWidthAll(2); style.SetCornerRadiusAll(16);
         panel.AddThemeStyleboxOverride("panel", style);
+        TrialBackgroundArt.AddBackdrop(panel, dark ? "sin.png" : "virtue.png");
         var column = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill, SizeFlagsVertical = SizeFlags.ExpandFill };
         column.AddThemeConstantOverride("separation", 12);
         panel.AddChild(column);
@@ -132,6 +139,7 @@ public sealed partial class FourthRouteOpeningScreen : Control, IScreenContext
                 throw new InvalidOperationException("Opening choice no longer matches the saved offer.");
             if (_closed || !_isCurrent()) { Close(false); return; }
             ClearPage();
+            _narrativeBackground.Visible = true;
             _body.AddChild(Heading(FourthRouteProgressService.QuestName(quest), 38));
             _body.AddChild(Scroll(TextFor(quest + ".story")));
             var proceed = ActionButton(TextFor("continue"), "EnterSpire");
@@ -178,6 +186,8 @@ public sealed partial class FourthRouteOpeningScreen : Control, IScreenContext
             label.AddThemeFontOverride(key, label.GetThemeDefaultFont());
         label.AddThemeFontSizeOverride("normal_font_size", 24);
         label.AddThemeColorOverride("default_color", new Color(.91f, .92f, .96f));
+        label.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, .9f));
+        label.AddThemeConstantOverride("outline_size", 3);
         label.Text = text;
         scroll.AddChild(label);
         return scroll;

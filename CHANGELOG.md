@@ -2298,3 +2298,11 @@ PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.cspr
 
 
 最终构建：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误。不运行静态测试；游戏内验收NOT_RUN。独立DLL/PDB/完整PCK已保存于聊天outputs/variation-art-debug-20261003，资源条目679个，包含当前正式先古牌与十一张变奏异画的全部运行时图像。未部署正式游戏、沙箱或ModUploader，上传器JSON未修改。
+
+
+## 2026-10-03 女神试炼背景正式接入
+
+前置快照`7f983631d217708ac1a5d3b3d3482ac467235ca8`。按用户指定目录接入四张背景，覆盖上方叙事、七宗罪/七美德选项、确认后的整屏叙事；补等比覆盖、文字暗化和背景输入穿透，多人旧选择器复用选项图。仅视觉接入，不改试炼与奖励。不运行静态测试；不部署正式游戏、沙箱或ModUploader，不修改上传器JSON。详见docs/TRIAL_BACKGROUND_20261003.md，构建结果待记录。
+
+
+最终构建：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误。不运行静态测试；游戏内验收NOT_RUN。独立DLL/PDB/完整PCK已保存于聊天outputs/trial-background-debug-20261003，资源条目683个，包含本轮四张试炼背景及此前接入的当前正式美术。未部署正式游戏、沙箱或ModUploader，上传器JSON未修改。

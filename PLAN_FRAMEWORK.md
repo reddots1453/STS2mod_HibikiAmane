@@ -2533,3 +2533,8 @@ PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.cspr
 ## ART-VARIATION-RUNTIME-20261003（IMPLEMENTED，待实测）
 
 接入已审定五张先古牌、三张卡牌异画、八张遗物异画。沿用KW-VARIATION-001和既有路线阈值，补齐NCard/NRelic可见节点刷新、RelicModel大图缓存失效与完整PCK新增资源打包。效果和阈值不变；详见docs/VARIATION_ART_20261003.md。不运行静态测试，不部署。
+
+
+## TRIAL-BACKGROUND-20261003（IMPLEMENTED，待实测）
+
+ACT4-001既有开场UI：用户已确认四张候选背景，接入标题/公共叙事、七宗罪、七美德、选择后整屏；此前待审记录已由本次直接授权转为正式接入。TrialBackgroundArt负责等比覆盖、尺寸解耦与输入穿透，FourthRouteOpeningScreen切换背景阶段，旧多人选择器复用选项图。细节与验收见docs/TRIAL_BACKGROUND_20261003.md。不运行静态测试，不部署。

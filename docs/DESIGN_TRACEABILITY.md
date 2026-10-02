@@ -1122,3 +1122,8 @@ SYS-ENC-001 / CARD-N-400～499 → MULTIENCHANT-COMPAT-20261003 → MultiEnchant
 ## ART-VARIATION-RUNTIME-20261003（IMPLEMENTED）
 
 KW-VARIATION-001 / START-002 / RELIC-START-002/003 / RELIC-CHAR-001/002/003 / 已有RELIC-VANILLA-002视觉 → 正式卡图和遗物异画manifest / CardArtAssets / 遗物AssetProfile与ForgottenSoulVariationPatch / VariationArtRefreshPatch。五张先古牌只换图；三张卡牌和八张遗物异画按既有效果阈值切换，可见节点随所属RunState堕落值变动更新，大图缓存重置；游戏内验收NOT_RUN。
+
+
+## TRIAL-BACKGROUND-20261003（IMPLEMENTED）
+
+ACT4-001公共开场叙事/左右双栏/选择后全屏叙事 → 用户确认四张正式背景 → TrialBackgroundArt / FourthRouteOpeningScreen / FourthRouteSelectionScreen / 正式资源manifest。标题与选项分区缩放，确认/恢复时全屏图切换；滚动、按钮、存档和奖励规则保持既有实现。此前四张背景待审状态由本次授权更新为正式接入，游戏内验收NOT_RUN。
