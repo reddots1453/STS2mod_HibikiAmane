@@ -2510,3 +2510,8 @@ PLAYER-ROUND2-20261002 构建结果：Debug `dotnet build MaidenSuccubus.csproj 
 榨乳器与谦逊遗物生成的牌未登记当前CombatState：日志确认原生抽牌/出牌注册断言失败，统一修正两处生成域并保留谦逊手牌选择；龟缩防御动态文本补“点”；变身悬停按用户两句重写；附魔动画 viewport 补本mod新增图标。范围与日志、原生API、实测入口详见 docs/PLAYER_ROUND2_FOLLOWUP_20261002.md。用户授权修复，保留DesignDoc及其他修改；不运行静态测试，暂不部署或更新ModUploader，现有上传器JSON不动。Debug构建成功，0警告0错误，游戏内待用户实测。
 
 PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`。最终构建成功，0警告0错误；未运行静态测试。本地PCK构建进程退出0，PCK_COMPLETE=648，包含恶魔法杖、龟缩防御与变身说明最新本地化；DLL/PDB/PCK只保存在聊天outputs/player-round2-debug-20261002。资源构建日志有环境证书/Sentry初始化告警，不影响PCK完成；未进行游戏内验收或部署、未更新上传器JSON。
+
+
+## 2026-10-03 ACT4 开场兼容跟进
+
+复核 ACT4-001 的公共叙事、双栏选择、确认后叙事与收据边界；现有 DesignDoc 差异属此前已授权修订，本次不修改设计。首次游戏无 Neow 时地图改走同一新版开场；单人中断故事恢复；多人和旧存档边界保留。新增入口及 Harmony owner 日志。IMPLEMENTED，Debug build 与用户实测状态见 docs/COMPAT_OPENING_20261003.md。

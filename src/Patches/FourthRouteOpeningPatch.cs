@@ -48,6 +48,8 @@ public static class FourthRouteOpeningPatch
                 new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(FourthRouteOpeningPatch), nameof(WaitForOpening))),
             ]);
             replacement = result;
+            MaidenSuccubusMod.Logger.Info("[FourthRouteOpening] await-injection=installed; target="
+                + __originalMethod.DeclaringType?.FullName + "." + __originalMethod.Name);
         }, "FourthRoute.OpeningAwaitInjection");
         return replacement ?? original;
     }
@@ -59,6 +61,8 @@ public static class FourthRouteOpeningPatch
             || ancient.Owner is not { } player || !FourthRouteLifecycle.IsEligible(player) || !LocalContext.IsMe(player)
             || player.RunState is not RunState run || run.Players.Count != 1 || run.CurrentActIndex != 0
             || !GoddessTrialMode.Enabled(run) || !FourthRouteOpeningService.NeedsOpening(run)) return;
+        Safe.Run(() => LogPatchOwners(room), "FourthRoute.OpeningDiagnostics");
+        MaidenSuccubusMod.Logger.Info("[FourthRouteOpening] entry=neow; act=" + run.CurrentActIndex);
         bool Current() => GodotObject.IsInstanceValid(room) && room.IsInsideTree()
             && ReferenceEquals(NEventRoom.Instance, room) && RunManager.Instance.DebugOnlyGetState() == run;
         while (Current() && NModalContainer.Instance?.OpenModal != null)
@@ -73,6 +77,21 @@ public static class FourthRouteOpeningPatch
             MaidenSuccubusMod.Logger.Error("[FourthRouteOpening] UI failed; retaining saved choice and native event. " + ex);
             return;
         }
+        MaidenSuccubusMod.Logger.Info("[FourthRouteOpening] exit=neow; completed=" + completed);
         if (!completed || !Current()) throw new OperationCanceledException("Opening interrupted before ancient rewards.");
+    }
+
+    private static void LogPatchOwners(NEventRoom room)
+    {
+        foreach (MethodBase method in new[]
+        {
+            AccessTools.Method(typeof(NEventRoom), "SetupLayout"), TargetMethod(),
+        })
+        {
+            var info = Harmony.GetPatchInfo(method);
+            string owners = info is null ? "none" : string.Join(",", info.Owners);
+            MaidenSuccubusMod.Logger.Info("[FourthRouteOpening] patches=" + method.DeclaringType?.FullName
+                + "." + method.Name + "; owners=" + owners);
+        }
     }
 }

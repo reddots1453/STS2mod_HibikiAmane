@@ -2261,3 +2261,11 @@ PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.cspr
 - 变更前提交 `4c687a970833b298760dbc15abfe407e3ad07f12`；单文件前镜像及哈希记录在聊天工作区 `backups/ancient_art_promotion_20261002`。
 - 玩家确认谦逊、娅露丝的书库、黑暗之源、节制之戒、节制之环 V03；正式源、清单与运行时同名图同步为606×852 PNG。其余资源及既有暂存不触碰。
 - 仅资源哈希/尺寸/映射验证；未编译、未部署游戏或上传器。变奏异画与其余缺图另列审计报告。
+
+
+## 2026-10-03 首次无 Neow 开局的新版试炼界面兜底
+
+前置快照 `3b7951a26a5c30261a8517c42db8f44f72cefe59`。修复单人地图兜底显示旧女神选择界面，复用新版公共/选择/后续叙事，兼容未完成故事恢复；增加注入成功、入口、完成状态及补丁 owners 诊断。合集中战后奖励未复现卡住，记录 win 后 MayhemPower/Transform 上下文栈错误及启动告警，不宣称修复未复现问题。仅 Debug build，不跑静态测试；仅沙箱测试准备，正式游戏及 ModUploader 未部署。
+
+
+构建结果：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误。未运行静态测试，未进行游戏内验收。独立Debug DLL/PDB保存于聊天 outputs/opening-fallback-debug-20261003；尚未替换任何运行中的游戏或沙箱模组。沙箱启动脚本另行修正为保留各配置已保存的加载顺序与单项启用状态，兼容原生序列化的来源名称与配置中的数值来源。

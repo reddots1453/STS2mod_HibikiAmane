@@ -1,4 +1,6 @@
 using System.Runtime.CompilerServices;
+using Godot;
+using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
@@ -71,10 +73,26 @@ public sealed class FourthRouteLifecycle : SingletonModel
     internal async Task EnsureFourthRouteQuestSelected()
     {
         if (!IsEligible(_owner) || _showingFourthRouteFlow || _owner.RunState is not RunState runState
-            || FourthRouteProgressService.TryGetQuest(runState, out _)) return;
+            || (runState.Players.Count == 1
+                ? !FourthRouteOpeningService.NeedsOpening(runState)
+                : FourthRouteProgressService.TryGetQuest(runState, out _))) return;
         _showingFourthRouteFlow = true;
         try
         {
+            if (runState.Players.Count == 1)
+            {
+                // First-ever runs can skip Neow. Reuse the narrative flow rather
+                // than the old route-only chooser; also resume a locked story.
+                NMapScreen? map = NMapScreen.Instance;
+                bool Current() => map is not null && GodotObject.IsInstanceValid(map)
+                    && map.IsInsideTree() && map.IsOpen && ReferenceEquals(NMapScreen.Instance, map)
+                    && ReferenceEquals(RunManager.Instance.DebugOnlyGetState(), runState);
+                MaidenSuccubusMod.Logger.Info("[FourthRouteOpening] entry=map-fallback; needsOpening="
+                    + FourthRouteOpeningService.NeedsOpening(runState));
+                bool completed = await FourthRouteOpeningScreen.Show(_owner, runState, Current);
+                MaidenSuccubusMod.Logger.Info("[FourthRouteOpening] exit=map-fallback; completed=" + completed);
+                return;
+            }
             var rng = runState.Rng.Niche;
             FourthRouteQuest dark = FourthRouteProgressService.DarkQuests[rng.NextInt(7)];
             FourthRouteQuest light = FourthRouteProgressService.LightQuests[rng.NextInt(7)];

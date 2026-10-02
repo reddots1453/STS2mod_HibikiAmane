@@ -45,7 +45,7 @@ public static class FourthRouteQuestSelectionPatch
             FourthRouteLifecycle.IsEligible(candidate) && LocalContext.IsMe(candidate));
         bool needsQuest = runState is not null
             && GoddessTrialMode.Enabled(runState)
-            && !FourthRouteProgressService.TryGetQuest(runState, out _);
+            && NeedsOpeningChoice(runState);
         bool needsReward = runState is not null
             && GoddessTrialMode.Enabled(runState)
             && FourthRouteProgressService.HasPendingInitialReward(runState);
@@ -87,8 +87,7 @@ public static class FourthRouteQuestSelectionPatch
         if (RunManager.Instance.DebugOnlyGetState() != runState
             || NModalContainer.Instance?.OpenModal is not null
             || (!GoddessTrialMode.NeedsActChoice(runState)
-                && (FourthRouteProgressService.TryGetQuest(runState, out _)
-                    || !GoddessTrialMode.Enabled(runState))
+                && (!GoddessTrialMode.Enabled(runState) || !NeedsOpeningChoice(runState))
                 && !FourthRouteProgressService.HasPendingInitialReward(runState)))
         {
             return;
@@ -96,7 +95,7 @@ public static class FourthRouteQuestSelectionPatch
 
         // Only required opening/alignment choices lock travel. Pending loot is optional.
         bool requiredChoice = GoddessTrialMode.NeedsActChoice(runState)
-            || (GoddessTrialMode.Enabled(runState) && !FourthRouteProgressService.TryGetQuest(runState, out _));
+            || (GoddessTrialMode.Enabled(runState) && NeedsOpeningChoice(runState));
         bool restoreTravel = requiredChoice && map.IsOpen && map.IsTravelEnabled;
         if (restoreTravel) map.SetTravelEnabled(false);
         try
@@ -119,7 +118,7 @@ public static class FourthRouteQuestSelectionPatch
                 }
                 return;
             }
-            if (GoddessTrialMode.Enabled(runState) && !FourthRouteProgressService.TryGetQuest(runState, out _))
+            if (GoddessTrialMode.Enabled(runState) && NeedsOpeningChoice(runState))
                 await FourthRouteLifecycle.For(player).EnsureFourthRouteQuestSelected();
             if (GoddessTrialMode.Enabled(runState) && FourthRouteProgressService.HasPendingInitialReward(runState))
                 await FourthRouteLifecycle.For(player).EnsureFourthRouteRewardClaimed();
@@ -136,6 +135,10 @@ public static class FourthRouteQuestSelectionPatch
             }
         }
     }
+
+    private static bool NeedsOpeningChoice(RunState run) => run.Players.Count == 1
+        ? FourthRouteOpeningService.NeedsOpening(run)
+        : !FourthRouteProgressService.TryGetQuest(run, out _);
 
     private static async Task WaitOneFrame()
     {

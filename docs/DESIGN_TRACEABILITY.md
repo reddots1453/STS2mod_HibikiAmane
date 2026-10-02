@@ -1099,3 +1099,8 @@ PLAYER-ROUND2-20261002 构建结果：Debug `dotnet build MaidenSuccubus.csproj 
 榨乳器与谦逊遗物生成的牌未登记当前CombatState：日志确认原生抽牌/出牌注册断言失败，统一修正两处生成域并保留谦逊手牌选择；龟缩防御动态文本补“点”；变身悬停按用户两句重写；附魔动画 viewport 补本mod新增图标。范围与日志、原生API、实测入口详见 docs/PLAYER_ROUND2_FOLLOWUP_20261002.md。用户授权修复，保留DesignDoc及其他修改；不运行静态测试，暂不部署或更新ModUploader，现有上传器JSON不动。Debug构建成功，0警告0错误，游戏内待用户实测。
 
 PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`。最终构建成功，0警告0错误；未运行静态测试。本地PCK构建进程退出0，PCK_COMPLETE=648，包含恶魔法杖、龟缩防御与变身说明最新本地化；DLL/PDB/PCK只保存在聊天outputs/player-round2-debug-20261002。资源构建日志有环境证书/Sentry初始化告警，不影响PCK完成；未进行游戏内验收或部署、未更新上传器JSON。
+
+
+### 2026-10-03 ACT4-001 首次开局兼容
+
+FourthRouteLifecycle / FourthRouteQuestSelectionPatch 在单人地图入口复用 FourthRouteOpeningScreen，解决首次没有 Neow 时出现旧界面；根据 NeedsOpening 兼容叙事中断恢复。FourthRouteOpeningPatch 记录等待点注入、Neow 入口和补丁 owners。试炼条件、奖励及旧跑局已选路线不变；IMPLEMENTED，待首局无 Neow、正常有 Neow、选定后中断恢复手测。
