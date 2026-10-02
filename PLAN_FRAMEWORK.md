@@ -1,8 +1,103 @@
-# PLAN：Maiden & Succubus 角色MVP与第一轮迭代
+# PLAN：HibikiAmane 角色MVP与第一轮迭代
 
 ## 2026-10-02 先古之民正式对话（ANCIENT-DIALOGUE-20261002，IMPLEMENTED 待实测）
 
 用户确认将审阅稿正式加入游戏；DOC-ANCIENT-DIALOGUE-001 → 既有AncientDialoguePatch登记及localization/zhs/ancients.json → ANCIENT-DIALOGUE-01（9位、27组、57句、30按钮、标签闭合）、02（拜访/重复/建筑师攻击）、03（游戏显示/翻页/富文本）。本轮仅落地叙事，无新奖励、休息或契约机制。保留既有用户DesignDoc修改及共享暂存。安装PCK仅替换先古对话一个条目，其他资源与安装DLL/PDB/清单保持；详见docs/ANCIENT_DIALOGUES_20261002.md。运行时验收NOT_RUN。
+
+
+## 2026-10-02 HibikiAmane累计修复上传准备（UPLOADER-RELEASE-20261002，文件部署完成、游戏内待验）
+
+用户要求本轮所有bug清单并将文件部署到ModUploader准备上传，授权覆盖先前“暂不部署”的上传器文件限制。本轮不部署游戏安装目录，不执行Steam发布。前置快照`61d03721f38e62e514bf9a8b6f5c365374ed4df9`；DesignDoc逐行/词级差异仍为此前已同步内容，未改玩法设计。完整18项累计修订、尚未修复的继续黑屏及实测边界见docs/RELEASE_FIXES_20261002.md。
+
+Release `dotnet build MaidenSuccubus.csproj -c Release -p:DeployMod=false -p:ValidateMod=false --no-restore`成功，0警告0错误；未运行静态测试。PCK重建648资源并完成路径/大小/哈希核验，资源新增变化为characters本地化。官方content/MaidenSuccubus仅同名DLL/has_pck=true JSON/PCK，复制后哈希一致。workshop标题改为HibikiAmane，changeNote记录修订，保留mod_id、预览图和其他属性；旧三文件及配置备份于聊天work/uploader-release-20261002/uploader-before。产物和deployment.json保存于outputs/hibiki-amane-uploader-release-20261002。UPLOADER-RELEASE-01文件部署完成；各玩法验收仍IMPLEMENTED待实测，继续黑屏仅定位，不标VERIFIED。
+
+## 2026-10-02 变化获得卡牌的拾起附魔（PICKUP-TRANSFORM-20261002，IMPLEMENTED 待实测）
+
+CARD-N附魔输入与输出/娅露斯的记忆拾起规则 → 用户报告变化生成卡牌不触发拾起附魔 → PickupEnchantmentCmd.IsPickupOrDeckTransformation及MagicSword/GaleSword/ShiningSword/YarusMemory → PICKUP-TRANSFORM-01/02/03。原生0.107.1和0.111.0的CardCmd.Transform在替换卡插入永久Deck后，AfterCardChangedPiles传入原牌堆Deck；旧代码仅接受None，确实跳过附魔。统一接受None→Deck普通拾起和Deck→Deck变化回调，目标必须是自己。沿用原回调和同步，不全局改原版Hook、不重放所有模型监听、不另开异步选牌任务。三剑各自充能2/迅捷2/活力3及娅露斯的记忆自身与另选牌附魔不变，原已附魔检查与SavedProperty一次性标记保留，战斗生成/战斗内变化不视为拾起。加速运动拾起复制及旧版本黑暗风暴字段不属于本次附魔修复。
+
+PICKUP-TRANSFORM-01：事件/遗物普通及多张变化到三剑，升级/未升级均附魔一次且数值正确。02：变化到娅露斯的记忆进入原牌组选取，完成灵魂联结。03：普通奖励/商店仍触发，重复通知、旧存档加载、抽弃移动及战斗生成不追加附魔，已有其他附魔保留。前置快照`011af5d0ed75802b2893186e278c085270bb996b`；DesignDoc本轮逐行/词级差异仍为此前已同步内容，不覆盖用户设计。用户要求不运行静态测试、暂不部署。Debug `dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 构建成功，0警告0错误；未运行静态测试、未部署。DLL/PDB、更新后的manifest及characters本地化保存于聊天outputs/pickup-transform-debug-20261002。下一次资源部署需包含更新本地化或重建PCK；游戏内待验。
+
+## 2026-10-02 正式模组显示名与设置文案（HIBIKI-NAME-20261002，IMPLEMENTED 待实测）
+
+用户直接确认正式模组名称为HibikiAmane，并要求RitsuLib设置中的“成人”全部改为“瑟瑟”；仅品牌和文案，无玩法语义变更。统一manifest name、试炼设置主标题/模组名、演出设置模组名、上报授权申请显示名、初始化日志和额外开局卡池提示。ModDisplayName为代码唯一名称常量；角色本名仍为响木天音。五处演出设置标题/开关/音量/帮助文字替换为“瑟瑟”。保留ModId、DLL/程序集名、模型ID、资源路径、设置键及存档字段，避免既有存档/开关偏好失效。
+
+HIBIKI-NAME-01：RitsuLib所有本mod设置及授权界面显示HibikiAmane，演出文案显示“瑟瑟”。02：已保存设置和旧跑局仍通过原标识读取，游戏mod列表显示新名称。变更前快照`aab215b5deca36286bb53374c127618a8f16ce16`；用户要求暂不部署、不运行静态测试。Debug `dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 构建成功，0警告0错误；未运行静态测试、未部署。DLL/PDB、更新后的manifest及characters本地化保存于聊天outputs/hibiki-amane-debug-20261002。下一次资源部署需包含更新本地化或重建PCK；游戏内待验。
+
+## 2026-10-02 内部意图状态误显示红剑（INTERNAL-POWER-UI-20261002，IMPLEMENTED 待实测）
+
+截图直接显示powers.MAIDEN_SUCCUBUS_POWER_EROTIC_INTENT_RUNTIME_POWER缺失标题/描述与血条下红剑图标，确认内部存档载体被当普通Power展示；头顶普通攻击是否错误不能由截图确认。源码载体本来IsVisibleInternal=false，0.107.1及0.111.0原生PowerModel.IsVisible均应遵守此值，原生NPowerContainer.Add应检查IsVisible；为什么玩家多mod环境绕过隐藏值仍未证实，不武断归因单一RitsuLib或跨版本适配器。
+
+SYS-CTL/INV、MON-ERO-CATALOG状态持久化和UI边界：在PowerModel.IsVisible后置强制隐藏本mod既有四种内部载体；在原生NPowerContainer.Add前置阻止创建图标，兼顾小getter内联与其他可见性扩展；HoverTips后置清空这些内部项。仅EroticIntentRuntimePower、TemptationRuntimePower、TakemikazuchiTrackerPower、BattleTechniqueReplayPower，均已有隐藏声明；不删除实例、不改SavedProperty、冷却或使用次数，不改真实阈值状态（欲望/拘束/侵犯）、稳固状态和上方当前意图。检查现有意图图标替换入口与0.107.1字段布局匹配，本次不把隐藏载体换成另一张公开图标掩盖问题。
+
+INTERNAL-POWER-UI-01：截图怪物及玩家下方无内部红剑或未翻译内部键，真实状态仍正常。02：重启读战斗后内部计数/冷却仍保留，内部载体不建图标，控制/欲望/侵犯意图按实际选择显示并更新。03：原版/其他modPower显示不受影响，分别在0.107.1多mod与当前0.111.0实测。暂不部署、不运行静态测试；Debug `dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误，谦逊目录786项、0项不支持。DLL/PDB另存聊天outputs/internal-power-ui-debug-20261002；未运行静态测试，未部署、未更新上传器，内部状态隐藏与谦逊手牌界面待用户实测。
+
+
+## 2026-10-02 谦逊切回原生手牌选取（HUMILITY-HAND-20261002，IMPLEMENTED 待新界面实测）
+
+用户实测确认上一轮网格选择已正常；本轮明确要求使用手牌选取界面。对应ACT4-001谦逊的选牌交互：HumilityLesson.OnPlay切回原生CardSelectCmd.FromHand（同原版DualWield等），保留原PlayerChoiceContext、Owner、this来源及原生选择同步。过滤自身与非攻击/技能；无合法候选直接结束；即使仅一张合法牌也RequireManualConfirmation进入手牌选择。PretendCardsCanBePlayed仅消除费用不足的可打出颜色误导，不要求目标当下可打出，改写与附魔规则不变。选后继续检查归属/手牌位置/类型，不使用复制牌作为目标。
+
+此前网格仅为绕过手牌显示问题，旧问题根因并未得到运行时证实，本轮不宣称只改接口已证明消除旧悬停；追加低量进入/返回日志便于复现。HUMILITY-HAND-01：多张攻击/技能时原生手牌界面出现且点选目标改写；02：仅一张仍显示界面，零候选跳过；03：不能选能力/状态/诅咒/自身，选后移出手牌则跳过，升级版及多人原生同步一致。用户确认的旧网格正常仅作为反馈，不将改动后的手牌界面标VERIFIED。遵照暂不部署与不运行静态测试要求，Debug `dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误，谦逊目录786项、0项不支持。DLL/PDB另存聊天outputs/humility-hand-debug-20261002；未运行静态测试，未部署、未更新上传器，新手牌界面待用户实测。
+
+
+## 2026-10-02 重启继续游戏黑屏定位（CONTINUE-DIAG-20261002，定位实现完成，黑屏尚未确认修复）
+
+玩家确认 `godot (1).log` 在继续黑屏后导出，等待数分钟仍未进入。日志为游戏0.107.1/RitsuLib0.6.3，启动到主菜单约167秒，最后只有 Common 772资源+92VFX预加载开始，没有完成标记、Continuing run记录或本模组读档异常。约107个mod及跨版本适配同时启用；133个本mod补丁安装，三个版本相关补丁失败不作为黑屏根因。现有证据不能判定具体阻塞资源/存档步骤，不能标修复或VERIFIED。
+
+按已有存读档/ACT4-001稳定生命周期要求补充 `[ContinueDiag]` 本地日志：只对天音继续流程观察反序列化、读档初始化、重载次数保存、跑局/幕资源、地图生成和最后房间加载；保留原Task及异常传播、不给等待超时强制成功、不跳过存档或奖励。Common启动资源预加载另有低频观察，主线程每秒缓存队列计数/前三个路径及当前VFX，背景每30秒最多20次报告停顿阶段与最后处理时间，不跨线程访问Godot或枚举原生队列、不序列化玩家存档、不增加网络上传。
+
+CONTINUE-DIAG-01：正常重启继续完成，日志记录各阶段而且原状态/遗物不变。CONTINUE-DIAG-02：卡住时30秒后记录当前阶段、加载路径和主线程快照时间，可区分初始化/云保存等待/资源队列停顿。CONTINUE-DIAG-03：其他角色不创建继续流程跟踪，失败仍走原版错误处理。两个游戏版本运行时待用户实测；不运行静态测试。Debug `dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误。定位DLL/PDB保存在聊天outputs/continue-diagnostics-debug-20261002；游戏进程19840仍在运行，未替换安装DLL，用户随后明确要求暂不部署，保留当前安装版本。本轮是定位版本，不宣称黑屏已修复。
+
+
+## 2026-10-02 卡牌预览全部痛击回修（PORTRAIT-PREVIEW-20261002，IMPLEMENTED 待实机复验）
+
+用户日志 `godot (3).log`：游戏0.111.0、RitsuLib0.6.4，MaidenSuccubus DLL/PCK已加载；未记录卡图读/解码失败，也未出现本mod卡图替换成功标记。当前所有 CardAssetProfile 以原版痛击压缩资源作为类型兼容路径，实际已验收图由 CardModel.Portrait 与 NCard.Reload 补丁供给。原版 NCard.UpdateVisuals 会独立调用 UpdatePortrait 重新写图，预览/升级/节点复用无需走 Reload；本轮补齐这个确定的覆盖缺口，不将日志中的其他mod异常当作已确认根因。
+
+`CardArtPresentationPatch`：本角色 CardModel.Portrait 前置返回已缓存真实纹理，保留后置兼容；原版 NCard.UpdatePortrait 及完整 UpdateVisuals 的最后优先级后置重新赋予同一真实纹理，覆盖预览、升级切换、手牌刷新、衍生牌与卡库复用。保留原先大图补丁和原生压缩 PortraitPath，避免恢复 ImageTexture→CompressedTexture2D 转换异常；其他角色直接走原流程，不逐帧刷新、不重复解码。一次性记录成功赋图标记供玩家日志确认。
+
+同日志多次 LibraryAura.Visual 的 canonical Owner 访问警告：LibraryAuraOverlay.Attach 先过滤非mutable预览模型，仅对可变玩家卡访问Owner；不改娅露丝书库手牌光框规则。
+
+验收 PORTRAIT-PREVIEW-01：百科、奖励、悬停、牌堆、升级与大图均显示对应已验收素材，变身/防御等无痛击回退。PORTRAIT-PREVIEW-02：反复升级预览/切换卡牌/滚动卡库后不丢图，普通与先古图均正确；日志出现赋图成功标记且无canonical Owner警告。PORTRAIT-PREVIEW-03：原版其他角色图不受影响，并分别在RitsuLib0.4.64和玩家0.6.4运行时复验。Debug `dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误；不运行静态测试。本轮用户追加要求部署，游戏已关闭，本机原本地mods和Workshop无本模组，现部署至游戏 `mods/MaidenSuccubus`，DLL/PDB/JSON/PCK复制后SHA-256一致；648个资源输入未变，复用既有PCK，安装清单has_pck=true，不建立资源镜像、不更新上传器。运行时仍待用户复验。
+
+
+## 2026-10-01 试炼奖励重复及地图阻塞（TRIAL-REWARD-20261001，IMPLEMENTED 待实机复验）
+
+`ACT4-001`：玩家日志 `godot (2).log` 18671～18703 显示 RelicRewardChoices 连续替换自定义 RelicReward 并独立获取谦逊遗物，但本mod待领取状态未推进，地图入口再次打开奖励。固定试炼奖改为直接继承 Reward，通过内部原生 RelicReward 复用图标、名称、提示和资源登记；原生 NRewardButton/NRewardsScreen 不变，原生遗物入栏动画使用实际取得的实例。固定奖励只调用本mod阶段领取服务，不作为随机遗物奖励被重写；领取时移除旧阶段与同阶段多余副本，保留已取得的目标实例、不重放拾取效果，再消费试炼收据。
+
+用户报告未领取时无法前进：去除试炼奖励 WithSkippingDisallowed 和奖励专用地图锁，允许原生跳过/关闭继续走图，保存收据仍待领取。同一玩家、同一房间、同一收据至多提示一次，避免关闭后帧监听或地图反复打开；下一房间/读档重新提供，初始路线选择及跨幕对齐选择仍遵循原规则。本项替代此前 TRIAL-SHOP 的“不可跳过界面”约束，关闭只延后领奖，永久权益不丢弃。
+
+验收 TRIAL-REWARD-01：启用 RelicRewardChoices，完成谦逊等试炼后领取一次、仅一个对应阶段遗物、堕落偏移一次、试炼进度进入碎片/献祭/完成。TRIAL-REWARD-02：不领取关闭界面后可以走图，本房间开关地图不反复弹奖，下一房间仍可领取；事件结束选项和原生战斗奖励继续正常。TRIAL-REWARD-03：已有重复目标阶段遗物且收据待领取时，保留一份并推进，不重放它的拾取效果；两次点击和并发入口不重复。上述场景分别在仅本mod+RitsuLib和同时启用 RelicRewardChoices 两种环境验收；实现不引用、不禁用第三方mod，原版 RewardsSetSynchronizer 按 Reward 基类正常领取和关闭，普通随机遗物战利品不改。Debug `dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误；仅无部署 build，不运行静态测试，不更新上传器，玩家手测后才标 VERIFIED。
+
+
+## 2026-10-01 节制牌堆递归回修（TEMPERANCE-CHAIN-20261001，IMPLEMENTED 待实机复验）
+
+用户确认实施上一轮方案，覆盖 `ACT4-001` 节制之戒／环。参照原版 Cascade 的批次顺序，随机选中的原卡实例先全部通过 `CardPileCmd.Add` 移到 Play，再逐张 `CardCmd.AutoPlay`。同一玩家、同一战斗的嵌套节制调用共享按引用比较的已预留集合，批次搬运前标记所有实例；在这条结算链里已预留或已结算的实例不再抽样，同名不同实例仍各可打出。最外层调用结束或异常时释放记录，下一条链和下一回合可重新选取。无可选实例时直接结束；源能力失效时将尚未打出的暂存实例归还原牌堆，战斗结束遵循原生清理。
+
+验收 `TEMPERANCE-CHAIN-01`：节制之环+消耗堆两张节制之戒，选堆后两戒均正常结算且无递归互打；其中一张回到消耗堆后，同链嵌套不再重选。`TEMPERANCE-CHAIN-02`：抽牌堆/弃牌堆选中批次在第一张结算前已离堆，费用、目标、消耗与原生自动出牌一致。`TEMPERANCE-CHAIN-03`：下一回合/独立调用可再次打出相同实例，多人记录独立，能力提前失效不留未打出的牌在 Play。只执行无部署编译，用户实机复验；不运行静态测试、不更新 ModUploader、不部署。
+
+
+## 2026-10-01 玩家测试回修（PLAYER-BUGFIX-20261001，IMPLEMENTED 待实机复验）
+
+依据 DesignDoc `SYS-COR-002`、`CARD-C` 燃烧、`ACT4-001` 嫉妒/谦逊/节制，修复四项已报告的运行时缺陷：燃烧敌人侧改在 `BeforeAttack` 结算，先于攻击动画/伤害；处女跨层奖励从从未被原生 RunState 枚举的角色钩子移到独立运行订阅者，按层幂等；嫉妒永久删牌进度改监听原生 `BeforeCardRemoved`；谦逊选择改用原生简单网格并在选择返回后复核手牌目标；节制三堆选项标题改为按每张选择牌实例绑定名称。`DESIGN_TRACEABILITY` 列出各入口。前置快照 `codex/before-player-bugfix-20261001`，不覆盖用户未提交的 DesignDoc 差异。
+
+节制之戒／环互相自动打出的无限链本轮仅研究：现有 `TemperancePileCmd` 每层递归各自重新抽样，未共享已经自动打出的牌身份。推荐后续实现一次顶层自动打出链共享已访问牌实例集合，重复实例跳过，并加异常深度上限；新回合重新建链。该方案保留首次打出另一张节制牌，较永久禁打节制牌更符合随机打出牌堆的设计。暂不修改该逻辑。
+
+遵照用户要求不再运行静态测试。Debug 无部署编译及 Release 无部署编译均通过，0警告0错误；最终 Release 谦逊抽取目录786项成功、0项不支持。游戏内时序、跨层和选择界面尚未复验，不标 `VERIFIED`。原安装目录当前没有 MaidenSuccubus，本批不创建本地重复安装；为创意工坊复测另备官方上传器包，但不代替用户上传。
+
+
+## 2026-10-01 四张卡规则回修与 RitsuLib 本地跑局队列（CARD-TELEM-20261001，IMPLEMENTED 待实机验收）
+
+追加“咬”：现有卡牌已为2费普通技能、随身，并通过 `Iteration1CardTargetPatch` 限定仅能选择侵犯意图敌人。升级新增保留，原有7层虚弱与击晕不变；更新Debug基础/升级契约，游戏内待验。
+
+用户确认火焰绽放解放额外给予2层燃烧、魔法师的秘诀普通效果恒为1层且升级仅增加解放层数、泡澡不再永久移除诅咒、太阳之舞费用改为1。源卡牌、中文卡面、独立Debug效果与全文契约同步；设计文档只同步这四张经用户明确确认的规则，不覆盖其他未提交内容。RitsuLib 0.4.64 注册响木天音的跑局记录申请，只在用户授权后捕获本角色参与的完整跑局（多人跑局包括其他玩家信息）；DisabledTelemetryAdapter 无网络接收端，队列持久保留在本地，RitsuLib 设置页可撤销并清空。未申请诊断、模组清单或其他类别；未来添加接收端前须审查已排队数据和授权提示。四张卡及授权队列通过无部署 Debug 全部校验；追加“咬”后按用户要求仅完成 Debug 编译。游戏内授权、跑局结算及卡牌效果待验，未部署。
+
+
+## 2026-10-01 理外锻成全附魔手牌跳过（FORGE-ALL-ENCHANTED-20261001，IMPLEMENTED 待复验）
+
+CARD-N-400～499／SYS-ENC-001：用户报告手牌全已附魔时理外锻成卡住。游戏日志另证实附魔提示图标发生 ImageTexture→CompressedTexture2D 异常，兼容补丁已在未部署源码中。出牌前若所有其他手牌已附魔（包含光之翼）直接结束且正常消耗；第一段选择返回后若目标已全部附魔、离手或所选附魔无合法目标，跳过第二段选牌。保留有普通空槽时光之翼可多重附魔。基础/升级追加空候选及选择期间全附魔回归，Debug 契约编译，待游戏内执行和图标复验。
+
+## 2026-10-01 战斗衍生牌、奖励预览与原生击晕冲突（RUNTIME-BUGFIX-20261001，IMPLEMENTED 待复验）
+
+基于玩家实测继续修复多处衍生牌加入抽/弃牌堆时缺少原生入堆预览的问题，覆盖卡牌、附魔、遗物和敌人状态/诅咒来源；结算后牌堆数字与动画同步。拘束被格挡后自然意图冷却1回合，命中后冷却2回合。魔法之剑奖励大图中的自定义附魔图标改为兼容原版悬停所需的纹理类型。噬尸蛞蝓日志显示色情意图执行，但没有对应异常；原生 RavenousPower 的击晕可能被模组未执行的临时意图阻断，针对 STUNNED 优先替换并记录诊断。验收：一次性战斗运行18场景控制意图测试，噬尸蛞蝓同伴死亡时实际出现并执行击晕；卡牌奖励打开魔法之剑大图；多来源衍生牌入堆计数与动画一致。Debug/Release 无部署完整构建均为0警告0错误；游戏运行中，未替换安装DLL，实机待复验。
 
 
 ## 2026-10-01 已完成卡图漏映射修复（FORMAL-CARD-ALIGN-20261001，IMPLEMENTED 待复验）
@@ -540,6 +635,8 @@ Q21已确认持续手牌效果；以打出施加为前提的Q22不再适用。�
 同步`cf715fd6`；返回守卫与DesignSyncForgeContract完成，基础/升级每个最低120效果断言，包含独立九项期望/选择随机预测、技能过滤、空候选、四种选择失效、多重附魔和永久牌组隔离；已编译未执行。7新增静态累计498，13747规则/33编码、双构建四门及视觉门通过；统一11/12，保留GagCurse费用失败，无源码漂移。未部署，详见`docs/DESIGN_SYNC_20260927_BATCH59.md`。
 
 ### DS27-02AB：多重再现到期与其他额外回合共存（IMPLEMENTED，游戏内待验）
+
+2026-10-01 回修 DS27-02AB-R1（READY→IMPLEMENTED，游戏内待验）：DesignDoc 的 CARD-H-950～999 将费用从固定2改为基础2/升级1；玩家同时报告“本回合”和“下回合”Power无法叠加，覆盖旧批次保留 Single 的约束。采用一个 Counter Power，其 Amount 为全部待发放额外回合数，并以保存的 ReadyGrants/PendingGrants 区分本回合与下回合；同回合重复施加分别累加，下个个人回合开始将待发放层迁至可发放层。每次额外回合广播只消费一个已到期层；重复原生查询不改变状态，未到期层不被其他来源广播消费。旧存档的 DelayOneTurn/DelayAppliedOnTurn 字段保留并迁移。左上/右上角标和混合提示分别显示两种层数，避开原生总数角标。验收：基础/升级费用、同类两次、混合时点、连续额外回合、旧存档字段、Ambergris共存与失效实例；Debug/Release无部署构建、静态门及实际游戏手测分开记录。邪瘴天衣说明与娅露丝书库章节移动仍按先前同步任务处理，不覆盖用户未提交的DesignDoc。
 
 前置`242902d3`，DesignDoc逐行/词级无漂移，完整复核CARD-H-950～999多重再现。原版ShouldTakeExtraTurn短路查询、AfterTakingExtraTurn广播给全部监听者；现实现查询会修改DelayOneTurn且广播无条件移除，可能提前消耗未到期状态。改为纯查询，拥有者下一回合开始时到期，只消费已到期的状态；记录施加时个人回合号，避免回合开始自动打出后同轮立即到期。保留Single堆叠、原数值/解放/描述/保存字段，不擅自定义多张叠加奖励。补原生Ambergris共存、重复查询、他人回合、实际出牌和失效实例守卫测试；无部署构建和统一验证，游戏脚本编译不代表执行。
 
@@ -2388,9 +2485,6 @@ DS27-05整体未完成：42试炼、沉睡遗物、奖励替换、碎片及献�
 
 `ASSET-CEL-UI-20261001`：前置`5a1a9aacd86979facd5221705a830a726bc02706`。遗物43枚V3赛璐璐为待审阅候选，未绑定RelicAssetProfile；8枚现行附魔候选不改。`START-001`选角专用图按原版132×195适配；`SYS-TRF-004`商店立绘0.40→0.46且脚底锚点保持。正常/锁定图、兼容别名与正式源一致，保留通用头像。角色显示IMPLEMENTED，需重启后选角/锁定/商店和不同窗口比例实机复验；本批不部署，不改变DesignDoc玩法。
 
-
-`ASSET-CEL-UI-20261001`：前置`5a1a9aacd86979facd5221705a830a726bc02706`。遗物43枚V3赛璐璐为待审阅候选，未绑定RelicAssetProfile；8枚现行附魔候选不改。`START-001`选角专用图按原版132×195适配；`SYS-TRF-004`商店立绘0.40→0.46且脚底锚点保持。正常/锁定图、兼容别名与正式源一致，保留通用头像。角色显示IMPLEMENTED，需重启后选角/锁定/商店和不同窗口比例实机复验；本批不部署，不改变DesignDoc玩法。
-
 本批最终验证：43枚遗物RGBA/512/64/清单哈希、两张选角132×195/源运行时一致性及商店有效脚底保持全部通过；ValidateVisualAssets.ps1完整视觉门通过；Debug --no-restore -p:DeployMod=false -p:ValidateMod=true完整构建通过，0警告0错误。首次构建碰到并行演出代码暂时不一致，相关引用由独立批次同步后，本批重新完整构建通过。仍未部署，游戏内复验NOT_RUN，角色资源标IMPLEMENTED，遗物仍为待审阅候选。
 
 
@@ -2402,3 +2496,17 @@ DS27-05整体未完成：42试炼、沉睡遗物、奖励替换、碎片及献�
 `MERCHANT-SIZE-V2-20261001`（SYS-TRF-004，IMPLEMENTED）：前置`46d4f38f90eda3685350b6cac7a845fb466e0f25`。修复RitsuLib 0.4.64商店自定义Sprite2D根转换时重复缩放，调整为中性Node2D根和Visuals单次0.35，人物可见高515.9，处于原版猎手460.8/铁甲557.4setup范围。内部脚底补偿13.65，继续沿用原生多玩家位置。PNG无修改；上次单次0.46高度估算已由本批更正。定向转换几何/资源门/无部署构建后，人物身高、脚底、多人和商品按钮实机复验NOT_RUN，不部署。
 
 本批最终验证：PNG哈希保持、版本场景/源码一致、RitsuLib转换后高度515.9/脚底0、原版setup范围及1/2/4人原生布局几何检查全部通过；Debug --no-restore -p:DeployMod=false -p:ValidateMod=true完整构建和资源门通过，0警告0错误。未部署，游戏内复验NOT_RUN，IMPLEMENTED。
+
+
+## 2026-10-02 第二轮玩家反馈修复（PLAYER-ROUND2-20261002，IMPLEMENTED）
+
+用户直接授权六项：试炼遗物内层能量参数、死亡复活/爆炸等特殊意图优先、恶魔法杖消耗引号、燃烧逐段、事件选牌堕落概率、满欲望语音去重。具体路径、原生两版本检查与实测入口见 docs/PLAYER_ROUND2_20261002.md。事件范围按本轮用户修订覆盖旧设计限定，燃烧仅补敌人多段结算；保留用户 DesignDoc 不改写。仅编译，不运行静态测试、暂不部署到游戏或上传器，既有上传器 JSON 不变。状态 IMPLEMENTED，游戏内待用户验证。
+
+PLAYER-ROUND2-20261002 构建结果：Debug `dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误；未运行静态测试、未部署。
+
+
+## 2026-10-02 第二轮追加反馈（PLAYER-ROUND2-FOLLOWUP-20261002，IMPLEMENTED）
+
+榨乳器与谦逊遗物生成的牌未登记当前CombatState：日志确认原生抽牌/出牌注册断言失败，统一修正两处生成域并保留谦逊手牌选择；龟缩防御动态文本补“点”；变身悬停按用户两句重写；附魔动画 viewport 补本mod新增图标。范围与日志、原生API、实测入口详见 docs/PLAYER_ROUND2_FOLLOWUP_20261002.md。用户授权修复，保留DesignDoc及其他修改；不运行静态测试，暂不部署或更新ModUploader，现有上传器JSON不动。Debug构建成功，0警告0错误，游戏内待用户实测。
+
+PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`。最终构建成功，0警告0错误；未运行静态测试。本地PCK构建进程退出0，PCK_COMPLETE=648，包含恶魔法杖、龟缩防御与变身说明最新本地化；DLL/PDB/PCK只保存在聊天outputs/player-round2-debug-20261002。资源构建日志有环境证书/Sentry初始化告警，不影响PCK完成；未进行游戏内验收或部署、未更新上传器JSON。

@@ -122,14 +122,23 @@ public sealed class FourthRouteLifecycle : SingletonModel
         // trial/reward flow may awaken its relic; ending is handled by vanilla.
     }
 
-    public override async Task AfterCardChangedPiles(CardModel card, PileType oldPileType, AbstractModel? source)
+    public override Task BeforeCardRemoved(CardModel card)
+    {
+        // Permanent deck removal uses this hook, not AfterCardChangedPiles.
+        if (!IsEligible(_owner) || card.Owner != _owner || card.Pile?.Type != PileType.Deck
+            || _owner.RunState is not RunState runState
+            || !FourthRouteProgressService.TryGetQuest(runState, out FourthRouteQuest quest)
+            || quest != FourthRouteQuest.Envy) return Task.CompletedTask;
+        return FourthRouteProgressService.AddProgress(_owner, quest);
+    }
+
+    public override Task AfterCardChangedPiles(CardModel card, PileType oldPileType, AbstractModel? source)
     {
         if (!IsEligible(_owner) || card.Owner != _owner || _owner.RunState is not RunState runState
-            || !FourthRouteProgressService.TryGetQuest(runState, out FourthRouteQuest quest)) return;
-        if (quest == FourthRouteQuest.Envy && oldPileType == PileType.Deck && card.Pile?.Type != PileType.Deck)
-            await FourthRouteProgressService.AddProgress(_owner, quest);
-        else if (quest == FourthRouteQuest.Benevolence && oldPileType == PileType.None && card.Pile?.Type == PileType.Deck)
-            await FourthRouteProgressService.AddProgress(_owner, quest);
+            || !FourthRouteProgressService.TryGetQuest(runState, out FourthRouteQuest quest)
+            || quest != FourthRouteQuest.Benevolence || oldPileType != PileType.None
+            || card.Pile?.Type != PileType.Deck) return Task.CompletedTask;
+        return FourthRouteProgressService.AddProgress(_owner, quest);
     }
 
     internal Task TrackSimple(FourthRouteQuest expected)

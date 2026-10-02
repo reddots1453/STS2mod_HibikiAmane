@@ -94,7 +94,10 @@ public static class FourthRouteQuestSelectionPatch
             return;
         }
 
-        bool restoreTravel = map.IsOpen;
+        // Only required opening/alignment choices lock travel. Pending loot is optional.
+        bool requiredChoice = GoddessTrialMode.NeedsActChoice(runState)
+            || (GoddessTrialMode.Enabled(runState) && !FourthRouteProgressService.TryGetQuest(runState, out _));
+        bool restoreTravel = requiredChoice && map.IsOpen && map.IsTravelEnabled;
         if (restoreTravel) map.SetTravelEnabled(false);
         try
         {
