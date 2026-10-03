@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Random;
 using MegaCrit.Sts2.Core.Runs;
+using MegaCrit.Sts2.Core.Rooms;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Core.Routes;
@@ -19,10 +20,18 @@ public static class RouteCardRewardService
         List<CardCreationResult> options,
         CardCreationOptions creationOptions)
     {
-        if (!IsEligibleEncounterReward(player, options, creationOptions))
+        if (!IsEligibleRouteReward(player, options, creationOptions))
         {
             return false;
         }
+
+        // Event offers may also contain cards from other colors. Only replace
+        // a character-pool slot; explicit colorless/other-character rewards stay intact.
+        int[] eligibleSlots = Enumerable.Range(0, options.Count)
+            .Where(index => creationOptions.Source == CardCreationSource.Encounter
+                || options[index].Card.Pool.Id == player.Character.CardPool.Id)
+            .ToArray();
+        if (eligibleSlots.Length == 0) return false;
 
         Rng rng = creationOptions.RngOverride ?? player.PlayerRng.Rewards;
         var bonus = RouteRewardProbabilityModifiers.GetTotal(player);
@@ -36,13 +45,14 @@ public static class RouteCardRewardService
             return false;
         }
 
-        int replacementIndex = rng.NextInt(options.Count);
+        int replacementIndex = eligibleSlots[rng.NextInt(eligibleSlots.Length)];
         CardModel originalCard = options[replacementIndex].Card;
         CardModel[] candidates = GetCandidates(
             player,
             selectedRoute,
             originalCard.Rarity,
-            options);
+            options,
+            creationOptions);
         if (candidates.Length == 0)
         {
             MaidenSuccubusMod.Logger.Info(
@@ -63,30 +73,32 @@ public static class RouteCardRewardService
         MaidenSuccubusMod.Logger.Info(
             $"Route reward replaced slot {replacementIndex}: " +
             $"{originalCard.Id} -> {replacement.Id}, " +
-            $"route={selectedRoute}, rarity={replacement.Rarity}.");
+            $"route={selectedRoute}, rarity={replacement.Rarity}, source={creationOptions.Source}.");
         return true;
     }
 
     public static RouteCardKind RollRoute(RouteRewardProbabilities probabilities, float roll) => probabilities.RollRoute(roll);
 
-    private static bool IsEligibleEncounterReward(
+    private static bool IsEligibleRouteReward(
         Player player,
         List<CardCreationResult> options,
         CardCreationOptions creationOptions) =>
         player.Character is MaidenSuccubusCharacter
         && player.RunState is RunState
         && options.Count > 0
-        && creationOptions.Source == CardCreationSource.Encounter
-        && creationOptions.RarityOdds is
-            CardRarityOddsType.RegularEncounter
-            or CardRarityOddsType.EliteEncounter
-            or CardRarityOddsType.BossEncounter;
+        && ((creationOptions.Source == CardCreationSource.Encounter
+                && creationOptions.RarityOdds is CardRarityOddsType.RegularEncounter
+                    or CardRarityOddsType.EliteEncounter or CardRarityOddsType.BossEncounter)
+            || (creationOptions.Source == CardCreationSource.Other
+                && player.RunState.CurrentRoom is EventRoom
+                && creationOptions.CardPools.Any(pool => pool.Id == player.Character.CardPool.Id)));
 
     private static CardModel[] GetCandidates(
         Player player,
         RouteCardKind route,
         CardRarity rarity,
-        IEnumerable<CardCreationResult> currentOptions)
+        IEnumerable<CardCreationResult> currentOptions,
+        CardCreationOptions creationOptions)
     {
         CardPoolModel pool = route switch
         {
@@ -105,7 +117,8 @@ public static class RouteCardRewardService
                 player.RunState.CardMultiplayerConstraint)
             .Where(card =>
                 card.Rarity == rarity
-                && !offeredIds.Contains(card.Id))
+                && !offeredIds.Contains(card.Id)
+                && (creationOptions.CardPoolFilter == null || creationOptions.CardPoolFilter(card)))
             .OrderBy(card => card.Id.Entry, StringComparer.Ordinal)
             .ToArray();
     }

@@ -17,6 +17,7 @@ using STS2RitsuLib.Keywords;
 using MaidenSuccubus.UI;
 using MaidenSuccubus.Localization;
 using MaidenSuccubus.Presentation;
+using MaidenSuccubus.Telemetry;
 #if DEBUG
 using MaidenSuccubus.Debugging.CardEffects;
 using MaidenSuccubus.Debugging.ControlIntents;
@@ -28,11 +29,12 @@ namespace MaidenSuccubus;
 public static class MaidenSuccubusMod
 {
     public const string ModId = "MaidenSuccubus";
+    public const string ModDisplayName = "HibikiAmane";
     public static readonly Logger Logger = RitsuLibFramework.CreateLogger(ModId);
 
     public static void Init()
     {
-        Logger.Info("Maiden & Succubus v0.1.0 initializing...");
+        Logger.Info($"{ModDisplayName} v0.1.0 initializing...");
         ModCompatibility.LogAndValidate();
 
         var assembly = Assembly.GetExecutingAssembly();
@@ -44,6 +46,7 @@ public static class MaidenSuccubusMod
         RegisterRunSavedData();
         Util.Safe.Run(Acts.GoddessTrialMode.Register, "GoddessTrial.RegisterSettings");
         Util.Safe.Run(PerformanceSettings.Register, "Performance.RegisterSettings");
+        Util.Safe.Run(MaidenTelemetry.Register, "Telemetry.RegisterApplicant");
         RegisterKeywords();
         DesireResource.Register();
         DesirePersistenceCoordinator.Initialize();
@@ -70,6 +73,7 @@ public static class MaidenSuccubusMod
         // Run callbacks include combat callbacks where needed. This separate
         // per-player tracker survives starter replacement without double hooks.
         ModHelper.SubscribeForRunStateHooks(ModId + ".FourthRoute", Acts.FourthRouteLifecycle.Listeners);
+        ModHelper.SubscribeForRunStateHooks(ModId + ".CorruptionAct", Acts.CorruptionActLifecycle.Listeners);
         RunFrameworkSelfTestsWithoutBlockingInitialization();
 #if DEBUG
         CardEffectTestHotkey.Register();
@@ -94,7 +98,7 @@ public static class MaidenSuccubusMod
         if (MvpFeatureFlags.ControlAndInvasion)
             Logger.Info(
                 "Escape projection uses a RitsuLib capability attached to each controlled card instance.");
-        Logger.Info($"Maiden & Succubus ready — {patchCount} patches applied");
+        Logger.Info($"{ModDisplayName} ready — {patchCount} patches applied");
     }
 
     private static void RunFrameworkSelfTestsWithoutBlockingInitialization()

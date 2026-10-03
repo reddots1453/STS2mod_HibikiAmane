@@ -515,7 +515,7 @@ public sealed class BiteInvader : MSCorruptCard
         await IntentMoveFactory.Stun(play.Target);
     }
 
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade() => AddKeyword(CardKeyword.Retain);
 }
 
 [RegisterDustyTomeCard(typeof(MaidenSuccubus.Characters.MaidenSuccubusCharacter))]

@@ -319,10 +319,11 @@ public sealed class HumilityRouteRelic : FourthRouteRelic
     public override FourthRouteQuest Quest => FourthRouteQuest.Humility;
     public override async Task BeforeCombatStart()
     {
-        if (Stage == 0) return;
-        HumilityLesson card = Owner.RunState.CreateCard<HumilityLesson>(Owner);
+        if (Stage == 0 || Owner.Creature.CombatState is not { } combat) return;
+        HumilityLesson card = combat.CreateCard<HumilityLesson>(Owner);
         if (Stage >= 2) CardCmd.Upgrade(card);
-        await CardPileCmd.Add(card, PileType.Hand);
+        await CardPileCmd.AddGeneratedCardToCombat(card, PileType.Hand, Owner);
+        MaidenSuccubusMod.Logger.Info("[Humility] Generated trial card in the active combat scope.");
     }
     public override Task AfterCardPlayed(PlayerChoiceContext context, CardPlay cardPlay)
     {

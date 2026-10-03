@@ -139,6 +139,7 @@ public static class Desire
             {
                 state.Amount = normalized;
                 state.HasValue = true;
+                if (normalized < Max) state.MaximumAudioTriggered = false;
             });
     }
 

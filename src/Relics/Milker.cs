@@ -31,12 +31,18 @@ public sealed class Milker : MSRelicTemplate
         await CreatureCmd.Damage(new ThrowingPlayerChoiceContext(), Owner.Creature,
             3, ValueProp.Unpowered, null, null);
         if (!Owner.Creature.IsAlive) return;
+        // RunState.CreateCard does not register a card with the live combat.
+        var combat = Owner.Creature.CombatState!;
+        List<CardPileAddResult> added = [];
         for (int i = 0; i < 2; i++)
         {
-            Milk milk = Owner.RunState.CreateCard<Milk>(Owner);
-            await CardPileCmd.AddGeneratedCardToCombat(
-                milk, PileType.Draw, Owner, CardPilePosition.Random);
+            Milk milk = combat.CreateCard<Milk>(Owner);
+            added.Add(await CardPileCmd.AddGeneratedCardToCombat(
+                milk, PileType.Draw, Owner, CardPilePosition.Random));
         }
+        MaidenSuccubusMod.Logger.Info("[Milker] Generated two Milk cards in the active combat scope.");
+        CardCmd.PreviewCardPileAdd(added);
+        await Cmd.Wait(1f);
         Flash();
     }
 
