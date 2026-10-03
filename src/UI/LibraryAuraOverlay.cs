@@ -18,6 +18,9 @@ internal partial class LibraryAuraOverlay : Control
 
     internal static void Attach(NCard card)
     {
+        // Compendium and hover-tip cards may use canonical read-only models.
+        // Owner is a mutable-only property, so do not access it for those previews.
+        if (card.Model is not { IsMutable: true }) return;
         if (card.GetNodeOrNull<Control>("CardContainer") is not { } container
             || container.GetNodeOrNull<LibraryAuraOverlay>(NodeName) != null
             || card.Model?.Owner?.Character is not MaidenSuccubusCharacter) return;
