@@ -17,6 +17,7 @@ namespace MaidenSuccubus.Core.Intents;
 
 public static class IntentMoveFactory
 {
+    public const string CustomStunStateId = "MAIDENSUCCUBUS_STUNNED";
     public static bool TryForceControl(MonsterModel monster, Player player, int escape)
     {
         ControlIntentSpec? spec = EroticAttackCatalog.Get(monster)?.Control;
@@ -207,7 +208,7 @@ public static class IntentMoveFactory
 
         IntentRuntimeState runtime = IntentAdapterRegistry.GetRuntime(monster);
         runtime.ForceStun = true;
-        MoveState stun = new MoveState("STUNNED", _ =>
+        MoveState stun = new MoveState(CustomStunStateId, _ =>
         {
             runtime.ForceStun = false;
             return Task.CompletedTask;
@@ -251,7 +252,7 @@ public static class IntentMoveFactory
             return false;
         }
 
-        if (current.FollowUpStateId == "STUNNED")
+        if (current.FollowUpStateId is "STUNNED" or CustomStunStateId)
         {
             return false;
         }
@@ -261,13 +262,20 @@ public static class IntentMoveFactory
     }
 
     private static bool IsStunMove(MoveState move) =>
-        move.StateId == "STUNNED"
+        move.StateId is "STUNNED" or CustomStunStateId
         || move.Intents.Any(intent => intent is StunIntent);
 
     public static async Task Stun(Creature creature)
     {
         ArgumentNullException.ThrowIfNull(creature.Monster);
         if (NativeIntentPriority.HasPriority(creature.Monster)) return;
+        if (NativeIntentPriority.IsCustom(creature.Monster.NextMove))
+        {
+            // Preserve the transient's actual continuation. Native generic stun
+            // defaults to StateLog, which can still refer to an earlier phase.
+            ForceStun(creature.Monster);
+            return;
+        }
         await CreatureCmd.Stun(creature);
         if (creature.IsAlive && !creature.IsStunned)
         {

@@ -399,14 +399,14 @@ internal static class ControlIntentTestRunner
             ctx.Player.Deck.Cards.Count);
         ctx.AssertTrue("successful invasion disables later control",
             IntentAdapterRegistry.GetRuntime(monster).ControlDisabled);
-        ctx.AssertEqual("invasion queues one stun", "STUNNED",
+        ctx.AssertEqual("invasion queues one stun", IntentMoveFactory.CustomStunStateId,
             (monster.NextMove.FollowUpState as MoveState)?.StateId);
 
         // A second completion/recovery request must not make STUNNED its own
         // follow-up, which formerly trapped this monster in a stun loop.
         IntentMoveFactory.ForceStun(monster);
         monster.RollMove(ctx.Combat.PlayerCreatures);
-        ctx.AssertEqual("first follow-up is stun", "STUNNED",
+        ctx.AssertEqual("first follow-up is stun", IntentMoveFactory.CustomStunStateId,
             monster.NextMove.StateId);
         ctx.AssertReference("stun retains the original intent", original,
             monster.NextMove.FollowUpState);
