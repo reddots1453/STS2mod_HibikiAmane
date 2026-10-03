@@ -1306,3 +1306,5 @@ ACT4-001慷慨宝箱/战利品二选一 → 本机godot.log 3683/3710领取信�
 九类新增文案仍为空；不会自行填入玩家叙述。安装时只首次创建文案配置，后续部署必须保留用户已填写的文件。源目录和聊天输出均提供空模板，可作为恢复备份；此JSON与安装manifest不同，不改manifest。
 
 构建通过：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`，0警告0错误。静态测试NOT_RUN，游戏内NOT_RUN；等待用户实测，编译不代表视觉验收。
+
+部署状态：编译后发现游戏进程SlayTheSpire2（PID7180）重新启动，本地部署在首次进程检查处停止，未替换任何安装产物，也未创建安装文案文件。已请求用户保存退出后继续；产物和空文案模板保存在聊天outputs/combat-feedback-20261003，游戏验收仍NOT_RUN。
