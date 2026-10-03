@@ -12,3 +12,10 @@
 
 
 构建：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过，0警告0错误。未运行静态测试/游戏内验收；聊天outputs/library-glow-depth-20261003保存DLL/PDB和未变更的完整PCK，安装部署单独记录。
+
+
+## 2026-10-03 用户授权仅部署本地游戏（LOCAL-DEPLOY-20261003-172325）
+
+用户明确要求“仅部署到本地游戏目录”，覆盖此前暂不部署指令，仅此安装目录授权。最新源码完成提交`b56e687476e2c7f6972466617da7e1ddf14f2c33`，部署前文档快照`d60564296aa2c69b52173ed3aab0ca98b4a800d7`；复用本轮已通过的Debug构建，0警告0错误，命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`。DLL/PDB/完整PCK累计包含此前待部署玩家反馈修复、三路线开局、原生重要意图保护、书库边缘光效、七牌及慷慨/傲慢平衡、侵犯成功解除来源拘束及书库原生红绿轮廓发光（已修正绘制层级）。
+
+仅替换`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`下MaidenSuccubus.dll/.pdb/.pck，替换前备份`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\local-library-glow-depth-deployment-20261003-172325`，安装后逐项SHA-256一致，原有JSON哈希不变。未改沙箱、ModUploader、上传包或其他游戏/模组目录。未运行静态测试与游戏内验收，用户实测后再标VERIFIED。部署明细：聊天outputs/library-glow-depth-20261003/local-deployment-20261003-172325.json。
