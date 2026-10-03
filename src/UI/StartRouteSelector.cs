@@ -15,7 +15,6 @@ internal sealed class StartRouteSelector
     private readonly NCharacterSelectScreen _screen;
     private readonly Control _row;
     private readonly MegaRichTextLabel _title;
-    private readonly MegaRichTextLabel _conditions;
     private readonly NButton _previous;
     private readonly NButton _next;
 
@@ -24,15 +23,13 @@ internal sealed class StartRouteSelector
         _screen = screen;
         var panel = screen.GetNode<VBoxContainer>("InfoPanel/VBoxContainer");
         var relic = panel.GetNode<Control>("Relic");
-        _row = new Control { Name = "MaidenStartingRoute", CustomMinimumSize = new Vector2(0, 108),
+        _row = new Control { Name = "MaidenStartingRoute", CustomMinimumSize = new Vector2(0, 48),
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, MouseFilter = Control.MouseFilterEnum.Ignore, Visible = false };
         panel.AddChild(_row);
         panel.MoveChild(_row, relic.GetIndex());
         var source = relic.GetNode<MegaRichTextLabel>("Name/RichTextLabel");
         _title = MakeLabel(source, "RouteName", 28, 0, 44);
-        _conditions = MakeLabel(source, "RouteUnlockConditions", 18, 46, 106);
         _row.AddChild(_title);
-        _row.AddChild(_conditions);
         var anchor = new Control { Name = "ArrowAnchor", Position = new Vector2(0, 0), Size = new Vector2(0, 44),
             MouseFilter = Control.MouseFilterEnum.Ignore };
         _row.AddChild(anchor);
@@ -89,11 +86,6 @@ internal sealed class StartRouteSelector
             _ => "中立开局 · 堕落值 0",
         };
         _title.Text = $"[center]{name}[/center]";
-        string corrupt = StartUnlockProgress.IsUnlocked(MaidenSuccubusStartProfileId.Succubus)
-            ? "堕落开局：已解锁" : "堕落开局：以堕落值≥3通关后解锁";
-        string holy = StartUnlockProgress.IsUnlocked(MaidenSuccubusStartProfileId.HolyMaiden)
-            ? "圣洁开局：已解锁" : "圣洁开局：以堕落值≤-3通关后解锁";
-        _conditions.Text = $"[center]{corrupt}\n{holy}[/center]";
         bool canSwitch = !lobby.LocalPlayer.isReady
             && (StartUnlockProgress.IsUnlocked(MaidenSuccubusStartProfileId.Succubus)
                 || StartUnlockProgress.IsUnlocked(MaidenSuccubusStartProfileId.HolyMaiden));

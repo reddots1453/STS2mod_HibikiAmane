@@ -55,12 +55,21 @@ internal static class StartUnlockProgress
     {
         var route = corruption >= 3 ? MaidenSuccubusStartProfileId.Succubus
             : corruption <= -3 ? MaidenSuccubusStartProfileId.HolyMaiden : MaidenSuccubusStartProfileId.Normal;
-        if (route == MaidenSuccubusStartProfileId.Normal || IsUnlocked(route)) return;
-        RitsuLibFramework.GetDataStore(MaidenSuccubusMod.ModId).Modify<StartUnlockProgressState>(Key, progress =>
+        if (route == MaidenSuccubusStartProfileId.Normal) return;
+        var store = RitsuLibFramework.GetDataStore(MaidenSuccubusMod.ModId);
+        bool newlyUnlocked = !IsUnlocked(route);
+        if (newlyUnlocked)
         {
-            if (route == MaidenSuccubusStartProfileId.Succubus) progress.CorruptUnlocked = true;
-            else progress.HolyUnlocked = true;
-        });
-        MaidenSuccubusMod.Logger.Info($"[StartRoutes] Unlocked {route} after victory at corruption {corruption}.");
+            store.Modify<StartUnlockProgressState>(Key, progress =>
+            {
+                if (route == MaidenSuccubusStartProfileId.Succubus) progress.CorruptUnlocked = true;
+                else progress.HolyUnlocked = true;
+            });
+        }
+        // Modify only updates memory. Persist before the player can quit, and
+        // retry on later qualifying victories even if memory is already unlocked.
+        store.Save(Key);
+        MaidenSuccubusMod.Logger.Info(
+            $"[StartRoutes] {(newlyUnlocked ? "Unlocked" : "Retained")} {route} after victory at corruption {corruption}; profile save requested.");
     }
 }
