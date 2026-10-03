@@ -257,20 +257,6 @@ public class MaidenSuccubusCharacter
         }
     }
 
-    public override Task AfterActEntered()
-    {
-        if (RunManager.Instance.DebugOnlyGetState() is RunState runState
-            && runState.CurrentActIndex > 0
-            && CorruptionData.Handle.Get(runState).VirginMark
-            && CorruptionCmd.TryTriggerOnce(
-                runState,
-                $"SYS-CORRUPTION-VIRGIN-ACT-{runState.CurrentActIndex}"))
-        {
-            CorruptionCmd.Modify(runState, -1, CorruptionChangeSource.VirginAct);
-        }
-        return Task.CompletedTask;
-    }
-
     protected override NCreatureVisuals? TryCreateCreatureVisuals() =>
         MaidenSuccubusCreatureVisuals.TryCreate()
         ?? RitsuGodotNodeFactories.CreateFromScenePath<NCreatureVisuals>(

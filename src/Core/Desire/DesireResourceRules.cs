@@ -155,7 +155,14 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
 
     private static void PlayDesireFull(Player player)
     {
-        if (PerformanceAudience.IsLocalMaiden(player))
+        bool firstAtMaximum = false;
+        Data.Desire.AmountHandle.Modify(player, state =>
+        {
+            if (state.MaximumAudioTriggered) return;
+            state.MaximumAudioTriggered = true;
+            firstAtMaximum = true;
+        });
+        if (firstAtMaximum && PerformanceAudience.IsLocalMaiden(player))
         {
             PerformanceAudioService.PlayDesireMaximum();
         }
