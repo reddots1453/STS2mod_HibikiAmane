@@ -31,3 +31,5 @@
 构建通过：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`，0警告0错误。静态测试NOT_RUN，游戏内NOT_RUN；等待用户实测，编译不代表视觉验收。
 
 部署状态：编译后发现游戏进程SlayTheSpire2（PID7180）重新启动，本地部署在首次进程检查处停止，未替换任何安装产物，也未创建安装文案文件。已请求用户保存退出后继续；产物和空文案模板保存在聊天outputs/combat-feedback-20261003，游戏验收仍NOT_RUN。
+
+用户最新指令“暂不部署”：撤销本轮安装动作，停止部署并等待以后明确授权。所有源码与Debug产物已保存，安装目录、沙箱、ModUploader和原有JSON均未变更，游戏验收仍NOT_RUN。
