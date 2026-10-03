@@ -369,7 +369,9 @@ public sealed class TentacleArmor : MSCorruptCard
             this);
         CardModel copy = CombatState!.CloneCard(this);
         copy.DeckVersion = null;
-        await CardPileCmd.Add(copy, PileType.Draw, CardPilePosition.Random);
+        CardCmd.PreviewCardPileAdd(await CardPileCmd.AddGeneratedCardToCombat(
+            copy, PileType.Draw, Owner, CardPilePosition.Random));
+        await Cmd.Wait(1f);
     }
 
     protected override void OnUpgrade() =>
