@@ -13,8 +13,8 @@ internal partial class LibraryAuraOverlay : Control
     private const string NodeName = "MSLibraryAuraOverlay";
     private NCard? _card;
     private LibraryAuraEffect _effect;
-    private readonly StyleBoxFlat _red = Frame(new Color(1f, .15f, .2f));
-    private readonly StyleBoxFlat _green = Frame(new Color(.2f, 1f, .4f));
+    private readonly StyleBoxFlat[] _red = Frames(new Color(1f, .15f, .2f));
+    private readonly StyleBoxFlat[] _green = Frames(new Color(.2f, 1f, .4f));
 
     internal static void Attach(NCard card)
     {
@@ -28,12 +28,31 @@ internal partial class LibraryAuraOverlay : Control
             MouseFilter = MouseFilterEnum.Ignore, ZIndex = 1, Visible = false });
     }
 
-    private static StyleBoxFlat Frame(Color color) => new()
+    // A StyleBox shadow can paint the whole rounded rectangle even with a
+    // transparent background. Build the glow from hollow contour strokes only.
+    // Cache the styles once; no shader, textures or per-frame allocations.
+    private static StyleBoxFlat[] Frames(Color color) =>
+    [
+        Frame(new Color(color, .08f), 18),
+        Frame(new Color(color, .16f), 16),
+        Frame(new Color(color, .30f), 14),
+        Frame(new Color(color, .95f), 12),
+    ];
+
+    private static StyleBoxFlat Frame(Color color, int radius) => new()
     {
-        BgColor = Colors.Transparent, BorderColor = color, BorderWidthLeft = 2, BorderWidthRight = 2,
-        BorderWidthTop = 2, BorderWidthBottom = 2, CornerRadiusTopLeft = 12, CornerRadiusTopRight = 12,
-        CornerRadiusBottomLeft = 12, CornerRadiusBottomRight = 12, ShadowColor = new Color(color, .5f), ShadowSize = 7,
+        DrawCenter = false, BgColor = Colors.Transparent, BorderColor = color,
+        BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+        CornerRadiusTopLeft = radius, CornerRadiusTopRight = radius,
+        CornerRadiusBottomLeft = radius, CornerRadiusBottomRight = radius,
+        ShadowColor = Colors.Transparent, ShadowSize = 0,
     };
+
+    private void DrawEdge(StyleBoxFlat[] frames, Rect2 rect)
+    {
+        for (int i = 0; i < frames.Length; i++)
+            DrawStyleBox(frames[i], rect.Grow((frames.Length - 1 - i) * 2));
+    }
 
     public override void _Process(double delta) => Safe.Run(() =>
     {
@@ -50,9 +69,9 @@ internal partial class LibraryAuraOverlay : Control
     public override void _Draw()
     {
         var rect = new Rect2(-NCard.defaultSize / 2, NCard.defaultSize);
-        if ((_effect & LibraryAuraEffect.Exhaust) != 0) DrawStyleBox(_red, rect.Grow(-3));
-        if ((_effect & LibraryAuraEffect.Replay) != 0) DrawStyleBox(_green,
-            rect.Grow((_effect & LibraryAuraEffect.Exhaust) != 0 ? -8 : -3));
+        if ((_effect & LibraryAuraEffect.Exhaust) != 0) DrawEdge(_red, rect.Grow(-3));
+        if ((_effect & LibraryAuraEffect.Replay) != 0) DrawEdge(_green,
+            rect.Grow((_effect & LibraryAuraEffect.Exhaust) != 0 ? -12 : -3));
     }
 
     // NCard is pooled: exiting the tree is not permanent destruction.
