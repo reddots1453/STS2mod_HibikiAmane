@@ -1,15 +1,335 @@
 {
   "enabled": true,
   "texts": {
-    "damage_received": "受到{enemy}的伤害：{amount}",
-    "desire_attack_received": "",
-    "desire_increased": "",
-    "desire_reached_8": "",
-    "desire_reached_max": "",
-    "armor_damage_received": "",
-    "control_intent_received": "",
-    "escape_incomplete": "",
-    "control_released": "",
-    "invasion_intent_received": ""
-  }
+    "damage_received": {
+      "holy": [
+        "受到{enemy}的伤害：{amount}",
+        "",
+        ""
+      ],
+      "neutral": [
+        "受到{enemy}的伤害：{amount}",
+        "",
+        ""
+      ],
+      "corrupt": [
+        "受到{enemy}的伤害：{amount}",
+        "",
+        ""
+      ]
+    },
+    "desire_attack_received": {
+      "holy": [
+        "",
+        "",
+        ""
+      ],
+      "neutral": [
+        "",
+        "",
+        ""
+      ],
+      "corrupt": [
+        "",
+        "",
+        ""
+      ]
+    },
+    "desire_increased": {
+      "holy": [
+        "",
+        "",
+        ""
+      ],
+      "neutral": [
+        "",
+        "",
+        ""
+      ],
+      "corrupt": [
+        "",
+        "",
+        ""
+      ]
+    },
+    "desire_reached_8": {
+      "holy": [
+        "",
+        "",
+        ""
+      ],
+      "neutral": [
+        "",
+        "",
+        ""
+      ],
+      "corrupt": [
+        "",
+        "",
+        ""
+      ]
+    },
+    "desire_reached_max": {
+      "holy": [
+        "",
+        "",
+        ""
+      ],
+      "neutral": [
+        "",
+        "",
+        ""
+      ],
+      "corrupt": [
+        "",
+        "",
+        ""
+      ]
+    },
+    "armor_damage_received": {
+      "holy": [
+        "",
+        "",
+        ""
+      ],
+      "neutral": [
+        "",
+        "",
+        ""
+      ],
+      "corrupt": [
+        "",
+        "",
+        ""
+      ]
+    },
+    "control_intent_received": {
+      "holy": [
+        "",
+        "",
+        ""
+      ],
+      "neutral": [
+        "",
+        "",
+        ""
+      ],
+      "corrupt": [
+        "",
+        "",
+        ""
+      ],
+      "by_control": {
+        "attack": {
+          "holy": [
+            "",
+            "",
+            ""
+          ],
+          "neutral": [
+            "",
+            "",
+            ""
+          ],
+          "corrupt": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "skill": {
+          "holy": [
+            "",
+            "",
+            ""
+          ],
+          "neutral": [
+            "",
+            "",
+            ""
+          ],
+          "corrupt": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "power": {
+          "holy": [
+            "",
+            "",
+            ""
+          ],
+          "neutral": [
+            "",
+            "",
+            ""
+          ],
+          "corrupt": [
+            "",
+            "",
+            ""
+          ]
+        }
+      }
+    },
+    "escape_incomplete": {
+      "holy": [
+        "",
+        "",
+        ""
+      ],
+      "neutral": [
+        "",
+        "",
+        ""
+      ],
+      "corrupt": [
+        "",
+        "",
+        ""
+      ],
+      "by_control": {
+        "attack": {
+          "holy": [
+            "",
+            "",
+            ""
+          ],
+          "neutral": [
+            "",
+            "",
+            ""
+          ],
+          "corrupt": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "skill": {
+          "holy": [
+            "",
+            "",
+            ""
+          ],
+          "neutral": [
+            "",
+            "",
+            ""
+          ],
+          "corrupt": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "power": {
+          "holy": [
+            "",
+            "",
+            ""
+          ],
+          "neutral": [
+            "",
+            "",
+            ""
+          ],
+          "corrupt": [
+            "",
+            "",
+            ""
+          ]
+        }
+      }
+    },
+    "control_released": {
+      "holy": [
+        "",
+        "",
+        ""
+      ],
+      "neutral": [
+        "",
+        "",
+        ""
+      ],
+      "corrupt": [
+        "",
+        "",
+        ""
+      ],
+      "by_control": {
+        "attack": {
+          "holy": [
+            "",
+            "",
+            ""
+          ],
+          "neutral": [
+            "",
+            "",
+            ""
+          ],
+          "corrupt": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "skill": {
+          "holy": [
+            "",
+            "",
+            ""
+          ],
+          "neutral": [
+            "",
+            "",
+            ""
+          ],
+          "corrupt": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "power": {
+          "holy": [
+            "",
+            "",
+            ""
+          ],
+          "neutral": [
+            "",
+            "",
+            ""
+          ],
+          "corrupt": [
+            "",
+            "",
+            ""
+          ]
+        }
+      }
+    },
+    "invasion_intent_received": {
+      "holy": [
+        "",
+        "",
+        ""
+      ],
+      "neutral": [
+        "",
+        "",
+        ""
+      ],
+      "corrupt": [
+        "",
+        "",
+        ""
+      ]
+    }
+  },
+  "schema_version": 2
 }

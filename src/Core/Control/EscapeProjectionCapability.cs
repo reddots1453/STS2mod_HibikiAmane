@@ -133,7 +133,8 @@ public sealed class EscapeProjectionCapability :
                 CombatTextFeedback.Notify("escape_incomplete", cardPlay.Player.Creature,
                     control.Applier, amount: amount,
                     newValue: (int)cardPlay.Player.Creature.Powers.OfType<ControlPower>().Sum(p => p.Amount),
-                    controlType: control.ControlType.LocalizedName(), card: originalTitle);
+                    controlType: control.ControlType.LocalizedName(), card: originalTitle,
+                    bindingType: control.ControlType);
         }
     }
 

@@ -1,10 +1,12 @@
 using System.Globalization;
-using System.Text.Json;
 using Godot;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MaidenSuccubus.Core.Desire;
+using MaidenSuccubus.Core.Control;
+using MaidenSuccubus.Core.Corruption;
+using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Presentation;
 using MaidenSuccubus.Util;
 
@@ -42,7 +44,8 @@ internal static class CombatTextFeedback
 
     internal static void Notify(string key, Creature target, Creature? source = null,
         int amount = 0, int oldValue = 0, int newValue = 0,
-        string controlType = "", string card = "") => Safe.Run(() =>
+        string controlType = "", string card = "",
+        ControlType? bindingType = null) => Safe.Run(() =>
     {
         if (!PerformanceAudience.IsLocalMaiden(target.Player)
             || target.CombatState == null || !CombatManager.Instance.IsInProgress
@@ -56,15 +59,25 @@ internal static class CombatTextFeedback
             // Read once per combat; edits are picked up by the next combat.
             _templates = FeedbackTemplates.Load();
         }
-        if (!_templates.Enabled || !_templates.Texts.TryGetValue(key, out string? template)
-            || string.IsNullOrWhiteSpace(template)) return;
+        int corruption = target.Player!.RunState is RunState run ? CorruptionQuery.Get(run) : 0;
+        string? template = _templates.Next(key, CorruptionQuery.GetBand(corruption), bindingType);
+        if (string.IsNullOrWhiteSpace(template)) return;
         string text = template.Replace("{enemy}", source?.Name ?? "", StringComparison.Ordinal)
             .Replace("{player}", target.Name, StringComparison.Ordinal)
             .Replace("{amount}", amount.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
             .Replace("{old}", oldValue.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
             .Replace("{new}", newValue.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
             .Replace("{control}", controlType, StringComparison.Ordinal)
-            .Replace("{card}", card, StringComparison.Ordinal);
+            .Replace("{card}", card, StringComparison.Ordinal)
+            .Replace("{corruption}", corruption.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+            .Replace("{control_kind}", bindingType?.ToString().ToLowerInvariant() ?? "", StringComparison.Ordinal)
+            .Replace("{control_name}", bindingType switch
+            {
+                ControlType.Attack => "乳虐",
+                ControlType.Skill => "口虐",
+                ControlType.Power => "穴虐",
+                _ => "",
+            }, StringComparison.Ordinal);
         if (_overlay == null || !GodotObject.IsInstanceValid(_overlay))
         {
             _layer = new CanvasLayer { Name = "MaidenCombatText", Layer = 125 };
@@ -88,45 +101,6 @@ internal static class CombatTextFeedback
         _overlay = null;
         _room = null;
     }, "CombatTextFeedback.Clear");
-}
-
-internal sealed class FeedbackTemplates
-{
-    public bool Enabled { get; set; } = true;
-    public Dictionary<string, string> Texts { get; set; } = new()
-    {
-        ["damage_received"] = "受到{enemy}的伤害：{amount}",
-        ["desire_attack_received"] = "",
-        ["desire_increased"] = "",
-        ["desire_reached_8"] = "",
-        ["desire_reached_max"] = "",
-        ["armor_damage_received"] = "",
-        ["control_intent_received"] = "",
-        ["escape_incomplete"] = "",
-        ["control_released"] = "",
-        ["invasion_intent_received"] = "",
-    };
-
-    internal static FeedbackTemplates Load()
-    {
-        try
-        {
-            string? directory = Path.GetDirectoryName(typeof(MaidenSuccubusMod).Assembly.Location);
-            if (string.IsNullOrEmpty(directory)) return new();
-            string path = Path.Combine(directory, "combat_feedback.json");
-            if (!File.Exists(path)) return new();
-            FeedbackTemplates? loaded = JsonSerializer.Deserialize<FeedbackTemplates>(
-                File.ReadAllText(path), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            // A malformed/incomplete custom file must never block damage resolution.
-            if (loaded?.Texts == null) throw new InvalidDataException("Missing texts dictionary");
-            return loaded;
-        }
-        catch (Exception ex)
-        {
-            MaidenSuccubusMod.Logger.Warn("[CombatTextFeedback] Template file: " + ex.Message);
-            return new();
-        }
-    }
 }
 
 internal partial class CombatTextOverlay : Control

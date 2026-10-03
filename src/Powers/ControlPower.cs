@@ -125,7 +125,7 @@ public sealed class ControlPower :
         }
         if (!oldOwner.Powers.OfType<ControlPower>().Any())
             CombatTextFeedback.Notify("control_released", oldOwner, Applier,
-                controlType: ControlType.LocalizedName());
+                controlType: ControlType.LocalizedName(), bindingType: ControlType);
         if (oldOwner.Player != null)
         {
             ControlQuery.Refresh(oldOwner.Player);
