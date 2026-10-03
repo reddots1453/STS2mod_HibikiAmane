@@ -8,7 +8,8 @@ using MaidenSuccubus.Util;
 namespace MaidenSuccubus.UI;
 
 // Reuse the native playable highlight's texture, shader and width animation.
-// Only the tint changes; no rectangular frame or filled panel is drawn.
+// The native SDF contains a filled centre: this node must stay behind the
+// portrait/frame, just like native Highlight, so the card masks that centre.
 internal partial class LibraryAuraOverlay : Control
 {
     private const string NodeName = "MSLibraryAuraOverlay";
@@ -45,6 +46,10 @@ internal partial class LibraryAuraOverlay : Control
         overlay._redClip.AddChild(overlay._red);
         overlay._greenClip.AddChild(overlay._green);
         parent.AddChild(overlay);
+        // card_ripple shades the SDF interior too. Its native placement behind
+        // PortraitCanvasGroup and Frame is what turns that fill into edge glow.
+        // Appending above the card instead would tint the entire portrait/text.
+        parent.MoveChild(overlay, native.GetIndex() + 1);
     }
 
     private static Control Clip(string name) => new()

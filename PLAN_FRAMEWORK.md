@@ -2675,3 +2675,6 @@ ACT4-001慷慨遗物/供奉互斥选择：本机日志确认原生LinkedRewardSe
 修复：新增光效后立刻MoveChild到原生Highlight紧后一位，在PortraitCanvasGroup及所有牌框/文字之前绘制；保持与原生Highlight相同ZIndex和ZAsRelative。源代码注释明确SDF中心为实心、必须依赖原生卡面遮挡，防止后续再次把它放到顶层。红/绿独立材质、原版纹理/Shader/动画、双效果双色裁剪以及离手/池复用恢复继续使用既有实现。
 
 验收：普通与先古框型受影响牌只显红/绿外缘、卡图/标题/费用/描述保持原色；双书库中间牌红绿双色且中心不染色；悬停放大/拖动/换位/离手及普通蓝光恢复。只读原生资源与源代码检查不宣称视觉运行时通过；按用户要求不运行静态测试，仅编译，完成后仅本地游戏部署，沙箱/ModUploader/安装JSON不动。
+
+
+构建：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过，0警告0错误。未运行静态测试/游戏内验收；聊天outputs/library-glow-depth-20261003保存DLL/PDB和未变更的完整PCK，安装部署单独记录。
