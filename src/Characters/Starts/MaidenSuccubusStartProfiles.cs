@@ -32,10 +32,16 @@ public sealed class DebugAllStartsUnlockedPolicy : IStartUnlockPolicy
         UnlockState unlockState) => true;
 }
 
+public sealed class PersistedStartUnlockPolicy : IStartUnlockPolicy
+{
+    public bool IsUnlocked(MaidenSuccubusStartProfileId profile, UnlockState unlockState) =>
+        MaidenSuccubus.Data.StartUnlockProgress.IsUnlocked(profile);
+}
+
 public static class MaidenSuccubusStartRegistry
 {
     public static IStartUnlockPolicy UnlockPolicy { get; set; } =
-        new DebugAllStartsUnlockedPolicy();
+        new PersistedStartUnlockPolicy();
 
     // START-002: 全能默认，英雄可选；BalancedLens只保留旧存档身份。
     public static IReadOnlyList<Type> StartingRelicOptions { get; } =

@@ -1,5 +1,6 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Runs;
+using MaidenSuccubus.Characters;
 using MaidenSuccubus.Characters.Starts;
 using MaidenSuccubus.Core.Corruption;
 using MaidenSuccubus.Data;
@@ -7,42 +8,32 @@ using MaidenSuccubus.Util;
 
 namespace MaidenSuccubus.Patches;
 
-[HarmonyPatch(typeof(RunState), nameof(RunState.CreateForNewRun))]
+// The lobby payload is imported before starter finalization. CreateForNewRun
+// is too early to read it. Loaded runs never call FinalizeStartingRelics.
+[HarmonyPatch(typeof(RunManager), nameof(RunManager.FinalizeStartingRelics))]
 public static class StartProfilePatch
 {
-    [HarmonyPostfix]
-    public static void Postfix(RunState __result)
+    [HarmonyPrefix, HarmonyPriority(Priority.High)]
+    public static void Prefix(RunManager __instance) => Safe.Run(() =>
     {
-        Safe.Run(
-            () => Apply(__result),
-            "StartProfile.CreateForNewRun");
-    }
-
-    private static void Apply(RunState runState)
-    {
-        var profile = runState.Players
-            .Select(player => player.Character)
-            .OfType<IMaidenSuccubusStartProfile>()
-            .FirstOrDefault();
-        if (profile == null)
+        if (__instance.DebugOnlyGetState() is not RunState run) return;
+        // Corruption is already a shared run resource; preserve its existing
+        // first-Maiden ownership rule instead of last-player-wins mutation.
+        var player = run.Players.FirstOrDefault(p => p.Character is MaidenSuccubusCharacter);
+        if (player == null) return;
+        var state = StarterRelicChoice.Handle.Get(player);
+        if (state.RouteApplied) return;
+        var route = StartUnlockProgress.Normalize(state.Route);
+        if (route != MaidenSuccubusStartProfileId.Normal && !state.RouteUnlockedAtSelection)
+            route = MaidenSuccubusStartProfileId.Normal;
+        int initial = StartUnlockProgress.InitialValue(route);
+        CorruptionCmd.Set(run, initial, new CorruptionChangeSource($"start.{route.ToString().ToLowerInvariant()}"));
+        StarterRelicChoice.Handle.Modify(player, data => { data.Route = route; data.RouteApplied = true; });
+        M5Progress.Handle.Modify(run, data =>
         {
-            return;
-        }
-
-        CorruptionCmd.Set(
-            runState,
-            profile.InitialCorruption,
-            new CorruptionChangeSource(
-                $"start.{profile.StartProfileId.ToString().ToLowerInvariant()}"));
-        M5Progress.Handle.Modify(
-            runState,
-            data =>
-            {
-                data.StartProfileApplied = true;
-                data.StartProfileId = profile.StartProfileId.ToString();
-            });
-        MaidenSuccubusMod.Logger.Info(
-            $"Applied start profile {profile.StartProfileId}; "
-            + $"initial corruption={profile.InitialCorruption}.");
-    }
+            data.StartProfileApplied = true;
+            data.StartProfileId = route.ToString();
+        });
+        MaidenSuccubusMod.Logger.Info($"[StartRoutes] Applied {route}; initial corruption={initial}.");
+    }, "StartProfile.FinalizeNewRun");
 }

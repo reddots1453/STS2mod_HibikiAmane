@@ -20,6 +20,7 @@ internal sealed class StarterRelicSelector
     private readonly Control _relicIcon;
     private readonly NButton _previous;
     private readonly NButton _next;
+    private readonly StartRouteSelector _routes;
     private bool _eligible;
     private bool _closed;
 
@@ -38,6 +39,7 @@ internal sealed class StarterRelicSelector
         _next.Connect(NClickableControl.SignalName.Released, Callable.From<NButton>(_ => ToggleSafely()));
         _previous.FocusNeighborRight = _next.GetPath();
         _next.FocusNeighborLeft = _previous.GetPath();
+        _routes = new StartRouteSelector(screen);
     }
 
     internal static void Selected(NCharacterSelectScreen screen, NCharacterSelectButton button, CharacterModel character)
@@ -57,6 +59,7 @@ internal sealed class StarterRelicSelector
     {
         if (!Instances.TryGetValue(screen, out var selector)) return;
         selector._closed = true;
+        selector._routes.Close();
         selector._previous.Hide();
         selector._next.Hide();
         selector._previous.SetEnabled(false);
@@ -69,6 +72,7 @@ internal sealed class StarterRelicSelector
         bool visible = !_closed && _eligible && lobby != null
             && lobby.LocalPlayer.character is MaidenSuccubusCharacter;
         _previous.Visible = _next.Visible = visible;
+        _routes.Refresh(visible);
         if (!visible || lobby == null) return;
         _previous.SetEnabled(!lobby.LocalPlayer.isReady);
         _next.SetEnabled(!lobby.LocalPlayer.isReady);

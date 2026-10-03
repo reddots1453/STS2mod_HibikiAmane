@@ -44,6 +44,7 @@ public static class MaidenSuccubusMod
         MaidenDesireIconAssets.Register();
         MaidenLocalizationFormatters.Register();
         RegisterRunSavedData();
+        Util.Safe.Run(StartUnlockProgress.Register, "StartRoutes.RegisterProgress");
         Util.Safe.Run(Acts.GoddessTrialMode.Register, "GoddessTrial.RegisterSettings");
         Util.Safe.Run(PerformanceSettings.Register, "Performance.RegisterSettings");
         Util.Safe.Run(MaidenTelemetry.Register, "Telemetry.RegisterApplicant");

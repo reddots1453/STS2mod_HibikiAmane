@@ -1,4 +1,5 @@
 using STS2RitsuLib.RunData;
+using MaidenSuccubus.Characters.Starts;
 
 namespace MaidenSuccubus.Data;
 
@@ -8,6 +9,11 @@ public sealed class StarterRelicChoiceState
 {
     public StarterRelicKind Kind { get; set; } = StarterRelicKind.Omnipotent;
     public bool Applied { get; set; }
+    public MaidenSuccubusStartProfileId Route { get; set; } = MaidenSuccubusStartProfileId.Normal;
+    // Authoritative per-player lobby payload: the host must not check its own
+    // local profile's unlocks for another player's selection.
+    public bool RouteUnlockedAtSelection { get; set; }
+    public bool RouteApplied { get; set; }
 }
 
 public static class StarterRelicChoice
