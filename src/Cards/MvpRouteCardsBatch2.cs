@@ -117,7 +117,7 @@ public sealed class NoLewdness : MSHolyCard
 public sealed class PhotonVolt : MSHolyCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(10, ValueProp.Move), new PowerVar<MagicAmplificationPower>(1)];
+        [new DamageVar(10, ValueProp.Move), new PowerVar<MagicAmplificationPower>(2)];
     public PhotonVolt() : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {

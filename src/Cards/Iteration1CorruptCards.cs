@@ -221,8 +221,6 @@ public sealed class MiasmaAffinity : MSCorruptCard
 [RegisterCard(typeof(MSCorruptCardPool))]
 public sealed class DemonStaff : MSCorruptCard
 {
-    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
-
     // DesignDoc's current-game candidate catalogue.  IDs are used instead of
     // localized titles so the pool remains stable in every language.
     internal static IReadOnlySet<string> CandidateIds { get; } = new HashSet<string>(StringComparer.Ordinal)

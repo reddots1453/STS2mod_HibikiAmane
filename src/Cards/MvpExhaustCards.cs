@@ -153,10 +153,14 @@ public sealed class DesireRecycle : MSCorruptCard
 public sealed class ReflectiveBarrier : MSCorruptCard
 {
     public override bool GainsBlock => true;
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(8, ValueProp.Move)];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(7, ValueProp.Move)];
     public ReflectiveBarrier() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
-    protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
-        CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
+    protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
+    {
+        await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
+        await PowerCmd.Apply<MagicAmplificationPower>(
+            context, Owner.Creature, 1, Owner.Creature, this);
+    }
     public override async Task AfterCardExhausted(
         PlayerChoiceContext context,
         CardModel card,

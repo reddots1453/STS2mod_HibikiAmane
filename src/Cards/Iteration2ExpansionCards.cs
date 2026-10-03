@@ -110,7 +110,7 @@ public sealed class FamiliarContract : MSHolyCard
 public sealed class LightWings : MSHolyCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(9, ValueProp.Move)];
+        [new DamageVar(12, ValueProp.Move)];
 
     public LightWings()
         : base(1, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy) { }
@@ -136,7 +136,7 @@ public sealed class LightWings : MSHolyCard
         }
     }
 
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
+    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(4);
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]

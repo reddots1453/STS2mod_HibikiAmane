@@ -26,6 +26,19 @@ namespace MaidenSuccubus.Cards;
 public sealed class AllCurseBite : MSCorruptCard
 {
     private int _exhaustedAttackDamage;
+    private int _exhaustedAttackHits;
+
+    [SavedProperty]
+    public int ExhaustedAttackHits
+    {
+        get => _exhaustedAttackHits;
+        set
+        {
+            AssertMutable();
+            _exhaustedAttackHits = Math.Max(0, value);
+            DynamicVars.Repeat.BaseValue = 1 + _exhaustedAttackHits;
+        }
+    }
 
     [SavedProperty]
     public int ExhaustedAttackDamage
@@ -43,6 +56,7 @@ public sealed class AllCurseBite : MSCorruptCard
     [
         new CalculationBaseVar(1),
         new ExtraDamageVar(ExhaustedAttackDamage),
+        new RepeatVar(1 + ExhaustedAttackHits),
         new CalculatedDamageVar(ValueProp.Move)
             .WithMultiplier(static (_, _) => 1),
     ];
@@ -54,6 +68,7 @@ public sealed class AllCurseBite : MSCorruptCard
     {
         ArgumentNullException.ThrowIfNull(play.Target);
         return DamageCmd.Attack(DynamicVars.CalculatedDamage)
+            .WithHitCount(DynamicVars.Repeat.IntValue)
             .FromCard(this, play)
             .Targeting(play.Target)
             .WithHitFx("vfx/vfx_attack_slash")
@@ -72,6 +87,7 @@ public sealed class AllCurseBite : MSCorruptCard
             return Task.CompletedTask;
         }
         ExhaustedAttackDamage += ExhaustDamageSnapshot.Get(card);
+        ExhaustedAttackHits += ExhaustDamageSnapshot.GetHits(card);
         return Task.CompletedTask;
     }
 

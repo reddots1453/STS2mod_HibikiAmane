@@ -149,7 +149,7 @@ public sealed class JudgmentBlade : MSNeutralCard
     protected override IEnumerable<DynamicVar> CanonicalVars =>
     [
         new CalculationBaseVar(7),
-        new ExtraDamageVar(3),
+        new ExtraDamageVar(5),
         new CalculatedDamageVar(ValueProp.Move).WithMultiplier(
             static (_, target) => target is null ? 0 : PowerLayerQuery.CountDebuffLayers(target)),
     ];

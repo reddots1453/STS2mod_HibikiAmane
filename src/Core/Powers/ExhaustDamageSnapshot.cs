@@ -2,13 +2,16 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Localization.DynamicVars;
+using MaidenSuccubus.Core.Cards;
 using MaidenSuccubus.Util;
 
 namespace MaidenSuccubus.Core.Powers;
 
 internal static class ExhaustDamageSnapshot
 {
-    private static readonly WeakInstanceValueScope<CardModel, int> Values = new();
+    private readonly record struct AttackSnapshot(int Damage, int Hits);
+    private static readonly WeakInstanceValueScope<CardModel, AttackSnapshot> Values = new();
 
     internal static int ReadCardDamage(CardModel card)
     {
@@ -20,8 +23,50 @@ internal static class ExhaustDamageSnapshot
         return 0;
     }
 
-    internal static IDisposable Capture(CardModel card) => Values.Enter(card, ReadCardDamage(card));
-    internal static int Get(CardModel card) => Values.TryGet(card, out int damage) ? damage : ReadCardDamage(card);
+    internal static int ReadCardHits(CardModel card)
+    {
+        if (card.Type != CardType.Attack) return 0;
+        // Extracted OnPlay preserves hard-coded two-hit attacks too; looking only
+        // for a Repeat var would incorrectly treat native TwinStrike as one hit.
+        int? extracted = null;
+        Safe.Run(() =>
+        {
+            HumilityEffectProgram? program = HumilityRewriteCapability.Find(card)?.Program
+                ?? HumilityExtractedCards.Get(card).Program;
+            if (program == null) return;
+            HumilityXValues x = HumilityNativeEffects.XForPreview(card);
+            // OnPlay captured native X survives payment; remaining energy would
+            // otherwise turn an exhausted, played Whirlwind into zero hits.
+            if (card.EnergyCost.CostsX)
+                x = x with { Energy = card.ResolveEnergyXValue() };
+            if (card.HasStarCostX)
+                x = x with { Stars = card.ResolveStarXValue() };
+            decimal Resolve(string name) => HumilityNativeEffects.ResolveValue(card, name, null);
+            decimal total = 0;
+            foreach (HumilityEffect effect in program.Effects)
+            {
+                if (effect.Kind != HumilityEffectKind.Damage || effect.Target == HumilityTarget.Self
+                    || effect.RequiredCardType != null && Resolve("$cardType:" + effect.RequiredCardType) == 0)
+                    continue;
+                total += Math.Max(0, decimal.Truncate(effect.Repeats.Evaluate(x, Resolve)));
+            }
+            extracted = checked((int)total);
+        }, "ExhaustDamage.ReadHits");
+        if (extracted.HasValue) return extracted.Value;
+        // Optional foreign cards do not belong to our extracted source catalog.
+        foreach (string name in new[] { "Repeat", "Hits", "CalculatedHits", "Repeats" })
+            if (card.DynamicVars.TryGetValue(name, out DynamicVar? value))
+                return Math.Max(0, (int)(value is CalculatedVar calculated
+                    ? calculated.Calculate(null) : value.BaseValue));
+        return 1;
+    }
+
+    internal static IDisposable Capture(CardModel card) =>
+        Values.Enter(card, new(ReadCardDamage(card), ReadCardHits(card)));
+    internal static int Get(CardModel card) => Values.TryGet(card, out AttackSnapshot value)
+        ? value.Damage : ReadCardDamage(card);
+    internal static int GetHits(CardModel card) => Values.TryGet(card, out AttackSnapshot value)
+        ? value.Hits : ReadCardHits(card);
 
     internal static async Task Complete(Task original, IDisposable scope)
     {

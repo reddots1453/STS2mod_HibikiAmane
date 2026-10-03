@@ -102,10 +102,20 @@ public sealed class PrideRouteRelic : FourthRouteRelic
             HoverTipFactory.FromPower<StrengthPower>(), HoverTipFactory.FromPower<SelfImportantPower>()]);
     public override async Task BeforeCombatStart()
     {
-        if (Stage == 0) return;
-        int amount = Math.Min(Stage, 3);
-        await PowerCmd.Apply<StrengthPower>(new BlockingPlayerChoiceContext(), Owner.Creature, amount, Owner.Creature, null);
-        await PowerCmd.Apply<SelfImportantPower>(new BlockingPlayerChoiceContext(), Owner.Creature, amount, Owner.Creature, null);
+        if (Stage is not (1 or 2)) return;
+        await Grant(new BlockingPlayerChoiceContext(), Stage);
+    }
+
+    public override Task AfterPlayerTurnStart(PlayerChoiceContext context, Player player) =>
+        Stage >= 3 && player == Owner && Owner.Creature.CombatState != null
+            && CombatManager.Instance.IsInProgress && !CombatManager.Instance.IsOverOrEnding
+            ? Grant(context, 2) : Task.CompletedTask;
+
+    private async Task Grant(PlayerChoiceContext context, int amount)
+    {
+        Flash();
+        await PowerCmd.Apply<StrengthPower>(context, Owner.Creature, amount, Owner.Creature, null);
+        await PowerCmd.Apply<SelfImportantPower>(context, Owner.Creature, amount, Owner.Creature, null);
     }
 }
 
@@ -341,7 +351,7 @@ public sealed class GenerosityRouteRelic : FourthRouteRelic
     public override async Task AfterObtained()
     {
         if (!HasUponPickupEffect || PickupEffectGranted) return;
-        int count = Stage;
+        int count = 2;
         // Reserve before awaiting the native synchronized selector: pickup must not open twice.
         PickupEffectGranted = true;
         CardSelectorPrefs prefs = new(CardSelectorPrefs.RemoveSelectionPrompt, count) { Cancelable = false };

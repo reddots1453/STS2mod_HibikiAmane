@@ -64,7 +64,7 @@ public sealed class FocusedSlash : MSHolyCard
 public sealed class DesireWard : MSHolyCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(8, ValueProp.Move)];
+        [new DamageVar(8, ValueProp.Move), new PowerVar<PreventNextDesireGainPower>(1)];
 
     public DesireWard()
         : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy)
@@ -84,12 +84,16 @@ public sealed class DesireWard : MSHolyCard
         await PowerCmd.Apply<PreventNextDesireGainPower>(
             choiceContext,
             Owner.Creature,
-            1,
+            DynamicVars["PreventNextDesireGainPower"].BaseValue,
             Owner.Creature,
             this);
     }
 
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);
+    protected override void OnUpgrade()
+    {
+        DynamicVars.Damage.UpgradeValueBy(2);
+        DynamicVars["PreventNextDesireGainPower"].UpgradeValueBy(1);
+    }
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]
