@@ -457,44 +457,36 @@ public sealed class FinalJudgment : MSHolyCard
         ArgumentNullException.ThrowIfNull(cardPlay.Target);
         ArgumentNullException.ThrowIfNull(CombatState);
 
-        int existingLayers = cardPlay.Target
-            .GetPower<CondemnationPower>()?.Amount ?? 0;
-        int judgedLayers = existingLayers
-            + DynamicVars["Condemnation"].IntValue;
-
-        await CondemnationCmd.Apply(
-            choiceContext,
-            cardPlay.Target,
-            DynamicVars["Condemnation"].BaseValue,
-            Owner.Creature,
-            this);
-
-        // Applying the seventh layer triggers judgment automatically. Below
-        // threshold, this card explicitly forces the same judgment.
-        if (judgedLayers < CondemnationPower.JudgmentThreshold)
+        decimal judgmentDamage;
+        MegaCrit.Sts2.Core.Entities.Creatures.Creature? judgmentDealer;
+        using (var judgment = CondemnationCmd.CaptureJudgment(cardPlay.Target))
         {
-            await CondemnationCmd.Judge(
+            await CondemnationCmd.Apply(
                 choiceContext,
                 cardPlay.Target,
-                force: true);
+                DynamicVars["Condemnation"].BaseValue,
+                Owner.Creature,
+                this);
+
+            // A threshold judgment may already have cleared its power. Capture
+            // that result rather than guessing old layers + requested layers.
+            if (judgment.Damage <= 0)
+            {
+                await CondemnationCmd.Judge(choiceContext, cardPlay.Target, force: true);
+            }
+            judgmentDamage = judgment.Damage;
+            judgmentDealer = judgment.Dealer;
         }
 
-        if (await Commands.OverdraftCmd.Offer(choiceContext, this, 1))
+        if (await Commands.OverdraftCmd.Offer(choiceContext, this, 1)
+            && judgmentDamage > 0)
         {
-            decimal splashDamage =
-                judgedLayers * CondemnationPower.DamagePerLayer;
             foreach (var enemy in CombatState.HittableEnemies
                          .Where(enemy => enemy != cardPlay.Target)
                          .ToArray())
             {
-                await CreatureCmd.Damage(
-                    choiceContext,
-                    enemy,
-                    splashDamage,
-                    ValueProp.Move | ValueProp.Unpowered,
-                    Owner.Creature,
-                    this,
-                    cardPlay);
+                await CondemnationCmd.DealJudgmentDamage(
+                    choiceContext, enemy, judgmentDamage, judgmentDealer);
             }
         }
     }

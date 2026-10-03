@@ -7,11 +7,39 @@ using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
 using MaidenSuccubus.Core.Condemnation;
 using MaidenSuccubus.Powers;
+using MaidenSuccubus.Util;
 
 namespace MaidenSuccubus.Commands;
 
 public static class CondemnationCmd
 {
+    private static readonly WeakInstanceValueScope<Creature, JudgmentCapture> Captures = new();
+
+    internal sealed class JudgmentCapture : IDisposable
+    {
+        private readonly IDisposable _scope;
+        internal decimal Damage { get; set; }
+        internal Creature? Dealer { get; set; }
+
+        internal JudgmentCapture(Creature target) => _scope = Captures.Enter(target, this);
+        public void Dispose()
+        {
+            _scope.Dispose();
+            if (Damage > 0)
+                MaidenSuccubusMod.Logger.Info(
+                    $"[FinalJudgment] Captured judgment base damage={Damage}.");
+        }
+    }
+
+    internal static JudgmentCapture CaptureJudgment(Creature target) => new(target);
+
+    // A copied judgment remains status damage, not a second card damage value.
+    // Each receiver still uses native block and damage-reduction rules.
+    internal static Task DealJudgmentDamage(
+        PlayerChoiceContext context, Creature target, decimal amount, Creature? dealer) =>
+        CreatureCmd.Damage(context, target, amount,
+            ValueProp.Move | ValueProp.Unpowered, dealer, null, null);
+
     public static Task<CondemnationPower?> Apply(
         PlayerChoiceContext choiceContext,
         Creature target,
@@ -38,15 +66,16 @@ public static class CondemnationCmd
         }
 
         int layers = power.Amount;
+        decimal damage = layers * CondemnationPower.DamagePerLayer;
+        Creature? dealer = power.Applier;
+        Captures.TryGet(target, out JudgmentCapture? capture);
         power.FlashForJudgment();
-        await CreatureCmd.Damage(
-            choiceContext,
-            target,
-            layers * CondemnationPower.DamagePerLayer,
-            ValueProp.Move | ValueProp.Unpowered,
-            power.Applier,
-            null,
-            null);
+        await DealJudgmentDamage(choiceContext, target, damage, dealer);
+        if (capture != null)
+        {
+            capture.Damage = damage;
+            capture.Dealer = dealer;
+        }
 
         if (target.HasPower<CondemnationPower>()
             && CondemnationRules.ShouldClear(power, target))
