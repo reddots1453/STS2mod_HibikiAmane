@@ -7,73 +7,160 @@ using MaidenSuccubus.Util;
 
 namespace MaidenSuccubus.UI;
 
-// Child coordinates inherit the card's rotation/scale; native highlight stays untouched.
+// Reuse the native playable highlight's texture, shader and width animation.
+// Only the tint changes; no rectangular frame or filled panel is drawn.
 internal partial class LibraryAuraOverlay : Control
 {
     private const string NodeName = "MSLibraryAuraOverlay";
     private NCard? _card;
+    private NCardHighlight? _native;
+    private NCardHighlight? _red;
+    private NCardHighlight? _green;
+    private Control? _redClip;
+    private Control? _greenClip;
     private LibraryAuraEffect _effect;
-    private readonly StyleBoxFlat[] _red = Frames(new Color(1f, .15f, .2f));
-    private readonly StyleBoxFlat[] _green = Frames(new Color(.2f, 1f, .4f));
+    private bool _ownsNativeVisibility;
+    private Color _savedNativeSelfModulate;
 
     internal static void Attach(NCard card)
     {
-        // Compendium and hover-tip cards may use canonical read-only models.
-        // Owner is a mutable-only property, so do not access it for those previews.
-        if (card.Model is not { IsMutable: true }) return;
-        if (card.GetNodeOrNull<Control>("CardContainer") is not { } container
-            || container.GetNodeOrNull<LibraryAuraOverlay>(NodeName) != null
-            || card.Model?.Owner?.Character is not MaidenSuccubusCharacter) return;
-        container.AddChild(new LibraryAuraOverlay { Name = NodeName, _card = card,
-            MouseFilter = MouseFilterEnum.Ignore, ZIndex = 1, Visible = false });
+        if (card.Model is not { IsMutable: true }
+            || card.Model.Owner?.Character is not MaidenSuccubusCharacter
+            || card.CardHighlight is not { Material: ShaderMaterial } native
+            || native.GetParent() is not Control parent
+            || parent.GetNodeOrNull<LibraryAuraOverlay>(NodeName) != null) return;
+
+        var overlay = new LibraryAuraOverlay
+        {
+            Name = NodeName, _card = card, _native = native,
+            MouseFilter = MouseFilterEnum.Ignore, ZIndex = native.ZIndex,
+            ZAsRelative = native.ZAsRelative, Visible = false,
+        };
+        overlay._redClip = Clip("RedClip");
+        overlay._greenClip = Clip("GreenClip");
+        overlay._red = Highlight(native, "RedGlow", new Color(1f, .15f, .2f, .98f));
+        overlay._green = Highlight(native, "GreenGlow", new Color(.2f, 1f, .4f, .98f));
+        overlay.AddChild(overlay._redClip);
+        overlay.AddChild(overlay._greenClip);
+        overlay._redClip.AddChild(overlay._red);
+        overlay._greenClip.AddChild(overlay._green);
+        parent.AddChild(overlay);
     }
 
-    // A StyleBox shadow can paint the whole rounded rectangle even with a
-    // transparent background. Build the glow from hollow contour strokes only.
-    // Cache the styles once; no shader, textures or per-frame allocations.
-    private static StyleBoxFlat[] Frames(Color color) =>
-    [
-        Frame(new Color(color, .08f), 18),
-        Frame(new Color(color, .16f), 16),
-        Frame(new Color(color, .30f), 14),
-        Frame(new Color(color, .95f), 12),
-    ];
-
-    private static StyleBoxFlat Frame(Color color, int radius) => new()
+    private static Control Clip(string name) => new()
     {
-        DrawCenter = false, BgColor = Colors.Transparent, BorderColor = color,
-        BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
-        CornerRadiusTopLeft = radius, CornerRadiusTopRight = radius,
-        CornerRadiusBottomLeft = radius, CornerRadiusBottomRight = radius,
-        ShadowColor = Colors.Transparent, ShadowSize = 0,
+        Name = name, MouseFilter = MouseFilterEnum.Ignore,
     };
 
-    private void DrawEdge(StyleBoxFlat[] frames, Rect2 rect)
+    private static NCardHighlight Highlight(NCardHighlight native, string name, Color color)
     {
-        for (int i = 0; i < frames.Length; i++)
-            DrawStyleBox(frames[i], rect.Grow((frames.Length - 1 - i) * 2));
+        // Construct a fresh native node rather than duplicating its live tween.
+        // Each glow needs its own width uniform; sharing the material would also
+        // hide/show the original highlight and unrelated pooled cards.
+        var material = (ShaderMaterial)native.Material.Duplicate();
+        material.ResourceLocalToScene = true;
+        material.SetShaderParameter("width", 0f);
+        return new NCardHighlight
+        {
+            Name = name, Texture = native.Texture, Material = material,
+            ExpandMode = native.ExpandMode, StretchMode = native.StretchMode,
+            TextureFilter = native.TextureFilter, TextureRepeat = native.TextureRepeat,
+            FlipH = native.FlipH, FlipV = native.FlipV,
+            Modulate = color, MouseFilter = MouseFilterEnum.Ignore,
+        };
     }
 
     public override void _Process(double delta) => Safe.Run(() =>
     {
-        if (_card?.Model is not { } model) { Visible = false; return; }
-        var next = _card.DisplayingPile == PileType.Hand ? LibraryHandAura.InHand(model) : LibraryAuraEffect.None;
-        Visible = next != LibraryAuraEffect.None;
+        if (!GodotObject.IsInstanceValid(_card) || !GodotObject.IsInstanceValid(_native)) return;
+        LibraryAuraEffect next = _card!.DisplayingPile == PileType.Hand
+            ? LibraryHandAura.InHand(_card.Model) : LibraryAuraEffect.None;
+        if (next != LibraryAuraEffect.None)
+        {
+            SyncGeometry(next);
+            SuppressNativeBlue();
+        }
+        else RestoreNative();
+
         if (next == _effect) return;
         _effect = next;
-        QueueRedraw();
-        // Refresh exactly when adjacency changes, not every frame/compendium scroll.
+        Visible = next != LibraryAuraEffect.None;
+        SetGlow(_red!, (next & LibraryAuraEffect.Exhaust) != 0);
+        SetGlow(_green!, (next & LibraryAuraEffect.Replay) != 0);
+        // Adjacency also changes displayed Exhaust/Replay text. Refresh once,
+        // without restarting the native glow's 0.5-second tween every frame.
         _card.UpdateVisuals(_card.DisplayingPile, CardPreviewMode.Normal);
-    }, "LibraryAura.Overlay");
+    }, "LibraryAura.NativeGlow");
 
-    public override void _Draw()
+    private static void SetGlow(NCardHighlight glow, bool show)
     {
-        var rect = new Rect2(-NCard.defaultSize / 2, NCard.defaultSize);
-        if ((_effect & LibraryAuraEffect.Exhaust) != 0) DrawEdge(_red, rect.Grow(-3));
-        if ((_effect & LibraryAuraEffect.Replay) != 0) DrawEdge(_green,
-            rect.Grow((_effect & LibraryAuraEffect.Exhaust) != 0 ? -12 : -3));
+        if (show) glow.AnimShow();
+        else glow.AnimHideInstantly();
     }
 
-    // NCard is pooled: exiting the tree is not permanent destruction.
-    public override void _ExitTree() { _effect = LibraryAuraEffect.None; Visible = false; }
+    private void SyncGeometry(LibraryAuraEffect effect)
+    {
+        NCardHighlight native = _native!;
+        Position = native.Position;
+        Size = native.Size;
+        Scale = native.Scale;
+        Rotation = native.Rotation;
+        PivotOffset = native.PivotOffset;
+        _red!.Texture = native.Texture;
+        _green!.Texture = native.Texture;
+        _red.Size = native.Size;
+        _green.Size = native.Size;
+
+        bool both = (effect & (LibraryAuraEffect.Exhaust | LibraryAuraEffect.Replay))
+            == (LibraryAuraEffect.Exhaust | LibraryAuraEffect.Replay);
+        _redClip!.ClipContents = both;
+        _greenClip!.ClipContents = both;
+        if (both)
+        {
+            // Two copies of the same native contour, clipped at its horizontal
+            // centre, give simultaneous red/green edges without additive yellow.
+            // Generous outer margins preserve the shader's soft bloom.
+            float w = native.Size.X, h = native.Size.Y;
+            _redClip.Position = new Vector2(-w, -h);
+            _redClip.Size = new Vector2(w * 1.5f, h * 3f);
+            _red.Position = new Vector2(w, h);
+            _greenClip.Position = new Vector2(w / 2f, -h);
+            _greenClip.Size = new Vector2(w * 1.5f, h * 3f);
+            _green.Position = new Vector2(-w / 2f, h);
+        }
+        else
+        {
+            _redClip.Position = _greenClip.Position = Vector2.Zero;
+            _redClip.Size = _greenClip.Size = native.Size;
+            _red.Position = _green.Position = Vector2.Zero;
+        }
+    }
+
+    private void SuppressNativeBlue()
+    {
+        if (!_ownsNativeVisibility)
+        {
+            _savedNativeSelfModulate = _native!.SelfModulate;
+            _ownsNativeVisibility = true;
+        }
+        // Keep the holder's normal color/tween logic running underneath. Hide
+        // only this leaf while the corresponding native-tinted copies display.
+        _native!.SelfModulate = new Color(_savedNativeSelfModulate, 0f);
+    }
+
+    private void RestoreNative()
+    {
+        if (!_ownsNativeVisibility) return;
+        if (GodotObject.IsInstanceValid(_native))
+            _native!.SelfModulate = _savedNativeSelfModulate;
+        _ownsNativeVisibility = false;
+    }
+
+    public override void _ExitTree()
+    {
+        // Native NCard nodes are pooled and re-enter with a different model.
+        RestoreNative();
+        _effect = LibraryAuraEffect.None;
+        Visible = false;
+    }
 }
