@@ -21,7 +21,7 @@ public sealed class Milker : MSRelicTemplate
     public override RelicAssetProfile AssetProfile => RelicIconAssets.For("event_MilkExtractor");
     [SavedProperty] public bool CombatPrepared { get; set; }
 
-    public override async Task BeforeCombatStart()
+    public override async Task BeforeCombatStartLate()
     {
         if (CombatPrepared || !IsMutable || HasBeenRemovedFromState
             || Owner?.Character is not MaidenSuccubusCharacter

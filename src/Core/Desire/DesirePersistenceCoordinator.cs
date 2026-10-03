@@ -1,3 +1,7 @@
+using MegaCrit.Sts2.Core.Rooms;
+using System.Reflection;
+using STS2RitsuLib.RunData;
+using MaidenSuccubus.UI;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Runs;
@@ -26,6 +30,17 @@ internal static class DesirePersistenceCoordinator
         }
 
         _initialized = true;
+        Subscriptions.Add(RitsuLibFramework.SubscribeLifecycle<RunLoadedEvent>(evt =>
+        {
+            foreach (Player player in evt.RunState.Players.Where(player => player.Character is MaidenSuccubusCharacter))
+            {
+                var bridge = Data.Desire.AmountHandle.Get(player);
+                if (!bridge.HasValue && TryReadRunSnapshot(player, out int amount))
+                    Data.Desire.RememberCombatValue(player, amount);
+            }
+            // The top bar may have been created before saved mod data was restored.
+            RunUiRefreshEvents.PublishCombatVisibility(evt.RunState.CurrentRoom is CombatRoom);
+        }, replayCurrentState: false));
         Subscriptions.Add(
             RitsuLibFramework.SubscribeLifecycle<CombatStartingEvent>(
                 OnCombatStarting,
@@ -34,6 +49,21 @@ internal static class DesirePersistenceCoordinator
             RitsuLibFramework.SubscribeLifecycle<CombatEndedEvent>(
                 OnCombatEnded,
                 replayCurrentState: false));
+    }
+
+    private static readonly FieldInfo? SavedResourceField = typeof(SecondaryResourcePersistence)
+        .GetField("SavedData", BindingFlags.Static | BindingFlags.NonPublic);
+
+    internal static bool TryReadRunSnapshot(Player player, out int amount)
+    {
+        amount = 0;
+        if (player.RunState is not RunState run
+            || SavedResourceField?.GetValue(null) is not RunSavedData<SecondaryResourceRunSaveState> handle
+            || !handle.TryGet(run, out var snapshot)
+            || !snapshot.PlayerAmounts.TryGetValue(player.NetId, out var resources)
+            || !resources.TryGetValue(DesireResource.Id, out amount)) return false;
+        amount = Math.Max(0, amount);
+        return true;
     }
 
     private static void OnCombatStarting(CombatStartingEvent evt)

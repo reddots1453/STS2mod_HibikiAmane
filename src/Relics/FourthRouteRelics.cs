@@ -317,7 +317,7 @@ public sealed class SlothRouteRelic : FourthRouteRelic
 public sealed class HumilityRouteRelic : FourthRouteRelic
 {
     public override FourthRouteQuest Quest => FourthRouteQuest.Humility;
-    public override async Task BeforeCombatStart()
+    public override async Task BeforeCombatStartLate()
     {
         if (Stage == 0 || Owner.Creature.CombatState is not { } combat) return;
         HumilityLesson card = combat.CreateCard<HumilityLesson>(Owner);
@@ -433,7 +433,7 @@ public sealed class TemperanceRouteRelic : FourthRouteRelic
 public sealed class PatienceRouteRelic : FourthRouteRelic
 {
     public override FourthRouteQuest Quest => FourthRouteQuest.Patience;
-    public override Task BeforeCombatStart() =>
+    public override Task BeforeCombatStartLate() =>
         VirtueCombatRules.PatienceAtCombatStart(Stage) ? CreateHoly() : Task.CompletedTask;
     public override Task AfterPlayerTurnStart(PlayerChoiceContext context, Player player) =>
         VirtueCombatRules.PatienceAtTurnStart(Stage, player == Owner) ? CreateHoly() : Task.CompletedTask;

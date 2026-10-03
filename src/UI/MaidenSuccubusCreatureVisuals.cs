@@ -7,6 +7,8 @@ using MaidenSuccubus.Core.Intents;
 using MaidenSuccubus.Core.Transformation;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.Powers;
+using MaidenSuccubus.Presentation;
+using MegaCrit.Sts2.Core.Models.Powers;
 
 namespace MaidenSuccubus.UI;
 
@@ -138,6 +140,8 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         EroticIntentVisualEvents.Triggered -= OnEroticIntentVisual;
         _feedbackTween?.Kill();
         _edgeTween?.Kill();
+        if (GetParent() is NCreature node && PerformanceAudience.IsLocalMaiden(node.Entity.Player))
+            PerformanceAudioService.StopLoop(PerformanceLoopCue.Heartbeat);
         base._ExitTree();
     }
 
@@ -318,8 +322,23 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
 
     private Vector2 WithCurrentFacing(Vector2 scale)
     {
-        float facing = _visualRoot?.Scale.X < 0f ? -1f : 1f;
+        float facing = GetParent() is NCreature node
+            && node.Entity.GetPower<SurroundedPower>() is { } surrounded
+            ? (surrounded.Facing == SurroundedPower.Direction.Left ? -1f : 1f)
+            : (_visualRoot?.Scale.X < 0f ? -1f : 1f);
         return new Vector2(MathF.Abs(scale.X) * facing, scale.Y);
+    }
+
+    internal void SyncFacing()
+    {
+        if (_visualRoot == null || _dead) return;
+        // Cancel a tween carrying the old direction; later animation uses Facing.
+        _feedbackTween?.Kill();
+        _feedbackActive = false;
+        _visualRoot.Position = RestPosition;
+        _visualRoot.Rotation = 0f;
+        _visualRoot.Modulate = Colors.White;
+        _visualRoot.Scale = WithCurrentFacing(RestScale);
     }
 
     private void RefreshExpressionAndEdge()
@@ -359,6 +378,11 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         }
 
         SetPersistentPinkEdge(desire >= 8);
+        if (PerformanceAudience.IsLocalMaiden(player))
+        {
+            if (desire >= 8) PerformanceAudioService.StartLoop(PerformanceLoopCue.Heartbeat, 0.4f);
+            else PerformanceAudioService.StopLoop(PerformanceLoopCue.Heartbeat, 0.6f);
+        }
     }
 
     private void BuildEdgeVisual()

@@ -33,16 +33,21 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
     private NTopBar? _topBar;
     private MegaCrit.Sts2.Core.Entities.Players.Player? _player;
     private int _displayedValue = int.MinValue;
+    private IDisposable? _loadSubscription;
 
     public override void _EnterTree()
     {
         DesireEvents.Changed += OnDesireChanged;
+        _loadSubscription = STS2RitsuLib.RitsuLibFramework.SubscribeLifecycle<STS2RitsuLib.RunLoadedEvent>(
+            _ => CallDeferred(nameof(Refresh)), replayCurrentState: false);
         RunUiRefreshEvents.CombatVisibilityChanged += OnCombatVisibilityChanged;
     }
 
     public override void _ExitTree()
     {
         DesireEvents.Changed -= OnDesireChanged;
+        _loadSubscription?.Dispose();
+        _loadSubscription = null;
         RunUiRefreshEvents.CombatVisibilityChanged -= OnCombatVisibilityChanged;
         ClearHoverTip();
     }

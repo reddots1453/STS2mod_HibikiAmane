@@ -15,7 +15,7 @@ namespace MaidenSuccubus.Core.Rewards;
 
 public static class RouteCardRewardService
 {
-    public static bool TryReplaceOne(
+    public static bool TryReplaceEach(
         Player player,
         List<CardCreationResult> options,
         CardCreationOptions creationOptions)
@@ -28,8 +28,7 @@ public static class RouteCardRewardService
         // Event offers may also contain cards from other colors. Only replace
         // a character-pool slot; explicit colorless/other-character rewards stay intact.
         int[] eligibleSlots = Enumerable.Range(0, options.Count)
-            .Where(index => creationOptions.Source == CardCreationSource.Encounter
-                || options[index].Card.Pool.Id == player.Character.CardPool.Id)
+            .Where(index => RouteCardQuery.TryGet(options[index].Card, out _))
             .ToArray();
         if (eligibleSlots.Length == 0) return false;
 
@@ -39,43 +38,47 @@ public static class RouteCardRewardService
             CorruptionQuery.Get((RunState)player.RunState),
             bonus.Holy,
             bonus.Corrupt);
-        RouteCardKind selectedRoute = RollRoute(probabilities, rng.NextFloat());
-        if (selectedRoute == RouteCardKind.Neutral)
+        bool changed = false;
+        foreach (int replacementIndex in eligibleSlots)
         {
-            return false;
-        }
+            RouteCardKind selectedRoute = RollRoute(probabilities, rng.NextFloat());
+            if (RouteCardQuery.Get(options[replacementIndex].Card) == selectedRoute) continue;
+            CardModel originalCard = options[replacementIndex].Card;
+            CardModel[] candidates = GetCandidates(
+                player,
+                selectedRoute,
+                originalCard.Rarity,
+                options,
+                creationOptions);
+            if (candidates.Length == 0)
+            {
+                MaidenSuccubusMod.Logger.Info(
+                    $"Route reward skipped: route={selectedRoute}, " +
+                    $"rarity={originalCard.Rarity}, no eligible card.");
+                continue;
+            }
 
-        int replacementIndex = eligibleSlots[rng.NextInt(eligibleSlots.Length)];
-        CardModel originalCard = options[replacementIndex].Card;
-        CardModel[] candidates = GetCandidates(
-            player,
-            selectedRoute,
-            originalCard.Rarity,
-            options,
-            creationOptions);
-        if (candidates.Length == 0)
-        {
+            CardModel canonicalReplacement = rng.NextItem(candidates)
+                ?? throw new InvalidOperationException(
+                    "Route reward candidate selection returned null.");
+            CardModel replacement = player.RunState.CreateCard(
+                canonicalReplacement,
+                player);
+            CopyUpgradeLevel(originalCard, replacement);
+            options[replacementIndex] = new CardCreationResult(replacement);
+
             MaidenSuccubusMod.Logger.Info(
-                $"Route reward skipped: route={selectedRoute}, " +
-                $"rarity={originalCard.Rarity}, no eligible card.");
-            return false;
+                $"Route reward replaced slot {replacementIndex}: " +
+                $"{originalCard.Id} -> {replacement.Id}, " +
+                $"route={selectedRoute}, rarity={replacement.Rarity}, source={creationOptions.Source}.");
+            changed = true;
         }
-
-        CardModel canonicalReplacement = rng.NextItem(candidates)
-            ?? throw new InvalidOperationException(
-                "Route reward candidate selection returned null.");
-        CardModel replacement = player.RunState.CreateCard(
-            canonicalReplacement,
-            player);
-        CopyUpgradeLevel(originalCard, replacement);
-        options[replacementIndex] = new CardCreationResult(replacement);
-
-        MaidenSuccubusMod.Logger.Info(
-            $"Route reward replaced slot {replacementIndex}: " +
-            $"{originalCard.Id} -> {replacement.Id}, " +
-            $"route={selectedRoute}, rarity={replacement.Rarity}, source={creationOptions.Source}.");
-        return true;
+        return changed;
     }
+
+    // Retain the public entry point used by older integrations.
+    public static bool TryReplaceOne(Player player, List<CardCreationResult> options, CardCreationOptions creationOptions) =>
+        TryReplaceEach(player, options, creationOptions);
 
     public static RouteCardKind RollRoute(RouteRewardProbabilities probabilities, float roll) => probabilities.RollRoute(roll);
 
@@ -104,6 +107,7 @@ public static class RouteCardRewardService
         {
             RouteCardKind.Corrupt => ModelDb.CardPool<MSCorruptCardPool>(),
             RouteCardKind.Holy => ModelDb.CardPool<MSHolyCardPool>(),
+            RouteCardKind.Neutral => ModelDb.CardPool<MSNeutralCardPool>(),
             _ => throw new ArgumentOutOfRangeException(nameof(route), route, null),
         };
 

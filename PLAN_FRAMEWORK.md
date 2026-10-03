@@ -2543,3 +2543,13 @@ ACT4-001既有开场UI：用户已确认四张候选背景，接入标题/公共
 ## GENEROSITY-CHOICE-20261003（IMPLEMENTED，待实测）
 
 ACT4-001慷慨遗物/供奉互斥选择：本机日志确认原生LinkedRewardSet信号参数错配，后端完成但UI行残留。限GenerosityOfferingGroup修正子领取回调和携带父节点的一次父信号，让原生屏幕完成移除/关闭；不改同步与牌效。附带修正变奏视觉刷新对未赋值NRelic的警告。构建与手测入口见docs/GENEROSITY_CHOICE_20261003.md，不运行静态测试。
+
+
+## 2026-10-03 玩家反馈：燃烧、升级、卡池、欲望、开场衍生牌
+
+前置快照 `9e61c6b61eaa5501a69b9709e93941c900f490c6`。SYS-COR-003：用户确认战斗与事件每张独立路线判定，DesignDoc本轮同步；SYS-DES-001/UI读档与心跳、SYS-CTL/挣脱短文本、CARD-C升级、燃烧逐段、原版夹击朝向与三路线生成、RELIC-EVENT-003及谦逊/耐心开场生成晚钩子。状态IMPLEMENTED，游戏待验。具体证据与验收见 `docs/PLAYER_DEBUG_20261003.md`；不运行静态测试，构建/部署待补充。
+
+
+最终验证：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore` 成功，0警告0错误（最终耗时9.38秒）。初次构建因两个命名空间遗漏有2错误，已补齐；最终DLL采用原生逐段BeforeDamage回调及含LINQ闭包的生成池版本。未运行静态测试；游戏内NOT_RUN。
+
+独立测试包：聊天`outputs/player-debug-20261003`，DLL/PDB及完整683资源PCK。PCK以已部署上一批资源为基准，仅替换本轮挣脱中文文本；其他资源内容逐项MD5保持原样。未操作ModUploader或安装目录JSON。检测正式游戏SlayTheSpire2进程PID8864仍在运行，部署暂未执行，修复已提交供关闭游戏后部署。

@@ -54,7 +54,7 @@ public sealed class Exhibitionist : MSCorruptCard
         await CardPileCmd.AddGeneratedCardToCombat(status, PileType.Hand, Owner);
     }
 
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]
@@ -469,7 +469,7 @@ public sealed class PleasureGarden : MSCorruptCard
         }
     }
 
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade() => AddKeyword(CardKeyword.Retain);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]

@@ -93,7 +93,7 @@ public static class MaidenSuccubusMod
                 continue;
             }
             try { harmony.CreateClassProcessor(type).Patch(); patchCount++; }
-            catch (Exception ex) { Logger.Warn($"Harmony failed: {type.Name}: {ex.Message}"); }
+            catch (Exception ex) { Logger.Warn($"Harmony failed: {type.Name}: {ex}"); }
         }
         if (MvpFeatureFlags.ControlAndInvasion)
             Logger.Info(

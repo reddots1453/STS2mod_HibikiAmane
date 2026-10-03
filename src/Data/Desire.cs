@@ -32,7 +32,8 @@ public static class Desire
         }
 
         DesireAmountState state = AmountHandle.Get(player);
-        return state.HasValue ? state.Amount : Min;
+        return state.HasValue ? state.Amount
+            : DesirePersistenceCoordinator.TryReadRunSnapshot(player, out int saved) ? saved : Min;
     }
 
     public static Task Modify(Player player, int delta)

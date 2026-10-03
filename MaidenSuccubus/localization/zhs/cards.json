@@ -155,7 +155,7 @@
   "MAIDEN_SUCCUBUS_CARD_BLISS_SCRIPTURE.title": "极乐圣言",
   "MAIDEN_SUCCUBUS_CARD_BLISS_SCRIPTURE.description": "持续{Duration:diff()}回合。\n回合开始时失去{energyPrefix:maidenDesireIcons(1)}。\n若{energyPrefix:maidenDesireIcons(0)}，获得{Energy:maidenEnergyIcons()}并抽{Cards:diff()}张牌。",
   "MAIDENSUCCUBUS_ESCAPE.title": "挣脱",
-  "MAIDENSUCCUBUS_ESCAPE.description": "本牌由{Original}临时变为【[gold]挣脱[/gold]】。\n打出后不执行原效果，改为从{Source}施加的[gold]拘束[/gold]中[gold]挣脱[/gold]{Escape}点。",
+  "MAIDENSUCCUBUS_ESCAPE.description": "[gold]挣脱[/gold]{Escape}。",
   "MAIDEN_SUCCUBUS_CARD_SEMEN_CURSE.title": "精液",
   "MAIDEN_SUCCUBUS_CARD_SEMEN_CURSE.description": "打出后移除出牌组。",
   "MAIDEN_SUCCUBUS_CARD_SWORD_VERDICT.title": "剑之裁决",

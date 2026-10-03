@@ -19,7 +19,7 @@ public static class RouteCardRewardPatch
         CardCreationOptions __3)
     {
         Safe.Run(
-            () => RouteCardRewardService.TryReplaceOne(__1, __2, __3),
+            () => RouteCardRewardService.TryReplaceEach(__1, __2, __3),
             nameof(RouteCardRewardPatch));
     }
 }

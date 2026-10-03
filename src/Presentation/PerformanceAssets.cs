@@ -17,6 +17,7 @@ public enum PerformanceAudioCue
 public enum PerformanceLoopCue
 {
     Breath,
+    Heartbeat,
 }
 
 internal static class PerformanceAssets
@@ -42,6 +43,7 @@ internal static class PerformanceAssets
     public static string AudioPath(PerformanceLoopCue cue) => cue switch
     {
         PerformanceLoopCue.Breath => Audio + "erotic_intents/breath.ogg",
+        PerformanceLoopCue.Heartbeat => Audio + "desire/heartbeat.ogg",
         _ => throw new ArgumentOutOfRangeException(nameof(cue), cue, null),
     };
 
