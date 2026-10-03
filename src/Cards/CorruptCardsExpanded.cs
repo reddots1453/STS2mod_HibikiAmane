@@ -277,7 +277,13 @@ public sealed class Coronation : MSCorruptCard
 public sealed class BurningDesire : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(3, ValueProp.Move)];
+    [
+        new DamageVar(3, ValueProp.Move),
+        new CalculationBaseVar(1),
+        new CalculationExtraVar(1),
+        new CalculatedVar("Hits").WithMultiplier(static (card, _) =>
+            DesireCombatSpending.Get(card.Owner)),
+    ];
 
     public BurningDesire()
         : base(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy)
@@ -292,7 +298,8 @@ public sealed class BurningDesire : MSCorruptCard
         ArgumentNullException.ThrowIfNull(cardPlay.Target);
         // SpendResources resolves before OnPlay, so this includes this play's
         // actual payment, but does not invent another payment on a replay.
-        int hits = 1 + DesireCombatSpending.Get(Owner);
+        int hits = (int)((CalculatedVar)DynamicVars["Hits"])
+            .Calculate(cardPlay.Target);
         return DamageCmd.Attack(DynamicVars.Damage.BaseValue)
             .WithHitCount(hits)
             .FromCard(this, cardPlay)
