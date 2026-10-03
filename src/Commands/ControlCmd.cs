@@ -27,6 +27,8 @@ public static class ControlCmd
             return ControlResolutionResult.Ignored;
         }
 
+        UI.CombatTextFeedback.Notify("control_intent_received", target, source,
+            amount: escapeAmount, controlType: type.LocalizedName());
         bool bypassBlock = Desire.Get(target.Player) >= 8;
         if (!bypassBlock && target.Block >= controlBlock)
         {

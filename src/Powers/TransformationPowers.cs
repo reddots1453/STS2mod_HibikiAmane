@@ -172,8 +172,13 @@ public sealed class MagicArmorPower : MaidenSuccubusPowerTemplate
         }
         UsedThisTurn = true;
         Flash();
+        int armorBefore = (int)Amount;
         await TransformationCmd.LoseArmor(
             new BlockingPlayerChoiceContext(), Owner, 1, null);
+        int lost = Math.Max(0, armorBefore - (int)Amount);
+        if (lost > 0)
+            UI.CombatTextFeedback.Notify("armor_damage_received", Owner,
+                amount: lost, oldValue: armorBefore, newValue: (int)Amount);
     }
 
     public override async Task AfterDamageReceived(

@@ -123,6 +123,9 @@ public sealed class ControlPower :
                 Applier.Monster,
                 PendingBreakReason);
         }
+        if (!oldOwner.Powers.OfType<ControlPower>().Any())
+            CombatTextFeedback.Notify("control_released", oldOwner, Applier,
+                controlType: ControlType.LocalizedName());
         if (oldOwner.Player != null)
         {
             ControlQuery.Refresh(oldOwner.Player);

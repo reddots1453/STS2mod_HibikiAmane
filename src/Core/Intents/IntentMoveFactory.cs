@@ -116,6 +116,7 @@ public static class IntentMoveFactory
         {
             Creature? target = FindMaidenSuccubus(targets);
             if (target?.Player == null) return;
+            UI.CombatTextFeedback.Notify("desire_attack_received", target, source.Creature, amount: spec.Desire);
             EroticIntentVisualEvents.Publish(target, EroticIntentKind.Desire);
             using IDisposable performance =
                 PerformanceDirector.BeginDesireAction(source, target);

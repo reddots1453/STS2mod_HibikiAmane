@@ -1,0 +1,15 @@
+{
+  "enabled": true,
+  "texts": {
+    "damage_received": "受到{enemy}的伤害：{amount}",
+    "desire_attack_received": "",
+    "desire_increased": "",
+    "desire_reached_8": "",
+    "desire_reached_max": "",
+    "armor_damage_received": "",
+    "control_intent_received": "",
+    "escape_incomplete": "",
+    "control_released": "",
+    "invasion_intent_received": ""
+  }
+}

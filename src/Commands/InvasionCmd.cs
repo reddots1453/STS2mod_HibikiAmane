@@ -32,6 +32,7 @@ public static class InvasionCmd
         if (source.Creature.IsDead || target.Creature.IsDead
             || IntentAdapterRegistry.GetRuntime(source).ControlDisabled) return false;
 
+        UI.CombatTextFeedback.Notify("invasion_intent_received", target.Creature, source.Creature, amount: spec.Damage);
         await DamageCmd.Attack(spec.Damage)
             .FromMonster(source)
             .WithNoAttackerAnim()

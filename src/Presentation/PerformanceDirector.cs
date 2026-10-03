@@ -97,6 +97,7 @@ public static class PerformanceDirector
 
     public static void OnSceneTransition()
     {
+        UI.CombatTextFeedback.Clear();
         _sceneGeneration++;
         CutscenePlaybackService.CancelActive();
         PerformanceAudioService.StopAll();

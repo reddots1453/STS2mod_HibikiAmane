@@ -125,8 +125,15 @@ public sealed class EscapeProjectionCapability :
         if (_control != null
             && EscapeProjectionTracker.TryTake(cardPlay, _control, out int amount))
         {
-            _control.FlashForEscape();
-            await ControlCmd.Escape(choiceContext, _control, amount);
+            ControlPower control = _control;
+            string originalTitle = _originalTitle ?? "";
+            control.FlashForEscape();
+            await ControlCmd.Escape(choiceContext, control, amount);
+            if (ControlQuery.IsControlled(cardPlay.Player))
+                CombatTextFeedback.Notify("escape_incomplete", cardPlay.Player.Creature,
+                    control.Applier, amount: amount,
+                    newValue: (int)cardPlay.Player.Creature.Powers.OfType<ControlPower>().Sum(p => p.Amount),
+                    controlType: control.ControlType.LocalizedName(), card: originalTitle);
         }
     }
 
