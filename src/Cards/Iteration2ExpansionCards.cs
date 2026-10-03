@@ -179,10 +179,8 @@ public sealed class GaleSword : MSNeutralCard
         PileType oldPileType,
         AbstractModel? source)
     {
-        if (card == this
-            && !EnchantedOnPickup
-            && oldPileType == PileType.None
-            && card.Pile?.Type == PileType.Deck)
+        if (!EnchantedOnPickup
+            && PickupEnchantmentCmd.IsPickupOrDeckTransformation(this, card, oldPileType))
         {
             if (Enchantment == null)
                 PickupEnchantmentCmd.EnchantAndPreview<Swift>(this, 2);
@@ -223,10 +221,8 @@ public sealed class ShiningSword : MSNeutralCard
         PileType oldPileType,
         AbstractModel? source)
     {
-        if (card == this
-            && !EnchantedOnPickup
-            && oldPileType == PileType.None
-            && card.Pile?.Type == PileType.Deck)
+        if (!EnchantedOnPickup
+            && PickupEnchantmentCmd.IsPickupOrDeckTransformation(this, card, oldPileType))
         {
             if (Enchantment == null)
                 PickupEnchantmentCmd.EnchantAndPreview<Vigorous>(this, 3);

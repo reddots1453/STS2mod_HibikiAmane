@@ -28,7 +28,12 @@ public sealed class PleasureDrowning : MSCorruptCard
         await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
         await CardPileCmd.Draw(context, DynamicVars.Cards.IntValue, Owner);
         for (int i = 0; i < 2; i++)
-            await CardPileCmd.Add(CombatState!.CreateCard<ArousalStatus>(Owner), PileType.Draw, CardPilePosition.Random);
+        {
+            CardCmd.PreviewCardPileAdd(await CardPileCmd.AddGeneratedCardToCombat(
+                CombatState!.CreateCard<ArousalStatus>(Owner),
+                PileType.Draw, Owner, CardPilePosition.Random));
+            await Cmd.Wait(1f);
+        }
     }
     protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(3);
 }
