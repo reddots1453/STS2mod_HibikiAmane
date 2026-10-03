@@ -26,11 +26,25 @@ public static class Desire
 
     public static int Get(Player player)
     {
-        if (HasCombatState(player))
+        // ResetCombatState creates combat references before RitsuLib restores
+        // resources. An absent resource's default zero is not a restored value.
+        if (HasCombatState(player)
+            && SecondaryResourceStateStore.TryGet(player, out var resources)
+            && resources.Snapshot().TryGetValue(DesireResource.Id, out int live))
         {
-            return SecondaryResourceCmd.Get(player, DesireResource.Id);
+            return live;
         }
 
+        return GetDisplayValue(player);
+    }
+
+    /// <summary>
+    /// The sidebar reads the per-player run bridge, which is updated by every
+    /// resource change, even while combat objects are being created/replaced.
+    /// It must not flash an uninitialised combat resource's default value.
+    /// </summary>
+    internal static int GetDisplayValue(Player player)
+    {
         DesireAmountState state = AmountHandle.Get(player);
         return state.HasValue ? state.Amount
             : DesirePersistenceCoordinator.TryReadRunSnapshot(player, out int saved) ? saved : Min;

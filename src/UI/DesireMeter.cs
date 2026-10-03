@@ -39,13 +39,15 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
     {
         DesireEvents.Changed += OnDesireChanged;
         _loadSubscription = STS2RitsuLib.RitsuLibFramework.SubscribeLifecycle<STS2RitsuLib.RunLoadedEvent>(
-            _ => CallDeferred(nameof(Refresh)), replayCurrentState: false);
+            _ => CallDeferred(nameof(Refresh)), replayCurrentState: true);
+        VisibilityChanged += OnVisibilityChanged;
         RunUiRefreshEvents.CombatVisibilityChanged += OnCombatVisibilityChanged;
     }
 
     public override void _ExitTree()
     {
         DesireEvents.Changed -= OnDesireChanged;
+        VisibilityChanged -= OnVisibilityChanged;
         _loadSubscription?.Dispose();
         _loadSubscription = null;
         RunUiRefreshEvents.CombatVisibilityChanged -= OnCombatVisibilityChanged;
@@ -167,11 +169,19 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
         }
 
         Visible = true;
-        UpdateValue(Desire.Get(_player));
+        UpdateValue(Desire.GetDisplayValue(_player));
+    }
+
+    private void OnVisibilityChanged()
+    {
+        // The rail follows native top-bar visibility. Binding may have run
+        // before RunLoaded/local-player setup; refresh when it actually appears.
+        if (IsVisibleInTree()) CallDeferred(nameof(Refresh));
     }
 
     private void OnDesireChanged(DesireChanged change)
     {
+        if (_player == null) Refresh();
         if (_player != null && ReferenceEquals(change.Player, _player))
         {
             UpdateValue(change.NewValue);

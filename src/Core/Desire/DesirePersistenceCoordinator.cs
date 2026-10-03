@@ -35,8 +35,14 @@ internal static class DesirePersistenceCoordinator
             foreach (Player player in evt.RunState.Players.Where(player => player.Character is MaidenSuccubusCharacter))
             {
                 var bridge = Data.Desire.AmountHandle.Get(player);
-                if (!bridge.HasValue && TryReadRunSnapshot(player, out int amount))
+                bool hasSnapshot = TryReadRunSnapshot(player, out int amount);
+                if (!bridge.HasValue && hasSnapshot)
                     Data.Desire.RememberCombatValue(player, amount);
+                int value = Data.Desire.GetDisplayValue(player);
+                MaidenSuccubusMod.Logger.Info(
+                    $"[DesirePersistence] RunLoaded display={value}, bridge={bridge.HasValue}, snapshot={(hasSnapshot ? amount.ToString() : "absent")}");
+                // A refresh is not a gain: no threshold/climax effects on load.
+                DesireEvents.Publish(new DesireChanged(player, value, value));
             }
             // The top bar may have been created before saved mod data was restored.
             RunUiRefreshEvents.PublishCombatVisibility(evt.RunState.CurrentRoom is CombatRoom);
@@ -99,16 +105,17 @@ internal static class DesirePersistenceCoordinator
 
         if (!persisted.HasValue)
         {
-            // Migrate runs saved before the non-combat bridge existed.
-            Data.Desire.RememberCombatValue(player, restoredByRitsu);
-            DesireEvents.Publish(new DesireChanged(
-                player,
-                restoredByRitsu,
-                restoredByRitsu));
-            return;
+            // A listener may run before the library's combat restore. Prefer
+            // its saved snapshot over an uninitialised resource's default zero.
+            int migrated = TryReadRunSnapshot(player, out int saved)
+                ? saved : restoredByRitsu;
+            Data.Desire.RememberCombatValue(player, migrated);
+            persisted = Data.Desire.AmountHandle.Get(player);
         }
 
-        if (restoredByRitsu != persisted.Amount)
+        bool hasStoredAmount = SecondaryResourceStateStore.TryGet(player, out var resources)
+            && resources.Snapshot().ContainsKey(DesireResource.Id);
+        if (!hasStoredAmount || restoredByRitsu != persisted.Amount)
         {
             var snapshot = new SecondaryResourceRunSaveState
             {
@@ -129,6 +136,8 @@ internal static class DesirePersistenceCoordinator
         // an equal-value refresh so the left meter and expression bind to the
         // restored run value without replaying the ten-desire climax effect.
         int finalValue = SecondaryResourceCmd.Get(player, DesireResource.Id);
+        MaidenSuccubusMod.Logger.Info(
+            $"[DesirePersistence] Combat restored={finalValue}, bridge={persisted.Amount}");
         DesireEvents.Publish(new DesireChanged(
             player,
             finalValue,

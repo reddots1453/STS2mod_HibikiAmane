@@ -11,3 +11,6 @@
 关联错误：最新godot.log在Continue加载窗口两次记录Temptation.Get读取Hand抛出“Tried to get Hand pile while out of combat”；Creature.CombatState已存在但PlayerCombatState未建立。改为仅从已有PlayerCombatState.Hand统计，不触发原生GetPile异常。此为同一侧栏初始化边界修复，不改变诱惑度公式。
 
 验收：DESIRE-LOAD-UI-01地图读档6立即显示6；02事件/火堆读档保持数值并可正常增减；03保存值真实0不可回退旧非零值；04继续进入战斗前后数值一致、战斗内支付/涨跌正确、读档8/满值不重复播演出；05首次游戏0、换存档/角色/多人仅本地数据，侧栏显隐仍遵从顶栏，加载窗口无Hand异常。状态IMPLEMENTED待用户手测。按用户要求只build，不运行静态测试，不部署正式游戏、沙箱或ModUploader，不修改安装JSON/用户存档。
+
+
+最终构建：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过，0警告0错误。未运行静态测试，游戏内NOT_RUN；outputs/desire-load-ui-20261003保存独立DLL/PDB及未改完整资源PCK。用户最新指令暂不部署，安装文件/存档/ModUploader均未改。

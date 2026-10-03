@@ -53,9 +53,10 @@ public static class Temptation
         Creature creature = player.Creature;
         int total = BaseValue(creature)
             + (creature.GetPower<TemptationRuntimePower>()?.Modifier ?? 0);
-        if (creature.CombatState != null)
+        if (creature.CombatState != null && player.PlayerCombatState is { } combat)
         {
-            total += PileType.Hand.GetPile(player).Cards
+            // During Continue the creature can be attached before combat piles.
+            total += combat.Hand.Cards
                 .Count(card => card is TransparentOutfitCurse)
                 * TransparentOutfitAmount;
         }
