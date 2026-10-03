@@ -2636,3 +2636,10 @@ ACT4-001慷慨遗物/供奉互斥选择：本机日志确认原生LinkedRewardSe
 
 
 构建：`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过，0警告0错误。未运行静态测试/游戏内验收，继续暂不部署；聊天outputs/invasion-release-20261003保存本轮DLL/PDB及原样复用上一批完整PCK，包含此前待部署修复与平衡调整。
+
+
+## 2026-10-03 用户授权仅部署本地游戏（LOCAL-DEPLOY-20261003-164145）
+
+用户明确要求“仅部署到本地游戏目录”，覆盖此前暂不部署指令，仅此安装目录授权。最新源码完成提交`998769a6e07995d72d717085130cfff51ca7c94a`，部署前文档快照`64236d867095cd49acc9a006e4a6898e48ec7acf`；复用本轮已通过的Debug构建，0警告0错误，命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`。DLL/PDB/完整PCK累计包含此前待部署玩家反馈修复、三路线开局、原生重要意图保护、书库边缘光效、七牌及慷慨/傲慢平衡、侵犯成功解除来源拘束。
+
+仅替换`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`下MaidenSuccubus.dll/.pdb/.pck，替换前备份`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\local-invasion-release-deployment-20261003-164145`，安装后逐项SHA-256一致，原有JSON哈希不变。未改沙箱、ModUploader、上传包或其他游戏/模组目录。未运行静态测试与游戏内验收，用户实测后再标VERIFIED。部署明细：聊天outputs/invasion-release-20261003/local-deployment-20261003-164145.json。
