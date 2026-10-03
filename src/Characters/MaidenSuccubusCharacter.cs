@@ -160,6 +160,9 @@ public class MaidenSuccubusCharacter
         }
 
         await Desire.ResolvePendingFirstTurnStun(choiceContext, player);
+        // Resumed/special entries may restore desire silently. Reconcile only
+        // the derived status after a pending maximum penalty has lowered it.
+        await DesireResourceRules.SyncWetPower(choiceContext, player, "player-turn-start");
         // Also repairs a combat loaded from a save created before hook wiring
         // was fixed. Initialize is idempotent and preserves saved use counts.
         await Temptation.Initialize(choiceContext, player);
@@ -203,6 +206,11 @@ public class MaidenSuccubusCharacter
             DesirePersistenceCoordinator.RestoreForCombat(
                 player,
                 combatState);
+            // RitsuLib restores with emit:false: no resource-change hook runs.
+            // Await status restoration here instead of starting a fire-and-forget
+            // lifecycle task that could race the first enemy intent check.
+            await DesireResourceRules.SyncWetPower(
+                new ThrowingPlayerChoiceContext(), player, "combat-start");
             await Temptation.Initialize(
                 new ThrowingPlayerChoiceContext(), player);
             if (!player.Creature.HasPower<TakemikazuchiTrackerPower>())

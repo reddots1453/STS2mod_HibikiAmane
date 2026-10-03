@@ -82,23 +82,43 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
             context.OldAmount,
             context.NewAmount));
 
-        WetPower? wet = context.Player.Creature.GetPower<WetPower>();
-        if (context.NewAmount >= 8 && wet == null)
-        {
-            await PowerCmd.Apply<WetPower>(
-                new ThrowingPlayerChoiceContext(),
-                context.Player.Creature,
-                1,
-                context.Player.Creature,
-                null,
-                silent: true);
-        }
-        else if (context.NewAmount < 8 && wet != null)
-        {
-            await PowerCmd.Remove(wet);
-        }
+        await SyncWetPower(
+            new ThrowingPlayerChoiceContext(), context.Player, "resource-change");
 
         await RecheckMaximum(context.Player, context.Source);
+    }
+
+    /// <summary>
+    /// Wet is derived from persistent desire, but native powers are combat-only.
+    /// A silent resource restore must re-establish it without inventing a gain.
+    /// </summary>
+    internal static async Task SyncWetPower(
+        PlayerChoiceContext choiceContext, Player player, string reason)
+    {
+        if (player.Creature.CombatState == null || player.PlayerCombatState == null
+            || !CombatManager.Instance.IsInProgress || CombatManager.Instance.IsEnding
+            || player.Creature.IsDead) return;
+
+        int amount = Data.Desire.Get(player);
+        WetPower? wet = player.Creature.GetPower<WetPower>();
+        if (amount >= 8 && wet == null)
+        {
+            await PowerCmd.Apply<WetPower>(
+                choiceContext, player.Creature, 1, player.Creature, null, silent: true);
+            if (!CombatManager.Instance.IsInProgress || CombatManager.Instance.IsEnding) return;
+            if (player.Creature.HasPower<WetPower>())
+                MaidenSuccubusMod.Logger.Info(
+                    $"[DesireStatus] Wet applied: desire={amount}, reason={reason}");
+            else
+                MaidenSuccubusMod.Logger.Warn(
+                    $"[DesireStatus] Wet missing after native application: desire={amount}, reason={reason}");
+        }
+        else if (amount < 8 && wet != null)
+        {
+            await PowerCmd.Remove(wet);
+            MaidenSuccubusMod.Logger.Info(
+                $"[DesireStatus] Wet removed: desire={amount}, reason={reason}");
+        }
     }
 
     internal static async Task RecheckMaximum(Player player, AbstractModel? source)
