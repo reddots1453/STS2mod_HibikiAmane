@@ -50,6 +50,7 @@ internal static class ControlIntentTestRunner
         new("natural_consecutive_limit_and_saved_state", "SYS-DES-INTENT-001", NaturalConsecutiveLimitAndSavedState),
         new("default_invasion_curse", "SYS-INV-001", DefaultInvasionCurse),
         new("fossil_invasion_stun_once", "SYS-INV-001/MON-ERO-CATALOG-001", FossilInvasionStunOnce),
+        new("native_stun_over_pending_erotic", "MON-ERO-CATALOG-001", NativeStunOverPendingErotic),
         new("desire_intent_visual_deduplication", "SYS-DES-INTENT-001", DesireIntentVisualDeduplication),
         new("catalog_intent_visual_components", "MON-ERO-CATALOG-001", CatalogIntentVisualComponents),
         new("intent_metadata_and_exact_block", "SYS-CTL-001", IntentMetadataAndExactBlock),
@@ -65,6 +66,34 @@ internal static class ControlIntentTestRunner
     ];
 
     internal static int ScenarioCount => Scenarios.Count;
+
+    private static async Task NativeStunOverPendingErotic(ControlIntentTestContext ctx)
+    {
+        Creature source = await ctx.AddCorpseSlug();
+        MonsterModel monster = source.Monster!;
+        MoveState original = monster.NextMove;
+        DesireIntentSpec desire = EroticAttackCatalog.Get(monster)!.Desire!;
+        IntentMoveFactory.SetTransient(
+            monster, IntentMoveFactory.CreateDesire(monster, desire));
+        ctx.AssertTrue("custom intent is pending",
+            monster.NextMove.StateId.StartsWith("MAIDENSUCCUBUS_DESIRE", StringComparison.Ordinal));
+
+        bool nativeStunMoveRan = false;
+        await CreatureCmd.Stun(source, async _ =>
+        {
+            nativeStunMoveRan = true;
+            await Task.Yield();
+        }, original.StateId);
+        ctx.AssertEqual("native stun takes priority over pending erotic intent",
+            "STUNNED", monster.NextMove.StateId);
+        await monster.PerformMove();
+        ctx.AssertTrue("native stun callback retained", nativeStunMoveRan);
+        monster.RollMove(ctx.Combat.PlayerCreatures);
+        ctx.AssertTrue("stun leaves pending erotic intent behind",
+            !monster.NextMove.StateId.StartsWith("MAIDENSUCCUBUS_", StringComparison.Ordinal));
+        ctx.AssertTrue("original move remains registered",
+            monster.MoveStateMachine!.States.ContainsKey(original.StateId));
+    }
 
     private static async Task LifecycleThresholdDispatch(ControlIntentTestContext ctx)
     {
@@ -545,6 +574,10 @@ internal static class ControlIntentTestRunner
         context.AssertEqual("control does not deal hp damage",
             hpBefore, context.Self.CurrentHp);
         context.AssertNoControl("exact block prevents control");
+        context.AssertEqual("blocked control skips the next round",
+            context.Combat.RoundNumber + 1,
+            IntentAdapterRegistry.GetRuntime(enemy.Monster)
+                .ControlCooldownThroughTurn);
     }
 
     private static async Task InsufficientBlockStressProjection(
@@ -582,6 +615,10 @@ internal static class ControlIntentTestRunner
             hpBefore, context.Self.CurrentHp);
         context.AssertEqual("applied escape amount", 3, control.Amount);
         context.AssertEqual("applied control type", ControlType.Skill, control.ControlType);
+        context.AssertEqual("applied control skips two following rounds",
+            context.Combat.RoundNumber + 2,
+            IntentAdapterRegistry.GetRuntime(enemy.Monster)
+                .ControlCooldownThroughTurn);
         int projected = cards.Count(card => ControlQuery.GetProjection(card) != null);
         int expectedProjected = cards.Count(card =>
             card.Type == CardType.Skill && card is not ResistanceGloves);

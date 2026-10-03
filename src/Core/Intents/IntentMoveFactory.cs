@@ -49,11 +49,16 @@ public static class IntentMoveFactory
                 spec.BlockRequired,
                 spec.ControlType,
                 spec.EscapeRequired);
+            if (result is ControlResolutionResult.Blocked or ControlResolutionResult.Applied)
+            {
+                // Blocked control skips one following round; successful control
+                // skips two. An ignored intent does not consume a cooldown.
+                IntentAdapterRegistry.GetRuntime(source)
+                    .ControlCooldownThroughTurn = source.CombatState.RoundNumber
+                        + (result == ControlResolutionResult.Blocked ? 1 : 2);
+            }
             if (result == ControlResolutionResult.Applied)
             {
-                IntentAdapterRegistry.GetRuntime(source)
-                    .ControlCooldownThroughTurn =
-                        source.CombatState.RoundNumber + 1;
                 await PerformanceDirector.PlayControlAsync(source, target);
                 await EroticEffectCmd.Resolve(
                     new BlockingPlayerChoiceContext(),
@@ -191,7 +196,7 @@ public static class IntentMoveFactory
     public static void ForceStun(MonsterModel monster)
     {
         MoveState current = monster.NextMove;
-        if (!ShouldQueueStun(current))
+        if (NativeIntentPriority.HasPriority(monster) || !ShouldQueueStun(current))
         {
             // Invasion can schedule a stun while the move is executing, then
             // releasing its ControlPower can request the same recovery again.
@@ -262,6 +267,7 @@ public static class IntentMoveFactory
     public static async Task Stun(Creature creature)
     {
         ArgumentNullException.ThrowIfNull(creature.Monster);
+        if (NativeIntentPriority.HasPriority(creature.Monster)) return;
         await CreatureCmd.Stun(creature);
         if (creature.IsAlive && !creature.IsStunned)
         {
@@ -293,10 +299,8 @@ public static class IntentMoveFactory
         EroticMonsterSpec? spec = EroticAttackCatalog.Get(monster);
         if (spec == null
             || IsSteadfast(monster)
-            || monster.Creature.IsDead
-            || IsEroticMove(monster.NextMove)
-            || monster.NextMove.StateId == "STUNNED"
-            || monster.NextMove.Intents.Any(intent => intent is StunIntent))
+            || NativeIntentPriority.HasPriority(monster)
+            || IsEroticMove(monster.NextMove))
         {
             return false;
         }
@@ -335,6 +339,7 @@ public static class IntentMoveFactory
         MonsterModel monster,
         MoveState recovery)
     {
+        if (NativeIntentPriority.HasPriority(monster)) return;
         MoveState proxy = NewMove(
             monster,
             "RECOVERY",
@@ -350,7 +355,7 @@ public static class IntentMoveFactory
         bool requireThreshold)
     {
         EroticMonsterSpec? spec = EroticAttackCatalog.Get(monster);
-        if (spec == null)
+        if (spec == null || NativeIntentPriority.HasPriority(monster))
         {
             return false;
         }
@@ -423,7 +428,7 @@ public static class IntentMoveFactory
 
     public static void SetTransient(MonsterModel monster, MoveState move)
     {
-        if (monster.Creature.IsDead) return;
+        if (NativeIntentPriority.HasPriority(monster)) return;
         MoveState current = monster.NextMove;
         if (current.StateId.StartsWith(
                 "MAIDENSUCCUBUS_",
