@@ -29,7 +29,8 @@ public static class InvasionCmd
         InvasionIntentSpec spec,
         bool deferCompletion = false)
     {
-        if (source.Creature.IsDead || target.Creature.IsDead) return false;
+        if (source.Creature.IsDead || target.Creature.IsDead
+            || IntentAdapterRegistry.GetRuntime(source).ControlDisabled) return false;
 
         await DamageCmd.Attack(spec.Damage)
             .FromMonster(source)
@@ -54,6 +55,10 @@ public static class InvasionCmd
         }
         curse.SourceMonsterId = source.Id.Entry;
 
+        // Commit the combat restriction and release this source's bindings now,
+        // not after an optional CG or extra effects that can await or fail.
+        await OnCurseInserted(choiceContext, source, target);
+
         if (target.RunState is RunState runState)
         {
             bool firstInvasion = Corruption.Handle.Get(runState).VirginMark;
@@ -69,6 +74,22 @@ public static class InvasionCmd
             Complete(source);
         }
         return true;
+    }
+
+    private static async Task OnCurseInserted(
+        PlayerChoiceContext context, MonsterModel source, Player target)
+    {
+        IntentAdapterRegistry.GetRuntime(source).ControlDisabled = true;
+        int released = 0;
+        IEnumerable<Player> players = source.CombatState?.Players ?? [target];
+        foreach (Player player in players.Append(target).Distinct())
+        {
+            released += player.Creature.Powers.OfType<ControlPower>()
+                .Count(power => ReferenceEquals(power.Applier, source.Creature));
+            await ControlCmd.Release(context, player.Creature, source.Creature);
+        }
+        MaidenSuccubusMod.Logger.Info(
+            $"[Invasion] Curse inserted source={source.Id.Entry}; control/invasion disabled; releasedBindings={released}");
     }
 
     public static void Complete(MonsterModel source)

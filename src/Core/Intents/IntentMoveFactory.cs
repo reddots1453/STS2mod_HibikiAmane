@@ -40,6 +40,9 @@ public static class IntentMoveFactory
     {
         return NewMove(source, "CONTROL", async targets =>
         {
+            // A cached/forced move must also respect a successful invasion receipt.
+            if (source.Creature.IsDead
+                || IntentAdapterRegistry.GetRuntime(source).ControlDisabled) return;
             Creature? target = FindMaidenSuccubus(targets);
             if (target == null) return;
             EroticIntentVisualEvents.Publish(target, EroticIntentKind.Control);
