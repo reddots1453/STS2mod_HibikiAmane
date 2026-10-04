@@ -2777,3 +2777,22 @@ FAKE-MERCHANT-SHOP-01 IMPLEMENTED：复用普通商店立绘节点与实际配�
 
 补充：匹配使用商店模板绝对显示比例，不能乘原战斗根Scale或上一批0.5；重复调用直接设置目标值，场景节点路径兼容带根名称。
 FAKE-MERCHANT-SHOP-01 IMPLEMENTED：复用普通商店立绘节点与实际配置，并抵消事件角色容器缩放，实例幂等。Debug构建0警告0错误，未运行静态测试与游戏内验收，未部署；包含上一批待验女神试炼UI。
+
+## 2026-10-04 审定选角背景 V6 正式化
+
+- 用户审定原大小、向左微调的布局及完整 UI 模拟图。2561×1201 PNG 源图归档到选角界面 V6，运行时 V4 文件名作为兼容别名；四周补全并保留审定视区。
+- 前置 HEAD：83cf2ca945a899e2044e8cc1a09683e7d2f19cfd；写入前备份及清单位于聊天工作区 outputs/character_select_formal_v6_20261004。
+- 验证：正式源与运行时尺寸、SHA256 一致；原截图坐标裁切预览与两侧 UI 模拟复核。未构建、未实机复验、未部署。共享索引含既存删除与文档修改，本批保留工作树变更，未混入提交。
+
+
+## 2026-10-04 瘴雷平衡与天平悬停（CARD-C-BURNING-DESIRE-COUNT-001 / SYS-COR-001/003）
+
+前置快照`9ffeaaafb1a2839ac8945e1998aedad29415385e`，设计提交`f61bccc396da721788ddf268b66f15e87597528c`。完整复核瘴雷体系输出、自身费用、欲望资源/满值及路线奖励概率章节；相对HEAD与ca4a397c的逐行/词级差异留档。同步本次已有瘴雷与悬停文案编辑，独立按摩事件和战斗提示扩充的其他编辑完整保留，不纳入本批设计提交。
+
+技术任务READY：瘴雷1费1欲望、罕见攻击不变；CalculationBase(3/4)、ExtraDamage(1)、原生CalculatedDamageVar按本战斗实际获得欲望累计计算单段伤害；独立Hits计算保留1+实际成功支付台账，两项基础变量不混用。RitsuLib AfterSecondaryResourceChanged仅Reason.Gain且NewAmount>OldAmount记录实际增加值，先记账后发布显示/处理满值；Set/Reset/读档/非战斗/已结束会话不计，按玩家与CombatState对象隔离，战斗结束关闭。伤害执行直接传原生CalculatedDamage变量，预览与实际共用公式并由原生Hook处理力量、易伤、附魔，不持久修改基础伤害、不重复增伤。升级仅基础3→4；括号战斗内显示动态伤害与次数，战斗外仍基础说明。
+
+天平通用悬停严格使用用户新文案、[sine]一些行为[/sine]和两项百分数。同RouteCardRewardService读取RouteRewardProbabilityModifiers与RouteRewardProbabilities.Calculate；乘100显示，默认+5为65%/0%、0为10%/10%、-5为0%/65%，遗物加成与归一化不另写概率表。保持±3/±5现有阈值提示、原卡池算法和每张候选判定。
+
+验收BD-HOVER-01基础/升级、累计获得后降低仍保留增伤、多段次数与自身支付、阻止获得、满值回落、免费重放、下一场清空；02预览目标力量易伤附魔与实际一致；03天平0/±3/±5及概率修正显示，文字仅“一些行为”浮动。本批只构建，不运行静态测试；游戏内由用户手测后方可VERIFIED。只重新封装完整PCK的cards/static_hover_tips两项，原资源和combat_feedback配置继承上一包。累积此前未部署试炼UI与商人尺寸修订，暂不部署，不改游戏/沙箱/上传器JSON。
+
+本批IMPLEMENTED：瘴雷使用实际获得累计增伤、成功支付累计次数与原生CalculatedDamage预览/执行；天平说明与实时路线概率已同步到完整资源包。构建0警告0错误，静态测试NOT_RUN，游戏内NOT_RUN，未部署。

@@ -278,10 +278,13 @@ public sealed class BurningDesire : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
     [
-        new DamageVar(3, ValueProp.Move),
-        new CalculationBaseVar(1),
+        new CalculationBaseVar(3),
+        new ExtraDamageVar(1),
+        new CalculatedDamageVar(ValueProp.Move).WithMultiplier(static (card, _) =>
+            DesireCombatGains.Get(card.Owner)),
+        new DynamicVar("InitialHits", 1),
         new CalculationExtraVar(1),
-        new CalculatedVar("Hits").WithMultiplier(static (card, _) =>
+        new DesireSpendHitsVar().WithMultiplier(static (card, _) =>
             DesireCombatSpending.Get(card.Owner)),
     ];
 
@@ -300,7 +303,7 @@ public sealed class BurningDesire : MSCorruptCard
         // actual payment, but does not invent another payment on a replay.
         int hits = (int)((CalculatedVar)DynamicVars["Hits"])
             .Calculate(cardPlay.Target);
-        return DamageCmd.Attack(DynamicVars.Damage.BaseValue)
+        return DamageCmd.Attack(DynamicVars.CalculatedDamage)
             .WithHitCount(hits)
             .FromCard(this, cardPlay)
             .Targeting(cardPlay.Target)
@@ -308,7 +311,7 @@ public sealed class BurningDesire : MSCorruptCard
             .Execute(choiceContext);
     }
 
-    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(1);
+    protected override void OnUpgrade() => DynamicVars.CalculationBase.UpgradeValueBy(1);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]

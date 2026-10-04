@@ -12,6 +12,7 @@ using STS2RitsuLib.Scaffolding.Godot.NodeAttachments;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.Core.Corruption;
+using MaidenSuccubus.Core.Routes;
 
 namespace MaidenSuccubus.UI;
 
@@ -273,7 +274,16 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
             _ => "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.description",
         };
         LocString description = new("static_hover_tips", descriptionKey);
-        description.Add("Current", _displayedValue);
+        RunState? runState = RunManager.Instance?.DebugOnlyGetState();
+        var player = runState == null ? null : LocalContext.GetMe(runState);
+        int current = runState == null ? _displayedValue : CorruptionQuery.Get(runState);
+        var bonus = player == null ? default : RouteRewardProbabilityModifiers.GetTotal(player);
+        var probabilities = RouteRewardProbabilities.Calculate(current, bonus.Holy, bonus.Corrupt);
+        description.Add("Current", current);
+        description.Add("CorruptProbability", (probabilities.Corrupt * 100m)
+            .ToString("0.##", System.Globalization.CultureInfo.InvariantCulture));
+        description.Add("HolyProbability", (probabilities.Holy * 100m)
+            .ToString("0.##", System.Globalization.CultureInfo.InvariantCulture));
         NHoverTipSet.CreateAndShow(
             this,
             new HoverTip(

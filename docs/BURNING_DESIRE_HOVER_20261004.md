@@ -9,3 +9,5 @@
 天平通用悬停严格使用用户新文案、[sine]一些行为[/sine]和两项百分数。同RouteCardRewardService读取RouteRewardProbabilityModifiers与RouteRewardProbabilities.Calculate；乘100显示，默认+5为65%/0%、0为10%/10%、-5为0%/65%，遗物加成与归一化不另写概率表。保持±3/±5现有阈值提示、原卡池算法和每张候选判定。
 
 验收BD-HOVER-01基础/升级、累计获得后降低仍保留增伤、多段次数与自身支付、阻止获得、满值回落、免费重放、下一场清空；02预览目标力量易伤附魔与实际一致；03天平0/±3/±5及概率修正显示，文字仅“一些行为”浮动。本批只构建，不运行静态测试；游戏内由用户手测后方可VERIFIED。只重新封装完整PCK的cards/static_hover_tips两项，原资源和combat_feedback配置继承上一包。累积此前未部署试炼UI与商人尺寸修订，暂不部署，不改游戏/沙箱/上传器JSON。
+
+本批IMPLEMENTED：瘴雷使用实际获得累计增伤、成功支付累计次数与原生CalculatedDamage预览/执行；天平说明与实时路线概率已同步到完整资源包。构建0警告0错误，静态测试NOT_RUN，游戏内NOT_RUN，未部署。

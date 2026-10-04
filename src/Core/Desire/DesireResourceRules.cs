@@ -74,6 +74,8 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
             return;
         }
 
+        DesireCombatGains.Record(context);
+
         Data.Desire.RememberCombatValue(
             context.Player,
             context.NewAmount);

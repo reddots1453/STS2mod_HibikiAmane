@@ -159,6 +159,7 @@ internal static class DesirePersistenceCoordinator
         }
 
         DesireCombatSpending.Close(evt.CombatState);
+        DesireCombatGains.Close(evt.CombatState);
 
         foreach (var player in evt.CombatState.Players)
         {
