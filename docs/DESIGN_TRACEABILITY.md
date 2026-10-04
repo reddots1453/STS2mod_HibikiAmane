@@ -1487,3 +1487,10 @@ ACT4-001慷慨宝箱/战利品二选一 → 本机godot.log 3683/3710领取信�
 只修改3个界面代码文件和范围设计/计划记录，资源PCK与现有JSON原样继承；保留刚部署的谦逊/保留/碎片折扣/福音/堕落诊断。当前批完成后供后续UI实测，前置部署和本批新UI是否安装分别记录，未修改上传器或沙箱。
 
 实施完成：信息条目/斜切头像轮转/锁罩/原生按钮实际边界定位均已实现，START-SHION-01～06代码状态IMPLEMENTED。沿用原永久解锁与确认门禁；首次编译的DrawPolygon数组/span重载歧义已通过显式Color[]修正，最终Debug构建通过。未执行静态测试与游戏内验收，本批新UI尚未部署，不混称前置已安装的修复。
+
+
+## 2026-10-04 用户授权仅部署本地游戏（LOCAL-DEPLOY-20261004-180019）
+
+用户明确要求“仅部署到本地游戏目录”，覆盖此前暂不部署指令，仅此安装目录授权。最新源码完成提交`a20c6e0e2040a0cf3ed960fd2b9e2b67a82baf30`，部署前文档快照`f993f74f49fd4eb23357d61841961c81ff693da9`；复用本轮已通过的Debug构建，0警告0错误，命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`。本次按本轮用户部署及界面回修授权，安装紫音参考的错位信息条目、斜切头像轮转、缩放缓动与锁罩，依据原生开始按钮实际边界预留32像素区域。含本轮前置已部署的谦逊预览/保留修复、碎片折扣及福音悬停；最终UI游戏内验收仍待用户，不标VERIFIED。PCK沿用上一接受版本。只在首次安装时增加combat_feedback.json文案模板，后续保留用户填写内容。
+
+仅替换`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`下MaidenSuccubus.dll/.pdb/.pck及首次文案模板，替换前备份`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\local-start-route-shion-deployment-20261004-180019`，安装后逐项SHA-256一致，原有JSON哈希不变。未改沙箱、ModUploader、上传包或其他游戏/模组目录。未运行静态测试与游戏内验收，用户实测后再标VERIFIED。部署明细：聊天outputs/start-route-shion-20261004/local-deployment-20261004-180019.json。
