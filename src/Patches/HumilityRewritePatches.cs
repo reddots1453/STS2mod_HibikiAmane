@@ -122,6 +122,7 @@ internal static class HumilityRewritePatches
     [HarmonyPatch]
     private static class ResultLocation
     {
+        private static bool Prepare() => CardMethods("GetResultLocationForCardPlay").Any();
         private static IEnumerable<MethodBase> TargetMethods() => CardMethods("GetResultLocationForCardPlay");
         private static bool Prefix(CardModel __instance, ref CardLocation __result)
         {
@@ -137,6 +138,30 @@ internal static class HumilityRewritePatches
                 result = new CardLocation(__instance.Owner, pile, CardPilePosition.Bottom);
                 suppress = true;
             }, "Humility.ResultLocation");
+            if (suppress) __result = result;
+            return !suppress;
+        }
+    }
+
+    // v0.107 returns only a pile; newer versions return a CardLocation.
+    [HarmonyPatch]
+    private static class LegacyResultPile
+    {
+        private static bool Prepare() => CardMethods("GetResultPileTypeForCardPlay").Any();
+        private static IEnumerable<MethodBase> TargetMethods() => CardMethods("GetResultPileTypeForCardPlay");
+        private static bool Prefix(CardModel __instance, ref PileType __result)
+        {
+            bool suppress = false;
+            PileType result = default;
+            Safe.Run(() =>
+            {
+                if (HumilityRewriteCapability.Find(__instance) == null) return;
+                result = __instance.IsDupe ? PileType.None
+                    : __instance.ExhaustOnNextPlay || __instance.Keywords.Contains(CardKeyword.Exhaust)
+                        ? PileType.Exhaust : PileType.Discard;
+                if (result == PileType.Exhaust) __instance.ExhaustOnNextPlay = false;
+                suppress = true;
+            }, "Humility.LegacyResultPile");
             if (suppress) __result = result;
             return !suppress;
         }

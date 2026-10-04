@@ -20,10 +20,11 @@ public static class PortableRetainPatch
 {
     public static MethodBase TargetMethod() =>
         typeof(CombatManager)
-            .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
-            .SingleOrDefault(method =>
-                method.Name == "EndPlayerTurnPhaseTwoInternal"
-                && method.GetParameters() is [{ ParameterType.Name: "CombatTurnState" }])
+            .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            .Where(method => method.Name == "EndPlayerTurnPhaseTwoInternal")
+            .OrderByDescending(method => method.GetParameters().Length)
+            .FirstOrDefault(method => method.GetParameters() is [{ ParameterType.Name: "CombatTurnState" }]
+                or [])
         ?? throw new MissingMethodException(
             typeof(CombatManager).FullName,
             "EndPlayerTurnPhaseTwoInternal(CombatTurnState)");

@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Localization;
@@ -11,12 +13,17 @@ namespace MaidenSuccubus.Core.Cards;
 internal static class HumilityRewritePresentation
 {
     internal static readonly WeakInstanceValueScope<CardModel, Creature?> Targets = new();
+    private sealed class PreviewTrace { internal string Text = "not captured"; }
+    private static readonly ConditionalWeakTable<CardModel, PreviewTrace> LastTargetPreviews = new();
+    internal static string LastTargetPreview(CardModel card) =>
+        LastTargetPreviews.TryGetValue(card, out var trace) ? trace.Text : "not captured";
 
     internal static LocString Description(CardModel card, HumilityRewriteCapability capability)
     {
         Targets.TryGet(card, out Creature? target);
         HumilityXValues x = HumilityNativeEffects.XForPreview(card);
         List<string> lines = [];
+        List<string> previewTrace = [];
         Dictionary<int, decimal> damageResults = [];
         Dictionary<int, decimal> firstDamageResults = [];
         for (int index = 0; index < capability.Program.Effects.Count; index++)
@@ -40,7 +47,21 @@ internal static class HumilityRewritePresentation
                         HumilityNativeEffects.DamageProps(card, effect.Source))
                 : new BlockVar(amount, ValueProp.Move);
             variable.SetOwner(card);
-            variable.UpdateCardPreview(card, CardPreviewMode.Normal, previewTarget, runGlobalHooks: card.CombatState != null);
+            if (effect.Kind == HumilityEffectKind.Damage && card.CombatState is { } combat)
+            {
+                // Use the same entry point as CreatureCmd.Damage/AttackCommand.
+                // A synthetic DamageVar can receive extra preview-only patches
+                // from other mods that the real attack never receives.
+                Creature? dealer = effect.Source == HumilityAttackSource.Osty
+                    ? card.Owner.Osty : card.Owner.Creature;
+                variable.PreviewValue = dealer == null ? 0 : Hook.ModifyDamage(
+                    card.Owner.RunState, combat, previewTarget, dealer, amount,
+                    HumilityNativeEffects.DamageProps(card, effect.Source), card, null,
+                    ModifyDamageHookType.All, CardPreviewMode.Normal, out _);
+            }
+            else variable.UpdateCardPreview(card, CardPreviewMode.Normal, previewTarget,
+                runGlobalHooks: card.CombatState != null);
+            previewTrace.Add($"effect={index},base={amount},preview={variable.PreviewValue},target={previewTarget?.Monster?.Id.Entry ?? "none"}");
             decimal repeats = Math.Max(0, decimal.Truncate(effect.Repeats.Evaluate(x, Resolve)));
             damageResults[index] = effect.Kind == HumilityEffectKind.Damage
                 ? Math.Max(0, decimal.Floor(variable.PreviewValue)) * repeats : 0;
@@ -59,6 +80,8 @@ internal static class HumilityRewritePresentation
             line.Add("Target", new LocString("cards", $"MAIDEN_HUMILITY_REWRITE.target_{targetKey}"));
             lines.Add(line.GetFormattedText());
         }
+        if (target != null)
+            LastTargetPreviews.GetValue(card, _ => new PreviewTrace()).Text = string.Join(";", previewTrace);
         var description = new LocString("cards", "MAIDEN_HUMILITY_REWRITE.description");
         description.Add("Effects", string.Join('\n', lines));
         return description;

@@ -139,6 +139,8 @@ internal sealed class HumilityNativeEffects(PlayerChoiceContext context, CardPla
     {
         if (!CanContinue) return;
         target = ResolveTarget(play.Card, target);
+        Util.Safe.Run(() => MaidenSuccubusMod.Logger.Info(
+            $"[HumilityTrace] Attack card={play.Card.Id.Entry}; effect={_effectIndex}; base={baseAmount}; hits={hits}; source={source}; target={play.Target?.Monster?.Id.Entry ?? "none"}"), "Humility.TraceAttack");
         if (source is not (HumilityAttackSource.Card or HumilityAttackSource.Osty))
         {
             bool grouped = source is HumilityAttackSource.ContextCard or HumilityAttackSource.ContextUnpowered;
@@ -158,6 +160,7 @@ internal sealed class HumilityNativeEffects(PlayerChoiceContext context, CardPla
                 if (receivers.Length == 0) continue;
                 ValueProp props = DamageProps(play.Card, source);
                 var results = (await CreatureCmd.Damage(context, receivers, baseAmount, props, play.Player.Creature, play.Card, play)).ToList();
+                TraceResults(results);
                 if (grouped) _attackContext!.AddHit(results);
                 _damageResults[_effectIndex] += results.Sum(result => result.TotalDamage + result.OverkillDamage);
                 if (hit == 0 && results.FirstOrDefault() is { } first)
@@ -191,11 +194,19 @@ internal sealed class HumilityNativeEffects(PlayerChoiceContext context, CardPla
             default: throw new InvalidOperationException("Unsupported humility damage target.");
         }
         await attack.WithHitFx("vfx/vfx_attack_slash").Execute(context);
+        TraceResults(attack.Results.SelectMany(results => results));
         _damageResults[_effectIndex] = attack.Results.SelectMany(results => results)
             .Sum(result => result.TotalDamage + result.OverkillDamage);
         if (attack.Results.SelectMany(results => results).FirstOrDefault() is { } firstResult)
             _firstDamageResults[_effectIndex] = firstResult.TotalDamage + firstResult.OverkillDamage;
     }
+
+    private void TraceResults(IEnumerable<DamageResult> results) => Util.Safe.Run(() =>
+    {
+        foreach (DamageResult result in results)
+            MaidenSuccubusMod.Logger.Info(
+                $"[HumilityTrace] Result card={play.Card.Id.Entry}; effect={_effectIndex}; target={result.Receiver.Monster?.Id.Entry ?? "player"}; block={result.BlockedDamage}; hp={result.UnblockedDamage}; overkill={result.OverkillDamage}; total={result.TotalDamage + result.OverkillDamage}");
+    }, "Humility.TraceResults");
 
     internal static ValueProp DamageProps(CardModel card, HumilityAttackSource source) => source switch
     {

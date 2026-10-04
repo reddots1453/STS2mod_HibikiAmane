@@ -47,6 +47,8 @@ public sealed class HumilityRewriteCapability : CardPlayCapability
         // again: enchantments may also make non-idempotent cost/stat changes.
         RemoveIntrinsicRules(card);
         capability.MarkDirty();
+        Util.Safe.Run(() => MaidenSuccubusMod.Logger.Info(
+            $"[HumilityTrace] Rewrite card={card.Id.Entry}; instance={System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(card)}; multiplier={next.AmountMultiplier}; program={next.Save().ToJsonString()}"), "Humility.TraceRewrite");
         card.InvokeEnergyCostChanged(); // Native NCard reload notification; no cost mutation.
         return capability;
     }
@@ -79,6 +81,8 @@ public sealed class HumilityRewriteCapability : CardPlayCapability
     protected override async Task<bool> BeforeOwnerCardOnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         if (_program == null || Owner == null || ControlQuery.GetProjection(Owner) != null) return false;
+        Util.Safe.Run(() => MaidenSuccubusMod.Logger.Info(
+            $"[HumilityTrace] Play card={cardPlay.Card.Id.Entry}; instance={System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(cardPlay.Card)}; multiplier={_program.AmountMultiplier}; vars={string.Join(",", cardPlay.Card.DynamicVars.Values.Select(v => $"{v.Name}:{v.BaseValue}"))}; lastTargetPreview={HumilityRewritePresentation.LastTargetPreview(cardPlay.Card)}"), "Humility.TracePlay");
         await using var sink = new HumilityNativeEffects(choiceContext, cardPlay);
         await _program.Execute(HumilityNativeEffects.XForPlay(cardPlay),
             sink.ResolveValue, sink);

@@ -314,10 +314,13 @@ public sealed class LewdMarkCompleteCurse : MSEventCurseTemplate
     protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
         [HoverTipFactory.FromCard<ArousalStatus>()];
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Unplayable, CardKeyword.Retain];
-    public override bool HasTurnEndInHandEffect => true;
 
-    protected override async Task OnTurnEndInHand(PlayerChoiceContext context)
+    // Native end-of-turn card VFX always discards non-Ethereal cards after
+    // OnTurnEndInHand. Keep this retained curse in Hand and use the flush hook.
+    public override async Task BeforeFlush(PlayerChoiceContext context, Player player)
     {
+        if (player != Owner || Pile?.Type != PileType.Hand || CombatState == null
+            || !CombatManager.Instance.IsInProgress || CombatManager.Instance.IsOverOrEnding) return;
         for (int i = 0; i < 2; i++)
         {
             ArousalStatus generated = CombatState!.CreateCard<ArousalStatus>(Owner);
