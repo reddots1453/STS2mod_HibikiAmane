@@ -1,0 +1,11 @@
+
+
+## 2026-10-04 右侧开局预览与锁定开局门禁（START-003 / START-PREVIEW-01～06）
+
+前置快照`d7dd5ad99db3d37d29def0f3c43d3cdd8204515d`，设计提交`6d7fb93ca34c8083034b02e1f86d6c8de05f3ee4`。逐行与词级diff均留存；完整复核DesignDoc三开局、堕落±3封印、同角色身份/牌组/初始遗物、解锁与多人共享堕落规则，以及Plan三开局与START-SAVE追踪。此次用户直接确认右侧切换、明确条件与效果、允许锁定预览而不可开局，覆盖前一轮精简UI要求。原START段回退旧“不可选择”由本次明确规则更新；按摩事件叙述扩写保持工作树与恢复快照，未混入本次范围提交，不改变事件机制。
+
+本地参考：F:/steam/steamapps/workshop/content/646570/3242483596/VUPShionMod.jar，SkinManager/SkinCharButton/SkinInfoLabel中浏览选中、锁定覆盖、confirmButton和信息显示独立；参考用户截图的右侧面板与锁定浏览交互，使用STS2原生NButton输入与现有选角字体，不拷贝STS1的角色美术或运行时。代码证据：当前StartRouteSelector位于左侧遗物VBox，Refresh将锁定路线重置为Normal，Next只遍历已解锁路线；无法预览锁定状态。
+
+计划：屏幕拥有的右侧独立面板、三路线常驻按钮、选择高亮/锁定状态、当前解锁条件和初始堕落/封印效果；三路线同牌组/遗物说明，不新增奖励或美术。锁定预览保留在当前大厅本地玩家Route字段，RouteUnlockedAtSelection=false；禁用原生ConfirmButton，并在OnEmbarkPressed同步Prefix再次按当前档案校验，拒绝锁定状态（含快捷键/手柄入口）。不悄悄退回中立开局；解除准备才能改选，其他角色/关闭界面恢复本控件造成的按钮禁用；原有StartProfilePatch仍保留新跑局兜底，载入已有跑局不改变资源。保留上一轮显式store.Save解锁修复，不写玩家解锁数据。
+
+验收：01三路线包括锁定可点击预览、条件准确；02中立/已解锁能开局，锁定Confirm禁用且入口拦截；03右侧面板、窗口比例缩放、联机远端列表与底部原生控件不重叠；04其他角色/退出/重进/取消准备无残留；05原生初始遗物切换独立且不改变开局路线；06档案解锁跨重启、多人本地桶与新跑局初始化沿用原规则。READY→实现后IMPLEMENTED，游戏内NOT_RUN。用户要求不再静态测试，仅build；当前暂不部署，不改ModUploader/JSON或用户存档。谦逊72→37等待该玩家日志，本批不修改其算法。
