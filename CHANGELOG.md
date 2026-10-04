@@ -2658,3 +2658,10 @@ PLAYER-ROUND2-FOLLOWUP-20261002 验证命令：`dotnet build MaidenSuccubus.cspr
 实施完成：淫纹完全改用BeforeFlush，自身不再进入会强制弃置的回合末卡牌特效路径；伤害预览改为实际Hook入口、逐段日志及旧接口目标均完成。Debug构建通过，未执行静态测试或游戏内验收，未部署。原玩家72→37完整成因仍需新版日志验证，不能以build通过宣称数值已被玩家验证。
 
 收尾范围复核：前置工作树已有SemenCurse的原生生成动画修改未包含在f37基线；已将快照中的原始版本单独保存为承接提交`fdcbc18026aa2c026932f25d9a7c8f0140219944`，保持所有既有动画。本轮修复diff以该承接提交为基线，仅淫纹完全的回合末入口与谦逊诊断/兼容代码；轻微、扩散动画不是本轮新增。源码与已通过构建的DLL未变化，不重复构建。
+
+
+## 2026-10-04 用户授权仅部署本地游戏（LOCAL-DEPLOY-20261004-174246）
+
+用户明确要求“仅部署到本地游戏目录”，覆盖此前暂不部署指令，仅此安装目录授权。最新源码完成提交`d31f3a846494bc7596909ea22ab6eec4ebf58879`，部署前文档快照`9fd730b43fa366cb257a2eaa07167457ef8400eb`；复用本轮已通过的Debug构建，0警告0错误，命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`。本次部署淫纹完全保留路径修复、谦逊预览入口统一及逐段诊断、旧版接口适配，累计包含试炼碎片折扣和福音衍生牌预览。PCK沿用上一接受版本。只在首次安装时增加combat_feedback.json文案模板，后续保留用户填写内容。
+
+仅替换`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`下MaidenSuccubus.dll/.pdb/.pck及首次文案模板，替换前备份`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\local-humility-retain-deployment-20261004-174246`，安装后逐项SHA-256一致，原有JSON哈希不变。未改沙箱、ModUploader、上传包或其他游戏/模组目录。未运行静态测试与游戏内验收，用户实测后再标VERIFIED。部署明细：聊天outputs/humility-retain-fix-20261004/local-deployment-20261004-174246.json。
