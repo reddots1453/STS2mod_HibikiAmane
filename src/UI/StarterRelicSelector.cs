@@ -46,6 +46,7 @@ internal sealed class StarterRelicSelector
     {
         var selector = Instances.GetValue(screen, value => new(value));
         selector._closed = false;
+        selector._routes.CharacterSelected(button.IsLocked);
         selector._eligible = character is MaidenSuccubusCharacter && !button.IsLocked && !button.IsRandom;
         selector.Refresh();
     }
@@ -54,6 +55,9 @@ internal sealed class StarterRelicSelector
     {
         if (Instances.TryGetValue(screen, out var selector)) selector.Refresh();
     }
+
+    internal static bool CanEmbark(NCharacterSelectScreen screen) =>
+        !Instances.TryGetValue(screen, out var selector) || selector._closed || !selector._eligible || selector._routes.CanEmbark();
 
     internal static void Close(NCharacterSelectScreen screen)
     {

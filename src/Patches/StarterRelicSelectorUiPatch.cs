@@ -15,6 +15,15 @@ public static class StarterRelicSelectorUiPatch
         Safe.Run(() => StarterRelicSelector.Selected(__instance, __0, __1), "StarterRelic.SelectCharacter");
 
     [HarmonyPatch(typeof(NCharacterSelectScreen), "OnEmbarkPressed")]
+    [HarmonyPrefix]
+    public static bool EmbarkPrefix(NCharacterSelectScreen __instance)
+    {
+        bool allowed = true;
+        Safe.Run(() => allowed = StarterRelicSelector.CanEmbark(__instance), "StartRoutes.GuardEmbark");
+        return allowed;
+    }
+
+    [HarmonyPatch(typeof(NCharacterSelectScreen), "OnEmbarkPressed")]
     [HarmonyPostfix]
     public static void EmbarkPostfix(NCharacterSelectScreen __instance) => Refresh(__instance);
 
