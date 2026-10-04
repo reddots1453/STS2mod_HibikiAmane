@@ -15,6 +15,9 @@ namespace MaidenSuccubus.UI;
 /// <summary>Presentation-only entry point. Empty templates deliberately do nothing.</summary>
 internal static class CombatTextFeedback
 {
+    // Temporarily paused by request; authored templates and notification APIs remain intact.
+    private static bool PresentationEnabled { get; } = false;
+
     private static CanvasLayer? _layer;
     private static CombatTextOverlay? _overlay;
     private static NCombatRoom? _room;
@@ -23,7 +26,7 @@ internal static class CombatTextFeedback
 
     internal static void Initialize()
     {
-        if (_initialized) return;
+        if (!PresentationEnabled || _initialized) return;
         _initialized = true;
         DesireEvents.Changed += change =>
         {
@@ -47,6 +50,7 @@ internal static class CombatTextFeedback
         string controlType = "", string card = "",
         ControlType? bindingType = null) => Safe.Run(() =>
     {
+        if (!PresentationEnabled) return;
         if (!PerformanceAudience.IsLocalMaiden(target.Player)
             || target.CombatState == null || !CombatManager.Instance.IsInProgress
             || CombatManager.Instance.IsEnding) return;
