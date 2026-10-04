@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.addons.mega_text;
+using MegaCrit.Sts2.Core.Localization;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Characters.Starts;
 using MaidenSuccubus.Data;
@@ -21,7 +22,8 @@ internal sealed class StartRouteSelector
     private readonly StartRouteRailArt _rail;
     private readonly NConfirmButton _embark;
     private readonly MegaRichTextLabel _title;
-    private readonly MegaRichTextLabel[] _rows = new MegaRichTextLabel[4];
+    private readonly MegaRichTextLabel[] _rows = new MegaRichTextLabel[3];
+    private readonly MegaRichTextLabel _characterDescription;
     private readonly List<(MaidenSuccubusStartProfileId Route, StartRoutePortraitArt Button, MegaRichTextLabel Label)> _portraits = [];
     private bool _blockedEmbark, _restoreEmbark, _eligible, _layoutAvailable = true;
     private NButton? _focusedButton;
@@ -34,13 +36,14 @@ internal sealed class StartRouteSelector
         _embark = screen.GetNode<NConfirmButton>("ConfirmButton");
         var titleSource = screen.GetNode<MegaRichTextLabel>("InfoPanel/VBoxContainer/Relic/Name/RichTextLabel");
         var textSource = screen.GetNode<MegaRichTextLabel>("InfoPanel/VBoxContainer/Relic/Description");
+        _characterDescription = screen.GetNode<MegaRichTextLabel>("InfoPanel/VBoxContainer/DescriptionLabel");
         _panel = new Control { Name = "MaidenStartingRoute", Size = DesignSize,
             MouseFilter = Control.MouseFilterEnum.Ignore, Visible = false };
         screen.AddChild(_panel);
         _rail = new StartRouteRailArt { Name = "DiagonalRail", Size = DesignSize,
             MouseFilter = Control.MouseFilterEnum.Ignore };
         _panel.AddChild(_rail);
-        _title = Label(titleSource, "RouteTitle", "", 30, new Rect2(34, 8, 550, 42));
+        _title = Label(titleSource, "RouteTitle", "", 28, new Rect2(34, 8, 550, 42));
         _panel.AddChild(_title);
         for (int i = 0; i < _rows.Length; i++)
         {
@@ -48,17 +51,20 @@ internal sealed class StartRouteSelector
                 new Rect2(64 + i * 20, 61 + i * 58, 525 - i * 20, 47));
             _panel.AddChild(_rows[i]);
         }
-        _panel.AddChild(Label(textSource, "SharedStart", "共用初始牌组与可选初始遗物", 17,
-            new Rect2(162, 294, 418, 27)));
-        Texture2D? portrait = RuntimeTextureAssets.Load("ui/character_select/hibiki_amane_select_normal_v04_132x195.png");
         foreach (var route in Routes)
         {
+            string portrait = route switch
+            {
+                MaidenSuccubusStartProfileId.HolyMaiden => "character/character_armor_3.png",
+                MaidenSuccubusStartProfileId.Succubus => "character/character_corrupt_armor_3.png",
+                _ => "character/character_normal.png",
+            };
             var button = new StartRoutePortraitArt { Name = "Route" + route,
                 Size = StartRoutePortraitArt.PortraitSize, PivotOffset = StartRoutePortraitArt.PortraitSize / 2,
-                Portrait = portrait, FocusMode = Control.FocusModeEnum.All,
+                Portrait = RuntimeTextureAssets.Load(portrait), FocusMode = Control.FocusModeEnum.All,
                 MouseFilter = Control.MouseFilterEnum.Stop };
             _panel.AddChild(button);
-            var label = Label(titleSource, "NameAndValue", "", 24, new Rect2(15, 119, 190, 32));
+            var label = Label(titleSource, "MemoryName", "", 19, new Rect2(12, 103, 207, 51));
             button.AddChild(label);
             _portraits.Add((route, button, label));
             button.Connect(NClickableControl.SignalName.Released, Callable.From<NButton>(_ => Select(route)));
@@ -124,9 +130,9 @@ internal sealed class StartRouteSelector
 
     private static string Name(MaidenSuccubusStartProfileId route) => route switch
     {
-        MaidenSuccubusStartProfileId.Succubus => "堕落",
-        MaidenSuccubusStartProfileId.HolyMaiden => "圣洁",
-        _ => "中立",
+        MaidenSuccubusStartProfileId.Succubus => "秘密的记忆：淫欲的囚徒",
+        MaidenSuccubusStartProfileId.HolyMaiden => "秘密的记忆：纯洁无暇",
+        _ => "秘密的记忆：初尝快乐",
     };
 
     private static Color Accent(MaidenSuccubusStartProfileId route) => route switch
@@ -167,7 +173,7 @@ internal sealed class StartRouteSelector
             Color accent = Accent(item.Route);
             item.Button.Paint(accent, item.Route == selected, ReferenceEquals(_focusedButton, item.Button),
                 !StartUnlockProgress.IsUnlocked(item.Route));
-            item.Label.Text = $"[center][color=#{accent.ToHtml(false)}]{Name(item.Route)} · {StartUnlockProgress.InitialValue(item.Route):+0;-0;0}[/color][/center]";
+            item.Label.Text = $"[center][color=#{accent.ToHtml(false)}]{Name(item.Route).Replace("：", "：\n")}[/color][/center]";
             item.Button.FocusNeighborTop = _portraits[(i + 2) % 3].Button.GetPath();
             item.Button.FocusNeighborBottom = _portraits[(i + 1) % 3].Button.GetPath();
             item.Button.FocusNeighborLeft = item.Button.FocusNeighborTop;
@@ -205,12 +211,6 @@ internal sealed class StartRouteSelector
         bool unlocked = StartUnlockProgress.IsUnlocked(route);
         string color = Accent(route).ToHtml(false);
         string value = StartUnlockProgress.InitialValue(route).ToString("+0;-0;0");
-        string effect = route switch
-        {
-            MaidenSuccubusStartProfileId.Succubus => "圣洁牌不参与战斗。",
-            MaidenSuccubusStartProfileId.HolyMaiden => "堕落牌不参与战斗。",
-            _ => "不因初始堕落值封印卡牌。",
-        };
         string condition = route switch
         {
             MaidenSuccubusStartProfileId.Succubus => "天音以最终堕落值 ≥ +3 通关。",
@@ -218,11 +218,18 @@ internal sealed class StartRouteSelector
             _ => "默认获得。",
         };
         _rail.AccentColor = Accent(route); _rail.QueueRedraw();
-        _title.Text = $"[color=#{color}]{Name(route)}开局[/color]";
+        _title.Text = $"[color=#{color}]{Name(route)}[/color]";
         _rows[0].Text = "获取条件：" + condition;
         _rows[1].Text = $"初始堕落值：[color=#{color}]{value}[/color]";
-        _rows[2].Text = "封印：" + effect;
-        _rows[3].Text = unlocked ? $"[color=#{color}]已解锁 · 可以开始[/color]" : "未解锁 · 可查看，无法开始";
+        _rows[2].Text = unlocked ? $"[color=#{color}]已解锁 · 可以开始[/color]" : "未解锁 · 可查看，无法开始";
+        _characterDescription.Text = route switch
+        {
+            MaidenSuccubusStartProfileId.HolyMaiden =>
+                "与魔导书·娅露丝相遇，获得魔法力量的少女。\n拥有正直的心，身体对污秽之事一无所知。",
+            MaidenSuccubusStartProfileId.Succubus =>
+                "与魔导书·娅露丝相遇，获得魔法力量的少女。\n身体已经沉醉于快感，理性正在被侵蚀。",
+            _ => new LocString("characters", lobby.LocalPlayer.character.CharacterSelectDesc).GetFormattedText(),
+        };
         foreach (var item in _portraits) item.Button.SetEnabled(!lobby.LocalPlayer.isReady);
         PaintPortraits(true);
         if (!lobby.LocalPlayer.isReady)

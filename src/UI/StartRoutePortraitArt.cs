@@ -11,6 +11,10 @@ internal partial class StartRoutePortraitArt : NButton
     private Color _accent;
     private bool _selected, _focused, _locked;
 
+    // NButton's own _Ready deliberately rejects subclasses. This is the native
+    // initialization contract for derived buttons, including mouse/controller input.
+    public override void _Ready() => ConnectSignals();
+
     internal void Paint(Color accent, bool selected, bool focused, bool locked)
     {
         _accent = accent; _selected = selected; _focused = focused; _locked = locked;
@@ -33,13 +37,16 @@ internal partial class StartRoutePortraitArt : NButton
         DrawColoredPolygon(polygon, new Color(.035f, .045f, .07f, .98f));
         if (Portrait is { } texture)
         {
-            // Crop to a horizontal head portrait without stretching the face.
-            float height = 154f / 260 * texture.GetWidth() / texture.GetHeight();
-            Vector2[] uv = polygon.Select(p => new Vector2(p.X / 260, .10f + p.Y / 154 * height)).ToArray();
+            // Existing complete-outfit sprites: show the head and clothing,
+            // keep their original aspect ratio, and leave source images untouched.
+            const float width = .90f;
+            float height = 154f / 260 * texture.GetWidth() / texture.GetHeight() * width;
+            Vector2[] uv = polygon.Select(p => new Vector2(.06f + p.X / 260 * width,
+                .10f + p.Y / 154 * height)).ToArray();
             DrawPolygon(polygon, new Color[] { Colors.White }, uv, texture);
         }
         // Name/value strip follows the same cut as the portrait itself.
-        DrawColoredPolygon([new(11, 118), new(223, 118), new(212, 154), new(0, 154)],
+        DrawColoredPolygon([new(16, 102), new(228, 102), new(212, 154), new(0, 154)],
             new Color(.025f, .035f, .055f, .90f));
         if (_locked)
         {

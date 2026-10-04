@@ -13,7 +13,7 @@ internal partial class StartRouteRailArt : Control
             new Color(.02f, .025f, .04f, .65f));
         DrawColoredPolygon([new(577, 0), new(595, 0), new(272, 720), new(254, 720)],
             new Color(.3f, .4f, .55f, .16f));
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 3; i++)
         {
             float x = 34 + i * 20, y = 66 + i * 58;
             DrawColoredPolygon([new(x - 10, y - 10), new(598, y - 10), new(580, y + 34), new(x - 23, y + 34)],
