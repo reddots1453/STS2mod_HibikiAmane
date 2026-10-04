@@ -3041,3 +3041,8 @@ UI-COMBAT-FEEDBACK-005 IMPLEMENTED：所有战斗RPG浮动提示已通过统一�
 用户明确要求“部署到本地mod目录和moduploader”。源码提交`ee25fefab34e959f18db6a5fa9a51e54fd3f1dda`，部署前快照`3205903e644b88cb6fe123b6e4e1359345b282af`，复用已通过构建的Debug DLL/PDB和完整PCK，构建命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`，0警告0错误。累计包括左侧试炼路线叠图移除、十四项黑暗/光明女神试炼名称统一、战斗RPG文本暂时停用及此前已接受修订。本轮只有文件部署，无新玩法、无再次静态测试，游戏内验收NOT_RUN。
 
 本地`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`替换DLL/PDB/PCK；上传器`D:\game_backup\steam\steamapps\common\Slay the Spire 2\ModUploader-win-x64\MaidenSuccubus\content\MaidenSuccubus`仅替换DLL/PCK，保持官方content/MaidenSuccubus目录结构，不新增嵌套目录。替换前所有旧产物与JSON备份于`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\local-uploader-combat-text-pause-20261004-211607`，部署后逐文件SHA-256及两处DLL/PCK一致性核验通过。全部已存在JSON（包含本地manifest、combat_feedback.json、上传器manifest及workshop.json）哈希原样；上传预览图、mod_id.txt及README也保持。未改沙箱，不执行Steam上传或发布，不结束游戏进程。明细：聊天outputs/combat-text-pause-20261004/local-uploader-deployment-20261004-211607.json。
+
+
+## 2026-10-04 瘴雷能量图标修复（CARD-C-BURNING-DESIRE-ENERGY-001）
+
+快照`e72ae7d288ab07a7c2e8e6d9a2fa203fcd952127`，设计提交`440b2921209c17f76a2c914e00d8de48eecc8a28`。复核瘴雷当前正式描述、CARD-C-BURNING-DESIRE-COUNT-001、EnergyVar(1)与MaidenEnergyIconsFormatter及同模组魔力图标文本。DesignDoc相对HEAD/最后接受提交逐行与词级漂移留档；其他叙事及反馈扩充工作树保留。原因：描述误用原版energyIcons，未走本mod已注册的maidenEnergyIcons。任务READY：仅将cards.json瘴雷描述的{Energy:energyIcons()}替换为{Energy:maidenEnergyIcons()}；复用magic_energy_cost_icon_32资源，保留EnergyVar和实际效果。PCK仅替换最后接受版本的cards.json这一处文本；其他资源与文案配置继承上一包，不混入未提交文本。构建后IMPLEMENTED、游戏内待用户手测；不运行静态测试，仅build，不部署、不改安装/上传器JSON。
