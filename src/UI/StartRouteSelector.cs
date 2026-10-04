@@ -221,7 +221,7 @@ internal sealed class StartRouteSelector
         _title.Text = $"[color=#{color}]{Name(route)}[/color]";
         _rows[0].Text = "获取条件：" + condition;
         _rows[1].Text = $"初始堕落值：[color=#{color}]{value}[/color]";
-        _rows[2].Text = unlocked ? $"[color=#{color}]已解锁 · 可以开始[/color]" : "未解锁 · 可查看，无法开始";
+        _rows[2].Text = unlocked ? $"[color=#{color}]已解锁[/color]" : "未解锁";
         _characterDescription.Text = route switch
         {
             MaidenSuccubusStartProfileId.HolyMaiden =>
