@@ -3059,3 +3059,5 @@ CARD-C-BURNING-DESIRE-ENERGY-001 IMPLEMENTED：瘴雷获得能量文本改用本
 任务READY：新增独立Harmony Init Postfix，Priority.Last，反射检测现代属性编号表，旧游戏无表则Prepare=false。仅检查RitsuLib_ModelSavedData，已正确注册则不改；缺失时保持既有编号，优先使用已有反向位置，否则追加，补正向映射及所需PropertyIdBitSize，不清空其他模组表、不新增伪造SavedProperty、不改框架DLL。不移除序列化字段、不修改缓存hash，遵循框架现有附加状态注册方式；继续原生保存、反序列化及战斗checksum。异常明确日志保护，不吞原版回合异常。该字段为框架统一模型数据，同样覆盖本模组其他capability使用，不逐张特殊修正。
 
 验收CTL-NET-01：0.111新开局/继续，小啃兽攻击拘束2后下回合抽牌、挣脱和结束回合正常，日志有ModelSavedDataCompat且无缺失netID异常；02技能/能力拘束、多来源/重复施加、解除后恢复原牌；03能力数据保存及读档不丢失，其他保存属性及已有ID保持；04旧0.107直接属性名协议不安装补丁；05同版本多人双端编号一致、原生校验仍执行。按用户要求不运行静态测试，Debug构建后IMPLEMENTED、上述运行时均待实测。累积前一批未部署瘴雷图标修复，包中RPG文本仍关闭及新试炼UI有效；本轮仅build，不部署本地/沙箱/上传器，不改安装JSON。
+
+SYS-CTL-NET-001 IMPLEMENTED：现代游戏属性编号表初始化后补齐缺失RitsuLib_ModelSavedData正反映射与位宽；旧版本跳过，已注册不重复。构建0警告0错误，静态测试NOT_RUN、游戏内NOT_RUN；未部署，需玩家原环境确认。另日志BlindfoldIntentHoverPatch的缺失owner字段为独立已存在意图悬停兼容问题，本批没有改动或宣称修复。
