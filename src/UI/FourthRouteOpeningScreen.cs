@@ -17,12 +17,10 @@ public sealed partial class FourthRouteOpeningScreen : Control, IScreenContext
     private readonly RunState _run;
     private readonly Func<bool> _isCurrent;
     private readonly TaskCompletionSource<bool> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    private readonly List<Button> _buttons = [];
-    private VBoxContainer _body = null!;
-    private Control _narrativeBackground = null!;
+    private TrialEventPage _page = null!;
     private bool _busy;
     private bool _closed;
-    public Control? DefaultFocusedControl => _buttons.FirstOrDefault(button => !button.Disabled);
+    public Control? DefaultFocusedControl => _page?.DefaultFocusedControl;
 
     internal static string TextFor(string key) => new LocString("events", "MAIDEN_SUCCUBUS_ROUTE_OPENING." + key).GetFormattedText();
 
@@ -57,97 +55,43 @@ public sealed partial class FourthRouteOpeningScreen : Control, IScreenContext
     private void BuildPage()
     {
         NHotkeyManager.Instance?.AddBlockingScreen(this);
-        var background = new ColorRect { Color = new Color(0.018f, 0.024f, 0.043f, 1f), MouseFilter = MouseFilterEnum.Stop };
-        background.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-        AddChild(background);
-        _narrativeBackground = TrialBackgroundArt.AddBackdrop(this, "narrative.png", .38f);
-        _narrativeBackground.Visible = false;
-        var margin = new MarginContainer { MouseFilter = MouseFilterEnum.Ignore };
-        margin.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-        margin.AnchorLeft = .06f; margin.AnchorRight = .94f;
-        margin.AnchorTop = .04f; margin.AnchorBottom = .96f;
-        AddChild(margin);
-        _body = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill, SizeFlagsVertical = SizeFlags.ExpandFill };
-        _body.AddThemeConstantOverride("separation", 20);
-        margin.AddChild(_body);
+        _page = TrialEventPage.Create();
+        AddChild(_page);
         var opening = FourthRouteOpeningService.Prepare(_run);
         if (opening.Chosen is { } chosen)
             TaskHelper.RunSafely(Confirm(chosen)); // Resume an interrupted, already locked narrative.
         else ShowChoices(opening);
     }
 
-    private void ClearPage()
-    {
-        _buttons.Clear();
-        foreach (Node child in _body.GetChildren()) { _body.RemoveChild(child); child.QueueFree(); }
-    }
+    private void ClearPage() => _page.ClearOptions();
 
     private void ShowChoices(FourthRouteOpeningState opening)
     {
         ClearPage();
-        _narrativeBackground.Visible = false;
-        var header = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore };
-        header.AddThemeConstantOverride("separation", 20);
-        header.AddChild(Heading(TextFor("title"), 38));
-        header.AddChild(Scroll(TextFor("common")));
-        _body.AddChild(TrialBackgroundArt.Banner(header));
-        var columns = new HBoxContainer { SizeFlagsVertical = SizeFlags.ExpandFill, SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsStretchRatio = 1.35f };
-        columns.AddThemeConstantOverride("separation", 32);
-        columns.AddChild(Choice(opening.Dark!.Value, true));
-        columns.AddChild(Choice(opening.Light!.Value, false));
-        _body.AddChild(columns);
+        _page.SetStory(TextFor("title"), TextFor("common"));
+        _page.AddQuest(opening.Dark!.Value, () => TaskHelper.RunSafely(Confirm(opening.Dark.Value)));
+        _page.AddQuest(opening.Light!.Value, () => TaskHelper.RunSafely(Confirm(opening.Light.Value)));
+        _page.LinkFocus();
         FocusFirst();
-    }
-
-    private Control Choice(FourthRouteQuest quest, bool dark)
-    {
-        Color accent = dark ? new Color(.77f, .49f, .88f) : new Color(.92f, .79f, .45f);
-        var panel = new PanelContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill, SizeFlagsVertical = SizeFlags.ExpandFill };
-        var style = new StyleBoxFlat { BgColor = new Color(.055f, .065f, .095f), BorderColor = accent.Darkened(.3f),
-            ContentMarginLeft = 24, ContentMarginRight = 24, ContentMarginTop = 20, ContentMarginBottom = 20 };
-        style.SetBorderWidthAll(2); style.SetCornerRadiusAll(16);
-        panel.AddThemeStyleboxOverride("panel", style);
-        TrialBackgroundArt.AddBackdrop(panel, dark ? "sin.png" : "virtue.png");
-        var column = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill, SizeFlagsVertical = SizeFlags.ExpandFill };
-        column.AddThemeConstantOverride("separation", 12);
-        panel.AddChild(column);
-        var alignment = Heading(TextFor(dark ? "dark" : "light"), 22);
-        alignment.AddThemeColorOverride("font_color", accent);
-        column.AddChild(alignment);
-        column.AddChild(Heading(FourthRouteProgressService.QuestName(quest), 30));
-        var dormant = FourthRouteProgressService.CreateRelicPreview(quest, 0);
-        var reward = FourthRouteProgressService.CreateRelicPreview(quest, 1);
-        column.AddChild(Scroll($"{TextFor(quest + ".flavor")}\n\n{TextFor("condition")}：{FourthRouteProgressService.QuestText(quest, 1)}"
-            + $"\n\n{TextFor("dormant")}{dormant.Title.GetFormattedText()}"
-            + $"\n\n{TextFor("reward")}{reward.Title.GetFormattedText()}\n{reward.DynamicDescription.GetFormattedText()}"));
-        var accept = ActionButton(TextFor("accept"), "Accept" + quest);
-        accept.Pressed += () => TaskHelper.RunSafely(Confirm(quest));
-        column.AddChild(accept);
-        return panel;
     }
 
     private async Task Confirm(FourthRouteQuest quest)
     {
         if (_busy || _closed || !_isCurrent()) return;
         _busy = true;
-        foreach (var button in _buttons) button.Disabled = true;
+        _page.DisableOptions();
         try
         {
             if (!await FourthRouteOpeningService.Confirm(_player, quest))
                 throw new InvalidOperationException("Opening choice no longer matches the saved offer.");
             if (_closed || !_isCurrent()) { Close(false); return; }
             ClearPage();
-            _narrativeBackground.Visible = true;
-            _body.AddChild(Heading(FourthRouteProgressService.QuestName(quest), 38));
-            _body.AddChild(Scroll(TextFor(quest + ".story")));
-            var proceed = ActionButton(TextFor("continue"), "EnterSpire");
-            proceed.Pressed += () =>
+            _page.SetStory(FourthRouteProgressService.QuestName(quest), TextFor(quest + ".story"));
+            _page.AddOption("EnterSpire", $"[gold][b]{TextFor("continue")}[/b][/gold]", () =>
             {
                 if (!_busy && !_closed && _isCurrent() && FourthRouteOpeningService.Finish(_run)) Close(true);
-            };
-            _body.AddChild(proceed);
+            });
+            _page.LinkFocus();
             FocusFirst();
         }
         catch (Exception ex)
@@ -157,40 +101,6 @@ public sealed partial class FourthRouteOpeningScreen : Control, IScreenContext
             Close(false);
         }
         finally { _busy = false; }
-    }
-
-    private Button ActionButton(string text, string name)
-    {
-        var button = new Button { Name = name, Text = text, CustomMinimumSize = new Vector2(230, 60),
-            SizeFlagsHorizontal = SizeFlags.ShrinkCenter, FocusMode = FocusModeEnum.All,
-            MouseDefaultCursorShape = CursorShape.PointingHand };
-        button.AddThemeFontSizeOverride("font_size", 26);
-        _buttons.Add(button);
-        return button;
-    }
-
-    private static Label Heading(string text, int size) => new Label { Text = text,
-        HorizontalAlignment = HorizontalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart,
-        MouseFilter = MouseFilterEnum.Ignore }.WithFontSize(size, new Color(.96f, .91f, .77f));
-
-    private static ScrollContainer Scroll(string text)
-    {
-        var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
-            SizeFlagsHorizontal = SizeFlags.ExpandFill, SizeFlagsVertical = SizeFlags.ExpandFill,
-            CustomMinimumSize = new Vector2(0, 60) };
-        var label = new MegaRichTextLabel { BbcodeEnabled = true, FitContent = true, ScrollActive = false,
-            AutoSizeEnabled = false, MinFontSize = 24, MaxFontSize = 24,
-            SizeFlagsHorizontal = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Pass,
-            AutowrapMode = TextServer.AutowrapMode.WordSmart };
-        foreach (string key in new[] { "normal_font", "bold_font", "italics_font", "bold_italics_font", "mono_font" })
-            label.AddThemeFontOverride(key, label.GetThemeDefaultFont());
-        label.AddThemeFontSizeOverride("normal_font_size", 24);
-        label.AddThemeColorOverride("default_color", new Color(.91f, .92f, .96f));
-        label.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, .9f));
-        label.AddThemeConstantOverride("outline_size", 3);
-        label.Text = text;
-        scroll.AddChild(label);
-        return scroll;
     }
 
     private void FocusFirst() => Callable.From(() =>

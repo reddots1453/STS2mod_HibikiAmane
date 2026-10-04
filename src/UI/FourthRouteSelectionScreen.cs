@@ -25,10 +25,11 @@ public sealed partial class FourthRouteSelectionScreen : Control, IScreenContext
     private readonly TaskCompletionSource<bool> _rewardCompletion =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly List<Button> _buttons = [];
+    private TrialEventPage? _eventPage;
     private bool _resolved;
     private bool _closed;
 
-    public Control? DefaultFocusedControl => _buttons.FirstOrDefault();
+    public Control? DefaultFocusedControl => _eventPage?.DefaultFocusedControl ?? _buttons.FirstOrDefault();
 
     private FourthRouteSelectionScreen(
         ScreenMode mode,
@@ -76,6 +77,16 @@ public sealed partial class FourthRouteSelectionScreen : Control, IScreenContext
 
     private void BuildUi(FourthRouteQuest first, FourthRouteQuest? second)
     {
+        if (_mode == ScreenMode.QuestChoice && second is FourthRouteQuest light)
+        {
+            _eventPage = TrialEventPage.Create();
+            AddChild(_eventPage);
+            _eventPage.SetStory(FourthRouteOpeningScreen.TextFor("title"), FourthRouteOpeningScreen.TextFor("common"));
+            _eventPage.AddQuest(first, () => ResolveQuest(first));
+            _eventPage.AddQuest(light, () => ResolveQuest(light));
+            return;
+        }
+
         ColorRect dim = new()
         {
             Color = new Color(0.01f, 0.015f, 0.03f, 0.82f),
@@ -388,6 +399,7 @@ public sealed partial class FourthRouteSelectionScreen : Control, IScreenContext
 
     private void DisableButtons()
     {
+        _eventPage?.DisableOptions();
         foreach (Button button in _buttons) button.Disabled = true;
     }
 
