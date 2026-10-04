@@ -17,3 +17,10 @@
 原版NButton/NClickableControl初始化、聚焦与GuiInput入口已逐项阅读；控件根Ignore、头像Stop和透明斜角不拦截仍沿用。只改三个UI代码、设计/计划/记录；不增加卡牌或数值修订。
 
 实现完成：子类Ready按原生接通信号，三项名称/角色简介/完整衣装缩略图切换及两处说明删除；用户认可布局保持，Debug构建通过，未进行静态测试或游戏内验收；当前产物待本地部署，状态IMPLEMENTED。
+
+
+## 2026-10-04 用户授权仅部署本地游戏（LOCAL-DEPLOY-20261004-184859）
+
+用户明确要求“仅部署到本地游戏目录”，覆盖此前暂不部署指令，仅此安装目录授权。最新源码完成提交`4fedcd340583b127465224425c6451d98c4a731d`，部署前文档快照`4f6347e6535bb42c843dfc62057ef0918850d574`；复用本轮已通过的Debug构建，0警告0错误，命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`。本次修复开局头像NButton子类初始化缺失导致无法点击，采用原生ConnectSignals。三种开局名称改为秘密的记忆：纯洁无暇／淫欲的囚徒／初尝快乐，使用无垢天衣／邪瘴天衣／校服头像，并同步切换原生角色简介；删除封印行及共用牌组遗物说明。保留此前已确认的紫音式布局、未解锁可预览但不能开局的门禁。PCK沿用上一接受版本。只在首次安装时增加combat_feedback.json文案模板，后续保留用户填写内容。
+
+仅替换`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`下MaidenSuccubus.dll/.pdb/.pck及首次文案模板，替换前备份`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\local-start-memory-deployment-20261004-184859`，安装后逐项SHA-256一致，原有JSON哈希不变。未改沙箱、ModUploader、上传包或其他游戏/模组目录。未运行静态测试与游戏内验收，用户实测后再标VERIFIED。部署明细：聊天outputs/start-memory-20261004/local-deployment-20261004-184859.json。
