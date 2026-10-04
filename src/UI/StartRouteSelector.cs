@@ -10,20 +10,23 @@ using MaidenSuccubus.Util;
 
 namespace MaidenSuccubus.UI;
 
-/// <summary>Screen-owned route preview; locked routes are browsable but cannot embark.</summary>
+/// <summary>Shion-style information rows and portrait carousel; locked starts remain browsable.</summary>
 internal sealed class StartRouteSelector
 {
     private static readonly MaidenSuccubusStartProfileId[] Routes =
         [MaidenSuccubusStartProfileId.Normal, MaidenSuccubusStartProfileId.Succubus, MaidenSuccubusStartProfileId.HolyMaiden];
+    private static readonly Vector2 DesignSize = new(610, 720);
     private readonly NCharacterSelectScreen _screen;
     private readonly Control _panel;
+    private readonly StartRouteRailArt _rail;
     private readonly NConfirmButton _embark;
-    private readonly MegaRichTextLabel _details;
-    private readonly MegaRichTextLabel _status;
-    private readonly List<(MaidenSuccubusStartProfileId Route, NButton Button, StyleBoxFlat Style, MegaRichTextLabel Label)> _tabs = [];
-    private bool _blockedEmbark;
-    private bool _restoreEmbark;
+    private readonly MegaRichTextLabel _title;
+    private readonly MegaRichTextLabel[] _rows = new MegaRichTextLabel[4];
+    private readonly List<(MaidenSuccubusStartProfileId Route, StartRoutePortraitArt Button, MegaRichTextLabel Label)> _portraits = [];
+    private bool _blockedEmbark, _restoreEmbark, _eligible, _layoutAvailable = true;
     private NButton? _focusedButton;
+    private Tween? _transition;
+    private MaidenSuccubusStartProfileId? _paintedRoute;
 
     internal StartRouteSelector(NCharacterSelectScreen screen)
     {
@@ -31,58 +34,43 @@ internal sealed class StartRouteSelector
         _embark = screen.GetNode<NConfirmButton>("ConfirmButton");
         var titleSource = screen.GetNode<MegaRichTextLabel>("InfoPanel/VBoxContainer/Relic/Name/RichTextLabel");
         var textSource = screen.GetNode<MegaRichTextLabel>("InfoPanel/VBoxContainer/Relic/Description");
-        _panel = new Control { Name = "MaidenStartingRoute", MouseFilter = Control.MouseFilterEnum.Ignore,
-            AnchorLeft = 1, AnchorRight = 1, AnchorTop = 1, AnchorBottom = 1, Visible = false };
+        _panel = new Control { Name = "MaidenStartingRoute", Size = DesignSize,
+            MouseFilter = Control.MouseFilterEnum.Ignore, Visible = false };
         screen.AddChild(_panel);
-        var background = new Panel { Name = "Background", MouseFilter = Control.MouseFilterEnum.Ignore };
-        background.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-        background.AddThemeStyleboxOverride("panel", Box(new Color(.62f, .54f, .34f), new Color(.045f, .06f, .085f, .94f), 2));
-        _panel.AddChild(background);
-        _panel.AddChild(Label(titleSource, "Heading", "选择开局", 30, new Rect2(24, 18, 372, 42)));
-
-        for (int index = 0; index < Routes.Length; index++)
+        _rail = new StartRouteRailArt { Name = "DiagonalRail", Size = DesignSize,
+            MouseFilter = Control.MouseFilterEnum.Ignore };
+        _panel.AddChild(_rail);
+        _title = Label(titleSource, "RouteTitle", "", 30, new Rect2(34, 8, 550, 42));
+        _panel.AddChild(_title);
+        for (int i = 0; i < _rows.Length; i++)
         {
-            var route = Routes[index];
-            var button = new NButton { Name = "Route" + route, Position = new Vector2(24 + index * 126, 76),
-                Size = new Vector2(120, 102), FocusMode = Control.FocusModeEnum.All,
+            _rows[i] = Label(textSource, "Info" + i, "", 22,
+                new Rect2(64 + i * 20, 61 + i * 58, 525 - i * 20, 47));
+            _panel.AddChild(_rows[i]);
+        }
+        _panel.AddChild(Label(textSource, "SharedStart", "共用初始牌组与可选初始遗物", 17,
+            new Rect2(162, 294, 418, 27)));
+        Texture2D? portrait = RuntimeTextureAssets.Load("ui/character_select/hibiki_amane_select_normal_v04_132x195.png");
+        foreach (var route in Routes)
+        {
+            var button = new StartRoutePortraitArt { Name = "Route" + route,
+                Size = StartRoutePortraitArt.PortraitSize, PivotOffset = StartRoutePortraitArt.PortraitSize / 2,
+                Portrait = portrait, FocusMode = Control.FocusModeEnum.All,
                 MouseFilter = Control.MouseFilterEnum.Stop };
             _panel.AddChild(button);
-            var face = new Panel { MouseFilter = Control.MouseFilterEnum.Ignore };
-            face.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-            var style = Box(Accent(route).Darkened(.5f), new Color(.065f, .08f, .11f), 1);
-            face.AddThemeStyleboxOverride("panel", style);
-            button.AddChild(face);
-            var label = Label(titleSource, "NameAndLock", "", 23, new Rect2(6, 13, 108, 82));
+            var label = Label(titleSource, "NameAndValue", "", 24, new Rect2(15, 119, 190, 32));
             button.AddChild(label);
-            _tabs.Add((route, button, style, label));
+            _portraits.Add((route, button, label));
             button.Connect(NClickableControl.SignalName.Released, Callable.From<NButton>(_ => Select(route)));
             button.Connect(NClickableControl.SignalName.Focused, Callable.From<NButton>(_ => Safe.Run(() =>
-            { _focusedButton = button; PaintTabs(); }, "StartRoutes.Focus")));
+            { _focusedButton = button; PaintPortraits(false); }, "StartRoutes.Focus")));
             button.Connect(NClickableControl.SignalName.Unfocused, Callable.From<NButton>(_ => Safe.Run(() =>
-            { if (ReferenceEquals(_focusedButton, button)) _focusedButton = null; PaintTabs(); }, "StartRoutes.Unfocus")));
+            { if (ReferenceEquals(_focusedButton, button)) _focusedButton = null; PaintPortraits(false); }, "StartRoutes.Unfocus")));
         }
-        for (int index = 0; index < _tabs.Count; index++)
-        {
-            var button = _tabs[index].Button;
-            button.FocusNeighborLeft = _tabs[(index + 2) % 3].Button.GetPath();
-            button.FocusNeighborRight = _tabs[(index + 1) % 3].Button.GetPath();
-            button.FocusNeighborBottom = _embark.GetPath();
-        }
-        _details = Label(textSource, "EffectsAndConditions", "", 21, new Rect2(24, 202, 372, 200));
-        _status = Label(textSource, "Availability", "", 19, new Rect2(24, 435, 372, 43));
-        _panel.AddChild(_details);
-        _panel.AddChild(Label(textSource, "SharedStart", "各路线共用初始牌组和可选初始遗物。", 16, new Rect2(24, 406, 372, 24)));
-        _panel.AddChild(_status);
         screen.Resized += Layout;
+        _embark.ItemRectChanged += Layout;
         Layout();
     }
-
-    private static StyleBoxFlat Box(Color border, Color fill, int width) => new()
-    {
-        BgColor = fill, BorderColor = border,
-        BorderWidthLeft = width, BorderWidthRight = width, BorderWidthTop = width, BorderWidthBottom = width,
-        CornerRadiusTopLeft = 10, CornerRadiusTopRight = 10, CornerRadiusBottomLeft = 10, CornerRadiusBottomRight = 10,
-    };
 
     private static MegaRichTextLabel Label(MegaRichTextLabel source, string name, string text, int fontSize, Rect2 rect)
     {
@@ -108,15 +96,26 @@ internal sealed class StartRouteSelector
 
     private void Layout() => Safe.Run(() =>
     {
-        // Standard 1920x1080 canvas; proportional shrink leaves remote-player
-        // information above and the native confirm button below this panel.
-        float scale = Math.Min(1f, Math.Min(_screen.Size.Y / 1080f, _screen.Size.X / 1920f));
-        if (scale <= 0) scale = 1;
+        if (!GodotObject.IsInstanceValid(_panel)) return;
+        Vector2 size = _screen.Size;
+        if (size.X <= 0 || size.Y <= 0) return;
+        // Work entirely in the screen's local canvas. No anchors + scaled offsets.
+        // Reserve the actual native button rectangle, including its animation.
+        Transform2D toScreen = _screen.GetGlobalTransform().AffineInverse();
+        Rect2 button = _embark.GetGlobalRect();
+        Vector2 a = toScreen * button.Position;
+        Vector2 b = toScreen * button.End;
+        float top = size.Y * .16f;
+        float bottom = button.Size.Y > 0
+            ? Math.Min(size.Y, Math.Min(a.Y, b.Y)) - 32 : size.Y * .80f - 32;
+        float scale = Math.Min(1f, Math.Min((bottom - top) / DesignSize.Y,
+            Math.Min(size.Y / 1080f, (size.X * .34f - 32) / DesignSize.X)));
+        _layoutAvailable = scale > 0;
+        if (!_layoutAvailable) { _panel.Hide(); return; }
         _panel.Scale = new Vector2(scale, scale);
-        _panel.OffsetLeft = -(420 + 52) * scale;
-        _panel.OffsetTop = -(490 + 190) * scale;
-        _panel.OffsetRight = _panel.OffsetLeft + 420;
-        _panel.OffsetBottom = _panel.OffsetTop + 490;
+        _panel.Size = DesignSize;
+        _panel.Position = new Vector2(size.X - DesignSize.X * scale - Math.Clamp(size.X * .016f, 16, 32), top);
+        _panel.Visible = _eligible && _screen.Lobby?.LocalPlayer.character is MaidenSuccubusCharacter;
     }, "StartRoutes.Layout");
 
     private MaidenSuccubusStartProfileId Current =>
@@ -137,35 +136,59 @@ internal sealed class StartRouteSelector
         _ => new Color("8ed4e5"),
     };
 
-    private void PaintTabs()
+    private void PaintPortraits(bool animate)
     {
         var selected = Current;
-        foreach (var tab in _tabs)
+        int current = Array.IndexOf(Routes, selected);
+        bool changed = _paintedRoute != selected;
+        bool moving = animate && changed && _paintedRoute != null;
+        if (changed)
         {
-            bool unlocked = StartUnlockProgress.IsUnlocked(tab.Route);
-            bool current = tab.Route == selected;
-            Color accent = Accent(tab.Route);
-            bool focused = ReferenceEquals(_focusedButton, tab.Button);
-            tab.Style.BorderColor = current || focused ? accent : accent.Darkened(.55f);
-            int width = current ? 3 : focused ? 2 : 1;
-            tab.Style.BorderWidthLeft = tab.Style.BorderWidthRight = tab.Style.BorderWidthTop = tab.Style.BorderWidthBottom = width;
-            tab.Style.BgColor = current ? accent.Darkened(.82f) : new Color(.065f, .08f, .11f);
-            string value = StartUnlockProgress.InitialValue(tab.Route).ToString("+0;-0;0");
-            tab.Label.Text = $"[center][color=#{accent.ToHtml(false)}]{Name(tab.Route)} · {value}[/color]\n[font_size=17]{(unlocked ? "已解锁" : "未解锁")}[/font_size][/center]";
+            _transition?.Kill();
+            _transition = moving ? _screen.CreateTween().SetParallel().SetTrans(Tween.TransitionType.Cubic)
+                .SetEase(Tween.EaseType.Out) : null;
         }
+        for (int i = 0; i < _portraits.Count; i++)
+        {
+            var item = _portraits[i];
+            int relative = (i - current + 3) % 3; // 2 is previous, 1 is next.
+            Vector2 center = relative switch { 0 => new(435, 489), 2 => new(292, 388), _ => new(292, 628) };
+            Vector2 scale = relative == 0 ? Vector2.One : new Vector2(.7f, .7f);
+            Vector2 position = center - StartRoutePortraitArt.PortraitSize / 2;
+            if (changed)
+            {
+                if (moving)
+                {
+                    _transition!.TweenProperty(item.Button, "position", position, .22);
+                    _transition.TweenProperty(item.Button, "scale", scale, .22);
+                }
+                else { item.Button.Position = position; item.Button.Scale = scale; }
+            }
+            Color accent = Accent(item.Route);
+            item.Button.Paint(accent, item.Route == selected, ReferenceEquals(_focusedButton, item.Button),
+                !StartUnlockProgress.IsUnlocked(item.Route));
+            item.Label.Text = $"[center][color=#{accent.ToHtml(false)}]{Name(item.Route)} · {StartUnlockProgress.InitialValue(item.Route):+0;-0;0}[/color][/center]";
+            item.Button.FocusNeighborTop = _portraits[(i + 2) % 3].Button.GetPath();
+            item.Button.FocusNeighborBottom = _portraits[(i + 1) % 3].Button.GetPath();
+            item.Button.FocusNeighborLeft = item.Button.FocusNeighborTop;
+            item.Button.FocusNeighborRight = _embark.GetPath();
+        }
+        _paintedRoute = selected;
+        // Selected portrait sits in front, but entirely inside the reserved region.
+        _panel.MoveChild(_portraits[current].Button, _panel.GetChildCount() - 1);
     }
 
     internal void Close()
     {
+        _eligible = false;
+        _transition?.Kill(); _transition = null; _paintedRoute = null;
         _panel.Hide();
-        foreach (var tab in _tabs) tab.Button.SetEnabled(false);
+        foreach (var item in _portraits) item.Button.SetEnabled(false);
         ReleaseEmbark();
     }
 
     internal void CharacterSelected(bool locked)
     {
-        // Native character selection has already disabled confirm for a locked
-        // character. Do not undo that decision when leaving our locked preview.
         if (!locked) return;
         _blockedEmbark = false;
         _restoreEmbark = false;
@@ -173,8 +196,10 @@ internal sealed class StartRouteSelector
 
     internal void Refresh(bool eligible)
     {
+        _eligible = eligible;
         var lobby = _screen.Lobby;
-        _panel.Visible = eligible && lobby != null && lobby.LocalPlayer.character is MaidenSuccubusCharacter;
+        Layout();
+        _panel.Visible = eligible && _layoutAvailable && lobby != null && lobby.LocalPlayer.character is MaidenSuccubusCharacter;
         if (!_panel.Visible || lobby == null) { ReleaseEmbark(); return; }
         var route = Current;
         bool unlocked = StartUnlockProgress.IsUnlocked(route);
@@ -182,21 +207,24 @@ internal sealed class StartRouteSelector
         string value = StartUnlockProgress.InitialValue(route).ToString("+0;-0;0");
         string effect = route switch
         {
-            MaidenSuccubusStartProfileId.Succubus => "圣洁牌被封印，不参与战斗。",
-            MaidenSuccubusStartProfileId.HolyMaiden => "堕落牌被封印，不参与战斗。",
-            _ => "开局不因堕落值封印卡牌。",
+            MaidenSuccubusStartProfileId.Succubus => "圣洁牌不参与战斗。",
+            MaidenSuccubusStartProfileId.HolyMaiden => "堕落牌不参与战斗。",
+            _ => "不因初始堕落值封印卡牌。",
         };
         string condition = route switch
         {
-            MaidenSuccubusStartProfileId.Succubus => "天音通关时，最终堕落值 ≥ +3。",
-            MaidenSuccubusStartProfileId.HolyMaiden => "天音通关时，最终堕落值 ≤ -3。",
+            MaidenSuccubusStartProfileId.Succubus => "天音以最终堕落值 ≥ +3 通关。",
+            MaidenSuccubusStartProfileId.HolyMaiden => "天音以最终堕落值 ≤ -3 通关。",
             _ => "默认获得。",
         };
-        _details.Text = $"[color=#{color}]开局效果[/color]\n初始堕落值：[color=#{color}]{value}[/color]\n{effect}\n\n[color=#{color}]解锁条件[/color]\n{condition}";
-        _status.Text = unlocked ? $"[color=#{color}]已解锁 · 可以开始游戏[/color]"
-            : "[color=#c8bfb4]未解锁 · 仅可预览，不能以此开局[/color]";
-        foreach (var tab in _tabs) tab.Button.SetEnabled(!lobby.LocalPlayer.isReady);
-        PaintTabs();
+        _rail.AccentColor = Accent(route); _rail.QueueRedraw();
+        _title.Text = $"[color=#{color}]{Name(route)}开局[/color]";
+        _rows[0].Text = "获取条件：" + condition;
+        _rows[1].Text = $"初始堕落值：[color=#{color}]{value}[/color]";
+        _rows[2].Text = "封印：" + effect;
+        _rows[3].Text = unlocked ? $"[color=#{color}]已解锁 · 可以开始[/color]" : "未解锁 · 可查看，无法开始";
+        foreach (var item in _portraits) item.Button.SetEnabled(!lobby.LocalPlayer.isReady);
+        PaintPortraits(true);
         if (!lobby.LocalPlayer.isReady)
         {
             if (unlocked) ReleaseEmbark();
@@ -225,8 +253,6 @@ internal sealed class StartRouteSelector
         if (lobby == null || lobby.LocalPlayer.character is not MaidenSuccubusCharacter) return true;
         bool unlocked = StartUnlockProgress.IsUnlocked(Current);
         if (!unlocked) { BlockEmbark(); return false; }
-        // Revalidate the current profile and refresh the authoritative lobby
-        // flag before readiness freezes its snapshot. Preview never grants it.
         SaveRoute(Current);
         return true;
     }
