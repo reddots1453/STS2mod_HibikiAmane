@@ -1638,3 +1638,14 @@ UI-COMBAT-FEEDBACK-005 IMPLEMENTED：所有战斗RPG浮动提示已通过统一�
 快照`e72ae7d288ab07a7c2e8e6d9a2fa203fcd952127`，设计提交`440b2921209c17f76a2c914e00d8de48eecc8a28`。复核瘴雷当前正式描述、CARD-C-BURNING-DESIRE-COUNT-001、EnergyVar(1)与MaidenEnergyIconsFormatter及同模组魔力图标文本。DesignDoc相对HEAD/最后接受提交逐行与词级漂移留档；其他叙事及反馈扩充工作树保留。原因：描述误用原版energyIcons，未走本mod已注册的maidenEnergyIcons。任务READY：仅将cards.json瘴雷描述的{Energy:energyIcons()}替换为{Energy:maidenEnergyIcons()}；复用magic_energy_cost_icon_32资源，保留EnergyVar和实际效果。PCK仅替换最后接受版本的cards.json这一处文本；其他资源与文案配置继承上一包，不混入未提交文本。构建后IMPLEMENTED、游戏内待用户手测；不运行静态测试，仅build，不部署、不改安装/上传器JSON。
 
 CARD-C-BURNING-DESIRE-ENERGY-001 IMPLEMENTED：瘴雷获得能量文本改用本mod魔力能量图标；构建0警告0错误，静态测试NOT_RUN、游戏内NOT_RUN，未部署。
+
+
+## 2026-10-04 拘束后回合循环终止（SYS-CTL-NET-001）
+
+快照`a405693adef9ae556c95313d64f5d49fc5df7b22`，设计提交`b612e5c88cc1aaabd7c0ddf559b354ff79cd2b39`。证据godot (5).log 1933～1959：小啃兽NIBBIT执行MAIDENSUCCUBUS_CONTROL，Attack拘束Amount=2；ControlProjection两次刷新均完成；随后Combat #1 turn loop died，GetNetIdForPropertyName抛SavedProperty name RitsuLib_ModelSavedData could not be mapped to any net ID。堆栈经SerializableCard、NetFullCombatState、ChecksumTracker到ExecuteEnemyTurn。故障在数据校验，不是抽牌动画或拘束视觉刷新；日志显示游戏v0.111.0/RitsuLib0.6.5/BaseLib及其他模组，不能据此认定某特定第三方是冲突源。
+
+已复核SYS-CTL-001/002完整拘束规则、ControlPower、ControlQuery、EscapeProjectionCapability及原卡保存桥接；阅读0.111原生ModelIdSerializationCache.Init与SavedProperties.WritePropertyName及本机框架对应ModelSavedDataPatches/Registry/SavedAttachedStateRegistry反编译。原生把保存字段名编码成netID；挣脱capability沿RitsuLib_ModelSavedData附加字符串导出，缺失此字段使校验抛异常。DesignDoc相对HEAD和最近接受提交逐行/词级漂移已留档，其他事件/文本编辑保留，不纳入本次。
+
+任务READY：新增独立Harmony Init Postfix，Priority.Last，反射检测现代属性编号表，旧游戏无表则Prepare=false。仅检查RitsuLib_ModelSavedData，已正确注册则不改；缺失时保持既有编号，优先使用已有反向位置，否则追加，补正向映射及所需PropertyIdBitSize，不清空其他模组表、不新增伪造SavedProperty、不改框架DLL。不移除序列化字段、不修改缓存hash，遵循框架现有附加状态注册方式；继续原生保存、反序列化及战斗checksum。异常明确日志保护，不吞原版回合异常。该字段为框架统一模型数据，同样覆盖本模组其他capability使用，不逐张特殊修正。
+
+验收CTL-NET-01：0.111新开局/继续，小啃兽攻击拘束2后下回合抽牌、挣脱和结束回合正常，日志有ModelSavedDataCompat且无缺失netID异常；02技能/能力拘束、多来源/重复施加、解除后恢复原牌；03能力数据保存及读档不丢失，其他保存属性及已有ID保持；04旧0.107直接属性名协议不安装补丁；05同版本多人双端编号一致、原生校验仍执行。按用户要求不运行静态测试，Debug构建后IMPLEMENTED、上述运行时均待实测。累积前一批未部署瘴雷图标修复，包中RPG文本仍关闭及新试炼UI有效；本轮仅build，不部署本地/沙箱/上传器，不改安装JSON。
