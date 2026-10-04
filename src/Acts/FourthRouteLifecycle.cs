@@ -11,7 +11,6 @@ using MaidenSuccubus.Data;
 using MaidenSuccubus.UI;
 using MaidenSuccubus.Relics;
 using MegaCrit.Sts2.Core.Entities.Creatures;
-using MegaCrit.Sts2.Core.Entities.Merchant;
 using STS2RitsuLib.Interop.AutoRegistration;
 
 namespace MaidenSuccubus.Acts;
@@ -53,10 +52,6 @@ public sealed class FourthRouteLifecycle : SingletonModel
         await CheckThresholdQuest();
     }
     public override Task AfterGoldGained(Player player) => player == _owner ? CheckThresholdQuest() : Task.CompletedTask;
-
-    public override decimal ModifyMerchantPrice(Player player, MerchantEntry entry, decimal cost) =>
-        player == _owner && IsEligible(player) && entry is MerchantRelicEntry { Model: FourthRouteFragmentRelic }
-            ? 100m : cost;
 
     public override Task AfterPotionUsed(PotionModel potion, Creature? target) =>
         potion.Owner == _owner ? TrackSimple(FourthRouteQuest.Gluttony) : Task.CompletedTask;

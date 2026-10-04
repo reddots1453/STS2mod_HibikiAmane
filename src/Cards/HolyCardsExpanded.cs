@@ -553,6 +553,10 @@ public sealed class Chant : MSHolyCard
 [RegisterCard(typeof(MSHolyCardPool))]
 public sealed class Gospel : MSHolyCard
 {
+    protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
+        [HoverTipFactory.FromCard<GuardianScripture>(IsUpgraded),
+         HoverTipFactory.FromCard<PunishmentScripture>(IsUpgraded)];
+
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [CardKeyword.Exhaust];
 

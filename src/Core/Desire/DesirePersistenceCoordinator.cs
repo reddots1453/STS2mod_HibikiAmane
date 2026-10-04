@@ -32,6 +32,13 @@ internal static class DesirePersistenceCoordinator
         _initialized = true;
         Subscriptions.Add(RitsuLibFramework.SubscribeLifecycle<RunLoadedEvent>(evt =>
         {
+            if (evt.RunState.Players.Any(player => player.Character is MaidenSuccubusCharacter))
+                Util.Safe.Run(() =>
+                {
+                    CorruptionState restored = Data.Corruption.Handle.Get(evt.RunState);
+                    MaidenSuccubusMod.Logger.Info(
+                        $"[CorruptionPersistence] RunLoaded value={restored.Value}; flags={restored.TriggeredOnceFlags.Count}; act={evt.RunState.CurrentActIndex}");
+                }, "CorruptionPersistence.LogRunLoaded");
             foreach (Player player in evt.RunState.Players.Where(player => player.Character is MaidenSuccubusCharacter))
             {
                 var bridge = Data.Desire.AmountHandle.Get(player);

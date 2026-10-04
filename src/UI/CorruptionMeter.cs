@@ -40,6 +40,8 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
     private bool _isShown;
     private NTopBar? _topBar;
     private int _initialRefreshAttempts;
+    private RunState? _lastReportedRun;
+    private int _lastReportedValue = int.MaxValue;
 
     public override void _EnterTree()
     {
@@ -152,7 +154,16 @@ public sealed partial class CorruptionMeter : Control, INodeAttachmentSetup
         }
 
         ShowIfNeeded();
-        SetValue(CorruptionQuery.Get(runState));
+        int runValue = CorruptionQuery.Get(runState);
+        SetValue(runValue);
+        if (!ReferenceEquals(_lastReportedRun, runState) || _lastReportedValue != runValue)
+        {
+            _lastReportedRun = runState;
+            _lastReportedValue = runValue;
+            Util.Safe.Run(() => MaidenSuccubusMod.Logger.Info(
+                $"[CorruptionUI] runValue={runValue}; displayed={_displayedValue}; textureLoaded={_meterTexture?.Texture != null}"),
+                "CorruptionUI.LogDisplayedValue");
+        }
     }
 
     private void OnCorruptionChanged(CorruptionChanged change)

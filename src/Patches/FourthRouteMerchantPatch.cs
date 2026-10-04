@@ -59,3 +59,20 @@ public static class FourthRouteMerchantPatch
         }, "FourthRoute.MerchantFragment");
     }
 }
+
+
+// Fix the base price before MerchantEntry.Cost runs the standard price hooks.
+// Keep CalcCost's original shop RNG consumption and leave non-fragments alone.
+[HarmonyPatch(typeof(MerchantRelicEntry), nameof(MerchantRelicEntry.CalcCost))]
+internal static class FourthRouteFragmentBasePricePatch
+{
+    private static readonly FieldInfo? BaseCostField =
+        ModCompatibility.FindField(typeof(MerchantEntry), "_cost", typeof(int));
+
+    [HarmonyPostfix]
+    private static void Postfix(MerchantRelicEntry __instance) => Safe.Run(() =>
+    {
+        if (__instance.Model is FourthRouteFragmentRelic)
+            BaseCostField?.SetValue(__instance, 100);
+    }, "FourthRoute.FragmentBasePrice");
+}

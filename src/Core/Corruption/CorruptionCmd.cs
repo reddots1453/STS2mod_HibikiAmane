@@ -24,6 +24,9 @@ public static class CorruptionCmd
         }
 
         CorruptionData.Handle.Modify(runState, data => data.Value = newValue);
+        Util.Safe.Run(() => MaidenSuccubusMod.Logger.Info(
+            $"[CorruptionPersistence] Changed {oldValue}->{newValue}; source={(source ?? CorruptionChangeSource.Unknown).Id}"),
+            "CorruptionPersistence.LogChangedValue");
         CorruptionEvents.Publish(new CorruptionChanged(
             runState,
             oldValue,
