@@ -1,5 +1,6 @@
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Commands.Builders;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
@@ -278,13 +279,11 @@ public sealed class BurningDesire : MSCorruptCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
     [
-        new CalculationBaseVar(3),
-        new ExtraDamageVar(1),
-        new CalculatedDamageVar(ValueProp.Move).WithMultiplier(static (card, _) =>
-            DesireCombatGains.Get(card.Owner)),
-        new DynamicVar("InitialHits", 1),
+        new DamageVar(3, ValueProp.Move),
+        new EnergyVar(1),
+        new CalculationBaseVar(0),
         new CalculationExtraVar(1),
-        new DesireSpendHitsVar().WithMultiplier(static (card, _) =>
+        new CalculatedVar("Repeats").WithMultiplier(static (card, _) =>
             DesireCombatSpending.Get(card.Owner)),
     ];
 
@@ -294,24 +293,32 @@ public sealed class BurningDesire : MSCorruptCard
         this.SecondaryCosts().Set(DesireResource.Id, 1);
     }
 
-    protected override Task OnPlay(
+    protected override async Task OnPlay(
         PlayerChoiceContext choiceContext,
         CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target);
-        // SpendResources resolves before OnPlay, so this includes this play's
-        // actual payment, but does not invent another payment on a replay.
-        int hits = (int)((CalculatedVar)DynamicVars["Hits"])
+        ArgumentNullException.ThrowIfNull(CombatState);
+        // SpendResources has already committed this play's desire cost.
+        int hits = 1 + (int)((CalculatedVar)DynamicVars["Repeats"])
             .Calculate(cardPlay.Target);
-        return DamageCmd.Attack(DynamicVars.CalculatedDamage)
-            .WithHitCount(hits)
-            .FromCard(this, cardPlay)
-            .Targeting(cardPlay.Target)
-            .WithHitFx("vfx/vfx_attack_slash")
-            .Execute(choiceContext);
+        // Vanilla EchoingSlash groups interleaved damage calls this way, so
+        // one card's repeated effects do not consume Vigor after its first hit.
+        await using var attack = await AttackCommand.CreateContextAsync(
+            CombatState, choiceContext, cardPlay);
+        for (int i = 0; i < hits; i++)
+        {
+            if (cardPlay.Target.IsDead || Owner.Creature.IsDead) break;
+            VfxCmd.PlayOnCreature(cardPlay.Target, "vfx/vfx_attack_slash");
+            var results = await CreatureCmd.Damage(
+                choiceContext, cardPlay.Target, DynamicVars.Damage.BaseValue,
+                ValueProp.Move, Owner.Creature, this, cardPlay);
+            attack.AddHit(results);
+            await PlayerCmd.GainEnergy(DynamicVars.Energy.IntValue, Owner);
+        }
     }
 
-    protected override void OnUpgrade() => DynamicVars.CalculationBase.UpgradeValueBy(1);
+    protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(1);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]

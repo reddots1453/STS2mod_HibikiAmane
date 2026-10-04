@@ -13,10 +13,14 @@ public sealed class StartUnlockProgressState
 /// <summary>Profile progression, independent of the current run and lobby.</summary>
 internal static class StartUnlockProgress
 {
-    private const string Key = "route_start_unlocks";
-    internal static void Register() => RitsuLibFramework.GetDataStore(MaidenSuccubusMod.ModId).Register(
-        key: Key, fileName: "route_start_unlocks.json", scope: SaveScope.Profile,
-        defaultFactory: () => new StartUnlockProgressState());
+    internal const string Key = "route_start_unlocks";
+    internal static void Register()
+    {
+        RitsuLibFramework.GetDataStore(MaidenSuccubusMod.ModId).Register(
+            key: Key, fileName: "route_start_unlocks.json", scope: SaveScope.Profile,
+            defaultFactory: () => new StartUnlockProgressState());
+        StartRouteUnlockHistory.Register();
+    }
 
     internal static MaidenSuccubusStartProfileId Normalize(MaidenSuccubusStartProfileId route) => route switch
     {
@@ -34,6 +38,7 @@ internal static class StartUnlockProgress
     internal static bool IsUnlocked(MaidenSuccubusStartProfileId route)
     {
         if (Normalize(route) == MaidenSuccubusStartProfileId.Normal) return true;
+        StartRouteUnlockHistory.Recover();
         var progress = RitsuLibFramework.GetDataStore(MaidenSuccubusMod.ModId).Get<StartUnlockProgressState>(Key);
         return route == MaidenSuccubusStartProfileId.Succubus ? progress.CorruptUnlocked : progress.HolyUnlocked;
     }
