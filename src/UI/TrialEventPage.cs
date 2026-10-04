@@ -17,7 +17,6 @@ internal sealed partial class TrialEventPage : Control
     private Label _title = null!;
     private MegaRichTextLabel _description = null!;
     private readonly List<TrialEventOptionButton> _options = [];
-    private TextureRect _routePortrait = null!;
     private Tween? _fade;
 
     internal Control? DefaultFocusedControl => _options.FirstOrDefault(option => option.IsEnabled);
@@ -54,14 +53,6 @@ internal sealed partial class TrialEventPage : Control
         AddChild(shade); shade.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         _canvas = new Control { Name = "EventCanvas", Size = DesignSize, MouseFilter = MouseFilterEnum.Ignore };
         AddChild(_canvas);
-        _routePortrait = new TextureRect
-        {
-            Name = "RouteIllustration", Position = new Vector2(96, 310), Size = new Vector2(720, 468),
-            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-            StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
-            MouseFilter = MouseFilterEnum.Ignore, Modulate = new Color(1,1,1,0),
-        };
-        _canvas.AddChild(_routePortrait);
         // Match the native 800-wide event column. The story gets the remaining
         // height; the options always keep their own visible area below it.
         _body = new VBoxContainer
@@ -126,7 +117,6 @@ internal sealed partial class TrialEventPage : Control
             _body.RemoveChild(option); option.QueueFree();
         }
         _options.Clear();
-        _routePortrait.Modulate = new Color(1,1,1,0);
     }
 
     internal TrialEventOptionButton AddOption(string name, string text, Action action,
@@ -145,7 +135,7 @@ internal sealed partial class TrialEventPage : Control
         string condition = FourthRouteProgressService.QuestText(quest, 1);
         var dormant = FourthRouteProgressService.CreateRelicPreview(quest, 0);
         var reward = FourthRouteProgressService.CreateRelicPreview(quest, 1);
-        string text = $"[{color}][b]{FourthRouteOpeningScreen.TextFor(dark ? "dark" : "light")} · {FourthRouteProgressService.QuestName(quest)}[/b][/{color}]"
+        string text = $"[{color}][b]{FourthRouteOpeningScreen.TextFor(dark ? "dark" : "light")}·{FourthRouteProgressService.QuestName(quest)}[/b][/{color}]"
             + $"\n{FourthRouteOpeningScreen.TextFor(quest + ".flavor")}"
             + $"\n{FourthRouteOpeningScreen.TextFor("condition")}：{condition}"
             + $"\n{FourthRouteOpeningScreen.TextFor("reward")}{reward.Title.GetFormattedText()}";
@@ -154,11 +144,6 @@ internal sealed partial class TrialEventPage : Control
             dark ? new Color(.77f,.49f,.88f) : new Color(.92f,.79f,.45f), dormant.Icon,
             new HoverTip(dormant.Title, $"{FourthRouteOpeningScreen.TextFor("dormant")}\n{condition}", dormant.Icon),
             new HoverTip(reward.Title, reward.DynamicDescription.GetFormattedText() + "\n" + corruption, reward.Icon));
-        option.Connect(NClickableControl.SignalName.Focused, Callable.From<NButton>(_ =>
-        {
-            _routePortrait.Texture = RuntimeTextureAssets.Load("ui/trial/" + (dark ? "sin.png" : "virtue.png"));
-            _routePortrait.Modulate = new Color(1,1,1,.8f);
-        }));
         return option;
     }
 

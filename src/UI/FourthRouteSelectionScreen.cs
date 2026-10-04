@@ -179,8 +179,6 @@ public sealed partial class FourthRouteSelectionScreen : Control, IScreenContext
         margin.AddThemeConstantOverride("margin_top", 26);
         margin.AddThemeConstantOverride("margin_bottom", 26);
         button.AddChild(margin);
-        TrialBackgroundArt.AddBackdrop(margin,
-            alignment == FourthRouteAlignment.Dark ? "sin.png" : "virtue.png");
 
         VBoxContainer body = new()
         {
@@ -198,8 +196,8 @@ public sealed partial class FourthRouteSelectionScreen : Control, IScreenContext
         };
         body.AddChild(stripe);
         body.AddChild(CreateSectionLabel(alignment == FourthRouteAlignment.Dark
-            ? "七宗罪路线"
-            : "七美德路线", accent, 23));
+            ? FourthRouteOpeningScreen.TextFor("dark")
+            : FourthRouteOpeningScreen.TextFor("light"), accent, 23));
         body.AddChild(CreateSectionLabel(
             FourthRouteProgressService.QuestName(quest), Colors.White, 35));
         body.AddChild(CreateRichText(
