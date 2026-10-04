@@ -3020,3 +3020,8 @@ START-003-STATUS-TEXT-001 IMPLEMENTED：状态行只显示已解锁/未解锁；
 用户明确要求“仅部署到本地游戏目录”，覆盖此前暂不部署指令，仅此安装目录授权。最新源码完成提交`ad3a63d3c0193a628f128a596427ac63fb859297`，部署前文档快照`c0489f3acd91afc5d858ed4e9779b68bbffa9772`；复用本轮已通过的Debug构建，0警告0错误，命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`。累计部署最新已提交修订：开局状态行仅保留已解锁／未解锁；瘴雷每段造成3/4点伤害并获得1费，按本场欲望消耗次数重复；天平悬停显示实际圣洁／堕落卡池概率及浮动文本；正式V6选角背景；独立通关凭据及旧解锁标记／备份恢复；女神试炼事件式开场UI；假商人事件角色立绘与普通商店匹配。历史记录缺少最终堕落值时不推断旧通关路线。所有已存在JSON配置均保留。
 
 仅替换`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`下MaidenSuccubus.dll/.pdb/.pck，替换前备份`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\local-start-status-text-deployment-20261004-205215`，安装后逐项SHA-256一致，原有JSON哈希不变。未改沙箱、ModUploader、上传包或其他游戏/模组目录。未运行静态测试与游戏内验收，用户实测后再标VERIFIED。部署明细：聊天outputs/start-status-text-20261004/local-deployment-20261004-205215.json。
+
+
+## 2026-10-04 试炼背景与选项名称（ACT4-001-UI-LABEL-001）
+
+前置快照`489f661e4b104870e1c9fbbcd81a6fb6a7930240`，设计提交`dcd5f1a2eec598d47599ad30682bfb56ac5cf956`。已读取ACT4-001三阶段流程与事件UI呈现规则、TRIAL-EVENT-01～05及两个开场入口；DesignDoc相对HEAD/最后接受提交逐行及词级漂移已保存，其他用户叙事与反馈文案编辑保留、不混入范围提交。技术任务READY：删除TrialEventPage的RouteIllustration节点、ClearOptions重置及Focused加载回调，仅保留narrative.png整屏背景和阅读遮罩；events.json的dark/light两个标签改为黑暗女神的试炼/光明女神的试炼，所有AddQuest统一复用并以无空格中点连接试炼名。旧选择器备用标题也共用标签、删除其路线背景。选项按钮遗物图标/悬停、随机选择、确认、存档和奖励无改动。构建后IMPLEMENTED，游戏内验收由用户完成；不运行静态测试。本轮仅build，不部署，不改安装JSON、沙箱或上传器。资源包仅替换已接受events.json中的两个标签，保留其他未提交文本。
