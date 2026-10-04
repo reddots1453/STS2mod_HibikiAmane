@@ -1561,3 +1561,5 @@ FAKE-MERCHANT-SCALE-01 IMPLEMENTED：事件专属根节点缩放0.5并以实例�
 普通商店NMerchantRoom取MerchantAnimPath，天音商店Sprite2D位置(0,13.65)、比例0.35、1024×1536纹理，CharacterContainer原生比例1；FakeMerchant取战斗CreateVisuals，其CharacterContainer额外比例1.75。两套图和坐标不同，不能只抵消1.75或比较纹理尺寸。技术任务READY：仅天音的FakeMerchant角色实例复用实际普通商店Visuals Sprite2D全部配置，隐藏该事件实例的战斗Art，不改战斗资源；从普通商店SceneState读取CharacterContainer比例，与实际事件父容器比例相除，乘商店模板根Scale及原实例Scale。保存首次比例且不重复添加图像，重复调用幂等。特殊事件没有Spine的商店静态图不调用原生relaxed_loop，其它角色仍执行原生动画。
 
 获取只读场景模板后立即Free，不打开新商店或触发原生房间脚本；目标比例有效和纹理加载成功后才隐藏旧图。事件中原有Position/脚底根锚点保留，后续戦斗重新CreateVisuals显示原图和尺寸。确认构建0警告0错误后IMPLEMENTED，视觉由用户手测。不运行静态测试；前批试炼UI仍未部署，本批累积产物不自动安装、不改JSON/沙箱/上传器。
+
+FAKE-MERCHANT-SHOP-01 IMPLEMENTED：复用普通商店立绘节点与实际配置，并抵消事件角色容器缩放，实例幂等。Debug构建0警告0错误，未运行静态测试与游戏内验收，未部署；包含上一批待验女神试炼UI。
