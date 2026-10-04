@@ -15,7 +15,6 @@ internal static class FakeMerchantCharacterScalePatch
 {
     private const string ShopScenePath = "res://MaidenSuccubus/scenes/maiden_succubus_merchant.tscn";
     private const string PortraitName = "MaidenNormalShopPortrait";
-    private static readonly StringName OriginalScale = "maiden_fake_merchant_original_scale";
 
     [HarmonyPrefix]
     private static bool Prefix(NCreatureVisuals visuals)
@@ -40,9 +39,9 @@ internal static class FakeMerchantCharacterScalePatch
             if (source?.Texture == null || combatArt == null) return false;
             Vector2 normalContainerScale = NormalShopContainerScale();
             if (Mathf.IsZeroApprox(container.Scale.X) || Mathf.IsZeroApprox(container.Scale.Y)) return false;
-            if (!visuals.HasMeta(OriginalScale)) visuals.SetMeta(OriginalScale, visuals.Scale);
-            Vector2 originalScale = visuals.GetMeta(OriginalScale).AsVector2();
-            Vector2 targetScale = originalScale * template.Scale * normalContainerScale / container.Scale;
+            // Absolute shop size, independent of a combat root scale or the
+            // obsolete half-size patch; applying it twice yields the same result.
+            Vector2 targetScale = template.Scale * normalContainerScale / container.Scale;
 
             // Use the actual shop node: texture, offset, position, flip and local
             // scale all follow its scene. Do not estimate size from PNG dimensions.
@@ -66,7 +65,7 @@ internal static class FakeMerchantCharacterScalePatch
         var state = PreloadManager.Cache.GetScene(SceneHelper.GetScenePath("rooms/merchant_room")).GetState();
         for (int i = 0; i < state.GetNodeCount(); i++)
         {
-            if (state.GetNodePath(i).ToString() != "SceneContainer/CharacterContainer") continue;
+            if (!state.GetNodePath(i).ToString().EndsWith("SceneContainer/CharacterContainer", StringComparison.Ordinal)) continue;
             for (int j = 0; j < state.GetNodePropertyCount(i); j++)
                 if (state.GetNodePropertyName(i, j) == "scale")
                     return state.GetNodePropertyValue(i, j).AsVector2();
