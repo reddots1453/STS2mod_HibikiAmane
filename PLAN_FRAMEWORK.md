@@ -2827,3 +2827,10 @@ ACT4-001慷慨遗物/供奉互斥选择：本机日志确认原生LinkedRewardSe
 收尾代码复核补充：原生SelectCharacter先禁用锁定角色Confirm，再通知本控件。切换至原生未解锁角色时，先放弃本控件的恢复标记，避免把原生锁定按钮重新启用；开局门禁仅作用于当前可用天音选角，不干涉其他角色或已关闭面板。焦点外观使用原生公开Focused/Unfocused信号；初次编译的受保护属性访问已修正。
 
 实现完成：右侧三按钮、独立信息面板、锁定预览与原生开局入口同步拦截；尺寸变化按选角屏幕缩放。仅恢复本面板禁用过的Confirm，其他角色和原生准备/退出流程保持独立。Debug构建0警告0错误，提取目录786/0；无静态测试/游戏内验收/部署。前批修复累积在本次DLL；PCK与反馈配置原样继承，不改上传器JSON。IMPLEMENTED，待用户实测。
+
+
+## 2026-10-04 用户授权仅部署本地游戏（LOCAL-DEPLOY-20261004-165357）
+
+用户明确要求“仅部署到本地游戏目录”，覆盖此前暂不部署指令，仅此安装目录授权。最新源码完成提交`c857db668f15b0577dea7711da46ade8fec1dc46`，部署前文档快照`00eeb5e4f7fffbb094705c663148be966432d57d`；复用本轮已通过的Debug构建，0警告0错误，命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`。本次部署右侧三路线开局预览及锁定开局门禁，包含前批未部署的欲望条、湿了、解锁持久化、瘴雷计数、反馈分组及光之审判修复。PCK沿用上一接受版本。只在首次安装时增加combat_feedback.json文案模板，后续保留用户填写内容。
+
+仅替换`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`下MaidenSuccubus.dll/.pdb/.pck及首次文案模板，替换前备份`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\local-start-route-preview-deployment-20261004-165357`，安装后逐项SHA-256一致，原有JSON哈希不变。未改沙箱、ModUploader、上传包或其他游戏/模组目录。未运行静态测试与游戏内验收，用户实测后再标VERIFIED。部署明细：聊天outputs/start-route-preview-20261004/local-deployment-20261004-165357.json。
