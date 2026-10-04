@@ -9,5 +9,7 @@ internal sealed class DesireSpendHitsVar : CalculatedVar
     internal DesireSpendHitsVar() : base("Hits") { }
 
     protected override DynamicVar GetBaseVar() =>
-        ((CardModel)_owner).DynamicVars["InitialHits"];
+        _owner is CardModel card
+            ? card.DynamicVars["InitialHits"]
+            : throw new InvalidOperationException("Hit count variable requires a card owner.");
 }
