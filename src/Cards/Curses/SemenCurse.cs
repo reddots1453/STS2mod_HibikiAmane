@@ -82,11 +82,12 @@ public abstract class MSInvasionCurseTemplate :
     protected async Task GenerateIntoDraw<T>() where T : CardModel
     {
         T generated = CombatState!.CreateCard<T>(Owner);
-        await CardPileCmd.AddGeneratedCardToCombat(
+        CardCmd.PreviewCardPileAdd(await CardPileCmd.AddGeneratedCardToCombat(
             generated,
             PileType.Draw,
             Owner,
-            CardPilePosition.Random);
+            CardPilePosition.Random));
+        await Cmd.Wait(1f);
     }
 }
 
@@ -280,8 +281,9 @@ public sealed class LewdMarkMinorCurse : MSEventCurseTemplate
         for (int i = 0; i < count; i++)
         {
             ArousalStatus generated = CombatState!.CreateCard<ArousalStatus>(Owner);
-            await CardPileCmd.AddGeneratedCardToCombat(
-                generated, PileType.Draw, Owner, CardPilePosition.Random);
+            CardCmd.PreviewCardPileAdd(await CardPileCmd.AddGeneratedCardToCombat(
+                generated, PileType.Draw, Owner, CardPilePosition.Random));
+            await Cmd.Wait(1f);
         }
     }
 }
@@ -299,8 +301,9 @@ public sealed class LewdMarkSpreadCurse : MSEventCurseTemplate
         for (int i = 0; i < 2; i++)
         {
             ArousalStatus generated = CombatState!.CreateCard<ArousalStatus>(Owner);
-            await CardPileCmd.AddGeneratedCardToCombat(
-                generated, PileType.Draw, Owner, CardPilePosition.Random);
+            CardCmd.PreviewCardPileAdd(await CardPileCmd.AddGeneratedCardToCombat(
+                generated, PileType.Draw, Owner, CardPilePosition.Random));
+            await Cmd.Wait(1f);
         }
     }
 }
@@ -318,8 +321,9 @@ public sealed class LewdMarkCompleteCurse : MSEventCurseTemplate
         for (int i = 0; i < 2; i++)
         {
             ArousalStatus generated = CombatState!.CreateCard<ArousalStatus>(Owner);
-            await CardPileCmd.AddGeneratedCardToCombat(
-                generated, PileType.Draw, Owner, CardPilePosition.Random);
+            CardCmd.PreviewCardPileAdd(await CardPileCmd.AddGeneratedCardToCombat(
+                generated, PileType.Draw, Owner, CardPilePosition.Random));
+            await Cmd.Wait(1f);
         }
     }
 }
