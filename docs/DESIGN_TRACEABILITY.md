@@ -1550,3 +1550,5 @@ TRIAL-EVENT-01～05实现完成，状态IMPLEMENTED：原生视觉模板、右�
 任务READY：只在NFakeMerchant.StartCharacterAnimation后缩放MaidenSuccubusCreatureVisuals根节点到原Scale×0.5，保留脚底根锚点与原版Position、内部衣装比例与反馈。以实例元数据保存原始比例，重复调用仍原Scale×0.5，不再次减半；新事件视觉实例独立记录。其他角色和商店不触发，不改资源/PCK/JSON，不添加事件玩法补丁。完成Debug构建后IMPLEMENTED，用户确认视觉后VERIFIED。不运行静态测试。
 
 手测入口：商人？？？事件中天音缩小至一半、关闭/打开商店与地图或读档仍正确；离开并开始战斗后原尺寸。沿用上一批尚未部署的女神试炼UI，累积产物包含其改版，本轮仅build、不自动把待验UI部署到安装目录、沙箱或上传器。
+
+FAKE-MERCHANT-SCALE-01 IMPLEMENTED：事件专属根节点缩放0.5并以实例原Scale幂等。Debug构建0警告0错误，未运行静态测试与游戏内验收，未部署；包含上一批待验女神试炼UI。
