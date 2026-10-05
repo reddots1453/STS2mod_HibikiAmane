@@ -9,11 +9,9 @@ namespace MaidenSuccubus.UI;
 /// Resolves reviewed card art by the card's concrete C# class name. Cards that
 /// do not yet have dedicated artwork share the reviewed default illustration.
 ///
-/// CardAssetProfile deliberately exposes a vanilla compressed portrait path.
-/// The custom Texture2D is installed by the scoped NCard presentation patch.
-/// This keeps third-party large-card patches that require CompressedTexture2D
-/// compatible and avoids serializing a roughly 15 MB user:// resource while
-/// the compendium is scrolling past every new card type.
+/// CardAssetProfile exposes the real imported CompressedTexture2D path, like
+/// native cards. Third-party previews and the scoped variant patches share the
+/// same texture; no placeholder art or user:// serialization is needed.
 /// </summary>
 public static class CardArtAssets
 {
@@ -24,8 +22,9 @@ public static class CardArtAssets
 
     public static string GetPortraitPath(Type cardType)
     {
-        _ = cardType;
-        return VanillaFallback;
+        string relative = ResolveRelativePath(cardType);
+        return RuntimeTextureAssets.IsImported(relative)
+            ? RuntimeTextureAssets.GetResourcePath(relative) : VanillaFallback;
     }
 
     public static bool IsMaidenCard(CardModel model) =>
@@ -51,7 +50,10 @@ public static class CardArtAssets
         return GetPortraitTexture(card.GetType());
     }
 
-    public static Texture2D? GetPortraitTexture(Type cardType)
+    public static Texture2D? GetPortraitTexture(Type cardType) =>
+        RuntimeTextureAssets.Load(ResolveRelativePath(cardType));
+
+    private static string ResolveRelativePath(Type cardType)
     {
         if (!RelativePaths.TryGetValue(cardType, out string? relativePath))
         {
@@ -61,6 +63,6 @@ public static class CardArtAssets
                 : "cards/default.png";
             RelativePaths[cardType] = relativePath;
         }
-        return RuntimeTextureAssets.Load(relativePath);
+        return relativePath;
     }
 }

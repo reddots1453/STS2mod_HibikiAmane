@@ -340,7 +340,7 @@ internal static class NativeUiRuntimeProbe
             node._Process(.25);
             Check(ReferenceEquals(node.GetNode<Sprite2D>("%Intent").Texture, MaidenIntentIconAssets.Get(custom)), "state refresh preserves custom sprite");
             Check(Godot.FileAccess.FileExists("res://MaidenSuccubus/audio/magic/transformation_start.ogg"), "installed audio available to Godot");
-            Check(Godot.FileAccess.FileExists("res://MaidenSuccubus/images/cutscenes/control/restraint_suit.png"), "installed CG available to Godot");
+            Check(RuntimeTextureAssets.Exists("cutscenes/control/restraint_suit.png"), "installed CG available to Godot");
             for (int i = 0; i < 90; i++) await menu.ToSignal(menu.GetTree(), SceneTree.SignalName.ProcessFrame);
             host.QueueFree();
             for (int i = 0; i < 5; i++) await menu.ToSignal(menu.GetTree(), SceneTree.SignalName.ProcessFrame);

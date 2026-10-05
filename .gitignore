@@ -1,0 +1,5 @@
+# Reproducible texture build artifacts, never source snapshots or backups.
+MaidenSuccubus/textures/
+MaidenSuccubus.pck
+.asset-import/
+MaidenSuccubus/images/**/*.import

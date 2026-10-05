@@ -90,18 +90,6 @@ public class MaidenSuccubusCharacter
             "user://maiden_succubus_character_select_locked_icon_v04.res",
             characterSelectIconPath);
 
-        // The two world scenes reference these fingerprinted binary resources. Preparing them
-        // here keeps loose debug assets and packed releases on the same path
-        // without relying on Godot's editor import database.
-        RuntimeTextureAssets.PrepareResource(
-            "character/hibiki_amane_merchant.png",
-            "user://maiden_succubus_merchant_texture.res",
-            iconPath);
-        RuntimeTextureAssets.PrepareResource(
-            "character/hibiki_amane_rest_site.png",
-            "user://maiden_succubus_rest_site_texture.res",
-            iconPath);
-
         return new CharacterAssetProfile(
             Scenes: new CharacterSceneAssetSet(
                 VisualsPath: CharacterVisualsPath,

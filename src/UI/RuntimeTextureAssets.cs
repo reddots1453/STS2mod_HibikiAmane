@@ -1,6 +1,7 @@
 using Godot;
 using System.Diagnostics;
 using System.Security.Cryptography;
+using System.Text.Json;
 
 namespace MaidenSuccubus.UI;
 
@@ -8,6 +9,32 @@ namespace MaidenSuccubus.UI;
 public static class RuntimeTextureAssets
 {
     private const string RootPath = "res://MaidenSuccubus/images/";
+    private const string TextureRoot = "res://MaidenSuccubus/textures/";
+    private static Dictionary<string, long>? _packedBytes;
+
+    // Standard PNG import remaps accept both Texture2D and CompressedTexture2D
+    // consumers and point to one shared native texture. No player-side import is needed.
+    public static string GetResourcePath(string relativePath) => RootPath + relativePath;
+    public static bool IsImported(string relativePath) =>
+        ResourceLoader.Exists(TextureRoot + relativePath + ".ctex")
+        && ResourceLoader.Exists(GetResourcePath(relativePath));
+
+    private static long EstimatePackedBytes(string path, Texture2D texture)
+    {
+        if (_packedBytes == null)
+        {
+            _packedBytes = new(StringComparer.Ordinal);
+            string manifest = TextureRoot + "manifest.json";
+            if (Godot.FileAccess.FileExists(manifest))
+            {
+                using var json = JsonDocument.Parse(Godot.FileAccess.GetFileAsString(manifest));
+                foreach (var asset in json.RootElement.EnumerateObject())
+                    _packedBytes[asset.Name] = asset.Value.GetProperty("gpu_bytes").GetInt64();
+            }
+        }
+        return _packedBytes.TryGetValue(path, out long bytes)
+            ? bytes : (long)texture.GetWidth() * texture.GetHeight() * 4;
+    }
     private const long WarmBudget = 96L * 1024 * 1024;
     private sealed class Entry(WeakRef reference, long bytes)
     {
@@ -22,7 +49,8 @@ public static class RuntimeTextureAssets
     private static readonly HashSet<string> FailedLoads = new(StringComparer.Ordinal);
     private static long _warmBytes;
 
-    public static bool Exists(string relativePath) => Godot.FileAccess.FileExists(RootPath + relativePath);
+    public static bool Exists(string relativePath) => IsImported(relativePath)
+        || Godot.FileAccess.FileExists(RootPath + relativePath);
     public static Texture2D? Load(string relativePath) => LoadCore(relativePath, null);
 
     private static Texture2D? LoadCore(string relativePath, byte[]? source)
@@ -48,6 +76,29 @@ public static class RuntimeTextureAssets
 
         var timer = Stopwatch.StartNew();
         string resourcePath = RootPath + relativePath;
+        if (IsImported(relativePath))
+        {
+            // ResourceLoader's path cache and our weak cache share this object.
+            // Do not decode, read back from the GPU, or create a second ImageTexture.
+            var imported = ResourceLoader.Load<CompressedTexture2D>(GetResourcePath(relativePath));
+            if (imported != null)
+            {
+                long packedBytes = EstimatePackedBytes(relativePath, imported);
+                WeakRef? handle = GodotObject.WeakRef(imported);
+                if (handle != null)
+                {
+                    entry = new Entry(handle, packedBytes);
+                    Cache[relativePath] = entry;
+                    Retain(relativePath, entry, imported);
+                }
+                MaidenSuccubusMod.Logger.Info(
+                    $"[TextureMemory] imported={relativePath}; size={imported.GetWidth()}x{imported.GetHeight()}; "
+                    + $"textureEstimateMiB={MiB(packedBytes):F2}; warmEstimateMiB={MiB(_warmBytes):F2}");
+                return imported;
+            }
+            return Fail(relativePath, $"Unable to load compiled texture '{GetResourcePath(relativePath)}'.");
+        }
+        // Loose legacy development assets remain supported. Shipped packages use .ctex.
         byte[] bytes = source ?? Godot.FileAccess.GetFileAsBytes(resourcePath);
         if (bytes.Length == 0) return Fail(relativePath, $"Unable to read texture '{resourcePath}'.");
         using var image = new Image();
@@ -130,6 +181,7 @@ public static class RuntimeTextureAssets
     public static string PrepareResource(string relativePath, string userResourcePath,
         string fallbackPath, bool reuseExisting = false)
     {
+        if (IsImported(relativePath)) return GetResourcePath(relativePath);
         if (reuseExisting && ResourceLoader.Exists(userResourcePath)) return userResourcePath;
         byte[] bytes = Godot.FileAccess.GetFileAsBytes(RootPath + relativePath);
         if (bytes.Length == 0) return fallbackPath;

@@ -10,10 +10,9 @@ using MaidenSuccubus.Util;
 namespace MaidenSuccubus.Patches;
 
 /// <summary>
-/// Supplies loose HD art at the same model-level texture getter consumed by
-/// every vanilla card surface. The separately exposed PortraitPath remains a
-/// valid vanilla CompressedTexture2D so third-party inspect-card patches that
-/// insist on loading that concrete type cannot fail their cast.
+/// Shares imported HD art across native and third-party card surfaces and
+/// selects live route variants. PortraitPath exposes the real imported image;
+/// typed CompressedTexture2D consumers no longer need a vanilla placeholder.
 /// </summary>
 [HarmonyPatch(typeof(CardModel), nameof(CardModel.Portrait), MethodType.Getter)]
 [HarmonyPriority(Priority.Last)]
