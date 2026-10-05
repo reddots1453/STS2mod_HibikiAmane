@@ -1,0 +1,9 @@
+
+
+## 2026-10-05 原版变化与眼罩回修（CARD-POOL-TRANSFORM-001 / RELIC-EVENT-001，READY）
+
+前置快照`a72c9f0755d241ddcbf316af61c7e5b7f7e3a173`，设计提交`013e887470ff85ff5022dcf0d213328410e86b22`。DesignDoc相对HEAD与上一接受版本逐行/词级差异留档；本轮此前四池语义已由用户撤回并确认按原版，既有无关设计/代码保留。复核原版0.107.1/0.111.0 CardFactory、TokenCardPool/ColorlessCardPool、CardPoolModel、NIntent/NCreature、ActModel/RoomSet、NRelicInventoryHolder/NMapPoint；参考只读本地sts2_foresight的EncounterReader、BossReader、RelicHoverPatch、MapPointPredictionPatch。其余奖品/事件/商店预测不导入。日志godot(6)明确主补丁被MVP禁用，悬停字段注入___owner匹配owner而原版字段_owner，因此错误与版本改名无关。
+
+技术任务：删除上一批TransformationPools/GetTransformationCards与original实参注入，GetDefaultTransformationOptions原选池后调用三池GetGenerationCards，Colorless fallback与Generated池不识别扩张。解除MvpPatchPolicy对BlindfoldIntentPatch的false；NIntent hover改缓存FieldInfo读_owner而非Harmony字段注入，缺字段Prepare安全禁用该入口；意图Container隐藏/移除恢复、Creature PowerOnly说明及Refresh生命周期沿用。Peek复用辉眼从Act._rooms读取normal/elite列表与visited取模，不消费队列，首领读NextBossEncounter，缺生成数据返回不可用。新增眼罩遗物OnFocus/OnUnfocus补丁，用辉眼HoverTipHelper.AddTipToOwner在原生提示后追加，原AdditionalHoverTips入口移除避免重复；原生fallback与宽度/对齐保留。地图只Monster/Elite/Boss且本地HasEffect，独立命名/Meta/非交互Panel，移开释放，不改辉眼、不依赖辉眼DLL。全体原生筛选/RNG/卡牌动画/附魔不重写。
+
+验收NTB-01：打击默认变化三路线且不产生冰雾/六圣言；NTB-02：Token/Event/Ancient/Quest走Colorless，衍生普通原牌维持自身池；NTB-03：战斗内外原筛选、明确options/其他角色不变；NTB-04：持眼罩全部敌人图标与意图tooltip隐藏，Power说明保留，拿走恢复；NTB-05：遗物悬停三类，地图对应节点一类，双首领顺序正确，连续悬停不改变RNG或visited；NTB-06：新敌人、读档、离开UI不留遮挡，未持有/其他角色/远端不生效。按用户要求不运行静态测试，仅build；运行时NOT_RUN，未授权部署，不写本地/沙箱/ModUploader及任何安装JSON。构建后IMPLEMENTED、用户实测后VERIFIED。
