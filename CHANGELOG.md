@@ -2921,3 +2921,7 @@ IMPLEMENTED（2026-10-05）：前置`8c481fe71d760f31210caaffeb95f0a2b7eb1152`�
 源码`79839a5b3d4afa8c905222776e29ddaaac2cd3c7`；部署前快照`3d0db03320bdd04ef136fac8577dc95cfa394334`。按用户本轮明确要求，将累计欲望/拘束/眼罩修订的DLL、PCK部署到本地`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`和上传器`D:\game_backup\steam\steamapps\common\Slay the Spire 2\ModUploader-win-x64\MaidenSuccubus\content\MaidenSuccubus`，本地另更新PDB，上传器不添加调试PDB。+5阈值10及对应粉线、-5恢复战后减1、欲望说明按用户原文、眼罩普通/精英新标题及Boss提示移除均包含。
 
 旧产物和两处所有JSON已备份到`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\desire-control-blindfold-both-20261005-160300`；替换前后SHA256与构建包一致，两处JSON逐文件哈希完全保持。DesignDoc未改写；原仓库暂存区保持。复用构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`（0警告0错误），不重复构建/静态测试，游戏内NOT_RUN。未修改沙箱、未执行上传、不终止游戏。部署记录：outputs/desire-control-blindfold-20261005/deployment-20261005-160300.json。
+
+
+IMPLEMENTED（2026-10-05）：前置`55d228f8cba76a8bd841c8083faa83e6d65a9d9b`，计划`55f540b0c34117da4557246135109ac03ff17687`。祝圣状态Single改Counter，每张仍+1层；按原版熵一次选Amount张当前合法手牌，固定所选实例逐张变化，保留异步目标重验及随机圣言规则。状态栏显示累计层数，双悬停文案显示{Amount}张。费用/升级固有/其他Power及卡牌不变，DesignDoc未改写。
+构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过0警告0错误；按用户要求静态测试NOT_RUN、游戏内NOT_RUN；尚未部署。DesignDoc未修改，安装/上传器JSON未写入。

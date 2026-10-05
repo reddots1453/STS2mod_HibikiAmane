@@ -17,17 +17,21 @@ namespace MaidenSuccubus.Powers;
 public sealed class ConsecrationPower : MaidenSuccubusPowerTemplate
 {
     public override PowerType Type => PowerType.Buff;
-    public override PowerStackType StackType => PowerStackType.Single;
+    public override PowerStackType StackType => PowerStackType.Counter;
     private bool IsActive => IsMutable && Amount > 0 && Owner.IsAlive && Owner.Powers.Contains(this);
     public override async Task AfterPlayerTurnStart(PlayerChoiceContext context, Player player)
     {
         if (!IsActive || player.Creature != Owner) return;
-        CardModel? card = (await CardSelectCmd.FromHand(context, player,
-            new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, 1),
-            candidate => candidate.IsTransformable, this)).FirstOrDefault();
-        if (IsActive && card != null && card.Owner == player
-            && card.Pile?.Type == PileType.Hand && card.IsTransformable)
-            await ScriptureCmd.TransformToRandomScripture(card);
+        // Match Entropy: select once using the stacked count, then transform that snapshot.
+        List<CardModel> cards = (await CardSelectCmd.FromHand(context, player,
+            new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, Amount),
+            candidate => candidate.IsTransformable, this)).ToList();
+        foreach (CardModel card in cards)
+        {
+            if (!IsActive) break;
+            if (card.Owner == player && card.Pile?.Type == PileType.Hand && card.IsTransformable)
+                await ScriptureCmd.TransformToRandomScripture(card);
+        }
     }
 }
 

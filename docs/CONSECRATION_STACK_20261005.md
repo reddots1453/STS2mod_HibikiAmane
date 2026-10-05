@@ -11,3 +11,7 @@ SYS-SCR-001 / CARD-H-祝圣 / CONSECRATION-STACK-001：用户反馈多张祝圣�
 状态栏仍为一个图标，显示累计层数。description/smartDescription用{Amount}显示实际选牌数，源本地化仅两键调整，打包以上一接受PCK定向替换，保留用户其他文本。旧存档可继续使用已有层数，过去Single丢失的重复施加次数无法凭空恢复。
 
 验收待玩家实测：两张/三张祝圣层数2/3、回合开始一次选择对应数量、选中实例各变化一次且新生成圣言不再次进入本次选项；手牌不足、空手牌、异步移走/Power移除安全跳过，升级仍固有，其他圣言效果不变。仅Debug build，不运行静态测试；用户已明确授权完成后仅部署本地目录，全部安装JSON保留，ModUploader/沙箱不更新。
+
+
+IMPLEMENTED（2026-10-05）：前置`55d228f8cba76a8bd841c8083faa83e6d65a9d9b`，计划`55f540b0c34117da4557246135109ac03ff17687`。祝圣状态Single改Counter，每张仍+1层；按原版熵一次选Amount张当前合法手牌，固定所选实例逐张变化，保留异步目标重验及随机圣言规则。状态栏显示累计层数，双悬停文案显示{Amount}张。费用/升级固有/其他Power及卡牌不变，DesignDoc未改写。
+构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过0警告0错误；按用户要求静态测试NOT_RUN、游戏内NOT_RUN；尚未部署。DesignDoc未修改，安装/上传器JSON未写入。
