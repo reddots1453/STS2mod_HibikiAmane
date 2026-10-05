@@ -13,3 +13,8 @@ COMPAT-GAME-001文档诊断同步：设计`3ba7a5a25133c086def7a2605722353739bcd
 
 IMPLEMENTED（2026-10-05）：前置`a8586a96312e5c23294a5abef36a49ab5fbe51c7`，设计`3ba7a5a25133c086def7a2605722353739bcd156`，计划`56d4e083825109403eb3c94e0fad31798fa2c71e`。眼罩地图提示完全使用原版NHoverTipSet与对齐，仅显示下一场遭遇，移除自绘面板/可能敌人一行与相关查询；遗物不追加预测。累计英雄宝珠圣洁附魔、±5上限15及试炼奖励修复。
 Debug构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过0警告0错误，静态测试NOT_RUN、游戏内NOT_RUN；未部署，用户已授权仅本地部署，安装/上传器JSON不修改。
+
+
+## 2026-10-05 用户授权仅本地部署（LOCAL-BLINDFOLD-NATIVE-HOVER-20261005-154139）
+
+源码`cd771c26a7a212935e1f710bf264384bfa88e0d1`，部署前快照`9ddac83643435124f44219f548846e6cc5616926`。用户明确要求部署到本地mod目录，已将最新累计修订包的DLL、PDB和PCK写入`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`，包含英雄宝珠圣洁形态保留+沉眠精华、±5欲望上限15及悬停文本同步、眼罩原版地图悬停单行遭遇提示，以及此前試炼奖励地图/原版变化/商人立绘修复。复用Debug构建，命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`，0警告0错误；不重复构建或静态测试，游戏内NOT_RUN。旧产物与全部已存在JSON已备份到`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\local-blindfold-native-hover-20261005-154139`，逐文件SHA-256与包一致，全部JSON哈希保持。未改ModUploader或沙箱，未执行上传，不结束游戏进程。本轮仅支持游戏v0.111.0；godot(7).log中v0.107.1缺CardLocation的类型枚举失败已诊断，用户选择由玩家升级游戏，不做旧版适配。游戏内效果待用户实测。部署明细：聊天outputs/blindfold-native-hover-20261005/local-deployment-20261005-154139.json。
