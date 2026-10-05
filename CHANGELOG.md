@@ -2899,3 +2899,6 @@ ACT4-001-REWARD-MAP-001 / RELIC-EVENT-001 IMPLEMENTED（2026-10-05）：前置`c
 
 
 RELIC-START-002 IMPLEMENTED（2026-10-05）：前置`5eafcf69244c481d1d3d114d71607ebe23e64a71`，设计`deb3ee1ae605d7cc31275854a7452397c2421cec`，计划`87d673d90de6266cc4b06b156dc1e8eb9d775c8d`。英雄宝珠≤-4选择1张手牌添加保留+原版沉眠精华，首次回合末即时减1费；已附魔不覆盖，不重复补tick，不改永久牌组；中立/+4和永恒宝珠不变。圣洁描述与附魔悬停同步，动态异画沿用原实现。Debug构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`0警告0错误；静态测试NOT_RUN，游戏内NOT_RUN，当前打包完成尚待本地部署，安装和上传器JSON不修改。累计包含试炼奖励地图修复、眼罩节点提示与此前全部未部署修订。
+
+
+SYS-COR-004 / SYS-DES-002B IMPLEMENTED（2026-10-05）：前置`32636db88ee30e879b49af555f50f2d429d1e5d1`，设计`402ae80b7b42826a5827e87384ff4e5807ce9f50`，计划`7276433bdd3f6c047ef0444552a0f499fa476b24`。+5由战后欲望+1替换为欲望上限+5，-5同规则保留，两端通常15且不叠加；其他通常10。满值/音频/CG/计量条使用已有动态上限，8点不变；三条悬停说明同步。英雄宝珠本轮修订累计包含。Debug构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`0警告0错误；静态测试NOT_RUN，游戏内NOT_RUN。尚未部署此累计包，不写安装/上传器JSON；已授权本地部署将待游戏关闭后替换。

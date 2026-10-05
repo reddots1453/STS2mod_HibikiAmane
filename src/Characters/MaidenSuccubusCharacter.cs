@@ -247,21 +247,8 @@ public class MaidenSuccubusCharacter
         return Task.CompletedTask;
     }
 
-    public override async Task AfterCombatVictory(CombatRoom room)
-    {
-        Player? player = room.CombatState.Players.FirstOrDefault(
-            candidate => ReferenceEquals(candidate.Character, this));
-        if (player?.RunState is not RunState runState)
-        {
-            return;
-        }
-
-        int corruption = CorruptionQuery.Get(runState);
-        if (corruption == CorruptionData.Max)
-        {
-            await Desire.Modify(player, 1);
-        }
-    }
+    // Extreme alignment modifies capacity; neither route changes desire at victory.
+    public override Task AfterCombatVictory(CombatRoom room) => Task.CompletedTask;
 
     protected override NCreatureVisuals? TryCreateCreatureVisuals() =>
         MaidenSuccubusCreatureVisuals.TryCreate()

@@ -30,7 +30,8 @@ public static class DesireRuleModifiers
     {
         // Route capacity is the base bonus; content modifiers (including unbounded) follow it.
         if (player.Character is MaidenSuccubusCharacter
-            && player.RunState is RunState run && CorruptionQuery.IsMaxHoly(run))
+            && player.RunState is RunState run
+            && (CorruptionQuery.IsMaxHoly(run) || CorruptionQuery.IsMaxCorrupt(run)))
             currentCap += 5m;
         foreach (var modifier in Enumerate(player))
         {
