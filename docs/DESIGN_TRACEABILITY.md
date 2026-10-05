@@ -1801,3 +1801,10 @@ RELIC-EVENT-001：原生悬停标题改下一场遭遇战：/下一场精英战�
 
 
 IMPLEMENTED（2026-10-05）：前置`8c481fe71d760f31210caaffeb95f0a2b7eb1152`，计划`8a3410b3918090d3846569f074a1d635ee55f835`。+5拘束格挡绕过/Wet阈值10；其他8。粉线按真实量程及当前threshold/maximum绘制，旧素材固定粉线局部替换，悬停区域与文案同步，路线变化纳入UI缓存。-5恢复胜利减1欲望且取消容量+5；+5容量+5保留，原8点屏幕/心跳表现不改。通用欲望及满值说明采用用户修订DesignDoc原文；不改写DesignDoc。眼罩普通/精英提示采用用户指定标题与独立遭遇名，Boss不创建提示。静态测试NOT_RUN、游戏内NOT_RUN。构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`0警告0错误。用户已授权本地游戏及ModUploader部署；本提交尚未部署，后续独立部署记录，全部安装JSON保持。
+
+
+## 2026-10-05 本地游戏与ModUploader部署（20261005-160300）
+
+源码`79839a5b3d4afa8c905222776e29ddaaac2cd3c7`；部署前快照`3d0db03320bdd04ef136fac8577dc95cfa394334`。按用户本轮明确要求，将累计欲望/拘束/眼罩修订的DLL、PCK部署到本地`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`和上传器`D:\game_backup\steam\steamapps\common\Slay the Spire 2\ModUploader-win-x64\MaidenSuccubus\content\MaidenSuccubus`，本地另更新PDB，上传器不添加调试PDB。+5阈值10及对应粉线、-5恢复战后减1、欲望说明按用户原文、眼罩普通/精英新标题及Boss提示移除均包含。
+
+旧产物和两处所有JSON已备份到`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\desire-control-blindfold-both-20261005-160300`；替换前后SHA256与构建包一致，两处JSON逐文件哈希完全保持。DesignDoc未改写；原仓库暂存区保持。复用构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`（0警告0错误），不重复构建/静态测试，游戏内NOT_RUN。未修改沙箱、未执行上传、不终止游戏。部署记录：outputs/desire-control-blindfold-20261005/deployment-20261005-160300.json。
