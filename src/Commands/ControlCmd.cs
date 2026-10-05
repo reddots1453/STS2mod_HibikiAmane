@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Core.Control;
+using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.Powers;
 
@@ -29,7 +30,9 @@ public static class ControlCmd
 
         UI.CombatTextFeedback.Notify("control_intent_received", target, source,
             amount: escapeAmount, controlType: type.LocalizedName(), bindingType: type);
-        bool bypassBlock = Desire.Get(target.Player) >= 8;
+        await DesireResourceRules.SyncWetPower(choiceContext, target.Player, "control-intent");
+        bool bypassBlock = Desire.Get(target.Player)
+            >= DesireRuleModifiers.GetControlBypassThreshold(target.Player);
         if (!bypassBlock && target.Block >= controlBlock)
         {
             await CreatureCmd.LoseBlock(

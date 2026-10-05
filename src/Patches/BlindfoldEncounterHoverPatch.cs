@@ -31,7 +31,6 @@ internal static class BlindfoldEncounterHoverPatch
         {
             MapPointType.Monster => RoomType.Monster,
             MapPointType.Elite => RoomType.Elite,
-            MapPointType.Boss => RoomType.Boss,
             _ => null,
         };
         if (type == null) return;

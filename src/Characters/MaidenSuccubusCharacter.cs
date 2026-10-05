@@ -247,8 +247,13 @@ public class MaidenSuccubusCharacter
         return Task.CompletedTask;
     }
 
-    // Extreme alignment modifies capacity; neither route changes desire at victory.
-    public override Task AfterCombatVictory(CombatRoom room) => Task.CompletedTask;
+    public override async Task AfterCombatVictory(CombatRoom room)
+    {
+        Player? player = room.CombatState.Players.FirstOrDefault(
+            candidate => ReferenceEquals(candidate.Character, this));
+        if (player?.RunState is RunState runState && CorruptionQuery.IsMaxHoly(runState))
+            await Desire.Modify(player, -1);
+    }
 
     protected override NCreatureVisuals? TryCreateCreatureVisuals() =>
         MaidenSuccubusCreatureVisuals.TryCreate()

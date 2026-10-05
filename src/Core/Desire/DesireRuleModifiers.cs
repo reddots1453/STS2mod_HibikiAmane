@@ -31,7 +31,7 @@ public static class DesireRuleModifiers
         // Route capacity is the base bonus; content modifiers (including unbounded) follow it.
         if (player.Character is MaidenSuccubusCharacter
             && player.RunState is RunState run
-            && (CorruptionQuery.IsMaxHoly(run) || CorruptionQuery.IsMaxCorrupt(run)))
+            && CorruptionQuery.IsMaxCorrupt(run))
             currentCap += 5m;
         foreach (var modifier in Enumerate(player))
         {
@@ -40,6 +40,12 @@ public static class DesireRuleModifiers
 
         return Math.Max(0m, currentCap);
     }
+
+    // Only maximal corruption delays the binding/block penalty; visual alerts remain at 8.
+    public static int GetControlBypassThreshold(Player player) =>
+        player.Character is MaidenSuccubusCharacter
+        && player.RunState is RunState run && CorruptionQuery.IsMaxCorrupt(run)
+            ? 10 : 8;
 
     public static bool ShouldTriggerPenalty(Player player) =>
         Enumerate(player).All(

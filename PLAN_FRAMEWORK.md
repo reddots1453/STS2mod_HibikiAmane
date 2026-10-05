@@ -3208,3 +3208,6 @@ SYS-COR-004 / SYS-DES-002B / SYS-CTL-001：+5基础上限15、拘束格挡绕过
 RELIC-EVENT-001：原生悬停标题改下一场遭遇战：/下一场精英战：，正文仅真实遭遇名；不再在Boss地图节点创建眼罩悬停。读取只读RoomSet，不改RNG或遭遇顺序，持有者范围、原版布局保留。
 
 验收待用户实测：+5欲望9可用格挡/10不可；其他路线7可/8不可；-5战后欲望减1且上限10；+5上限15；粉线/悬停随阈值和上限对应；三项说明逐字匹配用户原文；普通/精英标题分行、Boss无眼罩提示。按用户要求只build、不执行静态测试。完成后已获授权本地及ModUploader部署，全部安装JSON保持。
+
+
+IMPLEMENTED（2026-10-05）：前置`8c481fe71d760f31210caaffeb95f0a2b7eb1152`，计划`8a3410b3918090d3846569f074a1d635ee55f835`。+5拘束格挡绕过/Wet阈值10；其他8。粉线按真实量程及当前threshold/maximum绘制，旧素材固定粉线局部替换，悬停区域与文案同步，路线变化纳入UI缓存。-5恢复胜利减1欲望且取消容量+5；+5容量+5保留，原8点屏幕/心跳表现不改。通用欲望及满值说明采用用户修订DesignDoc原文；不改写DesignDoc。眼罩普通/精英提示采用用户指定标题与独立遭遇名，Boss不创建提示。静态测试NOT_RUN、游戏内NOT_RUN。构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`0警告0错误。用户已授权本地游戏及ModUploader部署；本提交尚未部署，后续独立部署记录，全部安装JSON保持。

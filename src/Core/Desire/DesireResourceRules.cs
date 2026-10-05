@@ -100,24 +100,25 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
             || player.Creature.IsDead) return;
 
         int amount = Data.Desire.Get(player);
+        int threshold = DesireRuleModifiers.GetControlBypassThreshold(player);
         WetPower? wet = player.Creature.GetPower<WetPower>();
-        if (amount >= 8 && wet == null)
+        if (amount >= threshold && wet == null)
         {
             await PowerCmd.Apply<WetPower>(
                 choiceContext, player.Creature, 1, player.Creature, null, silent: true);
             if (!CombatManager.Instance.IsInProgress || CombatManager.Instance.IsEnding) return;
             if (player.Creature.HasPower<WetPower>())
                 MaidenSuccubusMod.Logger.Info(
-                    $"[DesireStatus] Wet applied: desire={amount}, reason={reason}");
+                    $"[DesireStatus] Wet applied: desire={amount}, threshold={threshold}, reason={reason}");
             else
                 MaidenSuccubusMod.Logger.Warn(
-                    $"[DesireStatus] Wet missing after native application: desire={amount}, reason={reason}");
+                    $"[DesireStatus] Wet missing after native application: desire={amount}, threshold={threshold}, reason={reason}");
         }
-        else if (amount < 8 && wet != null)
+        else if (amount < threshold && wet != null)
         {
             await PowerCmd.Remove(wet);
             MaidenSuccubusMod.Logger.Info(
-                $"[DesireStatus] Wet removed: desire={amount}, reason={reason}");
+                $"[DesireStatus] Wet removed: desire={amount}, threshold={threshold}, reason={reason}");
         }
     }
 

@@ -67,6 +67,8 @@ public static class InvasionCmd
             {
                 Corruption.Handle.Modify(runState, state => state.VirginMark = false);
                 CorruptionCmd.Modify(runState, 1, CorruptionChangeSource.FirstInvasion);
+                await MaidenSuccubus.Core.Desire.DesireResourceRules.SyncWetPower(
+                    choiceContext, target, "first-invasion-corruption");
             }
         }
 
