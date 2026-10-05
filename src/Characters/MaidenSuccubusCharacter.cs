@@ -71,35 +71,35 @@ public class MaidenSuccubusCharacter
     {
         string iconPath = RuntimeTextureAssets.PrepareResource(
             "ui/core/hibiki_amane_character_icon_128.png",
-            "user://maiden_succubus_character_icon.tres",
+            "user://maiden_succubus_character_icon.res",
             TopBarIconFallback);
         string outlinePath = RuntimeTextureAssets.PrepareResource(
             "ui/core/hibiki_amane_character_icon_outline_128.png",
-            "user://maiden_succubus_character_icon_outline.tres",
+            "user://maiden_succubus_character_icon_outline.res",
             iconPath);
         string characterSelectBgPath = RuntimeTextureAssets.PrepareResource(
             "ui/character_select/hibiki_amane_select_bg_v04_2561x1201.png",
-            "user://maiden_succubus_character_select_bg_v04.tres",
+            "user://maiden_succubus_character_select_bg_v04.res",
             CharacterSelectBgFallback);
         string characterSelectIconPath = RuntimeTextureAssets.PrepareResource(
             "ui/character_select/hibiki_amane_select_normal_v04_132x195.png",
-            "user://maiden_succubus_character_select_icon_v04.tres",
+            "user://maiden_succubus_character_select_icon_v04.res",
             iconPath);
         string characterSelectLockedIconPath = RuntimeTextureAssets.PrepareResource(
             "ui/character_select/hibiki_amane_select_locked_v04_132x195.png",
-            "user://maiden_succubus_character_select_locked_icon_v04.tres",
+            "user://maiden_succubus_character_select_locked_icon_v04.res",
             characterSelectIconPath);
 
-        // The two world scenes reference these user resources. Preparing them
+        // The two world scenes reference these fingerprinted binary resources. Preparing them
         // here keeps loose debug assets and packed releases on the same path
         // without relying on Godot's editor import database.
         RuntimeTextureAssets.PrepareResource(
             "character/hibiki_amane_merchant.png",
-            "user://maiden_succubus_merchant_texture.tres",
+            "user://maiden_succubus_merchant_texture.res",
             iconPath);
         RuntimeTextureAssets.PrepareResource(
             "character/hibiki_amane_rest_site.png",
-            "user://maiden_succubus_rest_site_texture.tres",
+            "user://maiden_succubus_rest_site_texture.res",
             iconPath);
 
         return new CharacterAssetProfile(

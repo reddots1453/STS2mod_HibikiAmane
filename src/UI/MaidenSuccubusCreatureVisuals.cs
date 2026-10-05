@@ -19,13 +19,8 @@ namespace MaidenSuccubus.UI;
 /// </summary>
 public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
 {
-    private const string RootPath = "res://MaidenSuccubus/images/character/";
     private const string ScenePath =
         "res://MaidenSuccubus/scenes/maiden_succubus_character.tscn";
-    private static readonly Dictionary<string, Texture2D> TextureCache =
-        new(StringComparer.Ordinal);
-    private static readonly HashSet<string> FailedTextureLoads =
-        new(StringComparer.Ordinal);
     // The whole-character textures are 922x1250 and retain the original
     // artwork coordinates through the knees.  This scale keeps the completed
     // figure close to the base-game character height, while the Y offset puts
@@ -63,21 +58,8 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
             return null;
         }
 
-        // Decode the three alternate forms while the combat room is being
-        // constructed. Form/armour changes can then swap an already resident
-        // texture instead of synchronously reading and decoding a PNG in the
-        // middle of an animation frame.
-        LoadTexture("character_armor_1.png");
-        LoadTexture("character_armor_2.png");
-        LoadTexture("character_armor_3.png");
-        LoadTexture("character_corrupt_armor_1.png");
-        LoadTexture("character_corrupt_armor_2.png");
-        LoadTexture("character_corrupt_armor_3.png");
-        LoadTexture("character_eternal_armor_1.png");
-        LoadTexture("character_eternal_armor_2.png");
-        LoadTexture("character_eternal_armor_3.png");
-        PreloadExpressionTextures();
-        LoadTexture("climax.jpg");
+        // Other forms, expressions and cut-ins load only when actually shown.
+        // Do not decode every route at the combat loading boundary.
 
         PackedScene? scene = ResourceLoader.Load<PackedScene>(ScenePath);
         if (scene == null)
@@ -142,6 +124,7 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         _edgeTween?.Kill();
         if (GetParent() is NCreature node && PerformanceAudience.IsLocalMaiden(node.Entity.Player))
             PerformanceAudioService.StopLoop(PerformanceLoopCue.Heartbeat);
+        RuntimeTextureAssets.ReleasePrefix("character/", "creature-exit");
         base._ExitTree();
     }
 
@@ -636,62 +619,8 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
                 - _characterSprite.Texture.GetSize()) / 2f;
     }
 
-    private static Texture2D? LoadTexture(string file)
-    {
-        if (TextureCache.TryGetValue(file, out Texture2D? cached)
-            && GodotObject.IsInstanceValid(cached))
-        {
-            return cached;
-        }
-        if (FailedTextureLoads.Contains(file))
-        {
-            return null;
-        }
-
-        string resourcePath = RootPath + file;
-        byte[] pngBytes = Godot.FileAccess.GetFileAsBytes(resourcePath);
-        if (pngBytes.Length == 0)
-        {
-            FailedTextureLoads.Add(file);
-            MaidenSuccubusMod.Logger.Warn(
-                $"Unable to read character texture '{resourcePath}'.");
-            return null;
-        }
-
-        // These assets are deliberately deployed as loose PNG files for hot
-        // reload. ResourceLoader has no importer for them at runtime and logs
-        // two full error stacks for every failed GD.Load call. Decode the PNG
-        // bytes directly instead; FileAccess also works when assets are packed.
-        using var image = new Image();
-        Error error = file.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
-            || file.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase)
-                ? image.LoadJpgFromBuffer(pngBytes)
-                : image.LoadPngFromBuffer(pngBytes);
-        if (error != Error.Ok || image.IsEmpty())
-        {
-            FailedTextureLoads.Add(file);
-            MaidenSuccubusMod.Logger.Warn(
-                $"Unable to decode character texture '{resourcePath}' ({error}).");
-            return null;
-        }
-
-        Texture2D texture = ImageTexture.CreateFromImage(image);
-        TextureCache[file] = texture;
-        return texture;
-    }
-
-    private static void PreloadExpressionTextures()
-    {
-        string[] routes = ["neutral", "holy", "corrupt"];
-        string[] ranges = ["0_4", "5_7", "8_9", "10"];
-        foreach (string route in routes)
-        {
-            foreach (string range in ranges)
-            {
-                LoadTexture($"expressions/{route}_desire_{range}.png");
-            }
-        }
-    }
+    private static Texture2D? LoadTexture(string file) =>
+        RuntimeTextureAssets.Load("character/" + file);
 
     private static void AdoptSceneChildren(Node source, Node destination)
     {

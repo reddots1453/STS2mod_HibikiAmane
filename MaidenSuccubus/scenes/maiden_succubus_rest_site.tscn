@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Texture2D" path="user://maiden_succubus_rest_site_texture.tres" id="1_rest"]
+[ext_resource type="Texture2D" path="user://maiden_succubus_rest_site_texture.res" id="1_rest"]
 
 [node name="MaidenSuccubusRestSite" type="Node2D"]
 

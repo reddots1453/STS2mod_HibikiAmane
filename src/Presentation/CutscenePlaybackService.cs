@@ -30,20 +30,15 @@ public static class CutscenePlaybackService
         bool gateAcquired = false;
         try
         {
-            var textures = new List<Texture2D>(paths.Count);
+            const string imageRoot = "res://MaidenSuccubus/images/";
             foreach (string path in paths)
             {
-                const string imageRoot = "res://MaidenSuccubus/images/";
                 if (!path.StartsWith(imageRoot, StringComparison.Ordinal))
                 {
                     MaidenSuccubusMod.Logger.Warn(
                         $"Cutscene path is outside the runtime image root: {path}");
                     return;
                 }
-                string relativePath = path[imageRoot.Length..];
-                Texture2D? texture = RuntimeTextureAssets.Load(relativePath);
-                if (texture == null) return;
-                textures.Add(texture);
             }
 
             await Gate.WaitAsync(local.Token);
@@ -60,10 +55,16 @@ public static class CutscenePlaybackService
             game.AddChild(localLayer);
             blocker.TakeFocus();
 
-            for (int index = 0; index < textures.Count && !local.IsCancellationRequested; index++)
+            for (int index = 0; index < paths.Count && !local.IsCancellationRequested; index++)
             {
+                // Yield between frames and acquire the playback gate before any decoding.
+                // A queued or skipped sequence must not retain a whole image set.
+                await blocker.ToSignal(blocker.GetTree(), SceneTree.SignalName.ProcessFrame);
+                local.Token.ThrowIfCancellationRequested();
+                Texture2D? texture = RuntimeTextureAssets.Load(paths[index][imageRoot.Length..]);
+                if (texture == null) return;
                 frameStarted?.Invoke(index);
-                blocker.Image.Texture = textures[index];
+                blocker.Image.Texture = texture;
                 await Fade(blocker.Image, 0f, 1f, 0.25, local.Token);
                 await Wait(blocker, 0.85, local.Token);
                 await Fade(blocker.Image, 1f, 0f, 0.25, local.Token);
@@ -85,7 +86,11 @@ public static class CutscenePlaybackService
             }
             if (ReferenceEquals(_layer, localLayer)) _layer = null;
             if (ReferenceEquals(_active, local)) _active = null;
-            if (gateAcquired) Gate.Release();
+            if (gateAcquired)
+            {
+                RuntimeTextureAssets.ReleasePrefix("cutscenes/", "cutscene-ended");
+                Gate.Release();
+            }
         }
     }
 

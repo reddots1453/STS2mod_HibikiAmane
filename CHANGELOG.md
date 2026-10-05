@@ -2868,3 +2868,6 @@ CARD-C-BURNING-DESIRE-ENERGY-001 IMPLEMENTED：瘴雷获得能量文本改用本
 验收CTL-NET-01：0.111新开局/继续，小啃兽攻击拘束2后下回合抽牌、挣脱和结束回合正常，日志有ModelSavedDataCompat且无缺失netID异常；02技能/能力拘束、多来源/重复施加、解除后恢复原牌；03能力数据保存及读档不丢失，其他保存属性及已有ID保持；04旧0.107直接属性名协议不安装补丁；05同版本多人双端编号一致、原生校验仍执行。按用户要求不运行静态测试，Debug构建后IMPLEMENTED、上述运行时均待实测。累积前一批未部署瘴雷图标修复，包中RPG文本仍关闭及新试炼UI有效；本轮仅build，不部署本地/沙箱/上传器，不改安装JSON。
 
 SYS-CTL-NET-001 IMPLEMENTED：现代游戏属性编号表初始化后补齐缺失RitsuLib_ModelSavedData正反映射与位宽；旧版本跳过，已注册不重复。构建0警告0错误，静态测试NOT_RUN、游戏内NOT_RUN；未部署，需玩家原环境确认。另日志BlindfoldIntentHoverPatch的缺失owner字段为独立已存在意图悬停兼容问题，本批没有改动或宣称修复。
+
+
+SYS-ASSET-MEM-001 IMPLEMENTED（2026-10-05）：前置完整现状快照`8a26d9628eea20f94378f62cafeb2da1ef7a387d`，设计`4e86a8fce6732bd9f9372a394368363ffa014cd8`，计划`04f2fc1621f2ce7a2a13150cf210e085d2e3dd60`。统一原始贴图缓存，96MiB像素估算LRU强引用预算；Godot WeakRef查找仍存活资源，淘汰/页面退出只放开强引用，不Dispose贴图、不主动GC、无尺寸变更。立绘与表情不再整批预载；CG获得锁后逐帧读取；角色7项生成资源改压缩二进制.res+源PNG SHA256标记复用，商店与火堆场景路径同步。增加加载耗时、像素估算、缓存和进程工作集日志。Debug最终构建命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过，0警告0错误，6.79秒；未运行静态测试，游戏内NOT_RUN，未部署本地/沙箱/上传器，安装JSON未触碰。构建初次命名冲突和可空类型问题已修正，最终成功构建为交付依据。缓存预算不限制界面及Godot自身持有资源的实际总内存，GC/引擎回收时机未强制；首次生成.res与首次按需解码仍有成本，玩家启动卡死根因尚待本次环境日志确认。

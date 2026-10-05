@@ -180,5 +180,9 @@ internal sealed partial class TrialEventPage : Control
         _canvas.Position = (size - DesignSize * scale) / 2;
     }
 
-    public override void _ExitTree() => _fade?.Kill();
+    public override void _ExitTree()
+    {
+        _fade?.Kill();
+        RuntimeTextureAssets.ReleasePrefix("ui/trial/", "trial-page-exit");
+    }
 }
