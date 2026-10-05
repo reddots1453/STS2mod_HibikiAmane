@@ -341,13 +341,11 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
             <= -3 => "holy",
             _ => "neutral",
         };
-        string range = desire switch
-        {
-            >= 10 => "10",
-            >= 8 => "8_9",
-            >= 5 => "5_7",
-            _ => "0_4",
-        };
+        int threshold = DesireRuleModifiers.GetControlBypassThreshold(player);
+        int maximum = Data.Desire.GetMaximum(player);
+        string range = desire >= maximum ? "10"
+            : desire >= threshold ? "8_9"
+            : desire >= 5 ? "5_7" : "0_4";
         string file = $"expressions/{route}_desire_{range}.png";
         if (file != _shownExpression)
         {
@@ -360,10 +358,10 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
             }
         }
 
-        SetPersistentPinkEdge(desire >= 8);
+        SetPersistentPinkEdge(desire >= threshold);
         if (PerformanceAudience.IsLocalMaiden(player))
         {
-            if (desire >= 8) PerformanceAudioService.StartLoop(PerformanceLoopCue.Heartbeat, 0.4f);
+            if (desire >= threshold) PerformanceAudioService.StartLoop(PerformanceLoopCue.Heartbeat, 0.4f);
             else PerformanceAudioService.StopLoop(PerformanceLoopCue.Heartbeat, 0.6f);
         }
     }

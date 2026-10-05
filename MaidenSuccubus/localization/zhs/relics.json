@@ -189,5 +189,6 @@
   "MAIDEN_SUCCUBUS_RELIC_INTERNAL_CONDOM.title": "内用套套",
   "MAIDEN_SUCCUBUS_RELIC_INTERNAL_CONDOM.description": "获得[gold]精液类诅咒牌[/gold]时，将其存入套套。[purple]堕落值[/purple]≥3：[gold]变奏[/gold]。",
   "MAIDEN_SUCCUBUS_RELIC_INTERNAL_CONDOM.descriptionCorrupt": "获得精液类诅咒牌时，将其存入套套并获得3点最大生命值。[purple]堕落值[/purple]＜3：[gold]变奏[/gold]。",
-  "MAIDEN_SUCCUBUS_RELIC_INTERNAL_CONDOM.flavor": "存入的诅咒仍可在商店清理。"
+  "MAIDEN_SUCCUBUS_RELIC_INTERNAL_CONDOM.flavor": "存入的诅咒仍可在商店清理。",
+  "SEA_GLASS.MAIDEN_SUCCUBUS_CHARACTER_MAIDEN_SUCCUBUS_CHARACTER.title": "魔法少女玻璃"
 }

@@ -28,7 +28,8 @@ public static class RouteCardRewardService
         // Event offers may also contain cards from other colors. Only replace
         // a character-pool slot; explicit colorless/other-character rewards stay intact.
         int[] eligibleSlots = Enumerable.Range(0, options.Count)
-            .Where(index => RouteCardQuery.TryGet(options[index].Card, out _))
+            .Where(index => options[index].Card.Rarity is CardRarity.Common or CardRarity.Uncommon or CardRarity.Rare
+                && RouteCardQuery.TryGet(options[index].Card, out _))
             .ToArray();
         if (eligibleSlots.Length == 0) return false;
 
@@ -89,12 +90,11 @@ public static class RouteCardRewardService
         player.Character is MaidenSuccubusCharacter
         && player.RunState is RunState
         && options.Count > 0
-        && ((creationOptions.Source == CardCreationSource.Encounter
-                && creationOptions.RarityOdds is CardRarityOddsType.RegularEncounter
-                    or CardRarityOddsType.EliteEncounter or CardRarityOddsType.BossEncounter)
-            || (creationOptions.Source == CardCreationSource.Other
-                && player.RunState.CurrentRoom is EventRoom
-                && creationOptions.CardPools.Any(pool => pool.Id == player.Character.CardPool.Id)));
+        // Source.Other includes Orrery, campfire/event/relic rewards in any room.
+        // Explicit fixed pools (ancient/special rewards) and manual fixed lists retain their contract.
+        && !creationOptions.Flags.HasFlag(CardCreationFlags.NoModifyHooks)
+        && !creationOptions.Flags.HasFlag(CardCreationFlags.NoCardPoolModifications)
+        && creationOptions.CardPools.Any(pool => pool is MSNeutralCardPool or MSCorruptCardPool or MSHolyCardPool);
 
     private static CardModel[] GetCandidates(
         Player player,

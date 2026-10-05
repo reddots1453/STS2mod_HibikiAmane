@@ -2,6 +2,7 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models;
 using MaidenSuccubus.Core.Cards;
+using MaidenSuccubus.Core.Desire;
 using MaidenSuccubus.Util;
 using STS2RitsuLib.Combat.SecondaryResources;
 using STS2RitsuLib.Models.Capabilities;
@@ -46,7 +47,8 @@ public static class FreeUntilPlayedSecondaryPatch
         Safe.Run(() =>
         {
             if (!result.CostsX && result.Kind == SecondaryResourceUseKind.RequiredCost
-                && FreeUntilPlayedCapability.IsActive(card))
+                && (FreeUntilPlayedCapability.IsActive(card)
+                    || (result.ResourceId == DesireResource.Id && NativeFreeCardCost.IsActive(card))))
                 result = result with
                 {
                     Cost = 0, AmountToSpend = 0, Value = 0, IsFree = true,
@@ -67,8 +69,15 @@ public static class FreeUntilPlayedCleanupPatch
     public static void Postfix(CardModel ____card, ref bool __result)
     {
         bool removed = false;
-        Safe.Run(() => removed = ____card.RemoveCapability<FreeUntilPlayedCapability>() != null,
+        Safe.Run(() =>
+        {
+            removed = ____card.RemoveCapability<FreeUntilPlayedCapability>() != null;
+            if (ModelCapabilities.TryGet(____card, out ModelCapabilitySet? set)
+                && set.Get<NativeFreeSecondaryCapability>() is { WholeCombat: false })
+                removed |= ____card.RemoveCapability<NativeFreeSecondaryCapability>() != null;
+        },
             "FreeUntilPlayed.Cleanup");
         __result |= removed;
     }
 }
+

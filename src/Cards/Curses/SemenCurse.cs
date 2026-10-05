@@ -42,7 +42,8 @@ public abstract class MSInvasionCurseTemplate :
     protected sealed override IEnumerable<IHoverTip> AdditionalHoverTips =>
         CardHoverTipSupport.FromDynamicPowerVars(DynamicVars.Values)
             .Concat(CardHoverTipSupport.FromDescriptionReferences(this))
-            .Concat(CardSpecificHoverTips);
+            .Concat(CardSpecificHoverTips)
+            .Append(CardHoverTipSupport.Static("MAIDENSUCCUBUS_LIFE_ESSENCE"));
 
     protected MSInvasionCurseTemplate(int cost = 1)
         : base(cost, CardType.Curse, CardRarity.Curse, TargetType.None, true) { }
