@@ -3218,3 +3218,16 @@ IMPLEMENTED（2026-10-05）：前置`8c481fe71d760f31210caaffeb95f0a2b7eb1152`�
 源码`79839a5b3d4afa8c905222776e29ddaaac2cd3c7`；部署前快照`3d0db03320bdd04ef136fac8577dc95cfa394334`。按用户本轮明确要求，将累计欲望/拘束/眼罩修订的DLL、PCK部署到本地`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`和上传器`D:\game_backup\steam\steamapps\common\Slay the Spire 2\ModUploader-win-x64\MaidenSuccubus\content\MaidenSuccubus`，本地另更新PDB，上传器不添加调试PDB。+5阈值10及对应粉线、-5恢复战后减1、欲望说明按用户原文、眼罩普通/精英新标题及Boss提示移除均包含。
 
 旧产物和两处所有JSON已备份到`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\desire-control-blindfold-both-20261005-160300`；替换前后SHA256与构建包一致，两处JSON逐文件哈希完全保持。DesignDoc未改写；原仓库暂存区保持。复用构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`（0警告0错误），不重复构建/静态测试，游戏内NOT_RUN。未修改沙箱、未执行上传、不终止游戏。部署记录：outputs/desire-control-blindfold-20261005/deployment-20261005-160300.json。
+
+
+## 2026-10-05 祝圣参考原版熵叠加与多选变化（READY）
+
+前置`55d228f8cba76a8bd841c8083faa83e6d65a9d9b`；接受基线`43433e17027d27227fa797b3645048ba244356be`。DesignDoc只读核对、原样快照，按用户要求不修改。
+
+SYS-SCR-001 / CARD-H-祝圣 / CONSECRATION-STACK-001：用户反馈多张祝圣不叠加，明确要求参考STS2原版无色Entropy。只读复核DesignDoc圣言/祝圣说明、现有生成命令和原版EntropyPower/Entropy/CardSelectCmd.FromHand；当前缺陷为Single层数策略且回合开始选择数写死1。
+
+任务：ConsecrationPower改Counter，复用原版FromHand与CardSelectorPrefs(TransformSelectionPrompt, Amount)，一次选择多张不同手牌，再依次通过现有ScriptureCmd变为随机圣言。保持IsTransformable过滤及异步返回后逐张重验拥有者/仍在手牌/可变化/Power仍生效；不足层数的合法手牌按原版全部选中，空手牌自动返回，不递归选择刚生成的圣言。每张祝圣仍施加1层，升级固有、费用、稀有度及六种圣言的生成RNG/原版变化升级与附魔行为不改。
+
+状态栏仍为一个图标，显示累计层数。description/smartDescription用{Amount}显示实际选牌数，源本地化仅两键调整，打包以上一接受PCK定向替换，保留用户其他文本。旧存档可继续使用已有层数，过去Single丢失的重复施加次数无法凭空恢复。
+
+验收待玩家实测：两张/三张祝圣层数2/3、回合开始一次选择对应数量、选中实例各变化一次且新生成圣言不再次进入本次选项；手牌不足、空手牌、异步移走/Power移除安全跳过，升级仍固有，其他圣言效果不变。仅Debug build，不运行静态测试；用户已明确授权完成后仅部署本地目录，全部安装JSON保留，ModUploader/沙箱不更新。
