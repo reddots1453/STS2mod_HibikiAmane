@@ -1765,3 +1765,11 @@ RELIC-START-002 IMPLEMENTED（2026-10-05）：前置`5eafcf69244c481d1d3d114d716
 
 
 SYS-COR-004 / SYS-DES-002B IMPLEMENTED（2026-10-05）：前置`32636db88ee30e879b49af555f50f2d429d1e5d1`，设计`402ae80b7b42826a5827e87384ff4e5807ce9f50`，计划`7276433bdd3f6c047ef0444552a0f499fa476b24`。+5由战后欲望+1替换为欲望上限+5，-5同规则保留，两端通常15且不叠加；其他通常10。满值/音频/CG/计量条使用已有动态上限，8点不变；三条悬停说明同步。英雄宝珠本轮修订累计包含。Debug构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`0警告0错误；静态测试NOT_RUN，游戏内NOT_RUN。尚未部署此累计包，不写安装/上传器JSON；已授权本地部署将待游戏关闭后替换。
+
+
+## 2026-10-05 native map-node hover for next Blindfold encounter（READY）
+
+前置`a8586a96312e5c23294a5abef36a49ab5fbe51c7`，设计`7168d1ce2969b70272cc94146895543247546843`，基线`9c5a819ca6dec3807f835a8efedde65c51115a4e`。
+
+RELIC-EVENT-001：用户最新要求原版悬停框且仅第一行。完整核对眼罩章节/前批追踪，原版NMapPoint.OnFocus只为已走节点生成历史tip，本补丁只处理未走战斗节点，不覆盖历史。使用NHoverTipSet.CreateAndShow(owner,tip,HoverTip.GetHoverTipAlignment(owner))，原版场景/字体/边框/尺寸/鼠标与TreeExiting清理；延后一帧原生对齐，OnUnfocus原方法删除，补丁只清自身meta。删除全部PanelContainer/StyleBox/RichTextLabel代码及AllPossibleMonsters查询，title沿用分类名称，description仅“下一场：{Encounter}”。本地天音/持眼罩/未移除/非已走/三类战斗门禁不变；队列/双boss读取不变。更新description三键及relic自身说明一键，其他用户本地化/PCK资源保留，已有DEBUG命令只同步文案、不运行。保存DesignDoc相对HEAD与接受版本逐行/词级diff及快照，真实index保持，独立范围提交；其他文案漂移保留，前批确认规则继续有效。
+验收BNH-01：地图普通/精英/首领未走节点显示原版样式，仅遭遇行，移开清理；02：遗物无列表，已走节点原历史tooltip保留，无眼罩/其他角色/远端不显示；03：重复悬停不动RNG/visited，双首领下一场正确。仅build，不静态测试，游戏内NOT_RUN，未部署，完成IMPLEMENTED；用户授权仅本地部署，游戏仍运行需待退出后替换，不结束进程、不改JSON/上传器/沙箱。
