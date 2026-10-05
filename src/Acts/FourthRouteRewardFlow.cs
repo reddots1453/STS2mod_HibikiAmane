@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using Godot;
 using MegaCrit.Sts2.Core.Combat;
@@ -7,7 +8,10 @@ using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
+using MegaCrit.Sts2.Core.Nodes.Screens;
 using MegaCrit.Sts2.Core.Nodes.Screens.Capstones;
+using MegaCrit.Sts2.Core.Nodes.Screens.Map;
+using MegaCrit.Sts2.Core.Rewards;
 using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Rooms;
@@ -21,6 +25,27 @@ internal static class FourthRouteRewardFlow
 {
     private sealed class Gate { public bool Busy; }
     private static readonly ConditionalWeakTable<RunState, Gate> Gates = new();
+    // A native terminal loot page stays in the stack while the map covers it.
+    // Unknown versions or real nested selectors must continue to block presentation.
+    private static readonly FieldInfo? TerminalField = typeof(NRewardsScreen)
+        .GetField("_isTerminal", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly FieldInfo? LootRunField = typeof(NRewardsScreen)
+        .GetField("_runState", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly FieldInfo? LootSetField = typeof(NRewardsScreen)
+        .GetField("_rewardsSet", BindingFlags.Instance | BindingFlags.NonPublic);
+
+    private static bool OverlayBlocksReward(RunState run)
+    {
+        var stack = NOverlayStack.Instance;
+        if (stack == null || stack.ScreenCount == 0) return false;
+        return !(NMapScreen.Instance?.IsOpen == true && stack.ScreenCount == 1
+            && stack.Peek() is NRewardsScreen loot && GodotObject.IsInstanceValid(loot)
+            && TerminalField?.GetValue(loot) is true
+            && ReferenceEquals(LootRunField?.GetValue(loot), run)
+            && LootSetField?.GetValue(loot) is RewardsSet set
+            && ReferenceEquals(set.Room, run.CurrentRoom));
+    }
+
     internal static FourthRouteRewardOffer? Pending(RunState run) =>
         FourthRouteProgressService.TryGetQuest(run, out var quest)
         && FourthRouteTrialRules.Pending(FourthRouteProgressService.Trial(run).Phase)
@@ -33,7 +58,7 @@ internal static class FourthRouteRewardFlow
             ReferenceEquals(RunManager.Instance.DebugOnlyGetState(), run) && NRun.Instance is { } node
                 && GodotObject.IsInstanceValid(node) && node.IsInsideTree(),
             CombatManager.Instance.IsInProgress, NModalContainer.Instance?.OpenModal != null,
-            NOverlayStack.Instance?.ScreenCount > 0 || NCapstoneContainer.Instance?.InUse == true
+            OverlayBlocksReward(run) || NCapstoneContainer.Instance?.InUse == true
                 || NGame.Instance?.InspectCardScreen?.Visible == true || NGame.Instance?.InspectRelicScreen?.Visible == true
                 || NGame.Instance?.FeedbackScreen?.Visible == true
                 || NRun.Instance?.TreasureRoom?.GetNodeOrNull<Control>("%RelicCollection")?.Visible == true,

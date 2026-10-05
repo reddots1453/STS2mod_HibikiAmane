@@ -40,18 +40,16 @@ public sealed class DesignBlindfoldTestConsoleCmd : AbstractConsoleCmd
         string beforeActs = SnapshotActs(), beforeRngs = Rngs();
         try
         {
-            Check(relic.DynamicDescription.GetFormattedText() == "无法看到敌人意图。\n可以看到下一次遭遇战的内容。", "exact formal description");
+            Check(relic.DynamicDescription.GetFormattedText() == "无法看到敌人意图。\n在地图战斗节点上查看下一场遭遇及可能出现的敌人。", "exact formal description");
             Check(BlindfoldPresentation.HasEffect(player), "local owner benefits");
             Check(!BlindfoldPresentation.HasEffect(null), "missing local context cannot benefit");
             Check(!BlindfoldPresentation.HidesIntents(player.Creature), "player intent is unaffected");
-            Check(!BlindfoldPresentation.PreviewTips(ModelDb.Relic<Blindfold>()).Any(), "canonical encyclopedia exposes no future");
 
             // These detached players never join the run or fire acquisition hooks.
             var remote = Player.CreateForNewRun<MaidenSuccubusCharacter>(player.UnlockState, player.NetId ^ 1UL);
             var remoteRelic = ModelDb.Relic<Blindfold>().ToMutable();
             remote.AddRelicInternal(remoteRelic, silent: true);
             Check(!BlindfoldPresentation.HasEffect(remote), "remote owner cannot hide local intents");
-            Check(!BlindfoldPresentation.PreviewTips((Blindfold)remoteRelic).Any(), "remote relic preview is private");
             var otherCharacter = Player.CreateForNewRun<Ironclad>(player.UnlockState, player.NetId);
             otherCharacter.AddRelicInternal(ModelDb.Relic<Blindfold>().ToMutable(), silent: true);
             Check(!BlindfoldPresentation.HasEffect(otherCharacter), "other character does not opt in");
@@ -62,13 +60,13 @@ public sealed class DesignBlindfoldTestConsoleCmd : AbstractConsoleCmd
             Check(BlindfoldPresentation.HasEffect(detached), "detached local holder recognized");
             detached.RemoveRelicInternal(removed, silent: true);
             Check(!BlindfoldPresentation.HasEffect(detached), "removal ends effect");
-            Check(!BlindfoldPresentation.PreviewTips((Blindfold)removed).Any(), "removed relic cannot reveal preview");
 
-            var first = BlindfoldPresentation.PreviewTips(relic).OfType<HoverTip>().ToArray();
+            var categories = new[] { RoomType.Monster, RoomType.Elite, RoomType.Boss };
+            var first = categories.Select(type => BlindfoldPresentation.EncounterTip(run.Act, type)).ToArray();
             Check(first.Length == 3, "three separately labeled encounter categories");
             Check(first.Select(tip => tip.Title).Distinct().Count() == 3, "category titles distinct");
             for (int repeat = 0; repeat < 10; repeat++)
-                Check(first.SequenceEqual(BlindfoldPresentation.PreviewTips(relic).OfType<HoverTip>()), "repeated hover stable");
+                Check(first.SequenceEqual(categories.Select(type => BlindfoldPresentation.EncounterTip(run.Act, type))), "repeated hover stable");
 
             foreach (ActModel liveAct in run.Acts)
             {

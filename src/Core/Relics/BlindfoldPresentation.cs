@@ -37,21 +37,6 @@ internal static class BlindfoldPresentation
         return tips;
     }
 
-    internal static IEnumerable<IHoverTip> PreviewTips(Blindfold relic)
-    {
-        var tips = new List<IHoverTip>();
-        Safe.Run(() =>
-        {
-            // Canonical encyclopedia/event previews and remote inventories disclose nothing.
-            if (!relic.IsMutable || relic.HasBeenRemovedFromState || !HasEffect(relic.Owner)
-                || !relic.Owner.Relics.Contains(relic) || relic.Owner.RunState is not RunState run)
-                return;
-            foreach (RoomType type in new[] { RoomType.Monster, RoomType.Elite, RoomType.Boss })
-                tips.Add(EncounterTip(run.Act, type));
-        }, nameof(PreviewTips));
-        return tips;
-    }
-
     internal static HoverTip EncounterTip(ActModel act, RoomType type)
     {
         string key = "MAIDENSUCCUBUS_BLINDFOLD_" + type.ToString().ToUpperInvariant();

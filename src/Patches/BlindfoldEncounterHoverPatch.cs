@@ -1,72 +1,23 @@
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Context;
-using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Map;
-using MegaCrit.Sts2.Core.Nodes.HoverTips;
-using MegaCrit.Sts2.Core.Nodes.Relics;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using MaidenSuccubus.Core.Relics;
-using MaidenSuccubus.Relics;
 using MaidenSuccubus.Util;
-using STS2RitsuLib;
 
 namespace MaidenSuccubus.Patches;
 
-// Adapted from sts2_foresight's RelicHoverPatch and MapPointPredictionPatch.
+// Enemy-only adaptation of local sts2_foresight's MapPointPredictionPatch.
 // Only the next encounter is exposed; rewards, events and RNG predictions are not used.
 [HarmonyPatch]
 internal static class BlindfoldEncounterHoverPatch
 {
-    private const string RelicMeta = "maiden_blindfold_hover";
     private const string MapMeta = "maiden_blindfold_map_preview";
     private const string PanelName = "MaidenBlindfoldEncounterPreview";
-    private const float PanelWidth = 460f;
-
-    [HarmonyPatch(typeof(NRelicInventoryHolder), "OnFocus")]
-    [HarmonyPostfix]
-    private static void AfterRelicFocus(NRelicInventoryHolder __instance) => Safe.Run(() =>
-    {
-        if (__instance.HasMeta(RelicMeta) || __instance.Relic?.Model is not Blindfold relic) return;
-        var tips = BlindfoldPresentation.PreviewTips(relic).OfType<HoverTip>().ToArray();
-        if (tips.Length == 0) return;
-        string text = string.Join("\n\n", tips.Select(tip =>
-            $"[b]{tip.Title}[/b]\n{tip.Description}"));
-        // Foresight adds its preview to the native hover set after OnFocus creates it.
-        if (!HoverTipHelper.AddTipToOwner(__instance, relic.Title.GetFormattedText(), text))
-        {
-            NHoverTipSet.Remove(__instance);
-            NHoverTipSet.CreateAndShow(__instance, relic.HoverTips.Concat(tips.Cast<IHoverTip>()))
-                ?.SetAlignmentForRelic(__instance.Relic);
-        }
-        __instance.SetMeta(RelicMeta, true);
-        WidenRelicPreview(__instance);
-    }, nameof(BlindfoldEncounterHoverPatch));
-
-    [HarmonyPatch(typeof(NRelicInventoryHolder), "OnUnfocus")]
-    [HarmonyPostfix]
-    private static void AfterRelicUnfocus(NRelicInventoryHolder __instance) => Safe.Run(() =>
-    {
-        if (__instance.HasMeta(RelicMeta)) __instance.RemoveMeta(RelicMeta);
-    }, nameof(BlindfoldEncounterHoverPatch));
-
-    private static void WidenRelicPreview(NRelicInventoryHolder owner)
-    {
-        var active = Traverse.Create(typeof(NHoverTipSet)).Field("_activeHoverTips")
-            .GetValue<Dictionary<Control, NHoverTipSet>>();
-        if (active == null || !active.TryGetValue(owner, out var set)) return;
-        var container = Traverse.Create(set).Field("_textHoverTipContainer").GetValue<Control>();
-        if (container == null) return;
-        float width = Math.Min(520f, Math.Max(240f, owner.GetViewportRect().Size.X - 48f));
-        container.CustomMinimumSize = new Vector2(width, 0f);
-        container.Size = new Vector2(width, container.Size.Y);
-        foreach (var child in container.GetChildren().OfType<Control>())
-            child.CustomMinimumSize = new Vector2(width, 0f);
-        // Preserve the native alignment for both left and right screen edges.
-        set.SetAlignmentForRelic(owner.Relic);
-    }
+    private const float PanelWidth = 760f;
 
     [HarmonyPatch(typeof(NMapPoint), "OnFocus")]
     [HarmonyPostfix]
@@ -86,7 +37,14 @@ internal static class BlindfoldEncounterHoverPatch
         };
         if (type == null) return;
         var tip = BlindfoldPresentation.EncounterTip(run.Act, type.Value);
-        var panel = CreatePanel($"[b][color=#E7C75F]{tip.Title}[/color][/b]\n\n{tip.Description}");
+        string color = type.Value switch
+        {
+            RoomType.Elite => "D98BB8",
+            RoomType.Boss => "E07A7A",
+            _ => "D8C39A",
+        };
+        var panel = CreatePanel($"[font_size=18][font_size=21][color=#{color}]▌ {tip.Title}[/color][/font_size]\n"
+            + $"[color=#40535D]────────────────────────────────[/color]\n{tip.Description}[/font_size]");
         __instance.AddChild(panel);
         panel.ZIndex = 500;
         __instance.SetMeta(MapMeta, true);
@@ -148,6 +106,9 @@ internal static class BlindfoldEncounterHoverPatch
         Vector2 viewport = target.GetViewportRect().Size;
         float width = Math.Min(PanelWidth, Math.Max(200f, viewport.X - 24f));
         panel.CustomMinimumSize = new Vector2(width, 0f);
+        foreach (var label in panel.GetChildren().OfType<RichTextLabel>())
+            label.CustomMinimumSize = new Vector2(Math.Max(1f, width - 36f), 0f);
+        panel.Size = new Vector2(width, panel.Size.Y);
         float x = rect.Position.X - width - 20f;
         if (x < 12f) x = Math.Min(rect.End.X + 20f, viewport.X - width - 12f);
         float y = Math.Clamp(rect.Position.Y, 12f,

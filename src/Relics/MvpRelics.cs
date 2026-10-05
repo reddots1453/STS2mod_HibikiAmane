@@ -74,7 +74,7 @@ public sealed class BalancedLens : MSRelicTemplate, IMSRouteRewardModifierRelic
 public sealed class Blindfold : MSRelicTemplate
 {
     public override RelicRarity Rarity => RelicRarity.Event;
-    // Encounter details are attached to the native inventory hover set after OnFocus.
+    // Encounter forecasts appear only beside map combat nodes, using the Foresight layout.
     public override Task AfterObtained() => BlindfoldPresentation.Refresh(Owner);
     public override Task AfterRemoved() => BlindfoldPresentation.Refresh(Owner);
 

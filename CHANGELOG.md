@@ -2888,3 +2888,6 @@ FAKE-MERCHANT-SHOP-01 / SYS-ASSET-MERCHANT-001 IMPLEMENTED（2026-10-05）：前
 
 
 SYS-COR-004 / SYS-DES-002B IMPLEMENTED（2026-10-05）：前置`2cc3d5ca54cf8b81baead5a7938a64e8cfe904fa`，设计`53a2342dbaaba9bfcf13f3385faecd75203fa9da`，计划`5c7b6173445fcf558c71aa0b45700e3669a596b3`。-5时欲望上限+5（通常15），替代旧战后-1；+5仍战后+1。统一读取当前有效上限，用于满值惩罚/音频去重/CG/暂停RPG接口及条填充，5/8阈值保持。无限欲望/手牌保护规则保留。新增排队触发阈值保存并兼容旧10，提升上限时不执行尚未满的新低阈值排队；原已触发有效排队结算顺序保留。上限降低和无回调恢复在玩家回合合法入口复查，未因加载发布假欲望获得。悬停三个键更新并定向写入PCK，其余资源和用户文本继承上一包。Debug构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过0警告0错误；静态测试NOT_RUN、游戏内NOT_RUN，未部署，不修改安装JSON。
+
+
+ACT4-001-REWARD-MAP-001 / RELIC-EVENT-001 IMPLEMENTED（2026-10-05）：前置`c0b7c8b399b1812980b476a534a5c747004277ea`，设计`ca469bc5c14fd8bde50d3cca40b609be86a71cd1`，计划`dc6825f34172fd4935626e476affb751db024f88`。试炼奖励仅允许地图覆盖同房间原版终结战利品页时进入，收起地图显示原生试炼奖励、结束同上下文返回；原战利品保留，其他真实叠层/教程/动作/未结束事件仍等待，跳过/收据/同房间一次提示/唯一发放保持。新增展示与返回日志。眼罩移除遗物额外预览，改为辉眼样式地图战斗节点提示（分类标题、下一场、可能出现的敌人），760宽暗色圆角、字体/颜色/分隔线/节点左侧定位沿用参考；只读下一场且本地持有者生效，无新依赖。累计包含前批原版变化/商人立绘/-5欲望上限变更。Debug构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`0警告0错误；静态测试NOT_RUN，游戏内NOT_RUN，未部署，安装和上传器JSON不修改。

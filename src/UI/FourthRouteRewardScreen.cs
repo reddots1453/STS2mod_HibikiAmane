@@ -1,14 +1,21 @@
 using System.Runtime.CompilerServices;
 using Godot;
+using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes;
+using MegaCrit.Sts2.Core.Nodes.CommonUi;
+using MegaCrit.Sts2.Core.Nodes.Screens.Capstones;
+using MegaCrit.Sts2.Core.Nodes.Screens.Map;
+using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
+using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Rewards;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.TestSupport;
 using MaidenSuccubus.Acts;
 using MaidenSuccubus.Relics;
+using MaidenSuccubus.Util;
 
 namespace MaidenSuccubus.UI;
 
@@ -32,14 +39,62 @@ internal static class FourthRouteRewardScreen
         gate.Busy = true;
         gate.LastOffer = offer;
         gate.LastRoom = room;
+        var run = player.RunState;
+        var scene = NRun.Instance;
+        var map = NMapScreen.Instance;
+        var stack = NOverlayStack.Instance;
+        var previousOverlay = stack?.Peek();
+        bool returnToMap = map?.IsOpen == true;
+        bool previousTravel = map?.IsTravelEnabled == true;
+        bool SameContext() => GodotObject.IsInstanceValid(scene) && scene!.IsInsideTree()
+            && ReferenceEquals(NRun.Instance, scene) && ReferenceEquals(RunManager.Instance.DebugOnlyGetState(), run)
+            && ReferenceEquals(run.CurrentRoom, room) && !player.Creature.IsDead
+            && GodotObject.IsInstanceValid(map) && map!.IsInsideTree()
+            && ReferenceEquals(NMapScreen.Instance, map)
+            && !CombatManager.Instance.IsInProgress && NGame.Instance?.Transition.InTransition != true;
         try
         {
+            if (returnToMap)
+            {
+                // Push() hides every overlay while the map covers the stack. Preserve
+                // the original loot page/receipt, but uncover it before offering ours.
+                map!.SetTravelEnabled(false);
+                map.Close(animateOut: false);
+            }
+            MaidenSuccubusMod.Logger.Info($"[FourthRouteReward] Present {offer.Quest} {offer.Phase}; returnToMap={returnToMap}.");
             var reward = new FourthRouteTrialRelicReward(player, offer, isCurrent);
             // Closing this screen defers the saved trial receipt; it never forfeits it.
             await new RewardsSet(player).WithCustomRewards([reward]).Offer();
             return reward.SuccessfullySelected;
         }
-        finally { gate.Busy = false; }
+        finally
+        {
+            try
+            {
+                if (returnToMap && SameContext())
+                {
+                    // Offer completes in the reward callback, before the native button
+                    // finishes removing its page. Let that callback finish first.
+                    if (NGame.Instance is { } game && GodotObject.IsInstanceValid(game) && game.IsInsideTree())
+                        await game.ToSignal(game.GetTree(), SceneTree.SignalName.ProcessFrame);
+                    Safe.Run(() =>
+                    {
+                        if (!SameContext()) return;
+                        map!.SetTravelEnabled(previousTravel);
+                        bool overlayRestored = ReferenceEquals(NOverlayStack.Instance, stack)
+                            && ReferenceEquals(stack?.Peek(), previousOverlay);
+                        bool restoreMap = overlayRestored && NModalContainer.Instance?.OpenModal == null
+                            && NCapstoneContainer.Instance?.InUse != true
+                            && NGame.Instance?.InspectCardScreen?.Visible != true
+                            && NGame.Instance?.InspectRelicScreen?.Visible != true
+                            && NGame.Instance?.FeedbackScreen?.Visible != true;
+                        if (restoreMap && !map.IsOpen) map.Open(isOpenedFromTopBar: true);
+                        MaidenSuccubusMod.Logger.Info($"[FourthRouteReward] Return {offer.Quest} {offer.Phase}; mapOpen={map.IsOpen}, travel={map.IsTravelEnabled}, overlayRestored={overlayRestored}.");
+                    }, "FourthRouteReward.ReturnToMap");
+                }
+            }
+            finally { gate.Busy = false; }
+        }
     }
 }
 
