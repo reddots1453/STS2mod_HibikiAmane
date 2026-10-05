@@ -2932,3 +2932,8 @@ IMPLEMENTED（2026-10-05）：前置`55d228f8cba76a8bd841c8083faa83e6d65a9d9b`�
 源码`7edbcd3bde2d8ba65f392a6f2da1fb1b7f2e6cfa`，部署前快照`1bc149582f5bdc94de7e0e8e4545449106ac7cf1`。将祝圣叠加修复的DLL、PDB、PCK部署到`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`；祝圣采用原版Entropy的Counter与Amount一次多选手牌、逐张变化路径，继续使用现有随机圣言命令及异步目标重验。状态栏仍一个图标，显示累计层数；双悬停文案显示当前选择张数。沿用前批欲望/眼罩累计修订，其他卡牌/费用/升级固有不变。
 
 复用Debug构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`，0警告0错误，不重复构建或静态测试，游戏内NOT_RUN。旧产物及所有已存在JSON已备份到`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\local-consecration-stack-20261005-163304`，逐文件SHA256与修复包一致，全部JSON保持。DesignDoc未改写，不更新ModUploader或沙箱，不执行上传、不结束游戏进程。部署明细：outputs/consecration-stack-20261005/local-deployment-20261005-163304.json。
+
+
+## 2026-10-06 资源加载与玩家反馈修复（READY）
+
+前置`fa4811c9c24c569079afc8ae4bd7e686c0a2d7dc`；基线`891d66a15ab44495392091d426fb5ccaa2521bf5`。详细阶段计划与十项验收映射见docs/REPAIR_20261006.md。优先MEM-20261006，随后GEN/CARD/TEXT。DesignDoc只读，直接用户明确修订优先，不运行静态测试；不部署。仅项目当前PCK一份，不生成资源包备份。
