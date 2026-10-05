@@ -190,6 +190,13 @@ public sealed class LightPowerRelease : MSHolyCard
     public LightPowerRelease()
         : base(3, CardType.Power, CardRarity.Rare, TargetType.Self) { }
 
+    // Same startup behavior as CounterBarrier and EternalDamnation. Sinking
+    // puts the combat copy in Discard; it does not reorder subsequent shuffles.
+    public override Task BeforeCombatStart() =>
+        Pile?.Type == PileType.Draw
+            ? CardPileCmd.Add(this, PileType.Discard)
+            : Task.CompletedTask;
+
     public override bool ShouldPlay(CardModel card, AutoPlayType autoPlayType) =>
         card != this || !Owner.Creature.HasPower<EternalRobePower>();
 

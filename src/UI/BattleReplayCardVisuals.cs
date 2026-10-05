@@ -1,79 +1,66 @@
+using System.Runtime.CompilerServices;
 using Godot;
+using MaidenSuccubus.Core.Replay;
 using MegaCrit.Sts2.Core.Nodes.Cards;
+using STS2RitsuLib.Models.Capabilities;
 
 namespace MaidenSuccubus.UI;
 
+/// <summary>
+/// Tint the native textured frame and portrait, preserving their transparent
+/// silhouettes, shaders and readable text. No opaque rectangular overlay.
+/// Native card pooling must restore the previous node colors before reuse.
+/// </summary>
 public static class BattleReplayCardVisuals
 {
-    public const string OverlayName = "MaidenSuccubusBattleReplayShadow";
-
-    public static Control CreateShadowOverlay()
+    private readonly record struct Tint(Color Original, Color Applied);
+    private sealed class State
     {
-        Control root = new()
-        {
-            Name = OverlayName,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            // NCard's overlay container is a Node, not a Control. A full-rect
-            // anchor therefore resolves to zero size and hides all edge bands.
-            Position = -NCard.defaultSize / 2f,
-            Size = NCard.defaultSize,
-            ZIndex = 1,
-        };
+        public Dictionary<CanvasItem, Tint> Nodes { get; } = [];
+    }
+    private static readonly ConditionalWeakTable<NCard, State> States = new();
+    private static readonly string[] Surfaces =
+        ["%Portrait", "%AncientPortrait", "%Frame", "%PortraitBorder", "%AncientBorder"];
 
-        Color outerShadow = new(0.025f, 0.035f, 0.065f, 0.64f);
-        Color innerShadow = new(0.04f, 0.055f, 0.095f, 0.22f);
-        AddEdgeBands(root, "Outer", 20f, outerShadow);
-        AddEdgeBands(root, "Inner", 48f, innerShadow);
-        return root;
+    public static void Apply(NCard card)
+    {
+        if (!card.IsNodeReady()) return;
+        bool active = card.Model != null
+            && ModelCapabilities.TryGet(card.Model, out ModelCapabilitySet? capabilities)
+            && capabilities.Get<BattleReplayOriginCapability>() != null;
+        if (!active)
+        {
+            Restore(card);
+            return;
+        }
+        State state = States.GetOrCreateValue(card);
+        foreach (string path in Surfaces)
+        {
+            CanvasItem? node = card.GetNodeOrNull<CanvasItem>(path);
+            if (node == null) continue;
+            if (state.Nodes.TryGetValue(node, out Tint previous)
+                && node.SelfModulate == previous.Applied) continue;
+            // Other extensions may have changed a color since the last refresh.
+            // Preserve their new base rather than multiplying our tint repeatedly.
+            Color original = node.SelfModulate;
+            Color tone = path is "%Portrait" or "%AncientPortrait"
+                ? new Color(0.63f, 0.66f, 0.77f, 1f)
+                : new Color(0.68f, 0.70f, 0.79f, 1f);
+            Color applied = original * tone;
+            state.Nodes[node] = new Tint(original, applied);
+            node.SelfModulate = applied;
+        }
     }
 
-    private static void AddEdgeBands(
-        Control root,
-        string namePrefix,
-        float thickness,
-        Color color)
+    public static void Restore(NCard card)
     {
-        root.AddChild(CreateBand(
-            $"{namePrefix}Top", color,
-            0f, 0f, 1f, 0f,
-            0f, 0f, 0f, thickness));
-        root.AddChild(CreateBand(
-            $"{namePrefix}Bottom", color,
-            0f, 1f, 1f, 1f,
-            0f, -thickness, 0f, 0f));
-        root.AddChild(CreateBand(
-            $"{namePrefix}Left", color,
-            0f, 0f, 0f, 1f,
-            0f, thickness, thickness, -thickness));
-        root.AddChild(CreateBand(
-            $"{namePrefix}Right", color,
-            1f, 0f, 1f, 1f,
-            -thickness, thickness, 0f, -thickness));
-    }
-
-    private static ColorRect CreateBand(
-        string name,
-        Color color,
-        float anchorLeft,
-        float anchorTop,
-        float anchorRight,
-        float anchorBottom,
-        float offsetLeft,
-        float offsetTop,
-        float offsetRight,
-        float offsetBottom) =>
-        new()
+        if (!States.TryGetValue(card, out State? state)) return;
+        foreach (var (node, tint) in state.Nodes)
         {
-            Name = name,
-            Color = color,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            AnchorLeft = anchorLeft,
-            AnchorTop = anchorTop,
-            AnchorRight = anchorRight,
-            AnchorBottom = anchorBottom,
-            OffsetLeft = offsetLeft,
-            OffsetTop = offsetTop,
-            OffsetRight = offsetRight,
-            OffsetBottom = offsetBottom,
-        };
+            if (GodotObject.IsInstanceValid(node) && node.SelfModulate == tint.Applied)
+                node.SelfModulate = tint.Original;
+        }
+        state.Nodes.Clear();
+        States.Remove(card);
+    }
 }

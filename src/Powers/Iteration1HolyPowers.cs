@@ -172,7 +172,10 @@ public sealed class BattleTechniqueReplayPower : MaidenSuccubusPowerTemplate
             }
 
             CardModel[] replayCards = Owner.Player.PlayerCombatState!.AllCards
-                .Where(card => card != cardPlay.Card
+                // A nested autoplay can dispatch AfterCardPlayed while its parent
+                // and queued siblings remain in Play. Replacing any of those
+                // instances strands native cleanup/VFX on the removed original.
+                .Where(card => card != cardPlay.Card && card.Pile?.Type != PileType.Play
                     && (card is BattleTechniqueReplay
                         || card.DeckVersion is BattleTechniqueReplay
                         || _generatedOrigins.ContainsKey(card)))

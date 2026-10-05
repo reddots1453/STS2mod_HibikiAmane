@@ -141,7 +141,16 @@ public sealed class ExplosiveImpact : MSNeutralCard
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class UltimateFlare : MSNeutralCard
 {
-    public override bool HasTurnEndInHandEffect => true;
+    // Ethereal still resolves its cost reduction before the native exhaust VFX.
+    // All other forms use BeforeFlush so permanent/single-turn Retain can work.
+    public override bool HasTurnEndInHandEffect => Keywords.Contains(CardKeyword.Ethereal);
+
+    protected override Task OnTurnEndInHand(PlayerChoiceContext context)
+    {
+        EnergyCost.AddThisCombat(-1);
+        return Task.CompletedTask;
+    }
+
     protected override IEnumerable<DynamicVar> CanonicalVars =>
         [new DamageVar(40, ValueProp.Move)];
     public UltimateFlare() : base(4, CardType.Attack, CardRarity.Uncommon, TargetType.AllEnemies) { }
@@ -155,9 +164,14 @@ public sealed class UltimateFlare : MSNeutralCard
             .Execute(context);
     }
 
-    protected override Task OnTurnEndInHand(PlayerChoiceContext context)
+    // Native OnTurnEndInHand VFX forcibly discards non-Ethereal cards.
+    // Resolve while still in Hand so Retain/one-turn Retain use native flush.
+    public override Task BeforeFlush(PlayerChoiceContext context, MegaCrit.Sts2.Core.Entities.Players.Player player)
     {
-        EnergyCost.AddThisCombat(-1);
+        if (player == Owner && Pile?.Type == PileType.Hand
+            && MegaCrit.Sts2.Core.Combat.CombatManager.Instance.IsInProgress
+            && !MegaCrit.Sts2.Core.Combat.CombatManager.Instance.IsOverOrEnding)
+            EnergyCost.AddThisCombat(-1);
         return Task.CompletedTask;
     }
 
