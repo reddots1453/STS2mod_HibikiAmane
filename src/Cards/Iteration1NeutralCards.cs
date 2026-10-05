@@ -113,7 +113,7 @@ public sealed class FrozenBracelet : HandDiscountCard
 public sealed class MagiciansSecret : MSNeutralCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DynamicVar("Amplification", 1)];
+        [new DynamicVar("Amplification", 1), new DynamicVar("ReleaseAmplification", 1)];
 
     public MagiciansSecret()
         : base(0, CardType.Skill, CardRarity.Common, TargetType.Self) { }
@@ -131,14 +131,14 @@ public sealed class MagiciansSecret : MSNeutralCard
             await PowerCmd.Apply<MagicAmplificationPower>(
                 context,
                 Owner.Creature,
-                DynamicVars["Amplification"].BaseValue,
+                DynamicVars["ReleaseAmplification"].BaseValue,
                 Owner.Creature,
                 this);
         }
     }
 
     protected override void OnUpgrade() =>
-        DynamicVars["Amplification"].UpgradeValueBy(1);
+        DynamicVars["ReleaseAmplification"].UpgradeValueBy(1);
 }
 
 [RegisterCard(typeof(MSNeutralCardPool))]
@@ -167,7 +167,9 @@ public sealed class CounterBarrier : MSNeutralCard
             DynamicVars["PlatingPower"].BaseValue, Owner.Creature, this);
         CardModel next = CombatState!.CreateCard(
             ModelDb.Card<CounterBarrierII>(), Owner);
-        await CardPileCmd.AddGeneratedCardToCombat(next, PileType.Discard, Owner);
+        CardCmd.PreviewCardPileAdd(
+            await CardPileCmd.AddGeneratedCardToCombat(next, PileType.Discard, Owner));
+        await Cmd.Wait(1f);
     }
 
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
@@ -192,7 +194,9 @@ public abstract class CounterBarrierToken<TNext> : MSGeneratedCard
         await PowerCmd.Apply<PlatingPower>(context, Owner.Creature,
             DynamicVars["PlatingPower"].BaseValue, Owner.Creature, this);
         CardModel next = CombatState!.CreateCard(ModelDb.Card<TNext>(), Owner);
-        await CardPileCmd.AddGeneratedCardToCombat(next, PileType.Discard, Owner);
+        CardCmd.PreviewCardPileAdd(
+            await CardPileCmd.AddGeneratedCardToCombat(next, PileType.Discard, Owner));
+        await Cmd.Wait(1f);
     }
 
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
@@ -292,14 +296,6 @@ public sealed class Bath : MSNeutralCard
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
-        CardModel[] curses = Owner.Deck.Cards
-            .OfType<MSInvasionCurseTemplate>()
-            .ToArray();
-        foreach (CardModel curse in curses)
-        {
-            await CardPileCmd.RemoveFromDeck(curse);
-        }
-
         await PlayerCmd.GainEnergy(DynamicVars.Energy.IntValue, Owner);
         if (await TransformationCmd.PayOverdraft(
             context, Owner.Creature, this))

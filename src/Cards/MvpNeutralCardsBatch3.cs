@@ -91,7 +91,8 @@ public sealed class AcceleratedMotion : MSNeutralCard
             // picked card's upgrade, enchantment and other native mutable state.
             AcceleratedMotion copy = (AcceleratedMotion)Owner.RunState.CloneCard(this);
             copy.AddedPickupCopies = true;
-            await CardPileCmd.Add(copy, PileType.Deck);
+            CardCmd.PreviewCardPileAdd(await CardPileCmd.Add(copy, PileType.Deck));
+            await Cmd.Wait(1f);
         }
     }
     protected override void OnUpgrade() => DynamicVars.Cards.UpgradeValueBy(1);
@@ -114,10 +115,8 @@ public sealed class MagicSword : MSNeutralCard
         PileType oldPileType,
         AbstractModel? source)
     {
-        if (card == this
-            && !EnchantedOnPickup
-            && oldPileType == PileType.None
-            && card.Pile?.Type == PileType.Deck)
+        if (!EnchantedOnPickup
+            && PickupEnchantmentCmd.IsPickupOrDeckTransformation(this, card, oldPileType))
         {
             if (Enchantment == null)
                 PickupEnchantmentCmd.EnchantAndPreview<ChargeEnchantment>(this, 2);

@@ -240,12 +240,12 @@ internal static class NativeUiRuntimeProbe
         {
             var offer = new MaidenSuccubus.Acts.FourthRouteRewardOffer(quest, phase);
             var reward = new FourthRouteTrialRelicReward(owner, offer, () => true);
-            if (reward is not MegaCrit.Sts2.Core.Rewards.RelicReward || reward.Relic is not MaidenSuccubus.Relics.FourthRouteRelic relic
+            if ((MegaCrit.Sts2.Core.Rewards.Reward)reward is MegaCrit.Sts2.Core.Rewards.RelicReward || reward.Relic is not MaidenSuccubus.Relics.FourthRouteRelic relic
                 || relic.Stage != offer.Stage || relic.Quest != quest || relic.Owner != null || !reward.IsPopulated)
                 throw new InvalidOperationException("Invalid native trial relic preview");
-            var set = new MegaCrit.Sts2.Core.Rewards.RewardsSet(owner).WithCustomRewards([reward]).WithSkippingDisallowed();
-            if (!set.DisallowSkipping || set.Rewards.Count != 1 || set.Rewards[0] != reward)
-                throw new InvalidOperationException("Trial reward can be skipped or duplicated");
+            var set = new MegaCrit.Sts2.Core.Rewards.RewardsSet(owner).WithCustomRewards([reward]);
+            if (set.DisallowSkipping || set.Rewards.Count != 1 || set.Rewards[0] != reward)
+                throw new InvalidOperationException("Trial reward cannot be deferred or is duplicated");
             var icon = reward.CreateIcon();
             host.AddChild(icon);
             if (icon.Texture == null || reward.Description.GetFormattedText().Contains("MAIDEN_SUCCUBUS_", StringComparison.Ordinal))
@@ -253,7 +253,7 @@ internal static class NativeUiRuntimeProbe
             icon.QueueFree();
             rewards++;
         }
-        Check(rewards == 42, "42 trial stages use populated native relic rewards, mandatory loot sets, current-stage previews and native icons");
+        Check(rewards == 42, "42 fixed trial stages preserve the claim callback, allow deferred loot, and use current-stage native relic previews/icons");
     }
 
     private static async Task Run(NMainMenu menu)

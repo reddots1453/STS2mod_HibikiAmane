@@ -163,10 +163,11 @@ public sealed class MultipleReproduction : MSHolyCard
     public MultipleReproduction() : base(2, CardType.Skill, CardRarity.Rare, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
+        int previousAmount = Owner.Creature.GetPower<MultipleReproductionPower>()?.Amount ?? 0;
         MultipleReproductionPower? power = await PowerCmd.Apply<MultipleReproductionPower>(
             context, Owner.Creature, 1, Owner.Creature, this);
         if (power != null)
-            power.Schedule(!await OverdraftCmd.Offer(context, this, 1));
+            power.Schedule(!await OverdraftCmd.Offer(context, this, 1), power.Amount - previousAmount);
     }
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }

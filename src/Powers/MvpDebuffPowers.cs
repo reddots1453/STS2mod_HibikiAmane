@@ -53,51 +53,27 @@ public sealed class ShatterPower : MaidenSuccubusPowerTemplate
 }
 
 /// <summary>
-/// Burning damages a player once before an attack card resolves, but damages
-/// an enemy before every hit of its current attack.  The attack-active flag is
-/// deliberately scoped by BeforeAttack/AfterAttack so non-attack damage dealt
-/// by the same creature cannot accidentally trigger Burning.
+/// Enemy Burning resolves once before each attack hit deals damage. A hit on
+/// multiple targets still counts once. Player attacks retain one tick per
+/// attack command; incidental non-attack damage does not trigger it.
 /// </summary>
 [RegisterPower]
 public sealed class BurningPower : MaidenSuccubusPowerTemplate
 {
-    private bool _enemyAttackActive;
-
     public override PowerType Type => PowerType.Debuff;
     public override PowerStackType StackType => PowerStackType.Counter;
 
-    public override async Task BeforeAttack(AttackCommand command)
+    public override Task BeforeAttack(AttackCommand command)
     {
-        if (command.Attacker != Owner)
-            return;
-
-        if (Owner.Side == CombatSide.Enemy)
-        {
-            _enemyAttackActive = true;
-            return;
-        }
-
-        if (command.ModelSource is CardModel { Type: CardType.Attack })
-        {
-            await ResolveBurningDamage(new BlockingPlayerChoiceContext());
-        }
-    }
-
-    public override Task BeforeDamageReceived(
-        PlayerChoiceContext choiceContext,
-        Creature target,
-        decimal amount,
-        ValueProp props,
-        Creature? dealer,
-        CardModel? cardSource)
-    {
-        if (!_enemyAttackActive || dealer != Owner || target.Side == Owner.Side)
+        // Player attacks retain the existing one-tick-per-command rule.
+        // Enemy attacks are handled per hit by BurningPerHitPatch.
+        if (command.Attacker != Owner || Owner.Side == CombatSide.Enemy
+            || command.ModelSource is not CardModel { Type: CardType.Attack })
             return Task.CompletedTask;
-
-        return ResolveBurningDamage(choiceContext);
+        return ResolveBeforeHit(new BlockingPlayerChoiceContext());
     }
 
-    private Task ResolveBurningDamage(PlayerChoiceContext choiceContext)
+    internal Task ResolveBeforeHit(PlayerChoiceContext choiceContext)
     {
         if (Owner.Player != null
             && Owner.HasPower<LordOfBlazePower>()
@@ -125,13 +101,6 @@ public sealed class BurningPower : MaidenSuccubusPowerTemplate
             Amount,
             ValueProp.Unpowered | ValueProp.Move,
             Owner);
-    }
-
-    public override Task AfterAttack(PlayerChoiceContext choiceContext, AttackCommand command)
-    {
-        if (command.Attacker == Owner)
-            _enemyAttackActive = false;
-        return Task.CompletedTask;
     }
 
     public override async Task AfterSideTurnEnd(

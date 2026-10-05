@@ -17,11 +17,14 @@ internal static class DesignSyncExtraTurnContract
 {
     internal static async Task Run(CardEffectTestContext ctx, CardModel card, bool upgraded)
     {
+        ctx.AssertEqual("energy cost 2/1", upgraded ? 1 : 2, card.EnergyCost.Canonical, effect: false);
         var context = new BlockingPlayerChoiceContext();
         var foreign = Player.CreateForNewRun<Ironclad>(ctx.Player.UnlockState, ctx.Player.NetId + 1000);
         foreign.RunState = ctx.Player.RunState;
         await ctx.Play(card);
         var delayed = ctx.Self.GetPower<MultipleReproductionPower>()!;
+        ctx.AssertEqual("first delayed stack", 1, delayed.Amount);
+        ctx.AssertEqual("first pending grant", 1, delayed.PendingGrants);
         int notifications = 0;
         void Changed() => notifications++;
         delayed.PowerExtraIconAmountLabelsInvalidated += Changed;
@@ -68,7 +71,7 @@ internal static class DesignSyncExtraTurnContract
             ctx.AssertTrue("no repeated extra turn after consumption", !Hook.ShouldTakeExtraTurn(ctx.Combat, ctx.Player));
             await delayed.AfterTakingExtraTurn(ctx.Player);
             await delayed.AfterPlayerTurnStart(context, ctx.Player);
-            ctx.AssertEqual("stale callbacks do not publish display changes", 1, notifications);
+            ctx.AssertEqual("stale callbacks do not publish display changes", 2, notifications);
         }
         finally { delayed.PowerExtraIconAmountLabelsInvalidated -= Changed; }
 
@@ -76,6 +79,7 @@ internal static class DesignSyncExtraTurnContract
         await ctx.SetUpArmour(1);
         await ctx.Play(ctx.Create<MultipleReproduction>(upgraded), selectedIndices: [0]);
         var immediate = ctx.Self.GetPower<MultipleReproductionPower>()!;
+        ctx.AssertEqual("first immediate grant", 1, immediate.ReadyGrants);
         ctx.AssertTrue("overdraft grants current turn", !immediate.DelayOneTurn);
         CheckPresentation(ctx, immediate, false);
         ctx.AssertPower("overdraft payment", ctx.Self, "MagicArmorPower", 0);
@@ -89,12 +93,57 @@ internal static class DesignSyncExtraTurnContract
         await ctx.Reset();
         await ctx.ApplyPower<MultipleReproductionPower>(ctx.Self, 1);
         var legacy = ctx.Self.GetPower<MultipleReproductionPower>()!;
+        legacy.ReadyGrants = 0;
+        legacy.PendingGrants = 0;
         legacy.DelayOneTurn = true;
         ctx.AssertEqual("legacy absent turn stamp", -1, legacy.DelayAppliedOnTurn);
         await legacy.AfterPlayerTurnStart(context, ctx.Player);
         ctx.AssertTrue("legacy state matures at next owner start", !legacy.DelayOneTurn);
         ctx.AssertTrue("legacy mature grant works", legacy.ShouldTakeExtraTurn(ctx.Player));
         ctx.AssertTrue("canonical power is inert", !ModelDb.Power<MultipleReproductionPower>().ShouldTakeExtraTurn(ctx.Player));
+
+        await ctx.Reset();
+        await ctx.Play(ctx.Create<MultipleReproduction>(upgraded));
+        await ctx.Play(ctx.Create<MultipleReproduction>(upgraded));
+        var stacked = ctx.Self.GetPower<MultipleReproductionPower>()!;
+        ctx.AssertEqual("two delayed cards stack", 2, stacked.Amount);
+        ctx.AssertEqual("two delayed grants remain pending", 2, stacked.PendingGrants);
+        ctx.AssertEqual("stacked pending marker", "下2", stacked.GetPowerExtraIconAmountLabelSpecs().Single().Text);
+        ctx.Player.PlayerCombatState!.IncrementTurnNumber();
+        await stacked.AfterPlayerTurnStart(context, ctx.Player);
+        ctx.AssertEqual("both pending grants mature", 2, stacked.ReadyGrants);
+        ctx.AssertEqual("no pending grant after maturity", 0, stacked.PendingGrants);
+        ctx.AssertTrue("first stacked extra turn offered", Hook.ShouldTakeExtraTurn(ctx.Combat, ctx.Player));
+        ctx.Player.PlayerCombatState.IncrementTurnNumber();
+        await Hook.AfterTakingExtraTurn(ctx.Combat, ctx.Player);
+        ctx.AssertEqual("one grant remains after first extra turn", 1, stacked.Amount);
+        ctx.AssertTrue("second stacked extra turn offered", Hook.ShouldTakeExtraTurn(ctx.Combat, ctx.Player));
+        ctx.Player.PlayerCombatState.IncrementTurnNumber();
+        await Hook.AfterTakingExtraTurn(ctx.Combat, ctx.Player);
+        ctx.AssertTrue("both stacked grants consumed", !ctx.Self.Powers.Contains(stacked));
+
+        await ctx.Reset();
+        await ctx.Play(ctx.Create<MultipleReproduction>(upgraded));
+        await ctx.SetUpArmour(1);
+        await ctx.Play(ctx.Create<MultipleReproduction>(upgraded), selectedIndices: [0]);
+        var mixed = ctx.Self.GetPower<MultipleReproductionPower>()!;
+        ctx.AssertEqual("mixed timing total stacks", 2, mixed.Amount);
+        ctx.AssertEqual("mixed timing ready grant", 1, mixed.ReadyGrants);
+        ctx.AssertEqual("mixed timing pending grant", 1, mixed.PendingGrants);
+        ctx.AssertEqual("mixed timing title", "多重再现·本回合与下回合", mixed.Title.GetFormattedText());
+        ctx.AssertTrue("mixed timing markers", mixed.GetPowerExtraIconAmountLabelSpecs()
+            .Select(spec => spec.Text).Order().SequenceEqual(new[] { "下", "本" }.Order()));
+        ctx.AssertTrue("mixed ready grant offered", Hook.ShouldTakeExtraTurn(ctx.Combat, ctx.Player));
+        ctx.Player.PlayerCombatState!.IncrementTurnNumber();
+        await Hook.AfterTakingExtraTurn(ctx.Combat, ctx.Player);
+        ctx.AssertEqual("next-turn grant survives first extra turn", 1, mixed.Amount);
+        ctx.AssertEqual("surviving grant still pending", 1, mixed.PendingGrants);
+        await mixed.AfterPlayerTurnStart(context, ctx.Player);
+        ctx.AssertEqual("surviving grant matures", 1, mixed.ReadyGrants);
+        ctx.AssertTrue("second mixed extra turn offered", Hook.ShouldTakeExtraTurn(ctx.Combat, ctx.Player));
+        ctx.Player.PlayerCombatState.IncrementTurnNumber();
+        await Hook.AfterTakingExtraTurn(ctx.Combat, ctx.Player);
+        ctx.AssertTrue("mixed grants consumed separately", !ctx.Self.Powers.Contains(mixed));
     }
 
     private static void CheckPresentation(CardEffectTestContext ctx, MultipleReproductionPower power, bool delayed)

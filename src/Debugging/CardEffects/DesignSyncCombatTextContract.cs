@@ -12,7 +12,7 @@ internal static class DesignSyncCombatTextContract
 {
     internal static readonly Expected[] Entries =
     [
-        new(typeof(FlameBloom), "造成8点伤害。\n给予1层燃烧。\n魔力解放：给予1层燃烧。", "造成11点伤害。\n给予1层燃烧。\n魔力解放：给予1层燃烧。"),
+        new(typeof(FlameBloom), "造成8点伤害。\n给予1层燃烧。\n魔力解放：给予2层燃烧。", "造成11点伤害。\n给予1层燃烧。\n魔力解放：给予2层燃烧。"),
         new(typeof(Lullaby), "回合结束时，将困了加入手牌。\n回合结束时，你每有1张手牌，获得2点格挡。", "回合结束时，将困了加入手牌。\n回合结束时，你每有1张手牌，获得2点格挡。"),
         new(typeof(IceMist), "保留。\n获得2点临时敏捷。\n消耗。", "保留。\n获得3点临时敏捷。\n消耗。"),
         new(typeof(MagicBurst), "造成7点伤害。\n魔力解放：每拥有一层增益效果，额外造成2点伤害。", "造成7点伤害。\n魔力解放：每拥有一层增益效果，额外造成3点伤害。"),

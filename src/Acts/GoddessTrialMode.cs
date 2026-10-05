@@ -26,8 +26,8 @@ internal static class GoddessTrialMode
             MaidenSuccubusMod.ModId, SettingsKey,
             data => data.Enabled, (data, value) => data.Enabled = value);
         ModSettingsRegistry.Register(MaidenSuccubusMod.ModId, page => page
-            .WithTitle(ModSettingsText.Literal("响木天音"))
-            .WithModDisplayName(ModSettingsText.Literal("Maiden & Succubus"))
+            .WithTitle(ModSettingsText.Literal(MaidenSuccubusMod.ModDisplayName))
+            .WithModDisplayName(ModSettingsText.Literal(MaidenSuccubusMod.ModDisplayName))
             .WithVisibleOnHostSurfaces(ModSettingsHostSurface.MainMenu)
             .AddSection("routes", section => section
                 .WithTitle(ModSettingsText.Literal("路线规则"))

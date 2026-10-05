@@ -27,6 +27,7 @@ $scenarioNames = @(
     "natural_consecutive_limit_and_saved_state",
     "default_invasion_curse",
     "fossil_invasion_stun_once",
+    "native_stun_over_pending_erotic",
     "desire_intent_visual_deduplication",
     "catalog_intent_visual_components",
     "intent_metadata_and_exact_block",

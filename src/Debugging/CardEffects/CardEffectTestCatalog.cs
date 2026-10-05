@@ -438,7 +438,7 @@ internal static class CardEffectTestCatalog
             await ctx.Reset();
             await ctx.SetUpArmour(1);
             await ctx.Play(ctx.Create<FlameBloom>(upgraded), ctx.PrimaryEnemy, selectedIndices: [0]);
-            ctx.AssertPower<BurningPower>("release adds one more burning", ctx.PrimaryEnemy, 2);
+            ctx.AssertPower<BurningPower>("release adds two more burning", ctx.PrimaryEnemy, 3);
         }, 3);
 
     private static void MagicStarBombProbe() =>
@@ -1799,12 +1799,12 @@ internal static class CardEffectTestCatalog
             await ctx.ApplyPower<MagicAmplificationPower>(ctx.Self, 1);
             await ctx.Play(card);
             ctx.AssertPower("base and magic-release amplification", ctx.Self,
-                "MagicAmplificationPower", upgraded ? 4 : 2);
+                "MagicAmplificationPower", upgraded ? 3 : 2);
             int hp = ctx.PrimaryEnemy.CurrentHp;
             await ctx.Play(ctx.Create<MaidenStrike>(), ctx.PrimaryEnemy);
             ctx.AssertDamage("next card amplified by 50 percent", ctx.PrimaryEnemy, hp, 9);
             ctx.AssertPower("one amplification layer consumed", ctx.Self,
-                "MagicAmplificationPower", upgraded ? 3 : 1);
+                "MagicAmplificationPower", upgraded ? 2 : 1);
         }, 3);
 
     private static void IgniteProbe() =>
@@ -2097,8 +2097,8 @@ internal static class CardEffectTestCatalog
                 await ctx.Play(card, selectedIndices: [0]);
                 ctx.AssertEqual("immediate energy", 2,
                     ctx.Player.PlayerCombatState.Energy - energy);
-                ctx.AssertTrue("all invasion curses permanently removed",
-                    firstCurse.HasBeenRemovedFromState && secondCurse.HasBeenRemovedFromState);
+                ctx.AssertTrue("invasion curses remain in the run deck",
+                    !firstCurse.HasBeenRemovedFromState && !secondCurse.HasBeenRemovedFromState);
                 ctx.AssertPower("magic-release next-turn energy", ctx.Self,
                     "EnergyNextTurnPower", upgraded ? 3 : 2);
                 ctx.AssertPower("magic release pays one armor", ctx.Self,
@@ -2315,12 +2315,15 @@ internal static class CardEffectTestCatalog
         CustomVariants<AllHopeLost>(DesignSyncAllHopeLostContract.Run, 40);
 
     private static void BiteInvaderProbe() =>
-        CustomVariants<BiteInvader>(async (ctx, card, _) =>
+        CustomVariants<BiteInvader>(async (ctx, card, upgraded) =>
         {
+            ctx.AssertTrue("bite remains portable", card.Keywords.Contains(MaidenSuccubus.Keywords.PortableKeyword.Value));
+            ctx.AssertEqual("bite gains retain only on upgrade", upgraded,
+                card.Keywords.Contains(CardKeyword.Retain));
             await ctx.Play(card, ctx.PrimaryEnemy);
             ctx.AssertPower("weak", ctx.PrimaryEnemy, "WeakPower", 7);
             ctx.AssertTrue("target stunned", ctx.PrimaryEnemy.IsStunned);
-        }, 2);
+        }, 4);
 
     private static void BlackVortexProbe() =>
         CustomVariants<BlackVortex>(DesignSyncExhaustContract.Vortex, 20);
@@ -2916,7 +2919,7 @@ internal static class CardEffectTestCatalog
     private static void SunDanceProbe() =>
         CustomVariants<SunDance>(async (ctx, card, upgraded) =>
         {
-            ctx.AssertEqual("base and upgraded cost are zero", 0,
+            ctx.AssertEqual("base and upgraded cost are one", 1,
                 card.EnergyCost.GetWithModifiers(CostModifiers.All));
             await ctx.ApplyPower<MegaCrit.Sts2.Core.Models.Powers.StrengthPower>(ctx.Self, 2);
             await ctx.Play(card);

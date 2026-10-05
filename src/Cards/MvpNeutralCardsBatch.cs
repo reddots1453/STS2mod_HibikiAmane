@@ -138,6 +138,7 @@ public sealed class FlashStab : MSNeutralCard
             await CardPileCmd.AddGeneratedCardToCombat(
                 copy, PileType.Draw, Owner, CardPilePosition.Random),
             2.2f);
+        await Cmd.Wait(1f);
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(2);
 }

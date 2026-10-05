@@ -15,7 +15,7 @@ internal static class DesignSyncNeutralTextContract
     internal static readonly Expected[] Entries =
     [
         new(typeof(RepairAlyssa), "获得4点格挡。\n获得1层魔装耐久。", "获得7点格挡。\n获得1层魔装耐久。"),
-        new(typeof(MagiciansSecret), "获得1层魔力增幅。\n魔力解放：获得1层魔力增幅。", "获得2层魔力增幅。\n魔力解放：获得2层魔力增幅。"),
+        new(typeof(MagiciansSecret), "获得1层魔力增幅。\n魔力解放：获得1层魔力增幅。", "获得1层魔力增幅。\n魔力解放：获得2层魔力增幅。"),
         new(typeof(StudyPlan), "获得7点格挡。\n下回合抽2张牌。", "获得10点格挡。\n下回合抽2张牌。"),
         new(typeof(Procrastinate), "选择一张牌，将其置于抽牌堆底部。\n抽2张牌。\n消耗。", "选择一张牌，将其置于抽牌堆底部。\n抽3张牌。\n消耗。"),
         new(typeof(DreamPigment), "从抽牌堆中抽取堕落牌、圣洁牌和中立牌各1张。", "从抽牌堆中抽取堕落牌、圣洁牌和中立牌各1张。"),

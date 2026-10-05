@@ -67,7 +67,7 @@ $cardArtManifest = Get-Content -Raw -Encoding UTF8 -LiteralPath (
     Join-Path $cardArtSource "manifest.json") | ConvertFrom-Json
 $cardRuntime = Join-Path $runtime "cards"
 $cardRuntimeFiles = @(Get-ChildItem -LiteralPath $cardRuntime -Filter "*.png" -File)
-if ($cardRuntimeFiles.Count -lt ($cardArtManifest.items.Count + 1)) {
+if ($cardRuntimeFiles.Count -lt ($cardArtManifest.items.Count + $cardArtManifest.variations.Count + 1)) {
     throw "Expected at least $($cardArtManifest.items.Count) dedicated formal card arts plus one default runtime art."
 }
 $seenCardClasses = @{}
@@ -89,17 +89,28 @@ Assert-ManifestCopy (
 $formalFiles = @{}
 foreach ($item in $cardArtManifest.items) { $formalFiles[$item.file] = $true }
 $formalFiles[$cardArtManifest.default.file] = $true
+$seenVariationIds = @{}
+foreach ($variant in $cardArtManifest.variations) {
+    $id = "$($variant.class)_$($variant.variant)"
+    if ($seenVariationIds.ContainsKey($id) -or !$seenCardClasses.ContainsKey($variant.class)) {
+        throw "Invalid or duplicate variation art mapping: $id"
+    }
+    $seenVariationIds[$id] = $true
+    $formalFiles[$variant.file] = $true
+    Assert-ManifestCopy (Join-Path $cardArtSource $variant.file) `
+        (Join-Path $cardRuntime "$id.png") $variant.sha256
+}
 foreach ($file in Get-ChildItem -LiteralPath $cardArtSource -Filter '*.png' -File) {
     if (!$formalFiles.ContainsKey($file.Name)) {
         throw "Unmapped accepted formal card art: $($file.Name)"
     }
 }
 if (@(Get-ChildItem -LiteralPath $cardArtSource -Filter '*.png' -File).Count -ne $formalFiles.Count -or
-    $cardRuntimeFiles.Count -ne ($cardArtManifest.items.Count + 1)) {
+    $cardRuntimeFiles.Count -ne ($cardArtManifest.items.Count + $cardArtManifest.variations.Count + 1)) {
     throw "Formal card source/runtime counts do not match the manifest."
 }
 foreach ($file in $cardRuntimeFiles) {
-    if ($file.BaseName -ne 'default' -and !$seenCardClasses.ContainsKey($file.BaseName)) {
+    if ($file.BaseName -ne 'default' -and !$seenCardClasses.ContainsKey($file.BaseName) -and !$seenVariationIds.ContainsKey($file.BaseName)) {
         throw "Runtime card art has no accepted manifest entry: $($file.Name)"
     }
 }
@@ -430,8 +441,8 @@ $relicV3 = $relicV3[0].FullName
 $relicSource = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $relicV3 'manifest.json') | ConvertFrom-Json
 $relicRuntime = Join-Path $runtime 'relics\icons'
 $relicBound = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $relicRuntime 'manifest.json') | ConvertFrom-Json
-if ($relicSource.entries.Count -ne 43 -or $relicBound.entries.Count -ne 49) {
-    throw "Expected 43 reviewed V3 icons and 49 runtime relic profiles."
+if ($relicSource.entries.Count -ne 43 -or $relicBound.entries.Count -ne 57) {
+    throw "Expected 43 reviewed V3 icons and 57 runtime relic profiles."
 }
 foreach ($entry in $relicSource.entries) {
     $stem = [IO.Path]::GetFileNameWithoutExtension($entry.file)
@@ -451,6 +462,10 @@ foreach ($entry in $relicBound.entries) {
             throw "Missing or altered relic $part icon: $($entry.asset)"
         }
     }
+    if ($entry.source.StartsWith('变奏异画_20261003/', [StringComparison]::Ordinal)) {
+        $source = Join-Path $relicArtRoot ($entry.source.Replace('/', '\'))
+        Assert-ManifestCopy $source (Join-Path $relicRuntime "$($entry.asset)_big.png") $entry.source_sha256
+    }
     if ($entry.asset.StartsWith('legacy_', [StringComparison]::Ordinal)) {
         $source = Join-Path $relicArtRoot ($entry.source.Replace('/', '\'))
         Assert-ManifestCopy $source (Join-Path $relicRuntime "$($entry.asset)_big.png") $entry.source_sha256
@@ -467,4 +482,4 @@ foreach ($entry in $enchantManifest.entries) {
         Join-Path $enchantRuntime $file) $entry.source_sha256
 }
 
-Write-Host "Validated visual assets: $($cardArtManifest.items.Count) card arts plus default and HD view, V4 character-select background/icons with V2 aliases, school-uniform/world portraits, 11 HD corruption states, 11 desire states, 10 intent icons, temptation UI, 10 core/route icons, 72 paired power/mechanism icons, 49 relic icon profiles and 9 enchantment icons."
+Write-Host "Validated visual assets: $($cardArtManifest.items.Count) card arts plus default and HD view, V4 character-select background/icons with V2 aliases, school-uniform/world portraits, 11 HD corruption states, 11 desire states, 10 intent icons, temptation UI, 10 core/route icons, 72 paired power/mechanism icons, 57 relic icon profiles and 9 enchantment icons."

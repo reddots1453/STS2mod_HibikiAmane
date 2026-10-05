@@ -1,5 +1,5 @@
 {
-  "count": 49,
+  "count": 57,
   "entries": [
     {
       "asset": "starter_HeroOrb",
@@ -392,6 +392,70 @@
       "small_sha256": "fc0f5853b5e956422288d21f95c0272a16d1dc30311ad68939aa80fcb4e5e14c",
       "big_sha256": "d78232469c192c00affebbe63ef12dda7cd96a4624b5f8e8d3d274df790303b3",
       "outline_sha256": "7b416af1f935d0fad6d423a28497e0f1f718a31a7a60e0bec7bdff69afcfb19c"
+    },
+    {
+      "asset": "starter_HeroOrb_Holy",
+      "source": "变奏异画_20261003/512x512/starter_HeroOrb_Holy.png",
+      "source_sha256": "0977b7cc492870bd056228fb90b9ff9b23d830be3f87247319aefb00adbd5bd3",
+      "small_sha256": "042680325994db24d1a0c56238858fc42d1279225e6f3b8770c6cd6ed8dc1068",
+      "big_sha256": "0977b7cc492870bd056228fb90b9ff9b23d830be3f87247319aefb00adbd5bd3",
+      "outline_sha256": "87f008a5367c51763dbbb0bc6294dac20b151d6afc7f4c3a3eca7d417234cbab"
+    },
+    {
+      "asset": "starter_HeroOrb_Corrupt",
+      "source": "变奏异画_20261003/512x512/starter_HeroOrb_Corrupt.png",
+      "source_sha256": "a58d51654789bf8d55e1ff624c582690e74ee522d8250a507a18831aae457b9b",
+      "small_sha256": "72d86c7274cfa241930c2e28cd50d1eca4e5741af01cd5c5b57d4b78d724d3cc",
+      "big_sha256": "a58d51654789bf8d55e1ff624c582690e74ee522d8250a507a18831aae457b9b",
+      "outline_sha256": "2dd7eda395941f7628513ce8ad3941dd8bc4cb092c4bdd26a7492509e8efdfe0"
+    },
+    {
+      "asset": "starter_AllPurposeOrb_Holy",
+      "source": "变奏异画_20261003/512x512/starter_AllPurposeOrb_Holy.png",
+      "source_sha256": "b1a25d558e894d91b6ea31b463a0f71e4fcadf648f8a23872fecfbadff1efe83",
+      "small_sha256": "b680330eff28c09345f3e1d04d966c23c59a2dba411c0ba3a748191c97191b19",
+      "big_sha256": "b1a25d558e894d91b6ea31b463a0f71e4fcadf648f8a23872fecfbadff1efe83",
+      "outline_sha256": "4415d0b7c0ad41055386f91e5d4411c797077c6baaa644c8cdb78a8ffd1f2dd7"
+    },
+    {
+      "asset": "starter_AllPurposeOrb_Corrupt",
+      "source": "变奏异画_20261003/512x512/starter_AllPurposeOrb_Corrupt.png",
+      "source_sha256": "8fd4a5e38b457eef2371a415e2377cc5d9e013a824cdbbb444c7dbe2924c747d",
+      "small_sha256": "ea850f7b8c1f6cda4f9f897965bcc2943123e9c676bf69f09b8717a83e9fad69",
+      "big_sha256": "8fd4a5e38b457eef2371a415e2377cc5d9e013a824cdbbb444c7dbe2924c747d",
+      "outline_sha256": "89f876b538cb2311e1168be2edd7629279e1ac8e18b8fcb21ff75f78f095635d"
+    },
+    {
+      "asset": "character_PrayerEarrings_Holy",
+      "source": "变奏异画_20261003/512x512/character_PrayerEarrings_Holy.png",
+      "source_sha256": "a6c309b55dd0785d772cd341271c2d45a88f63a21a3077ac937a9fe442530aee",
+      "small_sha256": "aac1294f4c81695379af5fb6ebed748ff0c3a58cd0644908ca91587e798d3063",
+      "big_sha256": "a6c309b55dd0785d772cd341271c2d45a88f63a21a3077ac937a9fe442530aee",
+      "outline_sha256": "f1a3f3725ebf5d9236d899385503c4b464c7c9dbd65838d1ead03a45913dbb11"
+    },
+    {
+      "asset": "character_InternalCondom_Corrupt",
+      "source": "变奏异画_20261003/512x512/character_InternalCondom_Corrupt.png",
+      "source_sha256": "46f6720ed12ee3eca25d018435e9115839db7deabdeaf1c156fe189903ab9fa2",
+      "small_sha256": "15db701ea50a372552b86b6f05db25deff175c55181e7f6680fc36e9c0fccdc8",
+      "big_sha256": "46f6720ed12ee3eca25d018435e9115839db7deabdeaf1c156fe189903ab9fa2",
+      "outline_sha256": "fe4e2a6fc85c2fc2d3be2ae1dc044192ee80f2fa1d4db3005294ab4a62a49240"
+    },
+    {
+      "asset": "character_CountercurseMirror_Holy",
+      "source": "变奏异画_20261003/512x512/character_CountercurseMirror_Holy.png",
+      "source_sha256": "89482cbee5fd80bc414b2b94f5c997e785eddc63a1df0f1a6c4cb1a318aa754a",
+      "small_sha256": "9a1054bc81041fd4a1ba21bd0909c0559d58e2795b76e98b226c58187c190d75",
+      "big_sha256": "89482cbee5fd80bc414b2b94f5c997e785eddc63a1df0f1a6c4cb1a318aa754a",
+      "outline_sha256": "12e10fe99cdf900656cc1fffa753b440ba27dc6aa02041894a1d4f3fc968a183"
+    },
+    {
+      "asset": "vanilla_ForgottenSoul_Corrupt",
+      "source": "变奏异画_20261003/512x512/vanilla_ForgottenSoul_Corrupt.png",
+      "source_sha256": "ddf83503322d5ec7bf982672bca9cd162af280c53e527d81493bb1c6d10d3516",
+      "small_sha256": "feac992933aab6aecb8e87fa84acf5612352bd97468f8b361b5541f80ce90d16",
+      "big_sha256": "ddf83503322d5ec7bf982672bca9cd162af280c53e527d81493bb1c6d10d3516",
+      "outline_sha256": "8e2c4004a698edc57b8083b282758a1fc5302ab2b5b3be5e86eea6fa6a9f2c24"
     }
   ]
 }

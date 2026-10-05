@@ -41,7 +41,7 @@ class NeutralDesignSync(unittest.TestCase):
             "唤雷攻击牌普通1费造成7/9点伤害。斩杀时和魔力解放：对生命值最低的敌人造成7/9点伤害。",
             "妨碍射击攻击牌稀有2/1费造成3点伤害。如果目标不为攻击意图，将其击晕。消耗。",
             "梦幻之雾技能牌普通0费给予*所有人*2/3层虚弱。消耗。",
-            "火焰绽放攻击牌普通1费造成8/11点伤害。给予1层燃烧。魔力解放：给予1层燃烧。",
+            "火焰绽放攻击牌普通1费造成8/11点伤害。给予1层燃烧。魔力解放：给予2层燃烧。",
             "碎冰斩攻击牌普通1费造成7点伤害。将1/2张冰晶碎片加入手牌。",
             "反伤屏障能力牌稀有1/0费获得2荆棘。获得2覆甲。将1张功性魔防壁II放入弃牌堆。沉底。",
             "功性魔防壁II能力牌稀有1/0费获得3荆棘。获得3覆甲。将1张功性魔防壁III放入弃牌堆。",
@@ -60,7 +60,7 @@ class NeutralDesignSync(unittest.TestCase):
             "DREAM_MIST": "给予所有人{WeakPower:diff()}层[gold]虚弱[/gold]。",
             "FORGE_STRIKE": "造成{Damage:diff()}点伤害。\n选择1张[gold]打击[/gold][gold]附魔[/gold]：[purple]本能[/purple]。",
             "ICE_BREAKING_SLASH": "造成{Damage:diff()}点伤害。\n将{Cards:diff()}张[gold]冰晶碎片[/gold]加入[gold]手牌[/gold]。",
-            "FLAME_BLOOM": "造成{Damage:diff()}点伤害。\n给予{BurningPower:diff()}层[gold]燃烧[/gold]。\n[gold]魔力解放[/gold]：给予1层[gold]燃烧[/gold]。",
+            "FLAME_BLOOM": "造成{Damage:diff()}点伤害。\n给予{BurningPower:diff()}层[gold]燃烧[/gold]。\n[gold]魔力解放[/gold]：给予2层[gold]燃烧[/gold]。",
             "OBSTRUCTING_SHOT": "造成{Damage:diff()}点伤害。\n如果目标不为攻击意图，将其[gold]击晕[/gold]。",
             "LULLABY": "回合结束时，将[gold]困了[/gold]加入[gold]手牌[/gold]。\n回合结束时，你每有1张[gold]手牌[/gold]，获得{BlockPerCard:diff()}点[gold]格挡[/gold]。",
         }
@@ -113,7 +113,7 @@ class NeutralDesignSync(unittest.TestCase):
         self.assertIn("DesignSyncNeutralContract.Validate(context, card, scenario.Upgraded)", runner)
         self.assertIn('"ds27-neutral"', runner)
         catalog = read("src/Debugging/CardEffects/CardEffectTestCatalog.cs")
-        for assertion in ["no legal strike finishes without applying enchantment", "release adds one more burning", "generated shards are not upgraded", "fourth stage cumulative plating"]:
+        for assertion in ["no legal strike finishes without applying enchantment", "release adds two more burning", "generated shards are not upgraded", "fourth stage cumulative plating"]:
             self.assertIn(assertion, catalog)
 
 

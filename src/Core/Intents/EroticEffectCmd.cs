@@ -157,36 +157,36 @@ public static class EroticEffectCmd
                 ? PileType.Draw : PileType.Discard;
             if (card.Contains("发情", StringComparison.Ordinal))
             {
-                await AddToCombat<ArousalStatus>(target.Player, pile, count, source);
+                await AddToCombat<ArousalStatus>(target.Player, pile, count);
             }
             else if (card.Contains("晕眩", StringComparison.Ordinal))
             {
-                await AddToCombat<Dazed>(target.Player, pile, count, source);
+                await AddToCombat<Dazed>(target.Player, pile, count);
             }
             else if (card.Contains("黏液", StringComparison.Ordinal)
                 || card.Contains("粘液", StringComparison.Ordinal))
             {
-                await AddToCombat<Slimed>(target.Player, pile, count, source);
+                await AddToCombat<Slimed>(target.Player, pile, count);
             }
             else if (card.Contains("感染", StringComparison.Ordinal))
             {
-                await AddToCombat<Infection>(target.Player, pile, count, source);
+                await AddToCombat<Infection>(target.Player, pile, count);
             }
             else if (card.Contains("倒刺钩", StringComparison.Ordinal))
             {
-                await AddToCombat<BarbedHookStatus>(target.Player, pile, count, source);
+                await AddToCombat<BarbedHookStatus>(target.Player, pile, count);
             }
             else if (card.Contains("衣物燃烧", StringComparison.Ordinal))
             {
-                await AddToCombat<ClothingBurnStatus>(target.Player, pile, count, source);
+                await AddToCombat<ClothingBurnStatus>(target.Player, pile, count);
             }
             else if (card.Contains("咬衣纸片", StringComparison.Ordinal))
             {
-                await AddToCombat<BitingPaperStatus>(target.Player, pile, count, source);
+                await AddToCombat<BitingPaperStatus>(target.Player, pile, count);
             }
             else if (card.Contains("溶解液", StringComparison.Ordinal))
             {
-                await AddToCombat<DissolvingFluidStatus>(target.Player, pile, count, source);
+                await AddToCombat<DissolvingFluidStatus>(target.Player, pile, count);
             }
         }
     }
@@ -282,18 +282,22 @@ public static class EroticEffectCmd
     private static async Task AddToCombat<T>(
         MegaCrit.Sts2.Core.Entities.Players.Player player,
         PileType pile,
-        int count,
-        MonsterModel source)
+        int count)
         where T : CardModel
     {
         ArgumentNullException.ThrowIfNull(player.Creature.CombatState);
         CardPilePosition position = pile == PileType.Draw
             ? CardPilePosition.Random
             : CardPilePosition.Bottom;
-        for (int index = 0; index < count; index++)
+        CardModel[] cards = Enumerable.Range(0, count)
+            .Select(_ => (CardModel)player.Creature.CombatState.CreateCard<T>(player))
+            .ToArray();
+        IReadOnlyList<CardPileAddResult> added = await CardPileCmd.AddGeneratedCardsToCombat(
+            cards, pile, creator: null, position: position);
+        if (pile != PileType.Hand)
         {
-            CardModel card = player.Creature.CombatState.CreateCard<T>(player);
-            await CardPileCmd.Add(card, pile, position, source);
+            CardCmd.PreviewCardPileAdd(added);
+            await Cmd.Wait(1f);
         }
     }
 

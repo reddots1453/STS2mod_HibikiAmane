@@ -1,4 +1,5 @@
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
@@ -47,6 +48,8 @@ public static class TwinSoulChaliceDescriptionPatch
                     LocString effect = new("relics", routeRelic.Stage == 0
                         ? "MAIDEN_SUCCUBUS_RELIC_FOURTH_ROUTE_STAGE_0.description"
                         : routeRelic.Id.Entry + $".descriptionStage{Math.Min(routeRelic.Stage, 3)}");
+                    // Nested LocStrings do not inherit the outer DynamicDescription args.
+                    effect.Add("energyPrefix", EnergyIconHelper.GetPrefix(routeRelic));
                     result = effect;
                     // Ownerless reward previews intentionally reveal effects only,
                     // never the next trial/fragment/sacrifice hint.

@@ -14,4 +14,7 @@ public sealed class DesireAmountState
     /// contains RitsuLib's secondary-resource snapshot.
     /// </summary>
     public bool HasValue { get; set; }
+
+    // Saved per player; rechecks while still at maximum must not replay audio.
+    public bool MaximumAudioTriggered { get; set; }
 }

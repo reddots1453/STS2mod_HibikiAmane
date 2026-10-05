@@ -7,7 +7,6 @@ using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
-using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Nodes.Screens.Capstones;
 using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
 using MegaCrit.Sts2.Core.Runs;
@@ -61,14 +60,11 @@ internal static class FourthRouteRewardFlow
         gate.Busy = true;
         var scene = NRun.Instance;
         var room = run.CurrentRoom;
-        var map = NMapScreen.Instance;
-        bool restoreTravel = map is { IsOpen: true, IsTravelEnabled: true };
         bool Current() => GodotObject.IsInstanceValid(scene) && scene!.IsInsideTree()
             && ReferenceEquals(NRun.Instance, scene) && ReferenceEquals(RunManager.Instance.DebugOnlyGetState(), run)
             && !player.Creature.IsDead && ReferenceEquals(run.CurrentRoom, room) && Pending(run) == offer;
         try
         {
-            if (restoreTravel) map!.SetTravelEnabled(false);
             return await FourthRouteRewardScreen.Show(player, offer, Current);
         }
         catch (Exception ex)
@@ -79,8 +75,6 @@ internal static class FourthRouteRewardFlow
         finally
         {
             gate.Busy = false;
-            if (restoreTravel && GodotObject.IsInstanceValid(map) && ReferenceEquals(RunManager.Instance.DebugOnlyGetState(), run)
-                && ReferenceEquals(NMapScreen.Instance, map) && map!.IsOpen) map.SetTravelEnabled(true);
         }
     }
 

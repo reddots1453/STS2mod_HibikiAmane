@@ -7,7 +7,7 @@ import shutil
 import statistics
 from pathlib import Path
 
-from PIL import Image, ImageChops, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 
 CANVAS_SIZE = (922, 1250)
@@ -21,6 +21,14 @@ TINT_STRENGTH = 0.68
 FOOT_DEFRINGE_BOX = (400, 1060, 650, 1170)
 FOOT_TIGHTS_BOX = (415, 940, 610, 1120)
 TIGHTS_REFERENCE_BOX = (420, 850, 600, 1010)
+CUFF_CURVES = (
+    ((420, 1009), (430, 1019), (442, 1027), (455, 1032), (470, 1035),
+     (486, 1035), (500, 1032), (516, 1032), (526, 1029)),
+    ((529, 1003), (538, 1004), (546, 1011), (553, 1018), (561, 1020),
+     (569, 1017), (575, 1012)),
+)
+CUFF_HALF_WIDTH = 10
+CUFF_SAMPLE_DISTANCE = 14
 
 
 def sha256(path: Path) -> str:
@@ -232,30 +240,52 @@ def harmonize_feet_with_tights(
                 alpha,
             )
 
-    # Build the old cuff seam from the source garment classes and soften only
-    # that narrow interior band.  A feathered mask avoids per-column striping;
-    # eroding the alpha silhouette keeps the outer ankle edge crisp.
-    skin_mask = Image.new("L", result.size, 0)
-    sock_mask = Image.new("L", result.size, 0)
-    skin_mask_pixels = skin_mask.load()
-    sock_mask_pixels = sock_mask.load()
-    for y in range(940, 1070):
-        for x in range(420, 600):
-            mask_pixel = mask_pixels[x, y]
-            if is_skin(*mask_pixel):
-                skin_mask_pixels[x, y] = 255
-            if is_sock(*mask_pixel):
-                sock_mask_pixels[x, y] = 255
+    # The source portrait contains two deliberately drawn ankle-sock cuffs.
+    # Blurring those outlines merely turns each cuff into a grey horizontal
+    # band.  Reconstruct the material through the band instead: sample the
+    # already harmonised tights immediately above and below each cuff and
+    # interpolate between them.  The curves are specific to this fixed source
+    # pose and therefore deterministic; the outer alpha silhouette and shoes
+    # remain untouched.
+    reconstructed = result.copy()
+    reconstructed_pixels = reconstructed.load()
+    interior_alpha = result.getchannel("A").filter(ImageFilter.MinFilter(5))
+    interior_pixels = interior_alpha.load()
 
-    seam_mask = ImageChops.multiply(
-        skin_mask.filter(ImageFilter.MaxFilter(13)),
-        sock_mask.filter(ImageFilter.MaxFilter(13)),
-    )
-    interior_mask = result.getchannel("A").filter(ImageFilter.MinFilter(5))
-    seam_mask = ImageChops.multiply(seam_mask, interior_mask)
-    seam_mask = seam_mask.filter(ImageFilter.GaussianBlur(1.6))
-    softened = result.filter(ImageFilter.GaussianBlur(2.2))
-    result = Image.composite(softened, result, seam_mask)
+    for curve in CUFF_CURVES:
+        for index in range(len(curve) - 1):
+            x1, y1 = curve[index]
+            x2, y2 = curve[index + 1]
+            for x in range(x1, x2 + 1):
+                ratio = 0.0 if x2 == x1 else (x - x1) / (x2 - x1)
+                centre_y = round(y1 + (y2 - y1) * ratio)
+                top_y = centre_y - CUFF_SAMPLE_DISTANCE
+                bottom_y = centre_y + CUFF_SAMPLE_DISTANCE
+
+                for y in range(centre_y - CUFF_HALF_WIDTH, centre_y + CUFF_HALF_WIDTH + 1):
+                    if interior_pixels[x, y] < 220:
+                        continue
+                    t = (y - (centre_y - CUFF_HALF_WIDTH)) / (2 * CUFF_HALF_WIDTH)
+
+                    # Average a narrow horizontal neighbourhood so the fill
+                    # follows the leg's shading without introducing columns.
+                    top_samples = [pixels[nx, top_y] for nx in range(x - 2, x + 3)]
+                    bottom_samples = [pixels[nx, bottom_y] for nx in range(x - 2, x + 3)]
+                    top_colour = tuple(round(sum(sample[channel] for sample in top_samples) / 5) for channel in range(4))
+                    bottom_colour = tuple(round(sum(sample[channel] for sample in bottom_samples) / 5) for channel in range(4))
+                    reconstructed_pixels[x, y] = tuple(
+                        round(top_colour[channel] * (1.0 - t) + bottom_colour[channel] * t)
+                        for channel in range(4)
+                    )
+
+    # Feather only the boundary of the reconstructed strip.  Unlike the old
+    # Gaussian treatment, the centre contains no cuff pixels to spread.
+    seam_mask = Image.new("L", result.size, 0)
+    seam_draw = ImageDraw.Draw(seam_mask)
+    for curve in CUFF_CURVES:
+        seam_draw.line(curve, fill=255, width=CUFF_HALF_WIDTH * 2 + 1, joint="curve")
+    seam_mask = seam_mask.filter(ImageFilter.GaussianBlur(1.0))
+    result = Image.composite(reconstructed, result, seam_mask)
 
     return result
 

@@ -17,12 +17,15 @@ def sha256(path: Path) -> str:
 def copy_exact(source: Path, destination: Path, expected_hash: str | None = None) -> None:
     if not source.is_file():
         raise FileNotFoundError(f"Formal visual source is missing: {source}")
-    if expected_hash is not None and sha256(source) != expected_hash.upper():
+    source_hash = sha256(source)
+    if expected_hash is not None and source_hash != expected_hash.upper():
         raise RuntimeError(f"Formal visual source hash differs from manifest: {source}")
 
     destination.parent.mkdir(parents=True, exist_ok=True)
+    if destination.is_file() and sha256(destination) == source_hash:
+        return
     shutil.copyfile(source, destination)
-    if sha256(destination) != sha256(source):
+    if sha256(destination) != source_hash:
         raise RuntimeError(f"Runtime visual copy differs from source: {destination}")
 
 

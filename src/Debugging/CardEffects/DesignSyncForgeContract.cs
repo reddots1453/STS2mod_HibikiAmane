@@ -77,6 +77,8 @@ internal static class DesignSyncForgeContract
             foreach (Expected expected in All) await CheckOption(ctx, upgraded, expected);
             await CheckSkillOnly(ctx, upgraded);
             await CheckEmpty(ctx, upgraded);
+            await CheckAllEnchanted(ctx, upgraded);
+            await CheckAllEnchantedAfterChoice(ctx, upgraded);
             foreach (string change in new[] { "moved", "enchanted", "all_moved", "foreign_option" })
                 await CheckInvalidation(ctx, upgraded, change);
             await CheckPermanentAndLayered(ctx, upgraded);
@@ -166,6 +168,46 @@ internal static class DesignSyncForgeContract
         ctx.AssertEqual("empty target set still exhausts source", PileType.Exhaust, source.Pile?.Type);
     }
 
+    private static async Task CheckAllEnchanted(CardEffectTestContext ctx, bool upgraded)
+    {
+        await ctx.Reset();
+        var occupied = await ctx.Add<StrikeIronclad>(PileType.Hand);
+        var layered = await ctx.Add<LightWings>(PileType.Hand);
+        CombatEnchantmentCmd.ApplyVanilla<Sharp>(occupied, 2);
+        CombatEnchantmentCmd.ApplyVanilla<Sharp>(layered, 2);
+        var selector = new Selector(_ => throw new InvalidOperationException("All-enchanted hand must not prompt"));
+        string before = ctx.Player.RunState.Rng.CombatCardSelection.ToSerializable().ToString();
+        var source = ctx.Create<BeyondReasonForge>(upgraded);
+        await Play(ctx, source, selector);
+        ctx.AssertEqual("all-enchanted hand never prompts", 0, selector.Calls);
+        ctx.AssertEqual("all-enchanted hand consumes no random", before,
+            ctx.Player.RunState.Rng.CombatCardSelection.ToSerializable().ToString());
+        ctx.AssertEqual("all-enchanted forge still exhausts", PileType.Exhaust, source.Pile?.Type);
+        ctx.AssertTrue("existing enchantments retained", occupied.Enchantment is Sharp { Amount: 2 }
+            && layered.Enchantment is Sharp { Amount: 2 });
+    }
+
+    private static async Task CheckAllEnchantedAfterChoice(CardEffectTestContext ctx, bool upgraded)
+    {
+        await ctx.Reset();
+        var target = await ctx.Add<StrikeIronclad>(PileType.Hand);
+        var other = await ctx.Add<StrikeIronclad>(PileType.Hand);
+        var selector = new Selector(options =>
+        {
+            if (options[0] is not EnchantmentChoiceCard)
+                throw new InvalidOperationException("Hand prompt must be skipped after targets become enchanted");
+            CombatEnchantmentCmd.ApplyVanilla<Sharp>(target, 2);
+            CombatEnchantmentCmd.ApplyVanilla<Sharp>(other, 2);
+            return Task.FromResult<IEnumerable<CardModel>>([options[0]]);
+        });
+        var source = ctx.Create<BeyondReasonForge>(upgraded);
+        await Play(ctx, source, selector);
+        ctx.AssertEqual("only enchantment choice was shown", 1, selector.Calls);
+        ctx.AssertEqual("all-enchanted after choice still exhausts", PileType.Exhaust, source.Pile?.Type);
+        ctx.AssertTrue("intervening enchantments retained", target.Enchantment is Sharp { Amount: 2 }
+            && other.Enchantment is Sharp { Amount: 2 });
+    }
+
     private static async Task CheckInvalidation(CardEffectTestContext ctx, bool upgraded, string change)
     {
         await ctx.Reset();
@@ -211,6 +253,9 @@ internal static class DesignSyncForgeContract
             target.DeckVersion = deck;
             await CardPileCmd.Add(target, PileType.Hand, skipVisuals: true);
             CombatEnchantmentCmd.ApplyVanilla<Sharp>(target, 2);
+            // Keep one ordinary open slot so the all-enchanted shortcut does not
+            // suppress LightWings' normal multi-enchantment path.
+            await ctx.Add<StrikeIronclad>(PileType.Hand);
             var allIds = All.Where(x => x.Id != "nimble").Select(x => x.Id).ToArray();
             SeedFor(ctx, allIds, "charge");
             var selector = new Selector(options => Task.FromResult<IEnumerable<CardModel>>(

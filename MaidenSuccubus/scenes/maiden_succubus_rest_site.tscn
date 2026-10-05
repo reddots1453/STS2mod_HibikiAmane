@@ -5,7 +5,7 @@
 [node name="MaidenSuccubusRestSite" type="Node2D"]
 
 [node name="Sprite" type="Sprite2D" parent="."]
-position = Vector2(0, 75)
+position = Vector2(0, 120)
 scale = Vector2(0.3, 0.3)
 texture = ExtResource("1_rest")
 centered = false
@@ -19,30 +19,30 @@ anchors_preset = 0
 unique_name_in_owner = true
 anchors_preset = 0
 offset_left = -170.0
-offset_top = -405.0
+offset_top = -360.0
 offset_right = 170.0
-offset_bottom = 90.0
+offset_bottom = 135.0
 
 [node name="Hitbox" type="Control" parent="ControlRoot"]
 unique_name_in_owner = true
 anchors_preset = 0
 offset_left = -145.0
-offset_top = -345.0
+offset_top = -300.0
 offset_right = 145.0
-offset_bottom = 80.0
+offset_bottom = 125.0
 
 [node name="ThoughtBubbleRight" type="Control" parent="ControlRoot"]
 unique_name_in_owner = true
 anchors_preset = 0
 offset_left = 125.0
-offset_top = -300.0
+offset_top = -255.0
 offset_right = 125.0
-offset_bottom = -300.0
+offset_bottom = -255.0
 
 [node name="ThoughtBubbleLeft" type="Control" parent="ControlRoot"]
 unique_name_in_owner = true
 anchors_preset = 0
 offset_left = -125.0
-offset_top = -300.0
+offset_top = -255.0
 offset_right = -125.0
-offset_bottom = -300.0
+offset_bottom = -255.0

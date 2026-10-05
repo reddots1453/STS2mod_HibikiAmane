@@ -16,7 +16,7 @@ internal static class DesignSyncHolyContract
             ("Damage", 10, 12), ("MagicAmplificationPower", 1, 2)),
         new(typeof(InwardDiscipline), "武神的呼吸", CardType.Power, CardRarity.Rare, TargetType.Self, 1, 1,
             ("InwardDisciplinePower", 50, 75)),
-        new(typeof(SunDance), "太阳之舞", CardType.Skill, CardRarity.Uncommon, TargetType.Self, 0, 0),
+        new(typeof(SunDance), "太阳之舞", CardType.Skill, CardRarity.Uncommon, TargetType.Self, 1, 1),
         new(typeof(CalmingMist), "镇静之雾", CardType.Skill, CardRarity.Common, TargetType.AnyEnemy, 1, 1,
             ("Cards", 1, 2), ("WeakPower", 2, 2)),
         new(typeof(EternalDamnation), "万劫不复", CardType.Power, CardRarity.Rare, TargetType.Self, 2, 1),

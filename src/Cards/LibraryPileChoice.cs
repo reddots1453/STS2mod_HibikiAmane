@@ -14,13 +14,17 @@ public sealed class LibraryPileChoice : MSGeneratedCard, ICardTitleContributor
     public override int MaxUpgradeLevel => 0;
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Unplayable];
     protected override IEnumerable<DynamicVar> CanonicalVars => [new StringVar("PileName", "抽牌堆"), new DynamicVar("Count", 10)];
-    public LibraryPileChoice() : base(-1, CardType.Skill, CardRarity.Token, TargetType.None)
-    {
-        TitleLocString.Add("PileName", "抽牌堆");
-    }
+    public LibraryPileChoice() : base(-1, CardType.Skill, CardRarity.Token, TargetType.None) { }
 
-    public IEnumerable<CardTitleFragment> GetTitleFragments(CardTitleContext context) =>
-        [new(new LocString("cards", Id.Entry + ".pileTitle"), CardTitleFragmentPlacement.ReplaceBase)];
+    private string PileName => ((StringVar)DynamicVars["PileName"]).StringValue;
+    public override string Title => PileName;
+
+    public IEnumerable<CardTitleFragment> GetTitleFragments(CardTitleContext context)
+    {
+        var title = new LocString("cards", Id.Entry + ".pileTitle");
+        title.Add("PileName", PileName);
+        return [new(title, CardTitleFragmentPlacement.ReplaceBase)];
+    }
 
     public void Configure(PileType pile, int count = 10)
     {
@@ -33,6 +37,5 @@ public sealed class LibraryPileChoice : MSGeneratedCard, ICardTitleContributor
             PileType.Exhaust => "消耗牌堆",
             _ => throw new ArgumentOutOfRangeException(nameof(pile)),
         };
-        TitleLocString.Add("PileName", ((StringVar)DynamicVars["PileName"]).StringValue);
     }
 }

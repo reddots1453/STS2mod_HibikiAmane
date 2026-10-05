@@ -126,9 +126,15 @@ public static class FourthRouteProgressService
             }
 
             M5Progress.Handle.Modify(runState, state => state.FourthRouteRelicStage = targetStage);
-            foreach (FourthRouteRelic old in player.Relics.OfType<FourthRouteRelic>()
-                .Where(relic => relic.Quest == quest && relic.Stage != targetStage).ToList())
+            // Recover a receipt whose relic was granted by another mod without
+            // our callback. Keep one target-stage instance, never replay its pickup.
+            List<FourthRouteRelic> routeRelics = player.Relics.OfType<FourthRouteRelic>()
+                .Where(relic => relic.Quest == quest).ToList();
+            FourthRouteRelic? existing = routeRelics.FirstOrDefault(relic => relic.Stage == targetStage);
+            foreach (FourthRouteRelic old in routeRelics.Where(relic => !ReferenceEquals(relic, existing)))
                 await RelicCmd.Remove(old);
+            if (routeRelics.Count(relic => relic.Stage == targetStage) > 1)
+                MaidenSuccubusMod.Logger.Info($"[FourthRouteReward] Removed duplicate {quest} stage={targetStage} relics; retained one existing instance.");
             if (targetStage == 2)
                 foreach (FourthRouteFragmentRelic fragment in player.Relics.OfType<FourthRouteFragmentRelic>().ToList())
                     await RelicCmd.Remove(fragment);

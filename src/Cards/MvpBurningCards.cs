@@ -76,7 +76,7 @@ public sealed class FlameBloom : MSNeutralCard
                 context, Owner.Creature, this))
         {
             await PowerCmd.Apply<BurningPower>(
-                context, play.Target, 1, Owner.Creature, this);
+                context, play.Target, 2, Owner.Creature, this);
         }
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(3);

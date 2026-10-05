@@ -106,7 +106,9 @@ public sealed class ProliferationEnchantment : CombatOnlyEnchantmentTemplate
         if (cardPlay?.Card != Card || Card.CombatState is null)
             return;
         CardModel copy = Card.CreateClone();
-        await CardPileCmd.AddGeneratedCardToCombat(copy, PileType.Draw, Card.Owner, CardPilePosition.Random);
+        CardCmd.PreviewCardPileAdd(await CardPileCmd.AddGeneratedCardToCombat(
+            copy, PileType.Draw, Card.Owner, CardPilePosition.Random));
+        await Cmd.Wait(1f);
     }
 }
 
@@ -129,7 +131,9 @@ public sealed class WrathEnchantment : ModEnchantmentTemplate
         _used = true;
         CardModel copy = Card.CreateClone();
         ResetGeneratedCopy(copy);
-        await CardPileCmd.AddGeneratedCardToCombat(copy, PileType.Discard, Card.Owner);
+        CardCmd.PreviewCardPileAdd(await CardPileCmd.AddGeneratedCardToCombat(
+            copy, PileType.Discard, Card.Owner));
+        await Cmd.Wait(1f);
     }
 
     // Only copies produced by Wrath get a fresh Wrath trigger. General clones,
