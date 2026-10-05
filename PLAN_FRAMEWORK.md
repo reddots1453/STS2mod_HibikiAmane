@@ -3125,3 +3125,6 @@ FAKE-MERCHANT-SHOP-01 / SYS-ASSET-MERCHANT-001 IMPLEMENTED（2026-10-05）：前
 任务：DesireRuleModifiers.ModifyCap在其他modifier之前，仅天音且当前IsMaxHoly增加5；Data.Desire.GetMaximum战斗内用框架GetMax，战斗外用相同modifier规则。RecheckMaximum/音频标记/CG/暂停的RPG接口改读当前上限，8和5不改。删除角色战斗结束-5欲望-1，+5不改；早期玩家回合合法入口在原排队结算后复查当前上限，恢复Wet顺序不变。DesireState增加PendingClimaxThreshold默认0为旧10，排队记录当前阈值、不重复覆盖已排队记录；首次回合如果上限已提高且欲望未满则丢弃旧低阈值排队，其他已发生排队不改变；clear同时清零阈值。DesireMeter按value/max缩放到现有11张贴图，未到上限不显示满；缓存同时含max，Corruption变化立即刷新，8点悬停区域同步相对位置且阈值文本仍8，上端悬停仍兼容旧key但文本改当前上限。只替换静态悬停JSON三个键打包，其余资源/用户文案保持上一包；不新增图片，不改资源hardMax/费用/存档金额。未做静态测试，只Debug build，运行时NOT_RUN、部署NOT_RUN。
 
 验收HDC-01：-5基础上限15，10～14不触发满值，15触发原惩罚并归3；HDC-02：8点Wet/拘束/心跳/边缘不变；HDC-03：-4/0/+5基础上限10，-5战后不-1，+5仍+1；HDC-04：读档15上限与实际金额一致、不凭加载重复CG音频，旧10排队不误罚新圣洁上限；HDC-05：上限变化欲望条即时刷新，15填满/10未满，8点和上端说明正确；HDC-06：无限欲望/手牌保护优先与现有排队语义保持，非天音不受影响。完成IMPLEMENTED，用户游戏实测后再VERIFIED。
+
+
+SYS-COR-004 / SYS-DES-002B 同义文本补齐：设计补充提交`53a2342dbaaba9bfcf13f3385faecd75203fa9da`统一2.2即时/敌人回合/战斗外结算入口与2.3上限范围，不再保留无条件10点的旧文字；9+3例子明确为普通上限10。未新增玩法需求。音频去重保存MaximumAudioThreshold（旧0视为10），提高上限后真正达到新上限能播放一次，降低上限或在同一满值继续获得不重播；低于当前上限时清除标记。原有10点高欲望表情分档继续作为表现分档，不等于满值惩罚或CG入口。
