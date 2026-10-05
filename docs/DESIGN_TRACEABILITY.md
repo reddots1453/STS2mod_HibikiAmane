@@ -1651,3 +1651,12 @@ CARD-C-BURNING-DESIRE-ENERGY-001 IMPLEMENTED：瘴雷获得能量文本改用本
 验收CTL-NET-01：0.111新开局/继续，小啃兽攻击拘束2后下回合抽牌、挣脱和结束回合正常，日志有ModelSavedDataCompat且无缺失netID异常；02技能/能力拘束、多来源/重复施加、解除后恢复原牌；03能力数据保存及读档不丢失，其他保存属性及已有ID保持；04旧0.107直接属性名协议不安装补丁；05同版本多人双端编号一致、原生校验仍执行。按用户要求不运行静态测试，Debug构建后IMPLEMENTED、上述运行时均待实测。累积前一批未部署瘴雷图标修复，包中RPG文本仍关闭及新试炼UI有效；本轮仅build，不部署本地/沙箱/上传器，不改安装JSON。
 
 SYS-CTL-NET-001 IMPLEMENTED：现代游戏属性编号表初始化后补齐缺失RitsuLib_ModelSavedData正反映射与位宽；旧版本跳过，已注册不重复。构建0警告0错误，静态测试NOT_RUN、游戏内NOT_RUN；未部署，需玩家原环境确认。另日志BlindfoldIntentHoverPatch的缺失owner字段为独立已存在意图悬停兼容问题，本批没有改动或宣称修复。
+
+
+## 2026-10-05 贴图缓存与加载优化（SYS-ASSET-MEM-001）
+
+当前全部模组现状已先提交快照`8a26d9628eea20f94378f62cafeb2da1ef7a387d`；原分支、HEAD和用户暂存区保留，6270项当前差异限定本Mod保存，未把未验收内容宣称为已实现。设计提交`4e86a8fce6732bd9f9372a394368363ffa014cd8`。完整DesignDoc已读取，HEAD及最近接受版本逐行/词级差异已归档；本轮范围仅资源加载与生命周期，其他叙事/美术/机制编辑保留。核对RuntimeTextureAssets、CreatureVisuals、CardArtAssets/PresentationPatch、CharacterAssetProfile、CG、原生资源引用与RunManager/Cleanup、NCardLibrary关闭流程。
+
+任务READY：统一角色与UI原始贴图缓存；默认96MiB估算像素的LRU强引用预算，原生WeakRef追踪仍存活图片，淘汰只移除缓存强引用，不Dispose/Free贴图、不主动GC，保护正在显示与第三方引用；实际界面/Godot持有的资源不在该预算内。关闭百科释放cards缓存，战斗立绘退出释放character缓存，试炼页退出释放trial缓存，RunManager清理释放全部缓存。取消进入战斗的9个变身形态、12个表情及高潮图片预加载，只读取当前所需；CG先获得播放锁、逐帧加载，避免排队CG提前持有整组资源，退出释放CG缓存。角色7项user资源改二进制.res，对源PNG SHA256写失效标记，未变化复用，变化重建；商店和火堆场景同步新路径，保留原.tres文件和全部安装JSON。源PNG尺寸不变，.res不是GPU压缩，解码临时峰值仍存在。日志记录加载时长/图片尺寸/像素估算/强缓存/进程工作集；预算不被宣称为总RAM或显存硬上限。
+
+验收MEM-01：全新和再次启动角色选择、图标、商店、火堆正常；第二次原图未改不重新保存，换正式图后重新生成。MEM-02：开战只有当前立绘/表情首次解码，切换所有衣装和欲望区间正常，图像无空白或Disposed错误。MEM-03：滚动百科/奖励大图超过预算可重载，第三方卡图预览和变奏仍正确，关闭页面/结束局释放缓存强引用。MEM-04：CG多帧、跳过/退出/连续触发顺序和音频不变，无提前整组解码。MEM-05：日志保留每次明显加载信息，原玩家低配置环境启动复测；没有原玩家本次日志，不宣称启动卡死已经修复。按用户要求不跑静态测试，仅Debug build后IMPLEMENTED，运行时均NOT_RUN，本地/沙箱/上传器暂不部署。
