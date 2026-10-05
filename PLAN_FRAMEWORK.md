@@ -3113,3 +3113,6 @@ CARD-POOL-TRANSFORM-001 / RELIC-EVENT-001 IMPLEMENTED（2026-10-05）：前置`a
 技术：补丁公开ModWorldSceneVisualNodeFactory.TryInstantiateMerchantCharacter，只对MaidenSuccubusCharacter构造自有静态NMerchantCharacter，RuntimeTextureAssets按需读PCK内PNG，不重写缓存器/不做图像缩小；共用Sprite参数0.35、position(0,13.65)、底部居中offset。框架负责原生布局/注册，派生Ready与仅本类型PlayAnimation不启动Spine。新增FakeMerchant.AfterRoomIsLoaded Postfix最后执行，对已创建自有商店根抵消事件根以下全部父变换的缩放，参考原生商店场景父scale，赋绝对值幂等。旧NCreatureVisuals创建路径前缀复用同一素材与缩放函数作为fallback，移除对用户纹理.tscn实例的读取。所有异常Safe.Run，无新依赖/后台线程/队列/RNG变化；本次不改PCK素材和安装JSON。
 
 验收MP-01：无旧用户纹理的新安装商店可见；MP-02：旧缓存/升级素材加载一致，缺PCK PNG日志明确并保留fallback；MP-03：fake_merchant与普通商店同高、头部不被异常放大裁掉，脚底位置不移动；MP-04：Ritsu0.4.64/0.6.5流程、多人其他角色不受影响，重复布局不重复缩放；MP-05：原版变化与眼罩上批待验内容保留。按用户要求不做静态测试，只build；游戏内NOT_RUN，完成仅标IMPLEMENTED，未授权部署，本地/沙箱/ModUploader/JSON均不写。
+
+
+FAKE-MERCHANT-SHOP-01 / SYS-ASSET-MERCHANT-001 IMPLEMENTED（2026-10-05）：前置`0fd6e054bc7b026def3f567f154b0105fef12ea0`，设计`3d8ecfe5bd37b8c10836f04c97a96475d331513a`，计划`eb66eab679ff17a45f1cd083147879cf357077b5`。普通商店改由公开RitsuLib工厂按需从包内PNG构造静态天音商店节点，共用Sprite尺寸/脚底锚点；假商人布局完成后抵消父级额外缩放，兼容库NMerchantCharacter与旧NCreatureVisuals双路径，重复调用幂等。仅本模组商店视觉不启动Spine，其他角色/普通商店尺寸/战斗/火堆不变。玩家消失原因尚未运行时确认，版本对比资源未删除而用户缓存路径发生变动，旧玩家日志缺该资源，现消除此加载依赖。Debug构建命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过0警告0错误；静态测试NOT_RUN、游戏内NOT_RUN，未部署，不写安装JSON。

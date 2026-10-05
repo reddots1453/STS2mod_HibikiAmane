@@ -2882,3 +2882,6 @@ CARD-POOL-TRANSFORM-001 IMPLEMENTED（2026-10-05）：前置快照`b99bd6b181ebd
 
 
 CARD-POOL-TRANSFORM-001 / RELIC-EVENT-001 IMPLEMENTED（2026-10-05）：前置`a72c9f0755d241ddcbf316af61c7e5b7f7e3a173`，设计`013e887470ff85ff5022dcf0d213328410e86b22`，计划`035648d7562d8140dceb083fae5895083398c060`。撤销未部署四池变化扩张，原factory选池后仅三路线合并，衍生牌/无色fallback保持原版；显式options与奖励/商店不改。眼罩主显示补丁恢复、NIntent _owner安全反射、Power说明保留；遭遇预览参考辉眼只读RoomSet与遗物/地图悬停：只下一场，Boss遵守双首领顺序，不生成实体/不消费RNG/不推进visited，无辉眼DLL依赖。不修改本地化/PCK/安装JSON。构建命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过，0警告0错误；静态测试NOT_RUN、游戏内NOT_RUN，未部署。
+
+
+FAKE-MERCHANT-SHOP-01 / SYS-ASSET-MERCHANT-001 IMPLEMENTED（2026-10-05）：前置`0fd6e054bc7b026def3f567f154b0105fef12ea0`，设计`3d8ecfe5bd37b8c10836f04c97a96475d331513a`，计划`eb66eab679ff17a45f1cd083147879cf357077b5`。普通商店改由公开RitsuLib工厂按需从包内PNG构造静态天音商店节点，共用Sprite尺寸/脚底锚点；假商人布局完成后抵消父级额外缩放，兼容库NMerchantCharacter与旧NCreatureVisuals双路径，重复调用幂等。仅本模组商店视觉不启动Spine，其他角色/普通商店尺寸/战斗/火堆不变。玩家消失原因尚未运行时确认，版本对比资源未删除而用户缓存路径发生变动，旧玩家日志缺该资源，现消除此加载依赖。Debug构建命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过0警告0错误；静态测试NOT_RUN、游戏内NOT_RUN，未部署，不写安装JSON。
