@@ -2681,3 +2681,7 @@ X费     将X张（升级：升级过的）随机圣洁牌加入手牌。为这�
 
 ### 眼罩原生地图悬停 `[RELIC-EVENT-001 · READY · 2026-10-05最新确认]`
 取代本日较早确认的辉眼自绘760宽面板。遭遇读取沿用只读RoomSet，提示UI使用原版NHoverTipSet/原版HoverTip布局和自适应对齐；只显示下一场遭遇名称，删除“可能出现的敌人”。遗物自身说明不追加预测列表。已确认英雄宝珠圣洁附魔、±5上限15和试炼地图奖励回修继续生效，不因工作目录文案回退撤销代码。
+
+
+### 游戏版本支持 `[COMPAT-GAME-001 · READY · 2026-10-05用户确认]`
+本模组本轮仅支持STS2 v0.111.0。godot (7).log中的玩家运行v0.107.1，原版加载器枚举MaidenSuccubus类型时因该版没有MegaCrit.Sts2.Core.Entities.Cards.CardLocation而抛出ReflectionTypeLoadException；RitsuLib0.6.5对应0.107.1分支已初始化，不等于本角色mod支持该游戏版本。用户确认由玩家更新至v0.111.0，不进行0.107.1代码适配。本轮不修改部署目录或ModUploader的JSON。
