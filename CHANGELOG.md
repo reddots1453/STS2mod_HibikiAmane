@@ -2925,3 +2925,10 @@ IMPLEMENTED（2026-10-05）：前置`8c481fe71d760f31210caaffeb95f0a2b7eb1152`�
 
 IMPLEMENTED（2026-10-05）：前置`55d228f8cba76a8bd841c8083faa83e6d65a9d9b`，计划`55f540b0c34117da4557246135109ac03ff17687`。祝圣状态Single改Counter，每张仍+1层；按原版熵一次选Amount张当前合法手牌，固定所选实例逐张变化，保留异步目标重验及随机圣言规则。状态栏显示累计层数，双悬停文案显示{Amount}张。费用/升级固有/其他Power及卡牌不变，DesignDoc未改写。
 构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过0警告0错误；按用户要求静态测试NOT_RUN、游戏内NOT_RUN；尚未部署。DesignDoc未修改，安装/上传器JSON未写入。
+
+
+## 2026-10-05 用户授权仅本地部署（LOCAL-CONSECRATION-STACK-20261005-163304）
+
+源码`7edbcd3bde2d8ba65f392a6f2da1fb1b7f2e6cfa`，部署前快照`1bc149582f5bdc94de7e0e8e4545449106ac7cf1`。将祝圣叠加修复的DLL、PDB、PCK部署到`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`；祝圣采用原版Entropy的Counter与Amount一次多选手牌、逐张变化路径，继续使用现有随机圣言命令及异步目标重验。状态栏仍一个图标，显示累计层数；双悬停文案显示当前选择张数。沿用前批欲望/眼罩累计修订，其他卡牌/费用/升级固有不变。
+
+复用Debug构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`，0警告0错误，不重复构建或静态测试，游戏内NOT_RUN。旧产物及所有已存在JSON已备份到`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\local-consecration-stack-20261005-163304`，逐文件SHA256与修复包一致，全部JSON保持。DesignDoc未改写，不更新ModUploader或沙箱，不执行上传、不结束游戏进程。部署明细：outputs/consecration-stack-20261005/local-deployment-20261005-163304.json。
