@@ -17,4 +17,7 @@ public sealed class DesireAmountState
 
     // Saved per player; rechecks while still at maximum must not replay audio.
     public bool MaximumAudioTriggered { get; set; }
+
+    // Zero in older saves means the original ten-desire maximum.
+    public int MaximumAudioThreshold { get; set; }
 }

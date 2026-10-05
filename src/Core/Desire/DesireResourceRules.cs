@@ -41,7 +41,7 @@ public static class DesireEvents
 }
 
 /// <summary>
-/// Resolves the special rule at ten desire. The resource framework remains
+/// Resolves the special rule at the current desire maximum. The resource framework remains
 /// responsible for card affordability, payment, free play, X and replay.
 /// </summary>
 public sealed class DesireResourceRules : ISecondaryResourceHookListener
@@ -123,7 +123,7 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
 
     internal static async Task RecheckMaximum(Player player, AbstractModel? source)
     {
-        if (Data.Desire.Get(player) < Data.Desire.Max
+        if (Data.Desire.Get(player) < Data.Desire.GetMaximum(player)
             || !DesireRuleModifiers.ShouldTriggerPenalty(player)
             || !ResolvingPlayers.Add(player))
         {
@@ -145,9 +145,14 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
                     == CombatSide.Player;
             if (!isPlayerTurn)
             {
+                int threshold = Data.Desire.GetMaximum(player);
                 Data.Desire.Handle.Modify(
                     runState,
-                    state => state.PendingClimaxResolution = true);
+                    state =>
+                    {
+                        if (!state.PendingClimaxResolution) state.PendingClimaxThreshold = threshold;
+                        state.PendingClimaxResolution = true;
+                    });
                 PlayDesireFull(player);
                 return;
             }
@@ -176,10 +181,13 @@ public sealed class DesireResourceRules : ISecondaryResourceHookListener
     private static void PlayDesireFull(Player player)
     {
         bool firstAtMaximum = false;
+        int maximum = Data.Desire.GetMaximum(player);
         Data.Desire.AmountHandle.Modify(player, state =>
         {
-            if (state.MaximumAudioTriggered) return;
+            int playedAt = state.MaximumAudioThreshold > 0 ? state.MaximumAudioThreshold : Data.Desire.Max;
+            if (state.MaximumAudioTriggered && playedAt >= maximum) return;
             state.MaximumAudioTriggered = true;
+            state.MaximumAudioThreshold = maximum;
             firstAtMaximum = true;
         });
         if (firstAtMaximum && PerformanceAudience.IsLocalMaiden(player))

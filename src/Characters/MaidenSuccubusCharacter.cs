@@ -160,6 +160,8 @@ public class MaidenSuccubusCharacter
         }
 
         await Desire.ResolvePendingFirstTurnStun(choiceContext, player);
+        // A route change or silent restore can lower the cap without a resource-change callback.
+        await DesireResourceRules.RecheckMaximum(player, this);
         // Resumed/special entries may restore desire silently. Reconcile only
         // the derived status after a pending maximum penalty has lowered it.
         await DesireResourceRules.SyncWetPower(choiceContext, player, "player-turn-start");
@@ -255,11 +257,7 @@ public class MaidenSuccubusCharacter
         }
 
         int corruption = CorruptionQuery.Get(runState);
-        if (corruption == CorruptionData.Min)
-        {
-            await Desire.Modify(player, -1);
-        }
-        else if (corruption == CorruptionData.Max)
+        if (corruption == CorruptionData.Max)
         {
             await Desire.Modify(player, 1);
         }

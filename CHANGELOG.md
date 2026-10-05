@@ -2885,3 +2885,6 @@ CARD-POOL-TRANSFORM-001 / RELIC-EVENT-001 IMPLEMENTED（2026-10-05）：前置`a
 
 
 FAKE-MERCHANT-SHOP-01 / SYS-ASSET-MERCHANT-001 IMPLEMENTED（2026-10-05）：前置`0fd6e054bc7b026def3f567f154b0105fef12ea0`，设计`3d8ecfe5bd37b8c10836f04c97a96475d331513a`，计划`eb66eab679ff17a45f1cd083147879cf357077b5`。普通商店改由公开RitsuLib工厂按需从包内PNG构造静态天音商店节点，共用Sprite尺寸/脚底锚点；假商人布局完成后抵消父级额外缩放，兼容库NMerchantCharacter与旧NCreatureVisuals双路径，重复调用幂等。仅本模组商店视觉不启动Spine，其他角色/普通商店尺寸/战斗/火堆不变。玩家消失原因尚未运行时确认，版本对比资源未删除而用户缓存路径发生变动，旧玩家日志缺该资源，现消除此加载依赖。Debug构建命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过0警告0错误；静态测试NOT_RUN、游戏内NOT_RUN，未部署，不写安装JSON。
+
+
+SYS-COR-004 / SYS-DES-002B IMPLEMENTED（2026-10-05）：前置`2cc3d5ca54cf8b81baead5a7938a64e8cfe904fa`，设计`53a2342dbaaba9bfcf13f3385faecd75203fa9da`，计划`5c7b6173445fcf558c71aa0b45700e3669a596b3`。-5时欲望上限+5（通常15），替代旧战后-1；+5仍战后+1。统一读取当前有效上限，用于满值惩罚/音频去重/CG/暂停RPG接口及条填充，5/8阈值保持。无限欲望/手牌保护规则保留。新增排队触发阈值保存并兼容旧10，提升上限时不执行尚未满的新低阈值排队；原已触发有效排队结算顺序保留。上限降低和无回调恢复在玩家回合合法入口复查，未因加载发布假欲望获得。悬停三个键更新并定向写入PCK，其余资源和用户文本继承上一包。Debug构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过0警告0错误；静态测试NOT_RUN、游戏内NOT_RUN，未部署，不修改安装JSON。

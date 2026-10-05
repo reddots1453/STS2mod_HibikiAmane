@@ -146,8 +146,8 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         }
 
         RefreshExpressionAndEdge();
-        if (change.OldValue < Data.Desire.Max
-            && change.NewValue >= Data.Desire.Max)
+        if (change.OldValue < Data.Desire.GetMaximum(change.Player)
+            && change.NewValue >= Data.Desire.GetMaximum(change.Player))
         {
             PlayClimaxCutIn();
         }

@@ -1,5 +1,8 @@
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Runs;
+using MaidenSuccubus.Characters;
+using MaidenSuccubus.Core.Corruption;
 
 namespace MaidenSuccubus.Core.Desire;
 
@@ -25,6 +28,10 @@ public static class DesireRuleModifiers
 
     public static decimal ModifyCap(Player player, decimal currentCap)
     {
+        // Route capacity is the base bonus; content modifiers (including unbounded) follow it.
+        if (player.Character is MaidenSuccubusCharacter
+            && player.RunState is RunState run && CorruptionQuery.IsMaxHoly(run))
+            currentCap += 5m;
         foreach (var modifier in Enumerate(player))
         {
             currentCap = modifier.ModifyDesireCap(player, currentCap);

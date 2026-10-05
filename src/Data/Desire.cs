@@ -50,6 +50,10 @@ public static class Desire
             : DesirePersistenceCoordinator.TryReadRunSnapshot(player, out int saved) ? saved : Min;
     }
 
+    public static int GetMaximum(Player player) => HasCombatState(player)
+        ? SecondaryResourceCmd.GetMax(player, DesireResource.Id) ?? Max
+        : (int)Math.Clamp(decimal.Floor(DesireRuleModifiers.ModifyCap(player, Max)), Min, int.MaxValue);
+
     public static Task Modify(Player player, int delta)
     {
         if (!HasCombatState(player))
@@ -121,6 +125,15 @@ public static class Desire
             return;
         }
 
+        // Old saves queued at ten. Raising the cap must not execute that obsolete low-threshold penalty.
+        int queuedThreshold = state.PendingClimaxThreshold > 0 ? state.PendingClimaxThreshold : Max;
+        int currentMaximum = GetMaximum(player);
+        if (currentMaximum > queuedThreshold && Get(player) < currentMaximum)
+        {
+            ClearPendingResolutions(runState);
+            return;
+        }
+
         ClearPendingResolutions(runState);
         await SecondaryResourceCmd.Set(
             player,
@@ -143,18 +156,24 @@ public static class Desire
                 saved.PendingFirstTurnStun = false;
                 saved.PendingClimaxResolution = false;
                 saved.PendingClimaxResolutions = 0;
+                saved.PendingClimaxThreshold = 0;
             });
 
     internal static void RememberCombatValue(Player player, int value)
     {
         int normalized = Math.Max(Min, value);
+        int maximum = GetMaximum(player);
         AmountHandle.Modify(
             player,
             state =>
             {
                 state.Amount = normalized;
                 state.HasValue = true;
-                if (normalized < Max) state.MaximumAudioTriggered = false;
+                if (normalized < maximum)
+                {
+                    state.MaximumAudioTriggered = false;
+                    state.MaximumAudioThreshold = 0;
+                }
             });
     }
 

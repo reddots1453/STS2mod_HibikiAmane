@@ -10,6 +10,7 @@ using STS2RitsuLib.Scaffolding.Godot.NodeAttachments;
 using MaidenSuccubus.Characters;
 using MaidenSuccubus.Data;
 using MaidenSuccubus.Core.Desire;
+using MaidenSuccubus.Core.Corruption;
 
 namespace MaidenSuccubus.UI;
 
@@ -33,11 +34,13 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
     private NTopBar? _topBar;
     private MegaCrit.Sts2.Core.Entities.Players.Player? _player;
     private int _displayedValue = int.MinValue;
+    private int _displayedMaximum = int.MinValue;
     private IDisposable? _loadSubscription;
 
     public override void _EnterTree()
     {
         DesireEvents.Changed += OnDesireChanged;
+        CorruptionEvents.Changed += OnCorruptionChanged;
         _loadSubscription = STS2RitsuLib.RitsuLibFramework.SubscribeLifecycle<STS2RitsuLib.RunLoadedEvent>(
             _ => CallDeferred(nameof(Refresh)), replayCurrentState: true);
         VisibilityChanged += OnVisibilityChanged;
@@ -47,6 +50,7 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
     public override void _ExitTree()
     {
         DesireEvents.Changed -= OnDesireChanged;
+        CorruptionEvents.Changed -= OnCorruptionChanged;
         VisibilityChanged -= OnVisibilityChanged;
         _loadSubscription?.Dispose();
         _loadSubscription = null;
@@ -188,6 +192,11 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
         }
     }
 
+    private void OnCorruptionChanged(CorruptionChanged change)
+    {
+        if (_player != null && ReferenceEquals(_player.RunState, change.RunState)) Refresh();
+    }
+
     private void OnCombatVisibilityChanged(bool _)
     {
         // This persistent meter remains visible in combat; the RitsuLib counter
@@ -197,13 +206,18 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
 
     private void UpdateValue(int value)
     {
-        if (value == _displayedValue)
+        int maximum = _player == null ? Desire.Max : Desire.GetMaximum(_player);
+        if (value == _displayedValue && maximum == _displayedMaximum)
         {
             return;
         }
 
         _displayedValue = value;
+        _displayedMaximum = maximum;
         UpdateTexture(value);
+        if (GetNodeOrNull<Control>("Threshold8") is Control eight)
+            eight.Position = new Vector2(8f, Mathf.Clamp(52f + MeterArtworkHeight / 2f
+                * (0.8f - 8f / Math.Max(1, maximum)), 0f, MeterArtworkHeight / 2f - 22f));
         if (_valueLabel != null && _player != null)
         {
             _valueLabel.Text = value.ToString();
@@ -225,7 +239,9 @@ public sealed partial class DesireMeter : Control, INodeAttachmentSetup
         {
             return;
         }
-        int state = Math.Clamp(value, 0, 10);
+        int maximum = _player == null ? Desire.Max : Desire.GetMaximum(_player);
+        // Reuse reviewed artwork as normalized fill; only the true maximum selects the full frame.
+        int state = (int)Math.Clamp((long)value * 10 / Math.Max(1, maximum), 0L, 10L);
         Texture2D? artwork = RuntimeTextureAssets.Load(
             $"ui/desire_meter/desire_meter_{state:00}.png");
         // The reviewed 128x416 artwork includes a baked-in empty value frame

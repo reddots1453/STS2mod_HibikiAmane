@@ -1718,3 +1718,6 @@ FAKE-MERCHANT-SHOP-01 / SYS-ASSET-MERCHANT-001 IMPLEMENTED（2026-10-05）：前
 
 
 SYS-COR-004 / SYS-DES-002B 同义文本补齐：设计补充提交`53a2342dbaaba9bfcf13f3385faecd75203fa9da`统一2.2即时/敌人回合/战斗外结算入口与2.3上限范围，不再保留无条件10点的旧文字；9+3例子明确为普通上限10。未新增玩法需求。音频去重保存MaximumAudioThreshold（旧0视为10），提高上限后真正达到新上限能播放一次，降低上限或在同一满值继续获得不重播；低于当前上限时清除标记。原有10点高欲望表情分档继续作为表现分档，不等于满值惩罚或CG入口。
+
+
+SYS-COR-004 / SYS-DES-002B IMPLEMENTED（2026-10-05）：前置`2cc3d5ca54cf8b81baead5a7938a64e8cfe904fa`，设计`53a2342dbaaba9bfcf13f3385faecd75203fa9da`，计划`5c7b6173445fcf558c71aa0b45700e3669a596b3`。-5时欲望上限+5（通常15），替代旧战后-1；+5仍战后+1。统一读取当前有效上限，用于满值惩罚/音频去重/CG/暂停RPG接口及条填充，5/8阈值保持。无限欲望/手牌保护规则保留。新增排队触发阈值保存并兼容旧10，提升上限时不执行尚未满的新低阈值排队；原已触发有效排队结算顺序保留。上限降低和无回调恢复在玩家回合合法入口复查，未因加载发布假欲望获得。悬停三个键更新并定向写入PCK，其余资源和用户文本继承上一包。Debug构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过0警告0错误；静态测试NOT_RUN、游戏内NOT_RUN，未部署，不修改安装JSON。

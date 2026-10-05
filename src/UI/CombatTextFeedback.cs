@@ -37,7 +37,7 @@ internal static class CombatTextFeedback
             if (change.OldValue < 8 && change.NewValue >= 8)
                 Notify("desire_reached_8", change.Player.Creature,
                     oldValue: change.OldValue, newValue: change.NewValue);
-            if (change.OldValue < Data.Desire.Max && change.NewValue >= Data.Desire.Max)
+            if (change.OldValue < Data.Desire.GetMaximum(change.Player) && change.NewValue >= Data.Desire.GetMaximum(change.Player))
                 Notify("desire_reached_max", change.Player.Creature,
                     oldValue: change.OldValue, newValue: change.NewValue);
         };

@@ -15,10 +15,12 @@ public sealed class DesireState
 
     /// <summary>
     /// A full-desire penalty waiting for the next legal player-turn start.
-    /// Desire is capped at ten, so an unresolved full value cannot enqueue a
-    /// second distinct resolution.
+    /// A full value queues only one resolution, regardless of the current cap.
     /// </summary>
     public bool PendingClimaxResolution { get; set; }
+
+    // Zero in older saves means the original ten-desire threshold.
+    public int PendingClimaxThreshold { get; set; }
 
     /// <summary>
     /// Legacy save field from the count-based implementation. A positive
