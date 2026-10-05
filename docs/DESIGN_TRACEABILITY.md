@@ -1785,3 +1785,16 @@ Debug构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:Va
 ## 2026-10-05 用户授权仅本地部署（LOCAL-BLINDFOLD-NATIVE-HOVER-20261005-154139）
 
 源码`cd771c26a7a212935e1f710bf264384bfa88e0d1`，部署前快照`9ddac83643435124f44219f548846e6cc5616926`。用户明确要求部署到本地mod目录，已将最新累计修订包的DLL、PDB和PCK写入`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`，包含英雄宝珠圣洁形态保留+沉眠精华、±5欲望上限15及悬停文本同步、眼罩原版地图悬停单行遭遇提示，以及此前試炼奖励地图/原版变化/商人立绘修复。复用Debug构建，命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`，0警告0错误；不重复构建或静态测试，游戏内NOT_RUN。旧产物与全部已存在JSON已备份到`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\local-blindfold-native-hover-20261005-154139`，逐文件SHA-256与包一致，全部JSON哈希保持。未改ModUploader或沙箱，未执行上传，不结束游戏进程。本轮仅支持游戏v0.111.0；godot(7).log中v0.107.1缺CardLocation的类型枚举失败已诊断，用户选择由玩家升级游戏，不做旧版适配。游戏内效果待用户实测。部署明细：聊天outputs/blindfold-native-hover-20261005/local-deployment-20261005-154139.json。
+
+
+## 2026-10-05 +5拘束阈值与欲望标记、-5战后减欲望、悬停精简及眼罩提示（READY）
+
+前置`8c481fe71d760f31210caaffeb95f0a2b7eb1152`；基线`e724d581723bab480b59e8e09b3d2a6098852600`。本轮用户明确要求今后未经指示不修改DesignDoc；已只读核对现有修改并保存原样快照，不改写、不追加DesignDoc。按用户修订的2.1三项悬停原文实现；其1.3/末尾旧记录仍写-5上限+5，但本轮用户明确要求-5恢复战斗结束减1，直接指示优先，不自行改文档。
+
+SYS-COR-004 / SYS-DES-002B / SYS-CTL-001：+5基础上限15、拘束格挡绕过和Wet门槛为>=10；其他堕落值门槛>=8。-5基础上限10，胜利原生AfterCombatVictory恢复减1欲望，0值不负数；+5不恢复旧战后+1。心跳/粉色屏幕边缘等8点表现规则不改。统一GetControlBypassThreshold供ControlCmd、Wet和UI读取；欲望变更、开战、回合开始沿用原生合法异步入口，拘束结算前和首次侵犯增堕落后复核Wet，不从UI事件启动异步模型变更。
+
+欲望UI：原128×416素材固定粉线中心y=124，真正量程为y=72.5至330；局部CanvasItem shader只替换原粉线像素并在实际threshold/maximum位置绘制粉色标记，不改PNG、其余立绘/泡泡/计量状态。同步标记悬停区、阈值文案，缓存纳入threshold，+5/-5/其他路线切换即时刷新。通用和满值悬停严格使用DesignDoc新原文及已有富文本色标，不追加通常/15点等解释。
+
+RELIC-EVENT-001：原生悬停标题改下一场遭遇战：/下一场精英战：，正文仅真实遭遇名；不再在Boss地图节点创建眼罩悬停。读取只读RoomSet，不改RNG或遭遇顺序，持有者范围、原版布局保留。
+
+验收待用户实测：+5欲望9可用格挡/10不可；其他路线7可/8不可；-5战后欲望减1且上限10；+5上限15；粉线/悬停随阈值和上限对应；三项说明逐字匹配用户原文；普通/精英标题分行、Boss无眼罩提示。按用户要求只build、不执行静态测试。完成后已获授权本地及ModUploader部署，全部安装JSON保持。
