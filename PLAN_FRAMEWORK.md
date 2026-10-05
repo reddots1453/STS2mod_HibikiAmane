@@ -3073,3 +3073,8 @@ SYS-CTL-NET-001 IMPLEMENTED：现代游戏属性编号表初始化后补齐缺�
 
 
 SYS-ASSET-MEM-001 IMPLEMENTED（2026-10-05）：前置完整现状快照`8a26d9628eea20f94378f62cafeb2da1ef7a387d`，设计`4e86a8fce6732bd9f9372a394368363ffa014cd8`，计划`04f2fc1621f2ce7a2a13150cf210e085d2e3dd60`。统一原始贴图缓存，96MiB像素估算LRU强引用预算；Godot WeakRef查找仍存活资源，淘汰/页面退出只放开强引用，不Dispose贴图、不主动GC、无尺寸变更。立绘与表情不再整批预载；CG获得锁后逐帧读取；角色7项生成资源改压缩二进制.res+源PNG SHA256标记复用，商店与火堆场景路径同步。增加加载耗时、像素估算、缓存和进程工作集日志。Debug最终构建命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过，0警告0错误，6.79秒；未运行静态测试，游戏内NOT_RUN，未部署本地/沙箱/上传器，安装JSON未触碰。构建初次命名冲突和可空类型问题已修正，最终成功构建为交付依据。缓存预算不限制界面及Godot自身持有资源的实际总内存，GC/引擎回收时机未强制；首次生成.res与首次按需解码仍有成本，玩家启动卡死根因尚待本次环境日志确认。
+
+
+## 2026-10-05 用户授权仅本地部署（LOCAL-TEXTURE-MEMORY-20261005-102712）
+
+源码`95f9e2ad6b575421d7725d59e487bcfd3da8eba3`，部署前快照`6006e0c9b548d4516c61cfe675cf30cb9cf5e59b`。用户明确要求部署到本地mod目录，已将最新贴图缓存/加载优化包的DLL、PDB和PCK写入`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`，同时包含此前未部署的拘束保存字段编号兼容与瘴雷能量图标修正。复用Debug构建，命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`，0警告0错误；不重复构建或静态测试，游戏内NOT_RUN。旧产物与全部已存在JSON已备份到`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\local-texture-memory-20261005-102712`，逐文件SHA-256与包一致，全部JSON哈希保持。未改ModUploader或沙箱，未执行上传，不结束游戏进程。PCK已同步商店/火堆的.res资源路径，卡图尺寸不变。首次启动会生成新二进制资源，后续源图未改时复用；缓存预算不等于总进程内存限制。部署明细：聊天outputs/texture-memory-20261005/local-deployment-20261005-102712.json。
