@@ -40,7 +40,7 @@ public sealed class DesignBlindfoldTestConsoleCmd : AbstractConsoleCmd
         string beforeActs = SnapshotActs(), beforeRngs = Rngs();
         try
         {
-            Check(relic.DynamicDescription.GetFormattedText() == "无法看到敌人意图。\n在地图战斗节点上查看下一场遭遇及可能出现的敌人。", "exact formal description");
+            Check(relic.DynamicDescription.GetFormattedText() == "无法看到敌人意图。\n在地图战斗节点上查看下一场遭遇。", "exact formal description");
             Check(BlindfoldPresentation.HasEffect(player), "local owner benefits");
             Check(!BlindfoldPresentation.HasEffect(null), "missing local context cannot benefit");
             Check(!BlindfoldPresentation.HidesIntents(player.Creature), "player intent is unaffected");

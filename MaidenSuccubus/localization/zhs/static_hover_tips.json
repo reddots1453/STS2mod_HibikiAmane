@@ -1,10 +1,10 @@
 {
   "MAIDENSUCCUBUS_BLINDFOLD_MONSTER.title": "普通战预测",
-  "MAIDENSUCCUBUS_BLINDFOLD_MONSTER.description": "[color=#D8C39A]下一场[/color]：{Encounter}\n[color=#8ED1FF]可能出现的敌人[/color]：{Monsters}",
+  "MAIDENSUCCUBUS_BLINDFOLD_MONSTER.description": "下一场：{Encounter}",
   "MAIDENSUCCUBUS_BLINDFOLD_ELITE.title": "精英战预测",
-  "MAIDENSUCCUBUS_BLINDFOLD_ELITE.description": "[color=#D98BB8]下一场[/color]：{Encounter}\n[color=#8ED1FF]可能出现的敌人[/color]：{Monsters}",
+  "MAIDENSUCCUBUS_BLINDFOLD_ELITE.description": "下一场：{Encounter}",
   "MAIDENSUCCUBUS_BLINDFOLD_BOSS.title": "首领战预测",
-  "MAIDENSUCCUBUS_BLINDFOLD_BOSS.description": "[color=#E07A7A]下一场[/color]：{Encounter}\n[color=#8ED1FF]可能出现的敌人[/color]：{Monsters}",
+  "MAIDENSUCCUBUS_BLINDFOLD_BOSS.description": "下一场：{Encounter}",
   "MAIDENSUCCUBUS_BLINDFOLD_UNAVAILABLE.title": "遭遇尚未确定",
   "MAIDENSUCCUBUS_BLINDFOLD_UNAVAILABLE.description": "当前幕没有可读取的下一场此类遭遇。",
   "MAIDENSUCCUBUS_TOPBARBUTTON_CORRUPTION.title": "堕落值",

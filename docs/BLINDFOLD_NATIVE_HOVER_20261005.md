@@ -9,3 +9,7 @@ RELIC-EVENT-001：用户最新要求原版悬停框且仅第一行。完整核�
 
 
 COMPAT-GAME-001文档诊断同步：设计`3ba7a5a25133c086def7a2605722353739bcd156`。玩家godot(7).log第132～137行明确旧游戏0.107.1不存在CardLocation，原版ModManager.GetTypes在本mod初始化前失败；第129行基础库正常完成，第309行基础库镜像再次记录同一缺失类型。源码CardLocation用于SemenCurse/CurseOfferPlayPower钩子和HumilityRewritePatches的新结果位置补丁，后者Safe.Run闭包会生成包含该类型字段的类；日志只证明缺失类型，不声称唯一加载失败类已通过运行时定位。用户明确仅支持0.111.0，故不做旧版兼容，不把跳过失败类型当正常加载。告知玩家更新至0.111.0。开发构建引用本地0.111.0 sts2.dll；不改安装JSON，不修改库，不新建运行时版本判断（加载阶段早于Initializer）。该项为诊断/支持范围文档IMPLEMENTED，旧版移植NOT_APPLICABLE。
+
+
+IMPLEMENTED（2026-10-05）：前置`a8586a96312e5c23294a5abef36a49ab5fbe51c7`，设计`3ba7a5a25133c086def7a2605722353739bcd156`，计划`56d4e083825109403eb3c94e0fad31798fa2c71e`。眼罩地图提示完全使用原版NHoverTipSet与对齐，仅显示下一场遭遇，移除自绘面板/可能敌人一行与相关查询；遗物不追加预测。累计英雄宝珠圣洁附魔、±5上限15及试炼奖励修复。
+Debug构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过0警告0错误，静态测试NOT_RUN、游戏内NOT_RUN；未部署，用户已授权仅本地部署，安装/上传器JSON不修改。

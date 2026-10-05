@@ -2902,3 +2902,7 @@ RELIC-START-002 IMPLEMENTED（2026-10-05）：前置`5eafcf69244c481d1d3d114d716
 
 
 SYS-COR-004 / SYS-DES-002B IMPLEMENTED（2026-10-05）：前置`32636db88ee30e879b49af555f50f2d429d1e5d1`，设计`402ae80b7b42826a5827e87384ff4e5807ce9f50`，计划`7276433bdd3f6c047ef0444552a0f499fa476b24`。+5由战后欲望+1替换为欲望上限+5，-5同规则保留，两端通常15且不叠加；其他通常10。满值/音频/CG/计量条使用已有动态上限，8点不变；三条悬停说明同步。英雄宝珠本轮修订累计包含。Debug构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`0警告0错误；静态测试NOT_RUN，游戏内NOT_RUN。尚未部署此累计包，不写安装/上传器JSON；已授权本地部署将待游戏关闭后替换。
+
+
+IMPLEMENTED（2026-10-05）：前置`a8586a96312e5c23294a5abef36a49ab5fbe51c7`，设计`3ba7a5a25133c086def7a2605722353739bcd156`，计划`56d4e083825109403eb3c94e0fad31798fa2c71e`。眼罩地图提示完全使用原版NHoverTipSet与对齐，仅显示下一场遭遇，移除自绘面板/可能敌人一行与相关查询；遗物不追加预测。累计英雄宝珠圣洁附魔、±5上限15及试炼奖励修复。
+Debug构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过0警告0错误，静态测试NOT_RUN、游戏内NOT_RUN；未部署，用户已授权仅本地部署，安装/上传器JSON不修改。

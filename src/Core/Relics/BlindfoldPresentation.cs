@@ -47,8 +47,6 @@ internal static class BlindfoldPresentation
                 "MAIDENSUCCUBUS_BLINDFOLD_UNAVAILABLE.description"));
         LocString description = new("static_hover_tips", key + ".description");
         description.Add("Encounter", encounter.Title.GetFormattedText());
-        description.Add("Monsters", string.Join("、", encounter.AllPossibleMonsters
-            .Select(monster => monster.Title.GetFormattedText()).Distinct()));
         return new HoverTip(title, description);
     }
 
