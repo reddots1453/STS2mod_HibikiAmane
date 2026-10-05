@@ -25,6 +25,11 @@ public sealed class HeroOrb : RetentionOrb
 {
     public override RelicRarity Rarity => RelicRarity.Starter;
     protected override bool IsEternal => false;
+    protected override IEnumerable<IHoverTip> AdditionalHoverTips =>
+        IsMutable && Owner is { RunState: RunState run }
+            && RetentionOrbRule.At(CorruptionQuery.Get(run), false).Enchant
+                ? base.AdditionalHoverTips.Concat(HoverTipFactory.FromEnchantment<SlumberingEssence>())
+                : base.AdditionalHoverTips;
 }
 
 [RegisterRelic(typeof(MSRelicPool))]

@@ -2896,3 +2896,6 @@ ACT4-001-REWARD-MAP-001 / RELIC-EVENT-001 IMPLEMENTED（2026-10-05）：前置`c
 ## 2026-10-05 用户授权仅本地部署（LOCAL-TRIAL-MAP-BLINDFOLD-20261005-152152）
 
 源码`123fea88c652c8fd60e290748a2c37159256a18e`，部署前快照`958b1e7b71b27c21c2df613458f81d016e545ffc`。用户明确要求部署到本地mod目录，已将最新試炼地图奖励/眼罩节点提示包的DLL、PDB和PCK写入`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`，同时累计此前未部署的原版三路线变化、商店立绘及-5欲望上限15修订。复用Debug构建，命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`，0警告0错误；不重复构建或静态测试，游戏内NOT_RUN。旧产物与全部已存在JSON已备份到`C:\Users\wilson\Documents\Codex\2026-09-30\amane-recovered-context\backups\local-trial-map-blindfold-20261005-152152`，逐文件SHA-256与包一致，全部JSON哈希保持。未改ModUploader或沙箱，未执行上传，不结束游戏进程。试炼领奖后返回地图，眼罩仅在地图战斗节点显示预测，原战利品保留；游戏效果待用户实测。部署明细：聊天outputs/trial-reward-map-blindfold-20261005/local-deployment-20261005-152152.json。
+
+
+RELIC-START-002 IMPLEMENTED（2026-10-05）：前置`5eafcf69244c481d1d3d114d71607ebe23e64a71`，设计`deb3ee1ae605d7cc31275854a7452397c2421cec`，计划`87d673d90de6266cc4b06b156dc1e8eb9d775c8d`。英雄宝珠≤-4选择1张手牌添加保留+原版沉眠精华，首次回合末即时减1费；已附魔不覆盖，不重复补tick，不改永久牌组；中立/+4和永恒宝珠不变。圣洁描述与附魔悬停同步，动态异画沿用原实现。Debug构建`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`0警告0错误；静态测试NOT_RUN，游戏内NOT_RUN，当前打包完成尚待本地部署，安装和上传器JSON不修改。累计包含试炼奖励地图修复、眼罩节点提示与此前全部未部署修订。

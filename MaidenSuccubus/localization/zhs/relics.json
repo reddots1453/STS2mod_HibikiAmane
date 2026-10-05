@@ -29,7 +29,7 @@
   "MAIDEN_SUCCUBUS_RELIC_HERO_ORB.title": "英雄宝珠",
   "MAIDEN_SUCCUBUS_RELIC_HERO_ORB.description": "回合结束时，[gold]保留[/gold]1张牌。[purple]堕落值[/purple]≥4或≤-4：[gold]变奏[/gold]。",
   "MAIDEN_SUCCUBUS_RELIC_HERO_ORB.descriptionCorrupt": "回合结束时，[gold]保留[/gold]1张牌并将其[gold]升级[/gold]。[purple]堕落值[/purple]＜4：[gold]变奏[/gold]。",
-  "MAIDEN_SUCCUBUS_RELIC_HERO_ORB.descriptionHoly": "回合结束时，选择[gold]手牌[/gold]中的1张牌添加[gold]保留[/gold]。[purple]堕落值[/purple]＞-4：[gold]变奏[/gold]。",
+  "MAIDEN_SUCCUBUS_RELIC_HERO_ORB.descriptionHoly": "回合结束时，选择[gold]手牌[/gold]中的1张牌添加[gold]保留[/gold]并[gold]附魔[/gold]：[purple]沉眠精华[/purple]。[purple]堕落值[/purple]＞-4：[gold]变奏[/gold]。",
   "MAIDEN_SUCCUBUS_RELIC_HERO_ORB.selectionScreenPrompt": "选择1张牌。",
   "MAIDEN_SUCCUBUS_RELIC_HERO_ORB.flavor": "留住此刻的勇气。",
   "MAIDEN_SUCCUBUS_RELIC_ETERNAL_ORB.title": "永恒宝珠",

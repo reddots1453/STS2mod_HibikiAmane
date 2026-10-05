@@ -76,12 +76,13 @@ public sealed class DesignRetentionOrbTestConsoleCmd : AbstractConsoleCmd
                     CardModel other = await ctx.Add<DefendIronclad>(PileType.Hand);
                     bool permanent = eternal || corruption is -5 or -4;
                     bool upgrade = eternal || corruption is 4 or 5;
+                    bool enchant = eternal || corruption is -5 or -4;
                     string description = System.Text.RegularExpressions.Regex.Replace(
                         orb.DynamicDescription.GetFormattedText(), @"\[[^\]]*\]", "");
                     string expectedText = eternal
                         ? "回合结束时，选择手牌中的1张牌添加保留，将其升级并附魔：沉眠精华。"
                         : permanent
-                            ? "回合结束时，选择手牌中的1张牌添加保留。堕落值＞-4：变奏。"
+                            ? "回合结束时，选择手牌中的1张牌添加保留并附魔：沉眠精华。堕落值＞-4：变奏。"
                             : upgrade
                                 ? "回合结束时，保留1张牌并将其升级。堕落值＜4：变奏。"
                                 : "回合结束时，保留1张牌。堕落值≥4或≤-4：变奏。";
@@ -92,11 +93,11 @@ public sealed class DesignRetentionOrbTestConsoleCmd : AbstractConsoleCmd
                     Check(card.IsUpgraded == upgrade && !other.IsUpgraded, "upgrade branch and selection");
                     Check(!deck.IsUpgraded && !deck.Keywords.Contains(CardKeyword.Retain) && deck.Enchantment == null,
                         "combat changes never reach permanent deck");
-                    Check((card.Enchantment is SlumberingEssence) == eternal, "real vanilla enchantment only on eternal");
-                    Check(card.EnergyCost.GetWithModifiers(CostModifiers.Local) == (eternal ? 4 : 5), "initial end phase reduces exactly once");
+                    Check((card.Enchantment is SlumberingEssence) == enchant, "real vanilla enchantment on holy hero or eternal");
+                    Check(card.EnergyCost.GetWithModifiers(CostModifiers.Local) == (enchant ? 4 : 5), "initial end phase reduces exactly once");
                     card.EndOfTurnCleanup();
                     Check(card.ShouldRetainThisTurn == permanent, "temporary retain expires, keyword persists");
-                    if (eternal)
+                    if (enchant)
                     {
                         var enchantment = card.Enchantment;
                         await FlushChoosing(card);
