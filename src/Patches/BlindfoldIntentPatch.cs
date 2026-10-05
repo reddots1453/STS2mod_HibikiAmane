@@ -51,10 +51,19 @@ public static class BlindfoldIntentPatch
 [HarmonyPatch(typeof(NIntent), "OnHovered")]
 public static class BlindfoldIntentHoverPatch
 {
-    public static bool Prefix(Creature ___owner)
+    private static readonly FieldInfo? OwnerField = AccessTools.Field(typeof(NIntent), "_owner");
+    private static bool Prepare()
+    {
+        bool available = OwnerField?.FieldType == typeof(Creature);
+        if (!available) MaidenSuccubusMod.Logger.Warn("[Blindfold] Intent owner field unavailable; direct hover guard skipped.");
+        return available;
+    }
+
+    public static bool Prefix(NIntent __instance)
     {
         bool hide = false;
-        Safe.Run(() => hide = BlindfoldPresentation.HidesIntents(___owner), nameof(BlindfoldIntentHoverPatch));
+        Safe.Run(() => hide = BlindfoldPresentation.HidesIntents(
+            OwnerField?.GetValue(__instance) as Creature), nameof(BlindfoldIntentHoverPatch));
         return !hide;
     }
 }

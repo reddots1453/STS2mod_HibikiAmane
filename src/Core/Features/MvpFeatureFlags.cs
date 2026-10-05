@@ -29,7 +29,6 @@ public static class MvpPatchPolicy
                 "MerchantInvasionCursePatch" =>
                     MvpFeatureFlags.SpecialInvasionMerchant,
                 "PortableRetainPatch" => MvpFeatureFlags.Portable,
-                "BlindfoldIntentPatch" => false,
                 _ => null,
             };
             if (enabled.HasValue)

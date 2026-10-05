@@ -74,8 +74,7 @@ public sealed class BalancedLens : MSRelicTemplate, IMSRouteRewardModifierRelic
 public sealed class Blindfold : MSRelicTemplate
 {
     public override RelicRarity Rarity => RelicRarity.Event;
-    protected override IEnumerable<MegaCrit.Sts2.Core.HoverTips.IHoverTip> AdditionalHoverTips =>
-        BlindfoldPresentation.PreviewTips(this);
+    // Encounter details are attached to the native inventory hover set after OnFocus.
     public override Task AfterObtained() => BlindfoldPresentation.Refresh(Owner);
     public override Task AfterRemoved() => BlindfoldPresentation.Refresh(Owner);
 

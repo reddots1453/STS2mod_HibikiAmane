@@ -42,43 +42,20 @@ internal static class NativeGenerationPoolPatch
                 || typeof(RelicModel).IsAssignableFrom(owner) || typeof(PowerModel).IsAssignableFrom(owner)) return true;
         return false;
     }
-    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase __originalMethod)
+    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        bool defaultTransform = __originalMethod.DeclaringType == typeof(CardFactory)
-            && __originalMethod.Name == nameof(CardFactory.GetDefaultTransformationOptions);
         foreach (CodeInstruction code in instructions)
         {
             if (code.Calls(GetUnlocked))
             {
-                if (defaultTransform)
-                {
-                    // The native pool may already be Colorless for Event/Ancient/Token.
-                    // Identify our four pools from the original card, before native filtering.
-                    var original = new CodeInstruction(OpCodes.Ldarg_0);
-                    original.labels.AddRange(code.labels);
-                    code.labels.Clear();
-                    yield return original;
-                }
+                // The native factory chooses the pool first, including Colorless fallback.
+                // Expand only a selected Maiden route pool, never derivative or special pools.
                 code.opcode = OpCodes.Call;
-                code.operand = AccessTools.Method(typeof(NativeGenerationPoolPatch),
-                    defaultTransform ? nameof(GetTransformationCards) : nameof(GetGenerationCards));
+                code.operand = AccessTools.Method(typeof(NativeGenerationPoolPatch), nameof(GetGenerationCards));
             }
             yield return code;
         }
     }
-    internal static IEnumerable<CardModel> GetTransformationCards(CardPoolModel nativePool,
-        UnlockState unlocks, CardMultiplayerConstraint multiplayer, CardModel original)
-    {
-        if (original.Pool is not (MSNeutralCardPool or MSCorruptCardPool
-            or MSHolyCardPool or MSGeneratedCardPool))
-            return nativePool.GetUnlockedCards(unlocks, multiplayer);
-        return AllMaidenSuccubusCards.TransformationPools
-            .SelectMany(pool => pool.GetUnlockedCards(unlocks, multiplayer))
-            .Where(card => !RetiredCardCatalog.IsRetired(card))
-            .DistinctBy(card => card.Id)
-            .OrderBy(card => card.Id.Entry, StringComparer.Ordinal).ToArray();
-    }
-
     internal static IEnumerable<CardModel> GetGenerationCards(CardPoolModel pool, UnlockState unlocks,
         CardMultiplayerConstraint multiplayer)
     {

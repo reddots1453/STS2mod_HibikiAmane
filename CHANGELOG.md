@@ -2879,3 +2879,6 @@ SYS-ASSET-MEM-001 IMPLEMENTED（2026-10-05）：前置完整现状快照`8a26d96
 
 
 CARD-POOL-TRANSFORM-001 IMPLEMENTED（2026-10-05）：前置快照`b99bd6b181ebd33df7f0c5c445c0668dbc07a2c0`，设计`f8e30dd306377516d49c1d6dadcd7ee7dddd66f6`，计划`147bf7f76ea7c4632ddffacd42919dd4a857bc5d`。默认随机变化在CardFactory.GetDefaultTransformationOptions取解锁候选时识别原牌四池，合并中立/堕落/圣洁/MSGenerated，并按ID稳定去重、排除废弃牌；原生后续过滤与RNG/创建/动画/附魔不替换。该共用入口同时覆盖战斗内外；指定replacement/options和其他角色、奖励、商店及三路线普通生成不改。衍生池符合过滤的普通稀有度牌可进入候选，包括IceMist和六圣言（CanBeGeneratedByModifiers=false仍保证奖励/Modifier生成禁入；原版默认变化不使用该属性），这是本次用户四池变化规则的明确授权。反射/IL修改只在原调用前增加original实参，原call标签转移到新ldarg_0，维持完整原生筛选。构建命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过，0警告0错误，17.02秒；按用户要求未跑静态测试，游戏内NOT_RUN，未部署。资源包继承已部署texture-memory包，不改卡图/本地化或安装JSON。
+
+
+CARD-POOL-TRANSFORM-001 / RELIC-EVENT-001 IMPLEMENTED（2026-10-05）：前置`a72c9f0755d241ddcbf316af61c7e5b7f7e3a173`，设计`013e887470ff85ff5022dcf0d213328410e86b22`，计划`035648d7562d8140dceb083fae5895083398c060`。撤销未部署四池变化扩张，原factory选池后仅三路线合并，衍生牌/无色fallback保持原版；显式options与奖励/商店不改。眼罩主显示补丁恢复、NIntent _owner安全反射、Power说明保留；遭遇预览参考辉眼只读RoomSet与遗物/地图悬停：只下一场，Boss遵守双首领顺序，不生成实体/不消费RNG/不推进visited，无辉眼DLL依赖。不修改本地化/PCK/安装JSON。构建命令`dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore`通过，0警告0错误；静态测试NOT_RUN、游戏内NOT_RUN，未部署。

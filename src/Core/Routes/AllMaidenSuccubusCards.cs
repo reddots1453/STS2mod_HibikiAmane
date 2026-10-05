@@ -13,11 +13,6 @@ public static class AllMaidenSuccubusCards
         ModelDb.CardPool<MSHolyCardPool>(),
     ];
 
-    // Only default random transformations include eligible derivative cards.
-    // Other generation/reward consumers retain the three-route Pools contract.
-    public static IReadOnlyList<CardPoolModel> TransformationPools =>
-        [.. Pools, ModelDb.CardPool<MSGeneratedCardPool>()];
-
     public static IEnumerable<CardModel> GetCanonicalCards() =>
         Pools
             .SelectMany(pool => pool.AllCards)

@@ -1,4 +1,5 @@
 using Godot;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Creatures;
@@ -46,40 +47,52 @@ internal static class BlindfoldPresentation
                 || !relic.Owner.Relics.Contains(relic) || relic.Owner.RunState is not RunState run)
                 return;
             foreach (RoomType type in new[] { RoomType.Monster, RoomType.Elite, RoomType.Boss })
-            {
-                string key = "MAIDENSUCCUBUS_BLINDFOLD_" + type.ToString().ToUpperInvariant();
-                LocString title = new("static_hover_tips", key + ".title");
-                EncounterModel? encounter = Peek(run.Act, type);
-                if (encounter == null)
-                {
-                    tips.Add(new HoverTip(title, new LocString("static_hover_tips",
-                        "MAIDENSUCCUBUS_BLINDFOLD_UNAVAILABLE.description")));
-                    continue;
-                }
-                LocString description = new("static_hover_tips", key + ".description");
-                description.Add("Encounter", encounter.Title.GetFormattedText());
-                // Actual random composition depends on the floor eventually selected.
-                // Do not generate future entities or claim all possible enemies will spawn.
-                description.Add("Monsters", string.Join("、", encounter.AllPossibleMonsters
-                    .Select(monster => monster.Title.GetFormattedText()).Distinct()));
-                tips.Add(new HoverTip(title, description));
-            }
+                tips.Add(EncounterTip(run.Act, type));
         }, nameof(PreviewTips));
         return tips;
+    }
+
+    internal static HoverTip EncounterTip(ActModel act, RoomType type)
+    {
+        string key = "MAIDENSUCCUBUS_BLINDFOLD_" + type.ToString().ToUpperInvariant();
+        LocString title = new("static_hover_tips", key + ".title");
+        EncounterModel? encounter = Peek(act, type);
+        if (encounter == null)
+            return new HoverTip(title, new LocString("static_hover_tips",
+                "MAIDENSUCCUBUS_BLINDFOLD_UNAVAILABLE.description"));
+        LocString description = new("static_hover_tips", key + ".description");
+        description.Add("Encounter", encounter.Title.GetFormattedText());
+        description.Add("Monsters", string.Join("、", encounter.AllPossibleMonsters
+            .Select(monster => monster.Title.GetFormattedText()).Distinct()));
+        return new HoverTip(title, description);
     }
 
     internal static EncounterModel? Peek(ActModel act, RoomType type)
     {
         if (!act.IsMutable || type is not (RoomType.Monster or RoomType.Elite or RoomType.Boss)) return null;
-        try
+        EncounterModel? next = null;
+        Safe.Run(() =>
         {
-            // v0.111.0 PullNextEncounter only reads RoomSet.Next*Encounter;
-            // counters advance separately in MarkRoomVisited, never here.
-            return act.PullNextEncounter(type);
-        }
-        catch (DivideByZeroException) { return null; } // Empty normal/elite queue.
-        catch (ArgumentOutOfRangeException) { return null; } // Incomplete/invalid saved queue.
-        catch (InvalidOperationException) { return null; } // Act has no generated boss yet.
+            // Adapted from local sts2_foresight/EncounterReader. No dequeue, generation or RNG.
+            object? rooms = Traverse.Create(act).Field("_rooms").GetValue();
+            if (rooms == null) return;
+            if (type == RoomType.Boss)
+            {
+                // BossReader reads Boss; the next-encounter view also respects Double Boss.
+                // Avoid an unset Boss getter before this act's rooms have been generated.
+                if (Traverse.Create(rooms).Field("_boss").GetValue<EncounterModel>() == null) return;
+                next = Traverse.Create(rooms).Property("NextBossEncounter").GetValue<EncounterModel>();
+                return;
+            }
+            bool elite = type == RoomType.Elite;
+            var list = Traverse.Create(rooms).Field(elite ? "eliteEncounters" : "normalEncounters")
+                .GetValue<List<EncounterModel>>();
+            if (list == null || list.Count == 0) return;
+            int visited = Traverse.Create(rooms).Field(elite ? "eliteEncountersVisited" : "normalEncountersVisited")
+                .GetValue<int>();
+            if (visited >= 0) next = list[visited % list.Count];
+        }, "BlindfoldEncounterPeek");
+        return next;
     }
 
     internal static async Task Refresh(Player? owner)
