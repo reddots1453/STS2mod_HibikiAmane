@@ -3,3 +3,14 @@ MaidenSuccubus/textures/
 MaidenSuccubus.pck
 .asset-import/
 MaidenSuccubus/images/**/*.import
+
+# Generated build output and local diagnostics
+**/bin/
+**/obj/
+**/.godot/
+*.dll
+*.pdb
+*.pck
+*.log
+__pycache__/
+.review/
