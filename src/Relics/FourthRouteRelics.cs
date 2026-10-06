@@ -293,7 +293,7 @@ public sealed class SlothRouteRelic : FourthRouteRelic
     [SavedProperty]
     public bool TurnEndResolved { get => _turn.EndResolved; set { AssertMutable(); _turn.EndResolved = value; } }
     public override FourthRouteQuest Quest => FourthRouteQuest.Sloth;
-    protected override IEnumerable<IHoverTip> AdditionalHoverTips => Stage is 3 or 4
+    protected override IEnumerable<IHoverTip> AdditionalHoverTips => Stage > 0
         ? base.AdditionalHoverTips.Concat([HoverTipFactory.Static(StaticHoverTip.Block)])
         : base.AdditionalHoverTips;
     public override Task BeforeCombatStart() { _turn = default; return Task.CompletedTask; }

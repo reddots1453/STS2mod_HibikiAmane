@@ -25,14 +25,15 @@ internal struct SlothTurnState
     {
         if (!ownTurn || EndResolved || stage is < 1 or > 4) return 0;
         EndResolved = true; // Reserve before any asynchronous block command.
-        PendingEnergy = EnergySpent <= 2;
-        return PendingEnergy && stage is 3 or 4 ? 12 : 0;
+        bool qualifies = EnergySpent <= 2;
+        PendingEnergy = qualifies && stage is 3 or 4;
+        return qualifies ? (stage == 1 ? 6 : 12) : 0;
     }
 
     public int TakeEnergy(int stage, bool ownTurn)
     {
         if (!ownTurn || !PendingEnergy) return 0;
         PendingEnergy = false; // Reserve before the asynchronous energy command.
-        return stage switch { 1 => 1, 2 => 2, 3 or 4 => 3, _ => 0 };
+        return stage is 3 or 4 ? 3 : 0;
     }
 }

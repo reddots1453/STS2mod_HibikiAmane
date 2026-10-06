@@ -1949,3 +1949,15 @@ Godot4.5.1资源导入成功；dotnet build MaidenSuccubus.csproj -c Debug -p:De
 PrideRouteRelic觉醒回合钩子Grant由2改为4，同时获得4力量/4自负；残缺、完整、试炼计数、自负受到未格挡伤害后的行为与存档Stage原样保留。同步Stage3/Stage4悬停及奖励预览的现有本地化入口。
 
 构建：dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore，0警告0错误。未运行静态测试，旧傲慢2/2调试契约不是本轮验收规则；游戏内待用户确认。文案更新项目当前PCK一次，无PCK备份、未部署。DesignDoc未修改，正常Git暂存区保持。前置`1b8850ea2d7407f9e77c638b4ba7f72bdf9ca2df`。
+
+
+## 2026-10-06 SLOTH-BALANCE-20261006 READY
+
+用户明确修改ACT4-001懒惰：每阶段在火堆休息1次；残缺≤2实际支付能量回合结束6格挡，完整12格挡，觉醒12格挡并下个本人回合能量重置后+3。已有三阶段休息1次及原版休息钩子符合要求，无需更改试炼统计。沿用SlothTurnState支付台账、一次结算、战斗清理、他人/敌方隔离；仅觉醒排队能量，旧残缺/完整待发标记不得继续奖励能量。所有生效阶段加入格挡悬停，同步普通与Stage1/2描述，觉醒原12格挡+3能量文案保留。DesignDoc懒惰条目已与用户要求一致；另有火焰绽放副条目编辑，只读记录而不纳入本轮实现。不改DesignDoc、不跑静态测试、不部署、不备份PCK。前置`3e6662811e1d35c588dccdf1443cb718f6cd68e3`。
+
+
+## 2026-10-06 SLOTH-BALANCE-20261006 IMPLEMENTED
+
+SlothTurnState在本人回合结束实际能量支付≤2时按阶段给予6/12/12格挡；只有Stage3/4排队下回合能量+3，Stage1/2不再排队能量且TakeEnergy消费旧待发标记后不发能量。保留EndResolved一次结算、正数实际支付统计、免费牌不计支付、能量获得不抵扣支付、额外回合/他人回合隔离、战斗首尾清理和SavedProperty字段。所有已激活阶段可悬停预览格挡。普通/残缺/完整描述改为格挡，觉醒12格挡及正确3能量图标原样保留。三个火堆休息1次条件原有实现已符合，本轮未改统计、奖励领取或阶段替换。
+
+构建：dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore，0警告0错误。未运行静态测试，旧懒惰1/2/3能量调试契约不作为本轮验收；游戏内待用户实测。仅更新项目当前PCK一次，无PCK备份、未部署。DesignDoc原样保留，正常暂存区保持；火焰绽放副条目变化不在本轮实现范围。前置`3e6662811e1d35c588dccdf1443cb718f6cd68e3`。
