@@ -388,6 +388,10 @@ public sealed class TentacleArmor : MSCorruptCard
         copy.DeckVersion = null;
         CardCmd.PreviewCardPileAdd(await CardPileCmd.AddGeneratedCardToCombat(
             copy, PileType.Draw, Owner, CardPilePosition.Random));
+        // Presentation is isolated from the original plating and generated-card effects.
+        MaidenSuccubus.Util.Safe.Run(
+            () => MaidenSuccubus.UI.CharacterOutfitAppearance.WearTentacle(Owner.Creature),
+            "Outfit.TentacleArmor");
         await Cmd.Wait(1f);
     }
 

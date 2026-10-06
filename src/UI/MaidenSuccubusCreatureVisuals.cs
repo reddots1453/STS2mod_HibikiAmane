@@ -32,6 +32,8 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
     private Sprite2D? _characterSprite;
     private Sprite2D? _expressionSprite;
     private string? _shownAppearance;
+    private string? _shownFootwear;
+    private ShaderMaterial? _tentacleFootwearMaterial;
     private string? _shownExpression;
     private Tween? _feedbackTween;
     private Tween? _edgeTween;
@@ -577,15 +579,22 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
             : node.Entity.HasPower<CorruptRobePower>()
                 ? "character_corrupt_armor_"
                 : "character_armor_";
-        string file = armor switch
-        {
-            >= 3 => prefix + "3.png",
-            2 => prefix + "2.png",
-            0 or 1 when transformed => prefix + "1.png",
-            _ => "character_normal.png",
-        };
+        bool tentacle = CharacterOutfitAppearance.IsWearingTentacle(node.Entity);
+        string? footwear = tentacle && transformed
+            ? prefix + (armor >= 3 ? "3.png" : armor == 2 ? "2.png" : "1.png")
+            : null;
+        string file = tentacle
+            ? "character_tentacle.png"
+            : armor switch
+            {
+                >= 3 => prefix + "3.png",
+                2 => prefix + "2.png",
+                0 or 1 when transformed => prefix + "1.png",
+                _ => CharacterOutfitAppearance.BaseTexture(node.Entity.Player),
+            };
         if (file == _shownAppearance)
         {
+            RefreshTentacleFootwear(footwear);
             return;
         }
         Texture2D? nextTexture = LoadTexture(file);
@@ -599,6 +608,52 @@ public sealed partial class MaidenSuccubusCreatureVisuals : NCreatureVisuals
         _characterSprite.Texture = nextTexture;
         AlignExpressionToAppearance();
         _shownAppearance = file;
+        RefreshTentacleFootwear(footwear);
+    }
+
+    private void RefreshTentacleFootwear(string? file)
+    {
+        if (_characterSprite == null || file == _shownFootwear) return;
+        if (file == null)
+        {
+            _characterSprite.Material = null;
+            _tentacleFootwearMaterial = null;
+            _shownFootwear = null;
+            return;
+        }
+        Texture2D? footwear = LoadTexture(file);
+        if (footwear == null) return;
+        // All formal outfits share the 922x1250 artwork coordinates. Sample only
+        // the boot area; the weapon on the left must never enter this clothing layer.
+        _tentacleFootwearMaterial ??= new ShaderMaterial
+        {
+            Shader = new Shader
+            {
+                Code = """
+                    shader_type canvas_item;
+                    uniform sampler2D footwear_texture : source_color, filter_linear, repeat_disable;
+                    varying vec4 vertex_tint;
+                    void vertex() { vertex_tint = COLOR; }
+                    void fragment() {
+                        vec2 pixels = UV * vec2(922.0, 1250.0);
+                        vec4 body = texture(TEXTURE, UV);
+                        vec4 boots = texture(footwear_texture, UV);
+                        float region = step(416.0, pixels.x) * (1.0 - step(616.0, pixels.x))
+                            * step(770.0, pixels.y);
+                        boots.a *= region;
+                        // Keep the bare knees under the shaped boot tops. Below
+                        // the ankles, remove the original purple shoes completely.
+                        body.a *= 1.0 - smoothstep(949.0, 951.0, pixels.y);
+                        float alpha = boots.a + body.a * (1.0 - boots.a);
+                        vec3 rgb = boots.rgb * boots.a + body.rgb * body.a * (1.0 - boots.a);
+                        COLOR = vec4(rgb / max(alpha, 0.0001), alpha) * vertex_tint;
+                    }
+                    """,
+            },
+        };
+        _tentacleFootwearMaterial.SetShaderParameter("footwear_texture", footwear);
+        _characterSprite.Material = _tentacleFootwearMaterial;
+        _shownFootwear = file;
     }
 
     private void AlignExpressionToAppearance()
