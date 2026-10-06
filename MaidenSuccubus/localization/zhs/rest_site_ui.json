@@ -2,5 +2,7 @@
   "OPTION_MAIDEN_SUCCUBUS_SACRIFICE.name": "献祭",
   "OPTION_MAIDEN_SUCCUBUS_SACRIFICE.description": "移除所有封印区卡牌，不会占用本次火堆行动。",
   "OPTION_MAIDEN_SUCCUBUS_MASTURBATE.name": "自慰",
-  "OPTION_MAIDEN_SUCCUBUS_MASTURBATE.description": "将欲望降低至3点。此操作会消耗本次休息处行动。"
+  "OPTION_MAIDEN_SUCCUBUS_MASTURBATE.description": "将欲望降低至3点。此操作会消耗本次休息处行动。",
+  "OPTION_MAIDEN_SUCCUBUS_PRAYER.name": "祈祷",
+  "OPTION_MAIDEN_SUCCUBUS_PRAYER.description": "将欲望降低至3点。此操作会消耗本次休息处行动。"
 }

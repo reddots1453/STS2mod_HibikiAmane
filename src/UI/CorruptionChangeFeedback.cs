@@ -112,6 +112,7 @@ internal static class CorruptionFeedbackReason
         "desire.first_maximum" => "首次欲望满值",
         "invasion.first" => "首次受到侵犯",
         "rest_site.first_masturbation" => "首次火堆自慰",
+        "rest_site.first_prayer" => "首次火堆祈祷",
         "virgin.act" => "保持纯洁进入下一幕",
         "boss_blessing.light" => "领取光明女神祝福",
         "boss_blessing.dark" => "领取黑暗女神祝福",

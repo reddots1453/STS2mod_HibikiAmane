@@ -29,20 +29,27 @@ public sealed class MasturbateRestSiteOption : ModRestSiteOptionTemplate
     {
     }
 
-    public override async Task<bool> OnSelect()
+    public override Task<bool> OnSelect() => PerformActionAsync(Owner, prayer: false);
+
+    internal static async Task<bool> PerformActionAsync(Player owner, bool prayer)
     {
-        if (Desire.Get(Owner) < 5)
+        if (Desire.Get(owner) < 5 || owner.RunState is not RunState runState
+            || prayer != (CorruptionQuery.Get(runState) <= Corruption.HolyThreshold))
         {
             return false;
         }
 
-        await Desire.Set(Owner, Desire.ValueAfterOverflow);
-        if (Owner.RunState is RunState runState
-            && CorruptionCmd.TryTriggerOnce(runState, "SYS-CORRUPTION-FIRST-MASTURBATION"))
+        await Desire.Set(owner, Desire.ValueAfterOverflow);
+        string onceFlag = prayer
+            ? "SYS-CORRUPTION-FIRST-PRAYER"
+            : "SYS-CORRUPTION-FIRST-MASTURBATION";
+        if (CorruptionCmd.TryTriggerOnce(runState, onceFlag))
         {
-            CorruptionCmd.Modify(runState, 1, CorruptionChangeSource.FirstMasturbation);
+            CorruptionCmd.Modify(runState, prayer ? -1 : 1, prayer
+                ? CorruptionChangeSource.FirstPrayer
+                : CorruptionChangeSource.FirstMasturbation);
         }
-        await PerformanceDirector.PlayMasturbationAsync(Owner);
+        await PerformanceDirector.PlayMasturbationAsync(owner);
         return true;
     }
 }

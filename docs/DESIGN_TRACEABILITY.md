@@ -1913,3 +1913,15 @@ Debug构建0警告0错误。未运行静态测试、未部署，游戏内生成/
 回想房普通/升级均施加2层可叠加Counter，每回合正常抽牌后从消耗堆抽至多Amount张。删除ModifyHandDraw/ModifyHandDrawLate/AfterModifyingHandDraw替代及补足路径，不改变普通回合与手动抽牌。保留消耗堆顺序、空堆直接结束、不足取全部、满手牌留在消耗堆、抽牌历史/钩子/Drawn，以及原版ShouldDraw/AfterPreventingDraw接口；使用回合传入的上下文，移除独立Blocking上下文。升级Retain代替Innate，卡牌/Power文案同步。
 
 构建：dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore，0警告0错误。未跑静态测试，旧回想房调试契约的旧规则不作为本轮验收；游戏内待用户实测。文案仅更新项目当前PCK一次，不导出到Codex目录或备份。未部署；DesignDoc未修改、正常Git暂存区未动。前置`e0663b8911e34b44176a3238e90e8355d790c7c7`。
+
+
+## 2026-10-06 PRAYER-REST-20261006 READY
+
+用户直接确认：堕落值≤-3时，火堆自慰替换为祈祷。保持欲望≥5的出现条件、欲望回落到3、消耗火堆行动以及原演出；两个选项描述均保持原文本，不披露首次堕落值变化。祈祷首次每局-1，与自慰首次每局+1独立稳定标记并沿用存档数据；新增明确首次祈祷反馈原因。普通/堕落路线保留自慰，选择前复核欲望与路线，避免过期选项执行。DesignDoc只读，不运行静态测试，不部署，不备份PCK。前置`1b064c3a4035644c9beaeff729cd23cdddde9c95`。
+
+
+## 2026-10-06 PRAYER-REST-20261006 IMPLEMENTED
+
+火堆选项按≤-3阈值互斥生成Prayer/Masturbate，欲望≥5门槛不变。共享PerformActionAsync复核路线和欲望、回落至3、占用行动、沿用原演出。新独立SYS-CORRUPTION-FIRST-PRAYER标记经原TriggeredOnceFlags持久化，每局首次-1；原FIRST-MASTURBATION仍为首次+1，不互相消耗次数，不迁移或重置存档。祈祷使用独立稳定OptionId、本地化标题；新描述复制自慰原文，自慰旧描述完全保留。首次变动反馈明确“首次火堆祈祷”，重复行动无堕落值变动。
+
+构建：dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore，0警告0错误。未运行静态测试，火堆阈值/重复/存读档待用户手测。仅更新项目当前PCK一次，无PCK备份、未部署、未修改DesignDoc、正常Git暂存区保持。前置`1b064c3a4035644c9beaeff729cd23cdddde9c95`。

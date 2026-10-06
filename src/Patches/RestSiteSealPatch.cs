@@ -1,4 +1,5 @@
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.RestSite;
 using MegaCrit.Sts2.Core.Hooks;
@@ -35,7 +36,11 @@ public static class RestSiteSealPatch
 
                 if (Desire.Get(__0) >= 5)
                 {
-                    __result.Add(new MasturbateRestSiteOption(__0));
+                    if (__0.RunState is RunState runState
+                        && Corruption.Get(runState) <= Corruption.HolyThreshold)
+                        __result.Add(new PrayerRestSiteOption(__0));
+                    else
+                        __result.Add(new MasturbateRestSiteOption(__0));
                 }
             },
             nameof(AddRemoveSealedOption));
