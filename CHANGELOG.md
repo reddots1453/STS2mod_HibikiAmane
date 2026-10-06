@@ -3083,3 +3083,9 @@ FlameBloom基础BurningPower由1改2；原伤害8/11及魔力解放额外2保持
 ## 2026-10-06 LIGHTNING-KICK-20261006 IMPLEMENTED
 
 LightningKick基础10伤害/4破碎，升级伤害+2、破碎+2，即12伤害/6破碎；2费、普通攻击及旧施加顺序保持。现有描述随动态变量同步，无需修改JSON/重复导出PCK。构建：dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore，0警告0错误。未跑静态测试，旧破碎升级5层契约不作为本轮验收；未部署、游戏内待用户实测。DesignDoc与正常暂存区保持。前置`8c967d3fad2ee73133dee522a1dcb255b32e7dc3`。
+
+## 2026-10-06 — 三张审定角色图归档
+
+- 任务：将已审定的淫触魔衣 V05（裸腿紫靴）、淫欲兔女郎装＋破损黑丝 V04（交叉腿，红色高跟鞋）和朴素的衣服 V02 归档至图片素材/变身形态。
+- 前置快照：codex/before-character-asset-archive-20261006，HEAD 83cf2ca945a899e2044e8cc1a09683e7d2f19cfd。仅新增三张 PNG；未修改既有变身图、运行时素材或接线，未部署。
+- 验证：三张目标 PNG 与批准清单的 SHA-256 一致；均为 922×1250 RGBA。源清单见 Codex 工作区 outputs/approved-character-assets/manifest.json。
