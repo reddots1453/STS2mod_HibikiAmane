@@ -11,7 +11,7 @@ namespace MaidenSuccubus.Core.Routes;
 internal static class RetiredCardCatalog
 {
     internal static bool IsRetired(CardModel card) =>
-        card is MagicResonance or SemenAppetite;
+        card is MagicResonance or SemenAppetite or Procrastinate;
 
     internal static IEnumerable<CardModel> Obtainable(IEnumerable<CardModel> cards) =>
         cards.Where(card => !IsRetired(card));

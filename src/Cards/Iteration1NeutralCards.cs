@@ -52,7 +52,11 @@ public sealed class RepairAlyssa : MSNeutralCard
             context, Owner.Creature, DynamicVars["Armor"].IntValue, this);
     }
 
-    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(3);
+    protected override void OnUpgrade()
+    {
+        DynamicVars.Block.UpgradeValueBy(1);
+        DynamicVars["Armor"].UpgradeValueBy(1);
+    }
 }
 
 public abstract class HandDiscountCard : MSNeutralCard
@@ -259,12 +263,17 @@ public sealed class StudyPlan : MSNeutralCard
 [RegisterCard(typeof(MSNeutralCardPool))]
 public sealed class Procrastinate : MSNeutralCard
 {
+    // Retired from acquisition; preserve identity and owned cards in old saves.
+    public override bool CanBeGeneratedInCombat => false;
+    public override bool CanBeGeneratedByModifiers => false;
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(2)];
     public override IEnumerable<CardKeyword> CanonicalKeywords =>
         [CardKeyword.Exhaust];
 
     public Procrastinate()
-        : base(0, CardType.Skill, CardRarity.Common, TargetType.Self) { }
+        : base(0, CardType.Skill, CardRarity.Common, TargetType.Self,
+            shouldShowInCardLibrary: false) { }
 
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {

@@ -120,7 +120,6 @@ public sealed class ForgeCharge : MSHolyCard
 {
     protected override IEnumerable<IHoverTip> CardSpecificHoverTips =>
         HoverTipFactory.FromEnchantment<ChargeEnchantment>(DynamicVars["Charge"].IntValue);
-    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override IEnumerable<MegaCrit.Sts2.Core.Localization.DynamicVars.DynamicVar> CanonicalVars =>
         [new MegaCrit.Sts2.Core.Localization.DynamicVars.DynamicVar("Charge", 2)];
     public ForgeCharge() : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }

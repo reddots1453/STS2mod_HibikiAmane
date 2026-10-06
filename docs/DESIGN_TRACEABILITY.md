@@ -1961,3 +1961,15 @@ PrideRouteRelic觉醒回合钩子Grant由2改为4，同时获得4力量/4自负�
 SlothTurnState在本人回合结束实际能量支付≤2时按阶段给予6/12/12格挡；只有Stage3/4排队下回合能量+3，Stage1/2不再排队能量且TakeEnergy消费旧待发标记后不发能量。保留EndResolved一次结算、正数实际支付统计、免费牌不计支付、能量获得不抵扣支付、额外回合/他人回合隔离、战斗首尾清理和SavedProperty字段。所有已激活阶段可悬停预览格挡。普通/残缺/完整描述改为格挡，觉醒12格挡及正确3能量图标原样保留。三个火堆休息1次条件原有实现已符合，本轮未改统计、奖励领取或阶段替换。
 
 构建：dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore，0警告0错误。未运行静态测试，旧懒惰1/2/3能量调试契约不作为本轮验收；游戏内待用户实测。仅更新项目当前PCK一次，无PCK备份、未部署。DesignDoc原样保留，正常暂存区保持；火焰绽放副条目变化不在本轮实现范围。前置`3e6662811e1d35c588dccdf1443cb718f6cd68e3`。
+
+
+## 2026-10-06 CARDS-BALANCE-20261006 READY
+
+用户确认火焰绽放8/11伤害、基础2燃烧、魔力解放额外2燃烧；修复·娅露丝4/5格挡与1/2魔装耐久；锻成・充能保留弃牌堆选牌置顶并附魔充能2/3，移除消耗；移除拖延。费用/类型/稀有度依用户条目保持。拖延沿用RetiredCardCatalog及原生生成/百科门禁，保留注册身份和旧存档/历史/已拥有牌，不让奖励、商店、事件、变化和生成重新提供。现有本地化模板读取BurningPower/Block/Armor/Charge变量与原生关键词，可直接同步，无需改JSON或重复打包PCK。用户当前DesignDoc对应条目已同步，原样快照保存但不写文档。不跑静态测试、不部署、不备份PCK。前置`67b9934093d99a4620b05c89e7b600918d195f13`。
+
+
+## 2026-10-06 CARDS-BALANCE-20261006 IMPLEMENTED
+
+FlameBloom基础BurningPower由1改2；原伤害8/11及魔力解放额外2保持。RepairAlyssa普通4格挡/1魔装耐久，升级Block+1且Armor+1达到5/2。ForgeCharge删除Exhaust关键词，弃牌堆有效附魔候选/置顶/充能2/3及多重附魔兼容不改。Procrastinate纳入RetiredCardCatalog，关闭两种原生生成开关、隐藏百科，注册ID/旧存档牌/旧牌效果/历史资产不删除；继承既有奖励商店事件变化生成统一退役过滤。
+
+本地化现有动态变量模板和原生消耗关键词显示随新代码更新，无JSON修改/PCK重复导出。构建：dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore，0警告0错误。未跑静态测试；旧三个卡牌及退役清单的调试契约不作为本轮验收。游戏内数值/关键词/获取渠道待用户实测，未部署。DesignDoc原样保留，正常暂存区保持。前置`67b9934093d99a4620b05c89e7b600918d195f13`。

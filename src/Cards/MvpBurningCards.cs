@@ -63,7 +63,7 @@ public sealed class ScorchingMagic : MSCorruptCard
 public sealed class FlameBloom : MSNeutralCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new DamageVar(8, ValueProp.Move), new PowerVar<BurningPower>(1)];
+        [new DamageVar(8, ValueProp.Move), new PowerVar<BurningPower>(2)];
     public FlameBloom() : base(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) { }
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
