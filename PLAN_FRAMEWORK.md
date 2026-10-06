@@ -3335,3 +3335,15 @@ Debug构建0警告0错误。未运行静态测试、未部署，游戏内生成/
 火堆选项按≤-3阈值互斥生成Prayer/Masturbate，欲望≥5门槛不变。共享PerformActionAsync复核路线和欲望、回落至3、占用行动、沿用原演出。新独立SYS-CORRUPTION-FIRST-PRAYER标记经原TriggeredOnceFlags持久化，每局首次-1；原FIRST-MASTURBATION仍为首次+1，不互相消耗次数，不迁移或重置存档。祈祷使用独立稳定OptionId、本地化标题；新描述复制自慰原文，自慰旧描述完全保留。首次变动反馈明确“首次火堆祈祷”，重复行动无堕落值变动。
 
 构建：dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore，0警告0错误。未运行静态测试，火堆阈值/重复/存读档待用户手测。仅更新项目当前PCK一次，无PCK备份、未部署、未修改DesignDoc、正常Git暂存区保持。前置`1b064c3a4035644c9beaeff729cd23cdddde9c95`。
+
+
+## 2026-10-06 CARD-ART-REFRESH-20261006 READY
+
+用户要求采用当前完成版重绘的玩火与狂战士的假面。两张原PNG已与完成版逐字节一致，但原生.ctex源哈希仍旧，因此按现有Godot4.5.1增量导入仅重新编译两张1000×760 BC7纹理。保留正式素材、原生路径/变奏/预览接口、96MiB缓存及预加载排除方式，不改机制或其他素材。一次更新项目当前PCK，不备份/输出重复PCK，不运行静态测试，不部署，DesignDoc只读。前置`4f3dc32ca2d3be715880cfb8a4bf8199115eec80`。
+
+
+## 2026-10-06 CARD-ART-REFRESH-20261006 IMPLEMENTED
+
+玩火与狂战士的假面当前完成版原图已接入原生导入纹理；增量编译2张，其余637张复用。均保持1000×760、BC7 RGBA，每张760000字节GPU数据，SourceSHA与完成版/运行时PNG一致，TextureSHA与当前.ctex一致。类名对应PlayingWithFire/BerserkerMask及原res://PNG.import映射不变，卡图大图和缩略预览共用新纹理。不改变卡牌机制或内存加载架构。
+
+Godot4.5.1资源导入成功；dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore，0警告0错误。仅更新项目当前PCK一次；未备份PCK、未运行静态测试、未部署；游戏内待用户确认。DesignDoc与正常暂存区保持。前置`4f3dc32ca2d3be715880cfb8a4bf8199115eec80`。
