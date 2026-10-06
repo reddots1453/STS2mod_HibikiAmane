@@ -121,7 +121,7 @@
   "MAIDEN_SUCCUBUS_CARD_WORSHIP.title": "净化之叶",
   "MAIDEN_SUCCUBUS_CARD_WORSHIP.description": "获得{DexterityPower:diff()}层[gold]敏捷[/gold]。\n获得{PurificationPower:diff()}层[gold]净化[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_INWARD_DISCIPLINE.title": "武神的呼吸",
-  "MAIDEN_SUCCUBUS_CARD_INWARD_DISCIPLINE.description": "当你[gold]虚弱[/gold]时，额外获得{InwardDisciplinePower:diff()}%[gold]格挡[/gold]。\n当你[gold]脆弱[/gold]时，额外造成{InwardDisciplinePower:diff()}%伤害。",
+  "MAIDEN_SUCCUBUS_CARD_INWARD_DISCIPLINE.description": "获得{InwardDisciplinePower:diff()}层[gold]武神的呼吸[/gold]。\n当你[gold]虚弱[/gold]时，每层额外获得25%[gold]格挡[/gold]。\n当你[gold]脆弱[/gold]时，每层额外造成25%伤害。",
   "MAIDEN_SUCCUBUS_CARD_SUN_DANCE.title": "太阳之舞",
   "MAIDEN_SUCCUBUS_CARD_SUN_DANCE.description": "每拥有1层增益效果，在本回合中获得1层[gold]敏捷[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_DIVINE_ECHO.title": "神圣回响",

@@ -223,7 +223,7 @@ public sealed class Worship : MSHolyCard
 public sealed class InwardDiscipline : MSHolyCard
 {
     protected override IEnumerable<DynamicVar> CanonicalVars =>
-        [new PowerVar<InwardDisciplinePower>(50)];
+        [new PowerVar<InwardDisciplinePower>(2)];
 
     public InwardDiscipline()
         : base(1, CardType.Power, CardRarity.Rare, TargetType.Self)
@@ -241,7 +241,7 @@ public sealed class InwardDiscipline : MSHolyCard
             this);
 
     protected override void OnUpgrade() =>
-        DynamicVars["InwardDisciplinePower"].UpgradeValueBy(25);
+        DynamicVars["InwardDisciplinePower"].UpgradeValueBy(1);
 }
 
 [RegisterCard(typeof(MSHolyCardPool))]

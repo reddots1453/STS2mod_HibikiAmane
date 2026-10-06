@@ -88,7 +88,7 @@ public sealed class InwardDisciplinePower : MaidenSuccubusPowerTemplate
         {
             return 1m;
         }
-        return 1m + Amount / 100m;
+        return 1m + Amount * 0.25m;
     }
 
     public override decimal ModifyDamageMultiplicative(
@@ -103,7 +103,7 @@ public sealed class InwardDisciplinePower : MaidenSuccubusPowerTemplate
         {
             return 1m;
         }
-        return 1m + Amount / 100m;
+        return 1m + Amount * 0.25m;
     }
 }
 

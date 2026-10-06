@@ -3299,3 +3299,15 @@ Debug构建0警告0错误。未运行静态测试、未部署，游戏内生成/
 已将TacticalAnalyzer统一资格函数改为升级或附魔可行，并在实际结算时分别判断IsUpgradable和Steady.CanEnchant。原有附魔不覆盖、升级不越界，光之翼及多重附魔适配保留。沿用先抽牌、手牌选择、返回后重验；零可行候选正常结束。对应旧DS27-02Y规则由用户本次明确修订替代；其历史AND运行时契约不作为本轮验收规则，未运行该旧契约或任何静态测试。
 
 构建：dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore，0警告0错误。仅代码改变，当前PCK复用不重新导出、不备份。尚未部署，游戏内待用户实测；DesignDoc与仓库正常暂存区保持。前置快照`8f60803e210e0ecd6893e1468f2dc36999b0556a`。
+
+
+## 2026-10-06 INWARD-LAYERS-20261006 READY
+
+用户明确选择武神的呼吸每层代表25%加成：普通版2层、升级版3层，保留Counter可叠加；虚弱增格挡、脆弱增伤的触发条件和单次50%/75%收益不变。增益层数查询无需特例，其他增层效果每层增加25个百分点。同步卡牌/状态文案。DesignDoc只读、不跑静态测试、不部署；当前PCK仅因文案变更更新一次，不保存备份。前置快照`a7c94258e422411f9ac27625e96195e78feacae3`。
+
+
+## 2026-10-06 INWARD-LAYERS-20261006 IMPLEMENTED
+
+武神的呼吸普通2层、升级3层，每层25%，原Counter保留：普通叠普通4层=100%，普通叠升级5层=125%，升级叠升级6层=150%。魔力爆发等增益层数收益按实际2/3层统计；增层类效果按每层25%结算。仅修改本牌变量、此Power的两个倍率和三项文案，不改变通用增益查询与其他Power。
+
+构建0警告0错误：dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore。当前项目PCK因文案更新一次，复用原导入纹理、未备份PCK。未跑静态测试、游戏内待用户实测、未部署。历史调试契约的50/75计数规则不作为本次验收。DesignDoc与正常Git暂存区保持。前置快照`a7c94258e422411f9ac27625e96195e78feacae3`。
