@@ -1901,3 +1901,15 @@ Debug构建0警告0错误。未运行静态测试、未部署，游戏内生成/
 武神的呼吸普通2层、升级3层，每层25%，原Counter保留：普通叠普通4层=100%，普通叠升级5层=125%，升级叠升级6层=150%。魔力爆发等增益层数收益按实际2/3层统计；增层类效果按每层25%结算。仅修改本牌变量、此Power的两个倍率和三项文案，不改变通用增益查询与其他Power。
 
 构建0警告0错误：dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore。当前项目PCK因文案更新一次，复用原导入纹理、未备份PCK。未跑静态测试、游戏内待用户实测、未部署。历史调试契约的50/75计数规则不作为本次验收。DesignDoc与正常Git暂存区保持。前置快照`a7c94258e422411f9ac27625e96195e78feacae3`。
+
+
+## 2026-10-06 RECOLLECTION-ROOM-20261006 READY
+
+用户明确指定回想房改为回合开始从消耗堆抽2张、升级保留；当前DesignDoc已由用户同步，本轮只读并在前置快照保留原文件。已复核相对上一接受快照仅此玩法变化，覆盖旧DS27-02A的额外抽1/消耗优先补足/固有规则。费用1、堕落稀有能力不变。正常回合抽牌结束后按Amount从消耗堆顺序抽取；应用2层Counter，重复打出叠加。空堆/不足不补抽牌堆、不提供旧额外抽1；保留手牌上限、禁止抽牌、Drawn/历史/AfterCardDrawn生命周期与当前选择上下文。升级只给Retain，无Innate。不跑静态测试、不部署、不备份PCK。前置`e0663b8911e34b44176a3238e90e8355d790c7c7`。
+
+
+## 2026-10-06 RECOLLECTION-ROOM-20261006 IMPLEMENTED
+
+回想房普通/升级均施加2层可叠加Counter，每回合正常抽牌后从消耗堆抽至多Amount张。删除ModifyHandDraw/ModifyHandDrawLate/AfterModifyingHandDraw替代及补足路径，不改变普通回合与手动抽牌。保留消耗堆顺序、空堆直接结束、不足取全部、满手牌留在消耗堆、抽牌历史/钩子/Drawn，以及原版ShouldDraw/AfterPreventingDraw接口；使用回合传入的上下文，移除独立Blocking上下文。升级Retain代替Innate，卡牌/Power文案同步。
+
+构建：dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore，0警告0错误。未跑静态测试，旧回想房调试契约的旧规则不作为本轮验收；游戏内待用户实测。文案仅更新项目当前PCK一次，不导出到Codex目录或备份。未部署；DesignDoc未修改、正常Git暂存区未动。前置`e0663b8911e34b44176a3238e90e8355d790c7c7`。

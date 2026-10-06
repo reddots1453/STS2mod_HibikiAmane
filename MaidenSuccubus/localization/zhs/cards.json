@@ -421,7 +421,7 @@
   "MAIDEN_SUCCUBUS_CARD_PROCRASTINATE.description": "选择一张牌，将其置于[gold]抽牌堆[/gold]底部。\n抽{Cards:diff()}张牌。",
   "MAIDEN_SUCCUBUS_CARD_PROCRASTINATE.selectionScreenPrompt": "选择一张牌置于抽牌堆底部。",
   "MAIDEN_SUCCUBUS_CARD_RECOLLECTION_ROOM.title": "回想房",
-  "MAIDEN_SUCCUBUS_CARD_RECOLLECTION_ROOM.description": "回合开始时额外抽1张牌，并优先从[gold]消耗牌堆[/gold]抽牌。",
+  "MAIDEN_SUCCUBUS_CARD_RECOLLECTION_ROOM.description": "回合开始时，从[gold]消耗牌堆[/gold]抽2张牌。",
   "MAIDEN_SUCCUBUS_CARD_REGENERATIVE_MAGIC_FIBER.title": "超再生魔力纤维",
   "MAIDEN_SUCCUBUS_CARD_REGENERATIVE_MAGIC_FIBER.description": "回合开始时，获得1层[gold]魔装耐久[/gold]。",
   "MAIDEN_SUCCUBUS_CARD_REPAIR_ALYSSA.title": "修复·娅露丝",

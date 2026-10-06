@@ -76,50 +76,38 @@ public sealed class DarkFlameBarrierPower : MaidenSuccubusPowerTemplate
 [RegisterPower]
 public sealed class RecollectionRoomPower : MaidenSuccubusPowerTemplate
 {
-    private int _pendingDraw;
-
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
 
-    public override decimal ModifyHandDraw(Player player, decimal count) =>
-        player.Creature == Owner ? count + Amount : count;
-
-    public override decimal ModifyHandDrawLate(Player player, decimal count)
+    public override async Task AfterPlayerTurnStart(
+        PlayerChoiceContext context,
+        Player player)
     {
-        if (player.Creature != Owner)
-        {
-            return count;
-        }
-        decimal total = Math.Max(0, count);
-        _pendingDraw = Math.Min((int)total, PileType.Exhaust.GetPile(player).Cards.Count);
-        // The early +Amount also registers this listener when one exhausted card
-        // exactly cancels the bonus: Hook only registers changed draw counts.
-        // CombatManager invokes AfterModifyingHandDraw before its normal Draw.
-        // Recover exhausted cards first, then let that Draw fill only the remainder.
-        return total - _pendingDraw;
-    }
-
-    public override async Task AfterModifyingHandDraw()
-    {
-        if (_pendingDraw <= 0 || Owner.Player == null)
-        {
-            return;
-        }
-        CardModel[] cards = PileType.Exhaust.GetPile(Owner.Player).Cards
-            .Take(_pendingDraw)
-            .ToArray();
-        _pendingDraw = 0;
+        // Native turn-start hand draw has already completed. Exhaust recovery
+        // adds cards independently and never replaces or tops up normal draws.
         ICombatState? combat = Owner.CombatState;
-        if (combat == null || CombatManager.Instance.IsOverOrEnding
-            || !Hook.ShouldDraw(combat, Owner.Player, fromHandDraw: true, out _))
+        if (player.Creature != Owner || Amount <= 0 || combat == null
+            || CombatManager.Instance.IsOverOrEnding)
         {
             return;
         }
-        BlockingPlayerChoiceContext context = new();
+        CardModel[] cards = PileType.Exhaust.GetPile(player).Cards
+            .Take(Amount)
+            .ToArray();
+        if (cards.Length == 0)
+        {
+            return;
+        }
+        if (!Hook.ShouldDraw(combat, player, fromHandDraw: true, out AbstractModel? modifier))
+        {
+            if (modifier != null)
+                await Hook.AfterPreventingDraw(combat, modifier);
+            return;
+        }
         foreach (CardModel card in cards)
         {
             if (CombatManager.Instance.IsOverOrEnding
-                || PileType.Hand.GetPile(Owner.Player).Cards.Count >= 10)
+                || PileType.Hand.GetPile(player).Cards.Count >= CardPile.MaxCardsInHand)
             {
                 break;
             }
@@ -128,8 +116,8 @@ public sealed class RecollectionRoomPower : MaidenSuccubusPowerTemplate
                 continue;
             }
             await CardPileCmd.Add(card, PileType.Hand);
-            // Match the draw lifecycle, not just a pile transfer: draw-triggered
-            // effects and history must see recovered cards as start-of-turn draws.
+            // Recovery is a draw, so generated statuses and draw-triggered
+            // effects receive the same lifecycle as native turn-start draws.
             CombatManager.Instance.History.CardDrawn(combat, card, fromHandDraw: true);
             await Hook.AfterCardDrawn(combat, context, card, fromHandDraw: true);
             card.InvokeDrawn();

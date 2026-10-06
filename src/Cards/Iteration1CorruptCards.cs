@@ -180,9 +180,9 @@ public sealed class RecollectionRoom : MSCorruptCard
 
     protected override Task OnPlay(PlayerChoiceContext context, CardPlay play) =>
         PowerCmd.Apply<RecollectionRoomPower>(
-            context, Owner.Creature, 1, Owner.Creature, this);
+            context, Owner.Creature, 2, Owner.Creature, this);
 
-    protected override void OnUpgrade() => AddKeyword(CardKeyword.Innate);
+    protected override void OnUpgrade() => AddKeyword(CardKeyword.Retain);
 }
 
 [RegisterCard(typeof(MSCorruptCardPool))]
