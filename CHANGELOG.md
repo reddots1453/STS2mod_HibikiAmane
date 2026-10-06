@@ -3037,3 +3037,15 @@ Debug构建0警告0错误。未运行静态测试、未部署，游戏内生成/
 玩火与狂战士的假面当前完成版原图已接入原生导入纹理；增量编译2张，其余637张复用。均保持1000×760、BC7 RGBA，每张760000字节GPU数据，SourceSHA与完成版/运行时PNG一致，TextureSHA与当前.ctex一致。类名对应PlayingWithFire/BerserkerMask及原res://PNG.import映射不变，卡图大图和缩略预览共用新纹理。不改变卡牌机制或内存加载架构。
 
 Godot4.5.1资源导入成功；dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore，0警告0错误。仅更新项目当前PCK一次；未备份PCK、未运行静态测试、未部署；游戏内待用户确认。DesignDoc与正常暂存区保持。前置`4f3dc32ca2d3be715880cfb8a4bf8199115eec80`。
+
+
+## 2026-10-06 PRIDE-AWAKENED-20261006 READY
+
+用户将傲慢之冠觉醒改为每回合开始4力量/4自负，当前DesignDoc主条目已由用户同步，替代旧BALANCE-20261003的觉醒2/2。保留残缺战斗开始1/1、完整2/2、试炼条件及自负减层减力量机制。Stage>=3沿用原回合钩子与战斗/拥有者保护，Grant传入4；同步descriptionStage3与Stage4兼容显示。不修改DesignDoc，不跑静态测试，不部署，不备份PCK。前置`1b8850ea2d7407f9e77c638b4ba7f72bdf9ca2df`。
+
+
+## 2026-10-06 PRIDE-AWAKENED-20261006 IMPLEMENTED
+
+PrideRouteRelic觉醒回合钩子Grant由2改为4，同时获得4力量/4自负；残缺、完整、试炼计数、自负受到未格挡伤害后的行为与存档Stage原样保留。同步Stage3/Stage4悬停及奖励预览的现有本地化入口。
+
+构建：dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore，0警告0错误。未运行静态测试，旧傲慢2/2调试契约不是本轮验收规则；游戏内待用户确认。文案更新项目当前PCK一次，无PCK备份、未部署。DesignDoc未修改，正常Git暂存区保持。前置`1b8850ea2d7407f9e77c638b4ba7f72bdf9ca2df`。

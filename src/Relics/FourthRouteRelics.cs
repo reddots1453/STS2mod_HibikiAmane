@@ -109,7 +109,7 @@ public sealed class PrideRouteRelic : FourthRouteRelic
     public override Task AfterPlayerTurnStart(PlayerChoiceContext context, Player player) =>
         Stage >= 3 && player == Owner && Owner.Creature.CombatState != null
             && CombatManager.Instance.IsInProgress && !CombatManager.Instance.IsOverOrEnding
-            ? Grant(context, 2) : Task.CompletedTask;
+            ? Grant(context, 4) : Task.CompletedTask;
 
     private async Task Grant(PlayerChoiceContext context, int amount)
     {
