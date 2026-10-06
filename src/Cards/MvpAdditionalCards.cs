@@ -91,7 +91,7 @@ public sealed class LightningKick : MSCorruptCard
     protected override void OnUpgrade()
     {
         DynamicVars.Damage.UpgradeValueBy(2);
-        DynamicVars["ShatterPower"].UpgradeValueBy(1);
+        DynamicVars["ShatterPower"].UpgradeValueBy(2);
     }
 }
 

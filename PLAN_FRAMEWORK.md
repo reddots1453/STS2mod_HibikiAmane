@@ -3383,3 +3383,13 @@ SlothTurnState在本人回合结束实际能量支付≤2时按阶段给予6/12/
 FlameBloom基础BurningPower由1改2；原伤害8/11及魔力解放额外2保持。RepairAlyssa普通4格挡/1魔装耐久，升级Block+1且Armor+1达到5/2。ForgeCharge删除Exhaust关键词，弃牌堆有效附魔候选/置顶/充能2/3及多重附魔兼容不改。Procrastinate纳入RetiredCardCatalog，关闭两种原生生成开关、隐藏百科，注册ID/旧存档牌/旧牌效果/历史资产不删除；继承既有奖励商店事件变化生成统一退役过滤。
 
 本地化现有动态变量模板和原生消耗关键词显示随新代码更新，无JSON修改/PCK重复导出。构建：dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore，0警告0错误。未跑静态测试；旧三个卡牌及退役清单的调试契约不作为本轮验收。游戏内数值/关键词/获取渠道待用户实测，未部署。DesignDoc原样保留，正常暂存区保持。前置`67b9934093d99a4620b05c89e7b600918d195f13`。
+
+
+## 2026-10-06 LIGHTNING-KICK-20261006 READY
+
+用户指定闪电踢击2费普通攻击，10/12伤害、4/6破碎。现有基础与伤害符合，只将升级ShatterPower增量1改2；原攻击后施加破碎、卡池、费用、目标均保持。现有动态描述自动显示4/6，不改本地化/PCK。DesignDoc只读，用户本次明确值覆盖旧4/5；不跑静态测试、不部署。前置`8c967d3fad2ee73133dee522a1dcb255b32e7dc3`。
+
+
+## 2026-10-06 LIGHTNING-KICK-20261006 IMPLEMENTED
+
+LightningKick基础10伤害/4破碎，升级伤害+2、破碎+2，即12伤害/6破碎；2费、普通攻击及旧施加顺序保持。现有描述随动态变量同步，无需修改JSON/重复导出PCK。构建：dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore，0警告0错误。未跑静态测试，旧破碎升级5层契约不作为本轮验收；未部署、游戏内待用户实测。DesignDoc与正常暂存区保持。前置`8c967d3fad2ee73133dee522a1dcb255b32e7dc3`。
