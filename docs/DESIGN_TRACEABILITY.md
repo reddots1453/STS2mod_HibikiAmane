@@ -1877,3 +1877,15 @@ Debug构建0警告0错误。未运行静态测试、未部署，游戏内生成/
 ## 2026-10-06 本轮完整修复仅本地部署（LOCAL-REPAIR-20261006-162813）
 
 用户明确要求部署到本地mod目录。前置提交/标签：`141c2e0fd478c1e574a5527b5e2f02e94cace052` / `codex/before-local-repair-20261006-162813`。复用本轮Debug build（0警告0错误），将当前项目DLL、PDB、PCK替换至`D:\game_backup\steam\steamapps\common\Slay the Spire 2\mods\MaidenSuccubus`；逐文件SHA-256一致，既有JSON全部保持。未改ModUploader、沙箱或DesignDoc，未启动/终止游戏、未重复构建、未跑静态测试。遵照最新要求不备份PCK，不在Codex输出保存资源包；源代码已有分阶段Git快照与提交，部署输出仅记录哈希与明细。实际游戏表现待用户测试。明细：outputs/repair-20261006/local-deployment-20261006-162813.json。
+
+
+## 2026-10-06 TACTICAL-SELECTION-20261006 READY
+
+用户明确将战术分析仪筛选改为“可以升级或可以附魔”，覆盖旧DS27-02Y的AND规则。抽1/2张牌和手牌选择界面不变，选择前/后均确认拥有者/Hand及OR资格；升级和附魔分别判断并结算。达到升级上限但可附魔的牌只附魔；已附魔但仍可升级的牌只升级，保护已有附魔；两者都不能执行才排除。光之翼继续通过现有Steady.CanEnchant/LayeredEnchantments例外，多重附魔兼容继续由现有接口决定。不改DesignDoc、不跑静态测试、不部署、不重复导出PCK。前置快照`8f60803e210e0ecd6893e1468f2dc36999b0556a`。
+
+
+## 2026-10-06 TACTICAL-SELECTION-20261006 IMPLEMENTED
+
+已将TacticalAnalyzer统一资格函数改为升级或附魔可行，并在实际结算时分别判断IsUpgradable和Steady.CanEnchant。原有附魔不覆盖、升级不越界，光之翼及多重附魔适配保留。沿用先抽牌、手牌选择、返回后重验；零可行候选正常结束。对应旧DS27-02Y规则由用户本次明确修订替代；其历史AND运行时契约不作为本轮验收规则，未运行该旧契约或任何静态测试。
+
+构建：dotnet build MaidenSuccubus.csproj -c Debug -p:DeployMod=false -p:ValidateMod=false --no-restore，0警告0错误。仅代码改变，当前PCK复用不重新导出、不备份。尚未部署，游戏内待用户实测；DesignDoc与仓库正常暂存区保持。前置快照`8f60803e210e0ecd6893e1468f2dc36999b0556a`。

@@ -116,19 +116,23 @@ public sealed class TacticalAnalyzer : MSHolyCard
         HoverTipFactory.FromEnchantment<Steady>();
     protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(1)];
     public TacticalAnalyzer() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
-    private bool CanUpgradeAndEnchant(CardModel card) =>
+    private bool CanUpgradeOrEnchant(CardModel card) =>
         card.Owner == Owner && card.Pile?.Type == PileType.Hand
-        && card.IsUpgradable && ModelDb.Enchantment<Steady>().CanEnchant(card);
+        && (card.IsUpgradable || ModelDb.Enchantment<Steady>().CanEnchant(card));
     protected override async Task OnPlay(PlayerChoiceContext context, CardPlay play)
     {
         await CardPileCmd.Draw(context, DynamicVars.Cards.IntValue, Owner);
         CardModel? card = (await CardSelectCmd.FromHand(context, Owner,
             new CardSelectorPrefs(CardSelectorPrefs.UpgradeSelectionPrompt, 1),
-            CanUpgradeAndEnchant, this)).FirstOrDefault();
-        if (card != null && CanUpgradeAndEnchant(card))
+            CanUpgradeOrEnchant, this)).FirstOrDefault();
+        if (card != null && CanUpgradeOrEnchant(card))
         {
-            CardCmd.Upgrade(card);
-            CombatEnchantmentCmd.ApplyVanilla<Steady>(card, 1);
+            // Either effect is a valid choice. Preserve an occupied enchantment
+            // slot and never attempt to upgrade past the card's native limit.
+            if (card.IsUpgradable)
+                CardCmd.Upgrade(card);
+            if (ModelDb.Enchantment<Steady>().CanEnchant(card))
+                CombatEnchantmentCmd.ApplyVanilla<Steady>(card, 1);
         }
     }
     protected override void OnUpgrade() => DynamicVars.Cards.UpgradeValueBy(1);
